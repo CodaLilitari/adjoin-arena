@@ -1,5 +1,6 @@
 import hashlib
 import json
+import os
 import struct
 import subprocess
 import sys
@@ -114,6 +115,28 @@ class SpawnAtlasTests(unittest.TestCase):
             self.assertNotEqual(report["status"], "pass")
             write_gob(path, [("a/m2.jkl", LEVEL)])
             self.assertIn("m4.jkl", build_atlas(root)["episodes"][0]["missing_maps"])
+
+    def test_cli_preserves_archives_when_output_aliases_an_input(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            episode = root / "Episode"
+            episode.mkdir()
+            for name, maps in STOCK_MAPS.items():
+                path = episode / (name.upper() + ".GOB")
+                write_gob(path, [(m, LEVEL) for m in sorted(maps)])
+            for archive in episode.iterdir():
+                original = archive.read_bytes()
+                symlink = root / (archive.stem + "-sym.json")
+                symlink.symlink_to(archive)
+                hardlink = root / (archive.stem + "-hard.json")
+                os.link(archive, hardlink)
+                for output in (archive, symlink, hardlink):
+                    with self.subTest(output=output):
+                        result = subprocess.run([sys.executable, "-m", "bots.spawn_atlas",
+                                                 "--game-data", tmp, "--output", str(output)],
+                                                capture_output=True)
+                        self.assertNotEqual(result.returncode, 0)
+                        self.assertEqual(archive.read_bytes(), original)
 
     def test_missing_archives_cli_writes_failure(self):
         with tempfile.TemporaryDirectory() as tmp:

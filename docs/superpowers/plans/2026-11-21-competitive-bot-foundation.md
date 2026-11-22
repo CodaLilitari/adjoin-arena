@@ -42,7 +42,7 @@
 
 ## Task 2: Qualify the atlas against the installed stock data
 
-**Files:** A private generated atlas and an audit receipt outside the tracked source tree; no proprietary game content is committed.
+**Files:** The full atlas with authored poses stays private. The tracked summary receipt is `qa/bots-stock-spawn-atlas-receipt.json`.
 
 **Interfaces:** Use the Task 1 CLI on the user's installed `Episode/JK1MP.GOB` and `Episode/JK1CTF.GOB`; report observed archive and per-map SHA-256 and authored start counts.
 

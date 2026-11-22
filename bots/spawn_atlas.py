@@ -85,6 +85,14 @@ def main() -> int:
     parser.add_argument("--game-data", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
+    if args.output.exists() and args.game_data.is_dir():
+        archive_names = {name + ".gob" for name in STOCK_MAPS}
+        for directory in args.game_data.iterdir():
+            if directory.name.casefold() != "episode" or not directory.is_dir():
+                continue
+            for archive in directory.iterdir():
+                if archive.name.casefold() in archive_names and archive.exists() and args.output.samefile(archive):
+                    parser.error(f"Output identifies an input game archive: {archive}")
     report = build_atlas(args.game_data)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2, allow_nan=False) + "\n", encoding="utf-8")
