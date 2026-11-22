@@ -122,6 +122,111 @@ class RecoveryEvaluationTests(unittest.TestCase):
                 with self.subTest(terminal=row["terminal"]), self.assertRaisesRegex(ValueError, "frozen decision mismatch"):
                     audit.audit_execution(job, row, path, case, wait)
 
+    def test_censored_actuation_must_match_frozen_decision(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)
+            job, case, _ = one_loss(path)
+            receipt = audit.motor.censored(job, "worker_failed")
+            names = ("motor.jsonl", "native.jsonl")
+            original = {name: (path/name).read_bytes() for name in names}
+            for changed in ((names[0],), (names[1],), names):
+                with self.subTest(changed=changed):
+                    for name, data in original.items():
+                        records = [json.loads(line) for line in data.splitlines()]
+                        if name in changed:
+                            records[1]["axes"][0] = .5
+                        write_rows(path/name, records)
+                    with self.assertRaisesRegex(ValueError, "action_does_not_match_decision"):
+                        audit.audit_execution(job, receipt, path, case, wait)
+
+    def test_censored_control_identity_and_button_edges(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)
+            job, case, _ = one_loss(path)
+            receipt = audit.motor.censored(job, "worker_failed")
+            for name in ("motor.jsonl", "native.jsonl"):
+                stream = path/name
+                original = stream.read_bytes()
+                changes = dict(tick=1, step=1, owner="baseline", event="observation", buttons=1)
+                if name == "motor.jsonl":
+                    changes.update(source_tick=1, presses=1)
+                for field, value in changes.items():
+                    with self.subTest(name=name, field=field):
+                        records = [json.loads(line) for line in original.splitlines()]
+                        records[1][field] = value
+                        write_rows(stream, records)
+                        with self.assertRaises(ValueError):
+                            audit.audit_execution(job, receipt, path, case, wait)
+                stream.write_bytes(original)
+
+    def test_censored_control_streams_can_end_independently(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)
+            job, case, _ = one_loss(path)
+            receipt = audit.motor.censored(job, "worker_failed")
+            motor, native = path/"motor.jsonl", path/"native.jsonl"
+            observation, applied = motor.read_bytes().splitlines(keepends=True)
+            assigned, actual, _ = native.read_bytes().splitlines(keepends=True)
+            partial = b'{"event":'
+            for applied_tail in (b"", partial, applied):
+                for native_tail in (b"", partial, actual):
+                    with self.subTest(applied=applied_tail, native=native_tail):
+                        motor.write_bytes(observation + applied_tail)
+                        native.write_bytes(assigned + native_tail)
+                        kept, evidence = audit.audit_execution(job, receipt, path, case, wait)
+                        self.assertEqual(kept, receipt)
+                        self.assertEqual(evidence["reinferred_decisions"], 1)
+                        self.assertIsNone(evidence["observed_native_terminal"])
+            native.unlink()
+            motor.write_bytes(observation)
+            kept, evidence = audit.audit_execution(job, receipt, path, case, wait)
+            self.assertEqual(kept, receipt)
+            self.assertEqual(evidence["reinferred_decisions"], 1)
+            for stream, prefix, record, other, other_prefix in (
+                    (motor, observation, applied, native, assigned),
+                    (native, assigned, actual, motor, observation)):
+                with self.subTest(stream=stream.name):
+                    other.write_bytes(other_prefix + partial)
+                    forged = dict(json.loads(record), axes=[.5, 0, 0, 0])
+                    stream.write_bytes(prefix + json.dumps(forged).encode())
+                    with self.assertRaisesRegex(ValueError, "action_does_not_match_decision"):
+                        audit.audit_execution(job, receipt, path, case, wait)
+                    stream.write_bytes(prefix + partial + b"\n")
+                    with self.assertRaises(json.JSONDecodeError):
+                        audit.audit_execution(job, receipt, path, case, wait)
+
+    def test_censored_prefix_preserves_held_buttons_and_native_step_rounding(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)
+            job, case, _ = one_loss(path)
+            job.update(control_dt=.125, requested_hold_ms=125)
+            motor, native = path/"motor.jsonl", path/"native.jsonl"
+            obs, applied = map(json.loads, motor.read_bytes().splitlines())
+            assigned, control, _ = map(json.loads, native.read_bytes().splitlines())
+            frames, journal, controls = [], [], [assigned]
+            for tick, step in enumerate((0, 19, 38, 56, 75, 94, 112)):
+                sample = dict(obs, tick=tick, step=step, sense=dict(obs["sense"], buttons=int(tick > 0), tick_ms=125))
+                action = dict(tick=tick, step=step, buttons=1, axes=[.5, 0, 0, 0])
+                frames.extend([sample, dict(applied, **action, source_tick=tick, presses=int(tick == 0))])
+                controls.append(dict(control, **action))
+                journal.append(dict(tick=tick, observation_sha256=audit.sha((json.dumps(sample)+"\n").encode()),
+                                    quantized=[50, 0, 0, 0, 1]))
+            write_rows(motor, frames)
+            write_rows(native, controls)
+            write_rows(path/"decisions.jsonl", journal)
+
+            def hold(observation, context):
+                return {"action": "motor", "steps": [dict(duration_ms=125, forward=.5, buttons=1)]}
+
+            receipt = audit.motor.censored(job, "worker_failed")
+            kept, evidence = audit.audit_execution(job, receipt, path, case, hold)
+            self.assertEqual(kept, receipt)
+            self.assertEqual(evidence["reinferred_decisions"], len(journal))
+            controls[-1]["step"] += 1
+            write_rows(native, controls)
+            with self.assertRaisesRegex(ValueError, "invalid control identity at tick 6"):
+                audit.audit_execution(job, receipt, path, case, hold)
+
     def test_partial_censored_tail_retains_prior_decision_but_malformed_complete_line_fails(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp)
@@ -152,7 +257,8 @@ class RecoveryEvaluationTests(unittest.TestCase):
             job, case, row = one_loss(path)
             unavailable = audit.motor.censored(job, "worker_failed")
             kept, evidence = audit.audit_execution(job, unavailable, path, case, wait)
-            self.assertIsNone(kept["physical_success"])
+            self.assertEqual(kept, unavailable)
+            self.assertEqual(evidence["reinferred_decisions"], 1)
             self.assertEqual(evidence["observed_native_terminal"]["terminal"], "died")
             with self.assertRaisesRegex(ValueError, "pending"):
                 audit.audit_execution(job, dict(unavailable, reason="pending"), path, case, wait)

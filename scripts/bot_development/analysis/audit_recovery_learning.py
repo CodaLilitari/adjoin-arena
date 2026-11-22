@@ -1,9 +1,11 @@
 """Rebuild the sealed recovery evaluation from local evidence, without running the game or fitting."""
 import argparse
 from collections import Counter
+from contextlib import nullcontext
 import csv
 import hashlib
 import json
+import math
 from pathlib import Path
 import re
 import runpy
@@ -140,6 +142,7 @@ def check_decision(raw, journal_line, tick, duration, decide, decode=json.loads)
     expected = motor.quantized(decide(observation, context), duration)
     equal(decision, dict(tick=tick, observation_sha256=sha(raw), quantized=expected),
           f"frozen decision mismatch at tick {tick}")
+    return record, expected
 
 
 def replay_decisions(work, duration, decide, count, *, prefix=False):
@@ -169,22 +172,63 @@ def decode_censored_record(raw):
         raise
 
 
+def available_record(line):
+    try:
+        record = decode_censored_record(line)
+    except EOFError:
+        return None
+    motor.check(isinstance(record, dict), "expected a trace record")
+    return record
+
+
+def check_censored_control(record, event, tick, step, decision, previous):
+    identity = dict(event=event, tick=tick, step=step, owner="model")
+    if event == "input":
+        identity.update(source_tick=tick, presses=decision[4] & ~previous)
+    equal({k: record.get(k) for k in identity}, identity, f"invalid {event} identity at tick {tick}")
+    axes, buttons = record.get("axes"), record.get("buttons")
+    motor.check(isinstance(axes, list) and len(axes) == 4 and type(buttons) is int and buttons == decision[4]
+                and all(type(a) in (int, float) and abs(a - n/100) < 1e-7 for a, n in zip(axes, decision)),
+                f"action_does_not_match_decision in {event} at tick {tick}")
+
+
 def censored_evidence(work, job, raw, decide):
     evidence = dict(raw=raw, reinferred_decisions=0, observed_native_terminal=collect_recovery.observed_terminal(work, job))
     if "decisions.jsonl" not in raw:
         return evidence
     if "motor.jsonl" not in raw:
         return dict(evidence, incomplete_decision_replay_at_tick=0)
-    with (work/"motor.jsonl").open("rb") as frames, (work/"decisions.jsonl").open("rb") as journal:
+    native_stream = (work/"native.jsonl").open("rb") if "native.jsonl" in raw else nullcontext(iter(()))
+    previous = step = 0
+    residual = 0.
+    dt = motor.f32(job["control_dt"])
+    with native_stream as native, (work/"motor.jsonl").open("rb") as frames, (work/"decisions.jsonl").open("rb") as journal:
+        assigned = available_record(next(native, b""))
+        if assigned is not None:
+            equal(assigned.get("event"), "assigned", "invalid native trace start")
         for tick, line in enumerate(journal):
             try:
-                check_decision(frames.readline(), line, tick, job["requested_hold_ms"], decide,
-                               decode=decode_censored_record)
+                observation, decision = check_decision(frames.readline(), line, tick, job["requested_hold_ms"],
+                                                       decide, decode=decode_censored_record)
             except EOFError:
                 evidence["incomplete_decision_replay_at_tick"] = tick
                 break
             evidence["reinferred_decisions"] += 1
-            frames.readline()  # A final journal entry can precede a failed send/apply.
+            equal(observation["step"], step, f"invalid observation step at tick {tick}")
+            applied = available_record(frames.readline())
+            actual = available_record(next(native, b""))
+            if applied is not None:
+                check_censored_control(applied, "input", tick, step, decision, previous)
+            if actual is not None:
+                check_censored_control(actual, "control", tick, step, decision, previous)
+            if applied is not None and actual is not None:
+                motor.check(applied["axes"] == actual["axes"], "applied/native axes differ")
+            previous = decision[4]
+            # Match the native clock's residual carry at each 150 Hz boundary.
+            span = dt + residual
+            count = math.floor(span * motor.HZ + .5)
+            residual = span - count/motor.HZ
+            step += count
     return evidence
 
 
