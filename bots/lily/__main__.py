@@ -62,6 +62,7 @@ def main(argv=None):
         end = time.monotonic() + args.duration_seconds
         while time.monotonic() < end:
             try:
+                requested_at = time.monotonic()
                 observation = transport("observation")
             except (OSError, ValueError):
                 if supervisor.fence:
@@ -70,7 +71,7 @@ def main(argv=None):
                 continue
             if observation["run_id"] != credential["run_id"]:
                 raise ValueError("Credential run changed")
-            supervisor.step(observation)
+            supervisor.step(observation, observed_at=requested_at)
             time.sleep(min(.025, max(0, end - time.monotonic())))
     except KeyboardInterrupt:
         return 130

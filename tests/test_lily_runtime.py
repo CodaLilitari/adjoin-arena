@@ -28,6 +28,7 @@ class Link:
     def __init__(self):
         self.actions = []
         self.seq = 0
+        self.receipts = {}
 
     def __call__(self, op, body=None):
         if op == "attach":
@@ -35,10 +36,13 @@ class Link:
         if op == "renew":
             return {"expires_in": 30}
         if op.startswith("commands/"):
-            return {"status": "applied"}
+            return self.receipts[op.split("/", 1)[1]]
         self.seq += 1
         self.actions.append((op, body))
-        return {"status": "applied", "action_seq": self.seq}
+        receipt = dict(status="applied", action_seq=self.seq, kind=op, request_id=body["request_id"],
+                       **{k: body[k] for k in ("run_id", "world_epoch", "life_epoch")})
+        self.receipts[body["request_id"]] = receipt
+        return receipt
 
 
 class SupervisorTest(unittest.TestCase):
@@ -191,6 +195,163 @@ class SupervisorTest(unittest.TestCase):
         outcomes = [r for r in self.log if r["event"] == "outcome"]
         self.assertEqual([(r["physical_success"], r["status"]) for r in outcomes], [(True, "motor_goal_reached")])
         self.assertEqual(1, self.memory.estimate(next(r["key"] for r in self.log if r["event"] == "attempt"))["wins"])
+
+    def stateful_policy(self):
+        self.policy.write_text(policy().replace("'skill':'test'", "'state':{'advanced':True},'skill':'test'"))
+
+    def test_post_lost_reply_reconciles_exact_durable_identity(self):
+        self.stateful_policy()
+        def dropped(op, body=None):
+            if op == "motor":
+                journal = self.memory.unresolved("test")
+                self.assertEqual([r["request_id"] for r in journal], [body["request_id"]])
+                self.assertEqual(journal[0]["command"]["steps"], body["steps"])
+                self.assertNotIn("lease_id", str(journal))
+                self.link(op, body)
+                raise OSError("reply lost")
+            return self.link(op, body)
+        self.sup.call = dropped
+        self.until(lambda:self.sup.undertaking is not None)
+        self.assertEqual(len(self.motors()), 1)
+        self.assertEqual(self.sup.state, {"advanced": True})
+
+    def test_rejected_receipt_never_advances_policy_state(self):
+        self.stateful_policy()
+        def rejected(op, body=None):
+            receipt = self.link(op, body)
+            if op == "motor":
+                receipt["status"] = "rejected"
+            return receipt
+        self.sup.call = rejected
+        self.until(lambda:any(r["event"] == "outcome" for r in self.log))
+        self.assertEqual(self.sup.state, {})
+        key = next(r["key"] for r in self.log if r["event"] == "attempt")
+        self.assertEqual(self.memory.estimate(key)["attempts"], 0)
+
+    def test_pending_then_rejected_does_not_install_decision_state(self):
+        self.stateful_policy()
+        def pending(op, body=None):
+            response = self.link(op, body)
+            if op == "motor":
+                response["status"] = "pending"
+            elif op.startswith("commands/"):
+                response["status"] = "stale"
+            return response
+        self.sup.call = pending
+        self.until(lambda:self.sup.undertaking is not None)
+        self.assertEqual(self.sup.state, {})
+        self.until(lambda:any(r["event"] == "outcome" for r in self.log))
+        self.assertEqual(self.sup.state, {})
+
+    def test_expiration_during_attach_blocks_dispatch_and_same_id_can_change(self):
+        import json
+        from unittest.mock import patch
+        path = self.policy.with_suffix(".json")
+        self.sup.directive_file = path
+        clock = [time.time()]
+        order = dict(id="A", provenance="operator", goal="motor", parameters={"skill": "sidestep"},
+                     run_id="test", world_epoch=1, life_epoch=1, expires_at=clock[0] + 1)
+        path.write_text(json.dumps(order))
+
+        def attach(op, body=None):
+            if op == "attach":
+                clock[0] += 2
+                order.update(parameters={"skill": "forward-probe"}, expires_at=clock[0] + 60)
+                path.write_text(json.dumps(order))
+            return self.link(op, body)
+
+        self.sup.call = attach
+        with patch("bots.lily.runtime.time.time", side_effect=lambda:clock[0]):
+            self.until(lambda:self.sup.lease is not None)
+        self.assertFalse(self.motors())
+        self.assertEqual(self.sup.directive["parameters"], {"skill": "forward-probe"})
+
+    def test_directive_expires_while_committing_journal(self):
+        import json
+        from unittest.mock import patch
+        clock = [time.time()]
+        path = self.policy.with_suffix(".json")
+        self.sup.directive_file = path
+        order = dict(id="A", provenance="operator", goal="motor", parameters={},
+                     run_id="test", world_epoch=1, life_epoch=1, expires_at=clock[0] + 1)
+        path.write_text(json.dumps(order))
+        prepare = self.memory.prepare
+        def delayed(intent):
+            prepare(intent)
+            clock[0] += 2
+        with patch("bots.lily.runtime.time.time", side_effect=lambda:clock[0]), patch.object(
+                self.memory, "prepare", side_effect=delayed):
+            self.until(lambda:any(r["event"] == "submission" for r in self.log))
+        self.assertFalse(self.motors())
+        self.assertIsNone(self.sup.directive)
+        self.assertEqual(self.memory.db.execute("SELECT disposition FROM submissions").fetchone(), ("not_sent",))
+
+    def test_slow_attach_invalidates_source_sample(self):
+        def slow(op, body=None):
+            if op == "attach":
+                time.sleep(1.)
+            return self.link(op, body)
+        self.sup.call = slow
+        self.until(lambda:self.sup.lease is not None)
+        self.assertFalse(self.motors())
+
+    def test_crash_after_accept_recovers_without_reissuing_original_identity(self):
+        from unittest.mock import patch
+        class AbruptExit(BaseException):
+            pass
+        with patch.object(self.memory, "bind", side_effect=AbruptExit):
+            with self.assertRaises(AbruptExit):
+                self.until(lambda:bool(self.motors()))
+        original = self.motors()[0]["request_id"]
+        self.assertEqual(self.memory.unresolved("test")[0]["request_id"], original)
+        self.sup.close()
+        reopened = ExperienceStore(self.policy.parent / "db")
+        self.addCleanup(reopened.close)
+        self.sup = Supervisor(self.policy, reopened, "level", self.link, trace=self.log.append)
+        self.addCleanup(self.sup.close)
+        self.until(lambda:any(r["event"] == "recovered_attempt" for r in self.log))
+        self.assertEqual(sum(a["request_id"] == original for a in self.motors()), 1)
+        self.assertEqual(reopened.unresolved("test"), [])
+        receipt = next(r for r in self.log if r["event"] == "submission_reconciled")
+        self.assertEqual((receipt["request_id"], receipt["episode_id"], receipt["status"]),
+                         (original, "test/1/1/1", "applied"))
+
+    def test_unmatched_receipt_stays_censored_and_new_lease_uses_global_floor(self):
+        self.stateful_policy()
+        ids = []
+        def unknown(op, body=None):
+            if op == "attach":
+                return {"lease_id": "active", "expires_in": 30, "lily_request_floor": "9500000000000000000"}
+            if op == "motor":
+                ids.append(body["request_id"])
+                raise OSError("ambiguous dispatch")
+            if op.startswith("commands/"):
+                return dict(status="applied", action_seq=1, kind="motor", request_id=op[9:],
+                            run_id="test", world_epoch=9, life_epoch=7)
+            return self.link(op, body)
+        self.sup.call = unknown
+        self.until(lambda:bool(ids))
+        self.assertEqual(ids, ["lily.9500000000000000001"])
+        self.assertEqual(self.sup.state, {})
+        self.assertFalse(any(r["event"] == "attempt" for r in self.log))
+        self.assertEqual([r["request_id"] for r in self.memory.unresolved("test")], ids)
+        self.until(lambda:len(ids) == 2)
+        row = self.memory.db.execute("SELECT disposition,episode FROM submissions WHERE request=?", (ids[0],)).fetchone()
+        self.assertEqual(row, ("censored_unresolved", None))
+        self.assertEqual(self.sup.state, {})
+
+    def test_ack_unconfirmed_does_not_end_physical_action(self):
+        def ambiguous(op, body=None):
+            receipt = self.link(op, body)
+            if op == "motor" or op.startswith("commands/"):
+                receipt["status"] = "unconfirmed"
+            return receipt
+        self.sup.call = ambiguous
+        self.start()
+        self.assertIsNotNone(self.sup.undertaking)
+        self.finish()
+        self.until(lambda:any(r["event"] == "outcome" for r in self.log))
+        self.assertEqual(next(r["status"] for r in self.log if r["event"] == "outcome"), "playback")
 
 
 class LocalCompanionTest(unittest.TestCase):

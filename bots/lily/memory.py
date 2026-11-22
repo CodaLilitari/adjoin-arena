@@ -40,11 +40,55 @@ class ExperienceStore:
                 identity TEXT NOT NULL, outcome TEXT, success INTEGER, duration REAL
             );
             CREATE INDEX IF NOT EXISTS conditions ON attempts(environment_key, success);
+            CREATE TABLE IF NOT EXISTS submissions (
+                run TEXT NOT NULL, request TEXT NOT NULL, intent TEXT NOT NULL,
+                disposition TEXT NOT NULL, episode TEXT UNIQUE, admitted INTEGER DEFAULT 0 NOT NULL,
+                PRIMARY KEY (run, request)
+            );
+            CREATE INDEX IF NOT EXISTS pending_submissions ON submissions(run, disposition);
             CREATE TABLE IF NOT EXISTS transitions (
                 episode TEXT NOT NULL, phase TEXT NOT NULL, evidence TEXT NOT NULL,
                 PRIMARY KEY (episode, phase)
             );
         """)
+
+    def prepare(self, intent):
+        """Commit the exact credential-free intent before the transport can see it."""
+        with self.db:
+            self.db.execute("INSERT INTO submissions(run,request,intent,disposition) VALUES(?,?,?,'prepared')",
+                            (intent["run_id"], intent["request_id"], packed(intent)))
+
+    def request_floor(self, run_id):
+        # Request serials are unsigned decimal and may exceed sqlite's int64 range.
+        row = self.db.execute("SELECT request FROM submissions WHERE run=? "
+                              "ORDER BY length(request) DESC, request DESC LIMIT 1", (run_id,)).fetchone()
+        return int(row[0][5:]) if row else 0
+
+    def unresolved(self, run_id):
+        rows = self.db.execute("SELECT intent FROM submissions WHERE run=? "
+                               "AND disposition IN ('prepared','unconfirmed') ORDER BY rowid", (run_id,))
+        return [json.loads(raw) for (raw,) in rows]
+
+    def disposition(self, intent, status):
+        with self.db:
+            self.db.execute("UPDATE submissions SET disposition=? WHERE run=? AND request=? AND episode IS NULL",
+                            (status, intent["run_id"], intent["request_id"]))
+
+    def bind(self, intent, seq):
+        """Atomically bind the pre-dispatch identity and its native episode."""
+        attempt = {k: v for k, v in intent.items() if k not in ("command", "ttl_seconds")}
+        attempt["action_seq"] = seq
+        episode = episode_id(attempt)
+        with self.db:
+            self.db.execute("INSERT OR IGNORE INTO attempts(episode,environment_key,identity) VALUES(?,?,?)",
+                            (episode, attempt["key"], packed(attempt)))
+            self.db.execute("UPDATE submissions SET episode=?,disposition='linked' WHERE run=? AND request=?",
+                            (episode, intent["run_id"], intent["request_id"]))
+        return attempt, episode
+
+    def admitted(self, episode):
+        with self.db:
+            self.db.execute("UPDATE submissions SET admitted=1 WHERE episode=?", (episode,))
 
     def begin(self, attempt):
         episode = episode_id(attempt)
@@ -82,7 +126,8 @@ class ExperienceStore:
     def estimate(self, key):
         attempts, trials, wins, duration = self.db.execute(
             "SELECT count(*),count(success),coalesce(sum(success),0),avg(CASE WHEN success IS NOT NULL THEN duration END) FROM attempts "
-            "WHERE environment_key=?", (key,)).fetchone()
+            "WHERE environment_key=? AND NOT EXISTS (SELECT 1 FROM submissions s "
+            "WHERE s.episode=attempts.episode AND s.admitted=0)", (key,)).fetchone()
         return {"attempts": attempts, "trials": trials, "wins": wins, "probability": (wins + 1) / (trials + 2),
                 "mean_seconds": duration}
 
