@@ -66,7 +66,7 @@
     },
     "bots/README.md": {
       "mode": 420,
-      "sha256": "07baf8c41a3857a85b565ec9569b6f2db96a0ea0c15e3bde9c1d038b412d877e"
+      "sha256": "25bcff696883293d9766ce143f9c52fba9b1a1527c985e0ad1497a7c4e9dc1c8"
     },
     "bots/SOURCES.json": {
       "mode": 420,
@@ -766,7 +766,7 @@
     },
     "qa/bots-force-source-audit.json": {
       "mode": 420,
-      "sha256": "7ac401b9f9b01fc620eb7e8b510a0a334dcf81219fb1f5179a882a243dfc06e8"
+      "sha256": "3f7688474135ca040fec4adc9af79b371cf7dcf26e031a83506b818a93041693"
     },
     "qa/bots-initial-anchor-regression.json": {
       "mode": 420,
@@ -1130,7 +1130,7 @@
     },
     "qa/competitive-force/README.md": {
       "mode": 420,
-      "sha256": "17eecff34aa1ba64a6c8d010147b8f3eea401370862c299db7effaeb533a5cd0"
+      "sha256": "cdb0864b76f510c5265c78616f00c580b50a045f362b271d3c7e57c48e6b9236"
     },
     "qa/competitive-force/harness.py": {
       "mode": 420,
