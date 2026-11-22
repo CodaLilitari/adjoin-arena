@@ -91,15 +91,7 @@ def portable_header(root, decl, digest):
     provenance = build["provenance"]
     check(set(provenance) == {*trial.prior.collect_recovery.ENGINE_IDENTITIES,"executable_sha256"},
           "measured fixture provenance schema")
-    trial.prior.collect_recovery.verify_engine(provenance, decl["fixture_reference"])
-    files = run.tree_files(root/"build")
-    equal(files, build["files"], "retained build file inventory")
-    fixed = {"replay":"executable_sha256", "map.numeric":"geometry_sha256", "flags.make":"compiler_flags_sha256"}
-    expected = {name:provenance[field] for name,field in fixed.items()}
-    expected.update({"source/"+name:sha for name,sha in provenance["source_hashes"].items()})
-    check(set(files) == set(expected) | {"AI/jkBotLily.inc", "stock_functions.inc"}, "declared build inventory")
-    for name, sha in expected.items():
-        equal(files[name]["sha256"], sha, "build input "+name)
+    run.verify_build_files(root, build, decl)
     # These includes are emitted deterministically by the pinned stock builder.
     check((root/"build/stock_functions.inc").read_bytes() == stock_functions(root/"build/source").encode(),
           "stock functions include")
@@ -213,7 +205,7 @@ def interrupted_journal(work):
     return records
 
 
-def interrupted_controls(assignment, work, case, paths, edge, has_terminal):
+def interrupted_controls(assignment, work, case, paths, edge, has_terminal, starts=None):
     """Verify observable physical actions beyond the last buffered decision on interruption."""
     native = trial.available_stream(work/"native.jsonl")
     frames = trial.available_stream(work/"motor.jsonl")
@@ -266,8 +258,11 @@ def interrupted_controls(assignment, work, case, paths, edge, has_terminal):
             equal([obs["event"],obs["tick"],obs["step"],obs["sense"]["buttons"],obs["goal"]],
                   ["observation",tick,step,previous,{"sector":job["target_sector"],"position":edge[2]}],
                   "interrupted observation identity")
-            if tick == 0 and origin is not None:
-                run.motor.verify_start(obs,case,job["yaw_deg"],origin)
+            if tick == 0:
+                if origin is not None:
+                    run.motor.verify_start(obs,case,job["yaw_deg"],origin)
+                with (work/"motor.jsonl").open("rb") as stream:
+                    bind_observation(starts, job["episode_id"], trial.prior.sha(stream.readline()))
             if decide and (actual is not None or applied is not None or decision is not None):
                 observation = {"state":obs["state"], "lily":{"sense":obs["sense"]}}
                 context = {"directive":{"goal":"learned-motor","parameters":{"position":edge[2],"duration_ms":duration}}}
@@ -307,45 +302,12 @@ def bind_start(row, job, edges, starts):
     equal({k:row[k] for k in job}, job, "raw result/assignment")
     episode = job["episode_id"]
     trial.match_starts({"arm":[row]}, [episode], edges)
+    bind_observation(starts, episode, row["initial_observation_sha256"])
+
+
+def bind_observation(starts, episode, digest):
     if starts is not None:
-        start = [row[k] for k in trial.prior.START]
-        equal(start, starts.setdefault(episode,start), "different actual starts")
-
-
-def unpublished_process(result, work, job, case, native, edges, starts):
-    """Retain checked physical and process witnesses without crediting unfinished publication."""
-    partial = (work/"process.json.partial").read_bytes()
-    status = trial.prior.available_record(partial.rstrip())
-    final = work/"process.json"
-    if final.exists():
-        check(partial == final.read_bytes(), "conflicting process publications")
-    end = result.get("observed_native_terminal")
-    row = result["row"]
-    if result["status"] == "complete":
-        # The raw oracle already checked both waits, marker, every input and terminal.
-        end = {"terminal":result["row"]["terminal"]}
-    if status is not None:
-        clean = trial.clean_process(status, native)
-        if not final.exists():
-            # audit_attempt could not use this witness, which exists only in the sidecar.
-            code = status["engine_returncode"]
-            log = work/"engine.log"
-            if code in (0,1) and log.exists() and any(
-                    line.startswith(b"STOCK FULL TICK") for line in log.read_bytes().splitlines()):
-                equal(trial.prior.engine_code(log),code,"unpublished engine marker/wait disagreement")
-            if code in (0,1) and end is not None:
-                check(run.motor.valid_terminal(end,job,code),"unpublished engine wait/terminal disagreement")
-            if clean:
-                allowed = trial.BASE_RAW if native else trial.BASE_RAW | trial.MODEL_RAW
-                check(set(result["raw"]) == (allowed-{"process.json"}) | {"process.json.partial"},
-                      "unpublished clean process inventory")
-                equal(trial.prior.engine_code(log),code,"unpublished engine marker")
-                row = run.motor.assess(job,work,code,case)
-                equal(result["reinferred_decisions"],row["decisions"],"unpublished clean decision count")
-    if row is not None:
-        bind_start(row,job,edges,starts)
-    return dict(result, status="censored", row=None, reason="unpublished_process_witness",
-                process=status, observed_native_terminal=end)
+        equal(digest, starts.setdefault(episode,digest), "different actual starts")
 
 
 class Reconstruction:
@@ -388,16 +350,18 @@ class Reconstruction:
                           raw=raw, reinferred_decisions=0, observed_native_terminal=None)
         else:
             result = trial.audit_attempt(assignment, work, case, *paths)
-            if result["status"] == "censored":
+            if "observed_start" in result:
+                # A clean but unfinished process publication already passed every stock
+                # join and decision replay. Its physical start survives the withheld score.
+                job = assignment["job"]
+                bind_start(job | result["observed_start"],job,self.edges,starts)
+                self.verified_censored_controls += result["reinferred_decisions"]
+            elif result["status"] == "censored":
                 edge = self.edges[assignment["job"]["target_sector"]]
                 verified, unavailable = interrupted_controls(assignment,work,case,paths,edge,
-                                                            result.get("observed_native_terminal") is not None)
+                                                            result.get("observed_native_terminal") is not None, starts)
                 self.verified_censored_controls += verified
                 self.unverifiable_censored_controls += unavailable
-            if "process.json.partial" in result["raw"]:
-                if result["status"] == "complete":
-                    self.verified_censored_controls += result["reinferred_decisions"]
-                result = unpublished_process(result,work,assignment["job"],case,paths[0] is None,self.edges,starts)
             elif result["status"] == "complete":
                 bind_start(result["row"],assignment["job"],self.edges,starts)
         for name in result["raw"]:
@@ -631,7 +595,7 @@ def before_run_header(root, decl, digest):
     if build.is_dir():
         available = run.tree_files(build)
         allowed = {"replay","map.numeric","flags.make","stock_functions.inc","AI/jkBotLily.inc"}
-        allowed.update("source/"+name for name in decl["fixture_reference"]["source_hashes"])
+        allowed.update(run.inputs.declared(decl))
         check(available.keys() <= allowed, "unexpected build setup inventory")
         for name in allowed:
             for folder in (build/name).relative_to(build).parents:

@@ -243,13 +243,17 @@ def audit_attempt(assignment, work, case, policy, model):
         exec(compile(source, str(policy), "exec"), namespace)
         decide = namespace["decide"]
 
+    sidecar = "process.json.partial" in raw
     status = read(work/"process.json") if "process.json" in raw else None
+    if status is None and sidecar:
+        status = prior.available_record((work/"process.json.partial").read_bytes().rstrip())
     if status is None or not clean_process(status, native):
         partial = prior.censored_evidence(work, job, raw, decide)
         partial["observed_native_terminal"] = censored_engine(work, job, case, status, decide)
         return dict(partial, status="censored", row=None, process=status,
-                    reason="missing_process_witness" if status is None else "abnormal_process")
-    check(set(raw) - {"process.json.partial"} == allowed, "clean attempt file inventory")
+                    reason=("unpublished_process_witness" if sidecar else
+                            "missing_process_witness" if status is None else "abnormal_process"))
+    check(set(raw) - {"process.json","process.json.partial"} == allowed - {"process.json"}, "clean attempt file inventory")
     code = status["engine_returncode"]
     equal(prior.engine_code(work/"engine.log"), code, "engine marker/wait disagreement")
     row = motor.assess(job, work, code, case)
@@ -257,6 +261,11 @@ def audit_attempt(assignment, work, case, policy, model):
     if not native:
         equal(row["decisions"], row["control_ticks"], "every-tick ownership")
         count = prior.replay_decisions(work, job["requested_hold_ms"], decide, row["control_ticks"])
+    if sidecar:
+        end = available_stream(work/"native.jsonl")[-1]
+        return dict(status="censored", row=None, reason="unpublished_process_witness", process=status, raw=raw,
+                    observed_native_terminal=end, observed_start={key:row[key] for key in prior.START},
+                    reinferred_decisions=count)
     return dict(status="complete", row=row, process=status, raw=raw, reinferred_decisions=count)
 
 

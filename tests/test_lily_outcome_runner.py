@@ -206,3 +206,141 @@ class RunnerTests(unittest.TestCase):
                 run.write(other/"process.json",dict(engine_returncode=0))
                 with self.assertRaisesRegex(ValueError,"inventory"):
                     run.open_block(*args)
+
+    def test_evaluate_rejects_stopped_stage_hidden_inside_model_inventory(self):
+        from unittest.mock import patch
+        for location in ("models/previous-evaluate", "models/g08-c12/previous-evaluate"):
+            with self.subTest(location=location), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                for name in ("build","models","train","select/development"):
+                    (root/name).mkdir(parents=True)
+                for name in ("run","training","selection","freeze"):
+                    run.write(root/(name+".json"),{})
+                for g in range(1,9):
+                    (root/"train"/f"g{g:02d}").mkdir()
+                for name in ["v3", *(f"g{g:02d}-c{i:02d}" for g in range(1,9) for i in range(13))]:
+                    (root/"models"/name).mkdir()
+                    for member in ("model.json","policy.py"):
+                        (root/"models"/name/member).touch()
+                run.stage_inventory(root,"evaluate")
+                used = root/location/"sealed/selected--e"
+                used.mkdir(parents=True)
+                run.write(used/"assignment.json",{"job":"sealed"})
+                run.write(used/"process.json",{"engine_returncode":0})
+                launch = Mock(side_effect=AssertionError("physical launcher reached"))
+                hdr = {"fixture_sources":{"evaluator":{"native/tests/stock_water_replay/evaluate_motor.py":"x"}}}
+                with (patch.object(run,"canonical_output",return_value=root),
+                      patch.object(run,"declaration",return_value=({},"d",{"development":{},"sealed":{"ids":[]}})),
+                      patch.object(run,"history",return_value=(None,{},[])),
+                      patch.object(run,"verify_header",return_value=hdr),
+                      patch.object(run,"train_generations",return_value={"checkpoints":{}}),
+                      patch.object(run,"development",return_value={"selected":"g4","model":{}}),
+                      patch.object(run,"run_block",launch),
+                      self.assertRaisesRegex(ValueError,"inventory")):
+                    run.run("evaluate",root/"decl",root,1)
+                launch.assert_not_called()
+
+    def test_unfinished_process_publication_blocks_predecessor_and_launch(self):
+        from test_lily_outcome_rollouts import RolloutTests
+        from unittest.mock import patch
+        import shutil
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            a,work,case,policy,model,_ = RolloutTests().fixture(root)
+            job = a["job"]
+            ids = [job["episode_id"]]
+            bank = dict(role="development",ids=ids,sha256="a"*64,jobs={(ids[0],"every_tick"):job},cases={job["case"]:case})
+            refs = {"g4":dict(artifact="v3",**a["model"])}
+            run.write(root/"run.json",{})
+            run.write(root/"training.json",{})
+            binding = dict(run_id=run.RUN_ID,declaration_sha256="d",run_sha256=run.motor.digest(root/"run.json"),
+                           fixture_source_sha256=a["fixture_source_sha256"])
+            ledger = run.assignments("development",bank,ids,{"g4":a["model"]},
+                                     run.bound(binding,run.motor.digest(root/"training.json")))
+            block = root/"select/development"
+            block.mkdir(parents=True)
+            work = work.rename(block/ledger[0]["work_dir"])
+            (work/"assignment.json").unlink()
+            run.write(work/"assignment.json",ledger[0])
+            result = run.trial.audit_attempt(ledger[0],work,case,policy,model)
+            edges = {job["target_sector"]:[result["row"][key] for key in ("seed","origin_sha256","target_position")]}
+            run.write(block/"assignments.json",ledger)
+            shutil.copyfile(work/"process.json",work/"process.json.partial")
+            result["raw"]["process.json.partial"] = result["raw"]["process.json"]
+            run.write(block/"block.json",dict(attempts=[result],counts=run.counts_for([result]),
+                                             assignments_sha256=run.motor.digest(block/"assignments.json")))
+            launch = Mock(side_effect=AssertionError("physical launcher reached"))
+            # Publish a self-consistent selection/freeze over this one-row stand-in.
+            # The evaluate entry must still re-open the actual predecessor's raw bytes.
+            ref = run.link(root,"select/development/block.json")
+            hdr = {"fixture_sources":{"evaluator":{"native/tests/stock_water_replay/evaluate_motor.py":a["fixture_source_sha256"]}}}
+            with patch.object(run.search,"select_development",return_value={"selected":"g4","policies":{}}):
+                with patch.object(run,"run_block",return_value=(ref,{"g4":[result["row"]]})):
+                    run.development(root,bank,binding,edges,refs,1)
+                with (patch.object(run,"canonical_output",return_value=root),patch.object(run,"stage_inventory"),
+                      patch.object(run,"declaration",return_value=({},"d",{"development":bank,"sealed":bank})),
+                      patch.object(run,"history",return_value=(None,edges,[])),patch.object(run,"verify_header",return_value=hdr),
+                      patch.object(run,"train_generations",return_value={"checkpoints":refs}),
+                      patch.object(run,"check_model",return_value=(policy,model)),patch.object(run,"run_block",launch),
+                      self.assertRaisesRegex(ValueError,"saved attempt disagrees with raw evidence")):
+                    run.run("evaluate",root/"decl",root,1)
+            launch.assert_not_called()
+            self.assertFalse((root/"evaluate").exists())
+
+    def test_dispatch_leaves_block_unpublished_on_incomplete_process_publication(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            block = Path(tmp)/"block"
+            with self.assertRaises(run.BlockStopped):
+                run.dispatch(block,[dict(work_dir="arm")],1,lambda a,w:
+                             dict(status="censored",row=None,reason="unpublished_process_witness"))
+            self.assertFalse((block/"block.json").exists())
+            self.assertTrue((block/"arm/assignment.json").is_file())
+
+    def test_project_header_change_rejects_build_before_any_physical_launch(self):
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source,config,out = [root/name for name in ("engine","configured","run")]
+            out.mkdir()
+            (source/"src/Primitives").mkdir(parents=True)
+            (config/"CMakeFiles/sith_engine.dir").mkdir(parents=True)
+            flags = config/"CMakeFiles/sith_engine.dir/flags.make"
+            flags.write_text("flags")
+            header = source/"src/Primitives/rdMath.h"
+            header.write_text("expected types")
+            decl = dict(project_build_inputs_sha256={"source/src/Primitives/rdMath.h":run.motor.digest(header)},
+                        fixture_reference={"source_hashes":{},"compiler_flags_sha256":run.motor.digest(flags)})
+            header.write_text("new physics")
+            compile_replay = Mock(side_effect=AssertionError("compiler reached changed source"))
+            with patch.object(run.motor,"build_replay",compile_replay), self.assertRaisesRegex(ValueError,"rdMath.h"):
+                run.make_build(out,source,config,root/"owned.jkl",decl)
+            compile_replay.assert_not_called()
+
+    def test_compiler_prerequisites_must_match_declared_project_inputs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            work,configured = root/"private",root/"configured"
+            project = work/"source/src/math.h"
+            configured_header = configured/"generated/globals.h"
+            includes = [work/name for name in sorted(run.inputs.GENERATED)]
+            for path in [project,configured_header,*includes]:
+                path.parent.mkdir(parents=True,exist_ok=True)
+                path.write_text(path.name)
+            expected = {"source/src/math.h":run.motor.digest(project),
+                        "configured/generated/globals.h":run.motor.digest(configured_header)}
+            decl = dict(project_build_inputs_sha256=expected,fixture_reference=dict(source_hashes={}))
+            deps = root/"deps.mk"
+            def emit(paths):
+                records = [name+": "+" ".join(str(p) for p in paths) for name in sorted(run.inputs.OBJECTS)]
+                deps.write_text("\n".join(records)+"\n")
+            paths = [project,configured_header,*includes]
+            emit(paths)
+            run.inputs.verify_compilation(deps,work,configured,decl)
+            extra = configured_header.with_name("extra.h")
+            extra.write_text("unbound")
+            emit([*paths,extra])
+            with self.assertRaisesRegex(ValueError,"unbound external project input"):
+                run.inputs.verify_compilation(deps,work,configured,decl)
+            emit([project,*includes])
+            with self.assertRaisesRegex(ValueError,"declared project/actual"):
+                run.inputs.verify_compilation(deps,work,configured,decl)

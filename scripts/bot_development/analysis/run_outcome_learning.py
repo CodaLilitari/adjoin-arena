@@ -14,6 +14,7 @@ import sys
 import numpy as np
 
 from bots.lily import outcome_search as search
+from . import outcome_build_inputs as inputs
 from . import outcome_rollouts as trial
 from .outcome_rollouts import ROOT, check, contact, equal, file_record, motor, now, read, write
 
@@ -26,7 +27,7 @@ PATHS = {**{role:f"qa/lily-outcome/{role}.tsv" for role in NEW},
 COUNTS = dict(train=64, development=32, sealed=48, original=27, stress=16, recovery=24)
 FREE = 2684354560
 ALG = "scripts/bot_development/analysis/"
-REQUIRED_SOURCES = {ALG+name+".py" for name in ("outcome_rollouts","run_outcome_learning","audit_outcome_learning",
+REQUIRED_SOURCES = {ALG+name+".py" for name in ("outcome_build_inputs","outcome_rollouts","run_outcome_learning","audit_outcome_learning",
                     "audit_recovery_learning","declare_outcome_poses","validate_replay_poses")} | {
                     "bots/lily/"+name+".py" for name in ("outcome_search","motor_contact","motor_model")}
 RECIPE = {
@@ -74,6 +75,10 @@ def stage_inventory(output, stage):
         folders.add("select")
         files.update(("selection.json", "freeze.json"))
     require_inventory(output, folders, files)
+    artifacts = {"v3", *(f"g{g:02d}-c{i:02d}" for g in range(1,9) for i in range(13))}
+    require_inventory(output/"models", artifacts, set())
+    for artifact in artifacts:
+        require_inventory(output/"models"/artifact, set(), {"model.json","policy.py"})
     require_inventory(output/"train", {f"g{n:02d}" for n in range(1,9)}, set())
     if stage == "evaluate":
         require_inventory(output/"select", {"development"}, set())
@@ -154,6 +159,7 @@ def declaration(path):
     equal(decl["historical_edges"]["experiment"], "contact_original", "stock edge experiment")
     freeze = json.loads(trial.prior.checked_bytes(trial.prior.FREEZE, trial.prior.FREEZE_SHA))
     equal(decl["fixture_reference"], freeze["fixture_provenance"], "historical fixture reference")
+    inputs.declared(decl)
     return decl, trial.prior.sha(data), banks
 
 
@@ -224,15 +230,15 @@ def make_build(output, source, build, map_path, decl):
     claim(work)
     flags = build/"CMakeFiles/sith_engine.dir/flags.make"
     shutil.copyfile(flags, work/"flags.make")
-    executable, geom, provenance = motor.build_replay(source, build, map_path, work, independent_motor=True)
+    equal(motor.digest(work/"flags.make"), decl["fixture_reference"]["compiler_flags_sha256"], "declared compiler flags")
+    inputs.retain(inputs.declared(decl), work, source, build)
+    with inputs.compiler_dependencies() as deps:
+        executable, geom, provenance = motor.build_replay(work/"source", build, map_path, work, independent_motor=True)
+        inputs.verify_compilation(deps, work, build, decl)
+    equal(motor.digest(flags), motor.digest(work/"flags.make"), "compiler flags changed during build")
     provenance.update(geometry_sha256=motor.digest(geom), compiler_flags_sha256=motor.digest(work/"flags.make"))
     trial.prior.collect_recovery.verify_engine(provenance, decl["fixture_reference"])
     equal(motor.digest(executable), provenance["executable_sha256"], "as-built replay")
-    for name, digest in provenance["source_hashes"].items():
-        target = work/"source"/name
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(source/name, target)
-        equal(motor.digest(target), digest, "retained source copy")
     compiler = shutil.which(os.environ.get("CC","cc"))
     check(compiler is not None, "missing compiler identity")
     return dict(provenance=provenance, files=tree_files(work),
@@ -246,6 +252,19 @@ def runtime():
                 numpy=np.__version__)
 
 
+def verify_build_files(output, build, decl):
+    files = tree_files(output/"build")
+    equal(files, build["files"], "retained build file inventory")
+    provenance = build["provenance"]
+    trial.prior.collect_recovery.verify_engine(provenance, decl["fixture_reference"])
+    expected = dict(inputs.declared(decl))
+    for name, key in (("replay","executable_sha256"), ("map.numeric","geometry_sha256"), ("flags.make","compiler_flags_sha256")):
+        expected[name] = provenance[key]
+    check(set(files) == set(expected) | inputs.GENERATED, "declared build inventory")
+    for name, digest in expected.items():
+        equal(files[name]["sha256"], digest, "retained build input "+name)
+
+
 def verify_header(output, decl, digest):
     hdr = read(output/"run.json")
     equal([hdr["run_id"],hdr["declaration_sha256"],hdr["implementation_commit"]],
@@ -253,13 +272,7 @@ def verify_header(output, decl, digest):
     equal(hdr["fixture_sources"], fixture_sources(decl), "run fixture binding")
     equal({k:hdr[k] for k in ("python","numpy")}, runtime(), "changed experiment runtime")
     build = hdr["build"]
-    equal(tree_files(output/"build"), build["files"], "retained build file inventory")
-    provenance = build["provenance"]
-    trial.prior.collect_recovery.verify_engine(provenance, decl["fixture_reference"])
-    for path, key in (("replay","executable_sha256"), ("map.numeric","geometry_sha256"), ("flags.make","compiler_flags_sha256")):
-        equal(build["files"][path]["sha256"], provenance[key], "build artifact "+path)
-    for name, value in provenance["source_hashes"].items():
-        equal(build["files"]["source/"+name]["sha256"], value, "retained source "+name)
+    verify_build_files(output, build, decl)
     return hdr
 
 
@@ -315,6 +328,12 @@ def dispatch(directory, ledger, workers, attempt):
                 results[i] = result
                 stopped |= result["status"] != "complete"
     counts = counts_for(results)
+    # A failure in execute's final publication can raise before audit_attempt.
+    # The actual files still decide whether the block receipt may be published.
+    if any(r.get("reason") in ("unpublished_process_witness","missing_process_witness")
+           or ("raw" in r and ("process.json" not in r["raw"] or "process.json.partial" in r["raw"]))
+           for r in results):
+        raise BlockStopped(f"{directory.name}: unfinished process publication: {counts}")
     block = dict(assignments_sha256=motor.digest(directory/"assignments.json"), counts=counts, attempts=results,
                  free_bytes_after=shutil.disk_usage(directory).free)
     write(directory/"block.json", block)

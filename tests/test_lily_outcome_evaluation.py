@@ -49,6 +49,11 @@ def physical(a, work, case, policy, model):
                ownership_complete=True, baseline_assisted=False, owner="baseline" if name=="native" else "model",
                seed=7, origin_sha256="o", target_position=[1, 2, 3], initial_observation_sha256=job["episode_id"],
                initial_quantized=[int(name != "v3"), 0, 0, 0, 0], control_ticks=2)
+    if "process.json.partial" in raw:
+        return dict(status="censored",row=None,raw=raw,process=runner.read(work/"process.json.partial"),
+                    reason="unpublished_process_witness",observed_native_terminal={"terminal":row["terminal"]},
+                    observed_start={k:row[k] for k in runner.trial.prior.START},
+                    reinferred_decisions=0 if name=="native" else 2)
     return dict(status="complete", row=row, raw=raw, process=None, reinferred_decisions=0 if name=="native" else 2)
 
 
@@ -278,7 +283,7 @@ class EvaluationTests(unittest.TestCase):
                 def changed_start(a,path,case,policy,model):
                     evidence = original(a,path,case,policy,model)
                     if path == work:
-                        evidence["row"]["initial_observation_sha256"] = "f"*64
+                        evidence["observed_start"]["initial_observation_sha256"] = "f"*64
                     return evidence
                 with patch(__name__+".physical",changed_start), self.assertRaisesRegex(ValueError,"different actual starts"):
                     result()
@@ -291,7 +296,7 @@ class EvaluationTests(unittest.TestCase):
             for name in ("process.json","process.json.partial"):
                 runner.write(first/name,status)
             record = runner.read(self.roots["flat"]/"train/g01/block.json")
-            record["attempts"][0] = physical(ledger[0],first,{},None,None)
+            record["attempts"][0]["raw"] = {p.name:runner.file_record(p) for p in first.iterdir()}
             runner.write(block/"block.json",record)
             with self.assertRaisesRegex(ValueError,"publication"):
                 result()
@@ -302,12 +307,8 @@ class EvaluationTests(unittest.TestCase):
             assignment,work,case,policy,model,proc = RolloutTests().fixture(Path(tmp))
             partial = work/"process.json.partial"
             (work/"process.json").rename(partial)
-            result = runner.trial.audit_attempt(assignment,work,case,policy,model)
-            self.assertIsNone(result["process"])
-            assigned = json.loads((work/"native.jsonl").read_bytes().splitlines()[0])
-            edges = {assigned["sector"]:[assigned["seed"],runner.motor.digest(work/"start.json"),assigned["position"]]}
             def check_sidecar():
-                return audit.unpublished_process(result,work,assignment["job"],case,False,edges,{})
+                return runner.trial.audit_attempt(assignment,work,case,policy,model)
             observed = check_sidecar()
             self.assertEqual(observed["reason"],"unpublished_process_witness")
             self.assertEqual(observed["observed_native_terminal"]["terminal"],"died")
@@ -452,7 +453,7 @@ class EvaluationTests(unittest.TestCase):
             (build/"AI").mkdir(parents=True)
             (build/"source/src").mkdir(parents=True)
             for name,content in (("replay",b"exe"),("flags.make",b"flags"),("map.numeric",b"geometry"),
-                                 ("source/src/phys.c",b"physics"),("stock_functions.inc",b"verified example\n"),
+                                 ("source/src/phys.c",b"physics"),("source/src/phys.h",b"physics header"),("stock_functions.inc",b"verified example\n"),
                                  ("AI/jkBotLily.inc",b'#include_next "AI/jkBotLily.inc"\n#include "bank_drive.inc"\n')):
                 (build/name).write_bytes(content)
             files = runner.tree_files(build)
@@ -466,10 +467,17 @@ class EvaluationTests(unittest.TestCase):
                        fixture_sources={},python=python,numpy="offline NumPy",build=dict(files=files,compiler=compiler,
                                                                                         provenance=provenance))
             runner.write(root/"run.json",hdr)
-            decl = dict(implementation_commit="c", created_at_utc="2025-10-31T00:00:00Z", fixture_reference=provenance)
+            decl = dict(implementation_commit="c", created_at_utc="2025-10-31T00:00:00Z", fixture_reference=provenance,
+                        project_build_inputs_sha256={p:files[p]["sha256"] for p in ("source/src/phys.c","source/src/phys.h")})
             with (patch.object(runner,"fixture_sources",return_value={}),
                   patch.object(audit,"stock_functions",return_value="verified example\n")):
                 self.assertEqual(audit.portable_header(root,decl,"d")["python"],python)
+                private_header = build/"source/src/phys.h"
+                with self.changed(private_header,b"changed header"):
+                    hdr["build"]["files"] = runner.tree_files(build)
+                    (root/"run.json").write_text(json.dumps(hdr))
+                    with self.assertRaisesRegex(ValueError,"phys.h"):
+                        audit.portable_header(root,decl,"d")
                 (build/"stock_functions.inc").write_bytes(b"verified example\r\n")
                 hdr["build"]["files"] = runner.tree_files(build)
                 (root/"run.json").write_text(json.dumps(hdr))
@@ -483,7 +491,8 @@ class EvaluationTests(unittest.TestCase):
                 (root/name).mkdir()
             (root/"build/map.numeric").write_text("partial")
             (root/"run.json.partial").write_text("{")
-            decl = dict(fixture_reference=dict(source_hashes={}))
+            decl = dict(fixture_reference=dict(source_hashes={}),
+                        project_build_inputs_sha256={"source/src/phys.h":"f"*64})
             report = audit.before_run_header(root,decl,"d")
             self.assertEqual((report["status"],report["counts"]["attempted"]),("inconclusive",0))
             (root/"train/an-actual-attempt").mkdir()
@@ -498,3 +507,45 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(len(winners),24)
         self.assertEqual(set(winners)-set(legacy),{"boba-210.147-yaw90","boba-210.147-yaw180",
                                                    "boba-220.237-yaw180","lily-232.797-yaw180"})
+
+    def test_abnormal_process_pairs_first_observation_in_either_ledger_order(self):
+        from test_lily_outcome_rollouts import RolloutTests
+        for failed_first in (False,True):
+            for terminal in (False,True):
+                with self.subTest(failed_first=failed_first,terminal=terminal), tempfile.TemporaryDirectory() as tmp:
+                    root = Path(tmp)
+                    a,work,case,policy,model,proc = RolloutTests().fixture(root)
+                    arms = []
+                    for name in ("clean","failed"):
+                        dest = root/name
+                        shutil.copytree(work,dest)
+                        arm = dict(a,work_dir=name,candidate_id=name)
+                        (dest/"assignment.json").write_text(json.dumps(arm))
+                        arms.append(arm)
+                    failed = root/"failed"
+                    (failed/"process.json").write_text(json.dumps(dict(proc,worker_returncode=7)))
+                    if not terminal:
+                        raw = (failed/"native.jsonl").read_bytes().splitlines(keepends=True)
+                        (failed/"native.jsonl").write_bytes(b"".join(raw[:-1]))
+                    if failed_first:
+                        arms.reverse()
+                    assigned = json.loads((failed/"native.jsonl").read_bytes().splitlines()[0])
+                    edges = {assigned["sector"]:[assigned["seed"],runner.motor.digest(work/"start.json"),assigned["position"]]}
+                    runner.write(root/"run.json",{})
+                    header = dict(started_at_utc="2020-01-01T00:00:00Z",
+                                  fixture_sources={"evaluator":{"native/tests/stock_water_replay/evaluate_motor.py":"x"}})
+                    def pair():
+                        recon = audit.Reconstruction(audit.Inventory(root),{},"d",{},header,edges,[])
+                        starts = {}
+                        return {arm["candidate_id"]:recon.attempt(root,arm,case,(policy,model),starts) for arm in arms}
+                    self.assertEqual(pair()["failed"]["reason"],"abnormal_process")
+                    # A harmless lexical change yields different observed bytes. The worker
+                    # genuinely saw the changed line and its journal still matches exactly.
+                    trace = failed/"motor.jsonl"
+                    first,*tail = trace.read_bytes().splitlines(keepends=True)
+                    first = b" "+first
+                    trace.write_bytes(first+b"".join(tail))
+                    journal = failed/"decisions.jsonl"
+                    journal.write_text(json.dumps(dict(runner.read(journal),observation_sha256=runner.trial.prior.sha(first)))+"\n")
+                    with self.assertRaisesRegex(ValueError,"different actual starts"):
+                        pair()
