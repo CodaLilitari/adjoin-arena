@@ -7,6 +7,78 @@ static void motor(uint32_t seq,uint32_t sample,int duration,int buttons,double e
     frame[39]=75; frame[40]=(unsigned char)-50; frame[41]=30; frame[42]=10;
     frame[43]=buttons;
 }
+static void checkAtomicWait(uint32_t seq)
+{
+    while (receive(7)) {}
+    Lily_Publish(&self,0);
+    assert(receive(7)>=128 && !frame[42]); /* safe_handover */
+    motor(seq,lily.sample,80,1,clockseconds()+3);
+    Companion_Command(&self,frame,46,clockseconds());
+    ack(20,CP_APPLIED,seq);
+    assert(!Lily_Drive(&self) && lily.queued.seq==seq && !lily.active.seq);
+}
+static void testHandoverAndCompletion(void)
+{
+    companion.nextState=0; tick();
+    motor(313,lily.sample,1,1,clockseconds()+0.05); submit(46); ack(20,CP_APPLIED,313);
+    int completed=0;
+    while (receive(6)) if (word(frame+20)==313 && frame[33]==4 && word(frame+36)==33) completed++;
+    assert(completed==1 && "a played final frame is terminal before the next ingress");
+    struct timespec pause={0,60000000}; nanosleep(&pause,NULL);
+    command(18,314,8,clockseconds()+1); submit(28); ack(18,CP_APPLIED,314);
+    for (int i=0;i<4;i++) if (word(lily.terminal[i].data)==313) assert(lily.terminal[i].data[13]==4);
+
+    SithThing *prior=world.aThings;
+    SithPathFrame stops[2]={0};
+    SithThing lift={.type=SITH_THING_COG,.moveType=SITH_MT_PATH,.position={0,0,1},.sector=&sector};
+    lift.trackParams.aFrames=stops; lift.trackParams.loadedFrames=2;
+    world.aThings=&lift;
+    self.attachedThing=&lift; self.attach_flags=SITH_ATTACH_THINGFACE;
+    nav.liftCount=1; nav.liftForNode[0]=1; nav.lifts[0]=(BotLift){.thing=0,.node={0,1}};
+    assert(Bot_LiftMove(&self,0,2) && nav.waitUntil>bot.now && nav.liftWaitAt);
+    checkAtomicWait(315);
+    lift.position=stops[0].pos; assert(Bot_LiftMove(&self,0,2) && !nav.liftWaitAt);
+    tick(); assert(lily.active.seq==315);
+    self.attach_flags=SITH_ATTACH_SURFACE; self.attachedThing=NULL; world.aThings=prior;
+    command(18,316,8,clockseconds()+1); submit(28); ack(18,CP_APPLIED,316);
+
+    nav.ctf=1; nav.entryCount=1; nav.objective=BOT_OBJECTIVE_JOIN; nav.selectedEntry=0;
+    nav.requestedTeam=1; nav.entries[0]=(BotTeamEntry){1,2,self.position,&sector};
+    self.actorParams.pPlayer->teamNum=0;
+    assert(Bot_JoinMove(&self) && nav.crossingEntry);
+    checkAtomicWait(317);
+    self.actorParams.pPlayer->teamNum=1;
+    assert(!Bot_JoinMove(&self) && !nav.crossingEntry); nav.ctf=0;
+    tick(); assert(lily.active.seq==317);
+    command(18,318,8,clockseconds()+1); submit(28); ack(18,CP_APPLIED,318);
+
+    const int bin=SITHBIN_F_BLINDING, key=Bot_PowerKey(bin);
+    SithThing target={.type=SITH_THING_PLAYER,.sector=&sector,.guid=70,.position=self.position};
+    target.position.y+=0.25f; jkPlayer_playerInfos[1].pLocalPlayer=&target;
+    SithPlayer *own=self.actorParams.pPlayer;
+    own->aItems[bin].state=SITHINVENTORY_ITEM_AVAILABLE; own->aItems[bin].amount=4;
+    own->aItems[SITHBIN_FORCEMANA].amount=400; own->curPower=bin;
+    bot.fistsPeace=0; bot.competitiveForce=0;
+    for (int scenario=0;scenario<3;scenario++) {
+        uint32_t seq=319+scenario;
+        bot.nextForce=bot.nextScan=0;
+        motor(seq,lily.sample,scenario==2 ? 150 : 1,0,clockseconds()+2); frame[45]=bin;
+        if (scenario==0) { /* explicit Force key-up in the second step */
+            frame[6]=35; frame[36]=2; frame[46]=1;
+        }
+        submit(scenario==0 ? 55 : 46); ack(20,CP_APPLIED,seq);
+        assert(jkBot_GetKey(key,NULL));
+        if (scenario==2) {
+            command(18,322,8,clockseconds()+1); submit(28); ack(18,CP_APPLIED,322);
+            assert(bot.forceCancel && jkBot_GetKey(INPUT_FUNC_NEXTSKILL,NULL));
+        } else {
+            tick();
+            assert(!bot.forceCancel && !jkBot_GetKey(key,NULL) && !jkBot_GetKey(INPUT_FUNC_NEXTSKILL,NULL));
+        }
+    }
+    jkPlayer_playerInfos[1].pLocalPlayer=NULL;
+    puts("PASS final-frame completion, ordinary Force key-up vs cancellation, moving lift and CTF wait ownership");
+}
 static void testLily(void)
 {
     setenv("JK_BOT_LILY","1",1);
@@ -42,9 +114,13 @@ static void testLily(void)
     lily.offeredAt-=2; companion.nextState=0; tick();
     assert(receive(5)==89 && frame[28]==2);
     sample=word(frame+20); uint32_t offer=word(frame+24);
+    unsigned char strategy[28]={0};
+    strategy[8]=CP_RESOURCE;
+    assert(Companion_SetPolicy(&self,strategy,clockseconds()+2)==CP_OK);
     command(19,7,24,clockseconds()+2); setword(frame+28,sample); setword(frame+32,11);
     setword(frame+36,offer); setword(frame+40,2); submit(44); ack(19,CP_APPLIED,7);
     assert(bot.goal==2 && bot.routePos==0 && bot.routeCount==2);
+    if (companion.policy.mode) companion.policy.until=clockseconds()-1;
     self.position=bot.nodes[1].pos; bot.nextPlan=0; tick();
     assert(bot.goal==2 && bot.routePos==1 && "routine planning preserved committed cursor");
     assert(lily.active.seq==7);
@@ -104,6 +180,7 @@ static void testLily(void)
     motor(20,lily.sample,1,0,clockseconds()+2); submit(46); ack(20,CP_STALE,20);
     lily.samples[lily.sample%32].time-=2;
     motor(312,lily.sample,1,0,clockseconds()+2); submit(46); ack(20,CP_STALE,312);
+    testHandoverAndCompletion();
     puts("PASS 300 native actions, exact replay, evicted sequence fence, aged sample and fists-peace");
     puts("PASS committed cursor, physical route arrival, stock fire/weapon/Force inputs, atomic admission and lifecycle release");
     puts("PASS native Lily bounded chunks, stale/expiry validation, actual axes, held edges and terminal identity");

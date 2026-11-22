@@ -1,9 +1,9 @@
 diff --git a/src/AI/jkBot.c b/src/AI/jkBot.c
 new file mode 100644
-index 0000000000000000000000000000000000000000..eb489b7b15ab35d7f015b1685ce69c18d74a383a
+index 0000000000000000000000000000000000000000..221699ac50e53a23d922efbb61532c1fe91d64da
 --- /dev/null
 +++ b/src/AI/jkBot.c
-@@ -0,0 +1,1045 @@
+@@ -0,0 +1,1046 @@
 +/*
 + * Ordinary-client multiplayer bot input driver, reconstructed October 2026.
 + * Copyright (C) OpenJKDF2 contributors.
@@ -1018,6 +1018,7 @@ index 0000000000000000000000000000000000000000..eb489b7b15ab35d7f015b1685ce69c18
 +        }
 +    }
 +    Companion_Publish(self,dead);
++    if (lily.enabled) Lily_EndFrame();
 +    bot.wasDead=dead;
 +    for (int i=0;i<INPUT_FUNC_MAX;i++) bot.presses[i]=bot.keys[i] && !bot.previous[i];
 +    if (!dead) Bot_TraceFireInput(self);
@@ -2912,10 +2913,10 @@ index 0000000000000000000000000000000000000000..3761a38178c54a93ae8e3771ae563fcf
 +}
 diff --git a/src/AI/jkBotLily.inc b/src/AI/jkBotLily.inc
 new file mode 100644
-index 0000000000000000000000000000000000000000..81027314b065ed4b6fca557ee5194f5229150dc9
+index 0000000000000000000000000000000000000000..718639043a3edf16ad4a1afdcf6c2510274f751f
 --- /dev/null
 +++ b/src/AI/jkBotLily.inc
-@@ -0,0 +1,321 @@
+@@ -0,0 +1,337 @@
 +/* Opt-in companion input authority. Only the normal control driver consumes
 +   these axes and keys. Transport and game clocks deliberately stay distinct. */
 +enum { LILY_BASELINE,LILY_ROUTE,LILY_MOTOR };
@@ -2933,7 +2934,7 @@ index 0000000000000000000000000000000000000000..81027314b065ed4b6fca557ee5194f52
 +    LilyStep steps[5];
 +} LilyAction;
 +static struct {
-+    int enabled, neutral, forceRequest;
++    int enabled, neutral, motorBoundary, forceRequest;
 +    uint32_t sample,offer;
 +    struct { uint32_t id; double time; } samples[32];
 +    int choices[8],choiceCount;
@@ -2974,20 +2975,21 @@ index 0000000000000000000000000000000000000000..81027314b065ed4b6fca557ee5194f52
 +    }
 +    memset(a,0,sizeof(*a));
 +}
-+static void Lily_ReleaseForce(void)
++static void Lily_ReleaseForce(int cancel)
 +{
 +    if (lily.forceRequest && bot.forceBin>=0) {
 +        bot.forceUntil=bot.now;
-+        if (bot.forceBin==SITHBIN_F_THROW || bot.forceBin==SITHBIN_F_PULL ||
-+            bot.forceBin==SITHBIN_F_GRIP || bot.forceBin==SITHBIN_F_BLINDING) bot.forceCancel=1;
++        if (cancel && (bot.forceBin==SITHBIN_F_THROW || bot.forceBin==SITHBIN_F_PULL ||
++            bot.forceBin==SITHBIN_F_GRIP || bot.forceBin==SITHBIN_F_BLINDING)) bot.forceCancel=1;
 +    }
 +    lily.forceRequest=0;
 +}
 +static void Lily_Clear(int reason)
 +{
 +    if (!lily.enabled) return;
-+    if (lily.active.seq) lily.neutral=1;
-+    Lily_ReleaseForce();
++    if (lily.active.seq || lily.motorBoundary) lily.neutral=1;
++    Lily_ReleaseForce(lily.active.owner==LILY_MOTOR);
++    lily.motorBoundary=0;
 +    Lily_Finish(&lily.active,LILY_INTERRUPTED,reason,0);
 +    Lily_Finish(&lily.queued,LILY_INTERRUPTED,reason,0);
 +}
@@ -3000,7 +3002,9 @@ index 0000000000000000000000000000000000000000..81027314b065ed4b6fca557ee5194f52
 +}
 +static int Lily_Atomic(SithThing *self)
 +{
-+    return nav.waterExitUntil>0 || nav.jumpUntil>bot.now || nav.forceJumpPending ||
++    return (nav.liftWaitAt>0 && nav.waitUntil>bot.now) ||
++        (nav.crossingEntry && nav.crossingUntil>bot.now) ||
++        nav.waterExitUntil>0 || nav.jumpUntil>bot.now || nav.forceJumpPending ||
 +        nav.combatJumpUntil>bot.now || bot.forceBin>=0 || bot.forceCancel || Bot_ActiveCompetitiveGrip(self);
 +}
 +static int Lily_Command(int kind,const unsigned char *p,int size,uint32_t seq,double expiry)
@@ -3096,14 +3100,28 @@ index 0000000000000000000000000000000000000000..81027314b065ed4b6fca557ee5194f52
 +        bot.keys[INPUT_FUNC_FIRE1]=bot.keys[INPUT_FUNC_FIRE2]=0;
 +    if (s->weapon && (!bot.sabersOnly || s->weapon==SITHBIN_LIGHTSABER) &&
 +        Bot_HasWeapon(self,s->weapon)) bot.keys[INPUT_FUNC_SELECT1+s->weapon-1]=1;
-+    if (lily.forceRequest && lily.forceRequest!= (int)s->force) Lily_ReleaseForce();
-+    if (s->force && lily.forceRequest!=(int)s->force) {
-+        (void)Bot_RequestForce(self,s->force,s->duration/1000.0f,bot.targetSlot);
-+        lily.forceRequest=s->force;
++    if (lily.forceRequest && lily.forceRequest!=(int)s->force) {
++        Lily_ReleaseForce(0);
++        Bot_ForceControl(self,NULL,180,0);
 +    }
++    if (s->force && lily.forceRequest!=(int)s->force &&
++        Bot_RequestForce(self,s->force,s->duration/1000.0f,bot.targetSlot)) lily.forceRequest=s->force;
 +    if (s->force && (int)s->force==bot.forceBin) bot.forceUntil=bot.now+bot.frameDt+0.001f;
 +    Bot_ForceControl(self,NULL,180,0);
 +    a->stepMs+=lily.tickMs; a->applied+=lily.tickMs;
++}
++/* The frame's sense sample retains the identity of the controls just emitted.
++   Commit its elapsed duration before a later deadline, command or fence can
++   reinterpret already played input. The next tick can renew the held keys. */
++static void Lily_EndFrame(void)
++{
++    LilyAction *a=&lily.active;
++    if (a->owner!=LILY_MOTOR || a->stepMs+0.0001<a->steps[a->index].duration) return;
++    a->stepMs=0;
++    if (++a->index==a->count) {
++        Lily_Finish(a,LILY_COMPLETED,0,LILY_PLAYBACK);
++        lily.motorBoundary=1;
++    }
 +}
 +static int Lily_Drive(SithThing *self)
 +{
@@ -3112,17 +3130,13 @@ index 0000000000000000000000000000000000000000..81027314b065ed4b6fca557ee5194f52
 +    if (lily.queued.seq && companion.now>=lily.queued.expiry)
 +        Lily_Finish(&lily.queued,LILY_EXPIRED,LILY_DEADLINE,0);
 +    if (lily.active.seq && companion.now>=lily.active.expiry) {
-+        Lily_ReleaseForce(); Lily_Finish(&lily.active,LILY_EXPIRED,LILY_DEADLINE,0); lily.neutral=1;
++        Lily_ReleaseForce(1); Lily_Finish(&lily.active,LILY_EXPIRED,LILY_DEADLINE,0); lily.neutral=1;
 +    }
 +    if (lily.neutral) { lily.neutral=0; Bot_ForceControl(self,NULL,180,0); return 1; }
-+    if (lily.active.owner==LILY_MOTOR) {
-+        LilyAction *a=&lily.active;
-+        if (a->stepMs+0.0001>=a->steps[a->index].duration) {
-+            a->stepMs=0;
-+            if (++a->index==a->count) {
-+                Lily_Finish(a,LILY_COMPLETED,0,LILY_PLAYBACK);
-+                if (!lily.queued.seq) { Lily_ReleaseForce(); Bot_ForceControl(self,NULL,180,0); return 1; }
-+            }
++    if (lily.motorBoundary) {
++        lily.motorBoundary=0;
++        if (lily.queued.owner!=LILY_MOTOR) {
++            Lily_ReleaseForce(0); Bot_ForceControl(self,NULL,180,0); return 1;
 +        }
 +    }
 +    if (!lily.active.seq && lily.queued.seq) {
@@ -3131,6 +3145,9 @@ index 0000000000000000000000000000000000000000..81027314b065ed4b6fca557ee5194f52
 +        if (Lily_Routing() && !Lily_RouteStart(self,lily.active.node)) {
 +            Lily_Finish(&lily.active,LILY_INTERRUPTED,LILY_INVALID_ROUTE,0); return 0;
 +        }
++        /* The old strategy timer must never clear a newly owned route. Its
++           plan-reset helper owns the legacy goal and is not a handover API. */
++        companion.policy=(CompanionPolicy){0};
 +        Lily_Progress(&lily.active,LILY_STARTED,0,0);
 +        bot.stuckAt=bot.now; bot.progressPos=self->position; bot.nextRecovery=0;
 +    }

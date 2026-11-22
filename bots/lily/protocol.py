@@ -79,6 +79,26 @@ def _finite(values):
         raise ValueError("nonfinite observation")
 
 
+def _action_node(owner, node):
+    return (owner == 1 and 0 <= node < 8192) or (owner == 2 and node == -1)
+
+
+def _valid_progress(owner, phase, reason, outcome, node):
+    if not _action_node(owner, node):
+        return False
+    if phase == 4:
+        return reason == 0 and outcome == owner  # route arrived, or motor played
+    if outcome != 0:
+        return False
+    if phase in (1, 2, 3):
+        return reason == 0
+    if phase == 5:
+        return reason in (1, 2, 3, 7, 8) or (owner == 1 and reason in (5, 6))
+    if phase == 6:
+        return owner == 1 and reason == 5
+    return phase == 7 and reason == 4
+
+
 def decode_event(kind, payload):
     """Decode a single payload. Unrecognized or malformed data returns None."""
     if type(kind) is not int or not isinstance(payload, (bytes, bytearray, memoryview)) or len(payload) > 492:
@@ -98,7 +118,7 @@ def decode_event(kind, payload):
             return dict(sample_id=sample, offer_id=offer, choices=choices)
         if kind == PROGRESS:
             seq, revision, sample, owner, phase, reason, outcome, ms, node = ACTION.unpack(payload)
-            if not seq or not revision or not sample or not owner or not phase or not -1 <= node < 8192:
+            if not seq or not revision or not sample or not _valid_progress(owner, phase, reason, outcome, node):
                 return None
             return dict(action_seq=seq, revision=revision, sample_id=sample, owner=OWNERS[owner],
                         phase=PHASES[phase], reason=REASONS[reason], outcome=OUTCOMES[outcome],
@@ -108,7 +128,14 @@ def decode_event(kind, payload):
             sample, seq, revision, reference, node, owner, phase, safe, supported, medium = fields[:10]
             if not sample or safe > 1 or supported > 1 or medium > 1 or not -1 <= node < 8192:
                 return None
+            if owner == 0:
+                if seq or revision or reference or phase or node != -1:
+                    return None
+            elif not (_action_node(owner, node) and seq and revision and reference and phase in (1, 3) and not safe):
+                return None
             _finite(fields[10:29])
+            if fields[23] < 0 or fields[24] <= 0 or any(abs(axis) > 1 for axis in fields[25:29]):
+                return None
             buttons, weapon, force, count = fields[29:]
             if buttons > 31 or weapon > 10 or force not in (0, *range(21, 35)):
                 return None
