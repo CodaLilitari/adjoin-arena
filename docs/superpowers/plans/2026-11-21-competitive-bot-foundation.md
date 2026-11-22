@@ -55,9 +55,9 @@
 
 **Files:** Design above, atlas guide, a source/test checkpoint receipt.
 
-- [ ] Independently review the code against the five review-focus risks and the complete spec; fix substantive findings.
+- [x] Independently review the code against the five review-focus risks and the complete spec; fix substantive findings.
 - [x] Record the new code commit, tests actually executed, original-data evidence and remaining native/companion work.
-- [ ] Save the code on a feature branch, preserving `main` and existing packaged binaries.
+- [x] Commit the code on the local feature branch, preserving `main` and existing packaged binaries. Remote publication requires explicit destination approval after automatic approval review blocked the attempted GitHub push.
 - [ ] Present current findings, the actual atlas result and the next native integration work without claiming completed competitive behavior.
 
 ## Execution ledger
@@ -69,4 +69,7 @@
 - Exact source at `0f3fb574bde4e8a6c58cd3541f4e24a2264a88f6` passed the installed-data CLI qualification. All nine map and both archive hashes/counts match the prior stock audit. A separate raw-row crosscheck matched position, orientation, sector, template and authored order for all 193 exported starts.
 - The last 16 authored starts in each CTF map occupy that map's lobby sector. Runtime masks/ordinal mapping and playable spawn eligibility remain unqualified.
 - Original-data evidence: `qa/bots-stock-spawn-atlas-receipt.json`. The full derived atlas is a separate private artifact.
-- Final parser checks: seven atlas tests and four existing map-audit tests passed on `0f3fb57`. The broader suite is recorded separately after its final run.
+- Full Python suite at the parser checkpoint: 203 tests, two platform skips, no failures or errors. The two skips require PowerShell on the test host.
+- Final review fixed an output-path alias hazard: the CLI now refuses to overwrite either stock input archive, including a symlink or hardlink alias. Eight atlas and four existing map-audit tests passed on `1bd8604`, including all six source-preservation cases on the test host.
+- Exact source at `1bd860456db42b76bfe98f36087ad74d29a91b6c` passed a repeat original-data CLI qualification and all 193 raw-row checks. The receipt and private atlas identify that revision. Final scoped review found no remaining issues.
+- Next authorization action: publish `feature/competitive-bot-foundation` to `https://github.com/CodaLilitari/jk-cross-server`. Nothing was pushed or merged by this checkpoint.

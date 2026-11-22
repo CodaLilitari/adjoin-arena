@@ -3,12 +3,12 @@
   "date": "2026-11-21",
   "evidence": "authored_stock_spawn_poses_and_raw_row_crosscheck",
   "source_baseline": "260ef1449e8d65fefff2c574dab8dbce824cffad",
-  "code_commit": "0f3fb574bde4e8a6c58cd3541f4e24a2264a88f6",
+  "code_commit": "1bd860456db42b76bfe98f36087ad74d29a91b6c",
   "source_sha256": {
     "bots/__init__.py": "bcb2d17ad45888a115146a9491ee107f968593ede7cc98a1163b15b69a653893",
     "bots/settings.py": "04f7187279f77f58e15ce9f7b8de864012e71337eede30dce96cbe0be461d288",
     "bots/map_audit.py": "6d0ea18ac1a465e80d32defdbfea3977abf23be2c7ab0f2c1b69591028f6d8c0",
-    "bots/spawn_atlas.py": "e16d6a22da81a9954c8c2ad8001dcacc9de449788be7515ec4259737579c2326",
+    "bots/spawn_atlas.py": "096e1e952e547172e3e7910dcce585277de84510b5b69eb37fb0558471bb9414",
     "manager/__init__.py": "0473c521e59b406646bd31bd5caae352fd3a450fb68b374dce1c6f58a8fd1618",
     "manager/config.py": "fdc2a130e1b29677808a675193961213a412803369a5652777f00744e7bbdfb4",
     "manager/content.py": "d4dae8db1b658f0b545d476b2e324b39c79cee622fd7ac77d8ccc955ca7f7812"
@@ -103,5 +103,24 @@
     "Mixed interoperability with current upstream jkweb",
     "Competitive strength against human players"
   ],
-  "status": "pass"
+  "status": "pass",
+  "test_runs": [
+    {
+      "source_commit": "0f3fb574bde4e8a6c58cd3541f4e24a2264a88f6",
+      "scope": "full Python suite before final output-archive guard",
+      "tests_run": 203,
+      "skipped": 2,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "source_commit": "1bd860456db42b76bfe98f36087ad74d29a91b6c",
+      "scope": "final atlas and map audit checks",
+      "atlas_tests": 8,
+      "map_tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "alias_cases": 6
+    }
+  ]
 }
