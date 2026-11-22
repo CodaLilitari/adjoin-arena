@@ -239,6 +239,50 @@ class EvaluationTests(unittest.TestCase):
             self.assertEqual(attempts[1]["status"],"complete")
             self.assertIsNone(report["criterion"])
 
+    def test_completed_process_sidecar_still_requires_its_historical_seed(self):
+        from test_lily_outcome_rollouts import RolloutTests
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            assignment,work,case,policy,model,_ = RolloutTests().fixture(root)
+            assignment["work_dir"] = work.name
+            (work/"assignment.json").write_text(json.dumps(assignment))
+            shutil.copyfile(work/"process.json",work/"process.json.partial")
+            trace = work/"native.jsonl"
+            lines = trace.read_bytes().splitlines(keepends=True)
+            assigned = json.loads(lines[0])
+            edges = {assigned["sector"]:[assigned["seed"],runner.motor.digest(work/"start.json"),assigned["position"]]}
+            runner.write(root/"run.json",{})
+            header = dict(started_at_utc="2020-01-01T00:00:00Z",
+                          fixture_sources={"evaluator":{"native/tests/stock_water_replay/evaluate_motor.py":"x"}})
+            builder = audit.Reconstruction(audit.Inventory(root),{},"d"*64,{},header,edges,[])
+            def observed():
+                return builder.attempt(root,assignment,case,(policy,model))
+            matching = observed()
+            self.assertEqual((matching["status"],matching["row"]),("censored",None))
+            lines[0] = (json.dumps(dict(assigned,seed=assigned["seed"]+1))+"\n").encode()
+            trace.write_bytes(b"".join(lines))
+            with self.assertRaisesRegex(ValueError,"stock edge or seed"):
+                observed()
+
+    def test_sidecar_and_completed_sibling_must_share_initial_observation(self):
+        # The ninth slot is the second candidate's measurement of the first start.
+        for sidecar_slot in (0,8):
+            with self.subTest(sidecar_slot=sidecar_slot), self.first_block_snapshot(9) as (block,ledger,result):
+                work = block/ledger[sidecar_slot]["work_dir"]
+                status = dict(schema=1,engine_returncode=1,worker_returncode=0,timed_out=None,error=None,
+                              started_at_utc="2020-01-01T00:00:00Z",ended_at_utc="2020-01-01T00:00:01Z",elapsed_seconds=1)
+                runner.write(work/"process.json",status)
+                shutil.copyfile(work/"process.json",work/"process.json.partial")
+                self.assertEqual(result()["counts"]["censored"],1)
+                original = physical
+                def changed_start(a,path,case,policy,model):
+                    evidence = original(a,path,case,policy,model)
+                    if path == work:
+                        evidence["row"]["initial_observation_sha256"] = "f"*64
+                    return evidence
+                with patch(__name__+".physical",changed_start), self.assertRaisesRegex(ValueError,"different actual starts"):
+                    result()
+
     def test_process_sidecar_cannot_be_credited_in_self_consistent_complete_block(self):
         with self.first_block_snapshot(104) as (block,ledger,result):
             first = block/ledger[0]["work_dir"]
@@ -260,8 +304,10 @@ class EvaluationTests(unittest.TestCase):
             (work/"process.json").rename(partial)
             result = runner.trial.audit_attempt(assignment,work,case,policy,model)
             self.assertIsNone(result["process"])
+            assigned = json.loads((work/"native.jsonl").read_bytes().splitlines()[0])
+            edges = {assigned["sector"]:[assigned["seed"],runner.motor.digest(work/"start.json"),assigned["position"]]}
             def check_sidecar():
-                return audit.unpublished_process(result,work,assignment["job"],case,False)
+                return audit.unpublished_process(result,work,assignment["job"],case,False,edges,{})
             observed = check_sidecar()
             self.assertEqual(observed["reason"],"unpublished_process_witness")
             self.assertEqual(observed["observed_native_terminal"]["terminal"],"died")

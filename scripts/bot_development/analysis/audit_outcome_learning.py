@@ -303,7 +303,16 @@ def interrupted_controls(assignment, work, case, paths, edge, has_terminal):
     return verified, unavailable
 
 
-def unpublished_process(result, work, job, case, native):
+def bind_start(row, job, edges, starts):
+    equal({k:row[k] for k in job}, job, "raw result/assignment")
+    episode = job["episode_id"]
+    trial.match_starts({"arm":[row]}, [episode], edges)
+    if starts is not None:
+        start = [row[k] for k in trial.prior.START]
+        equal(start, starts.setdefault(episode,start), "different actual starts")
+
+
+def unpublished_process(result, work, job, case, native, edges, starts):
     """Retain checked physical and process witnesses without crediting unfinished publication."""
     partial = (work/"process.json.partial").read_bytes()
     status = trial.prior.available_record(partial.rstrip())
@@ -311,6 +320,7 @@ def unpublished_process(result, work, job, case, native):
     if final.exists():
         check(partial == final.read_bytes(), "conflicting process publications")
     end = result.get("observed_native_terminal")
+    row = result["row"]
     if result["status"] == "complete":
         # The raw oracle already checked both waits, marker, every input and terminal.
         end = {"terminal":result["row"]["terminal"]}
@@ -332,6 +342,8 @@ def unpublished_process(result, work, job, case, native):
                 equal(trial.prior.engine_code(log),code,"unpublished engine marker")
                 row = run.motor.assess(job,work,code,case)
                 equal(result["reinferred_decisions"],row["decisions"],"unpublished clean decision count")
+    if row is not None:
+        bind_start(row,job,edges,starts)
     return dict(result, status="censored", row=None, reason="unpublished_process_witness",
                 process=status, observed_native_terminal=end)
 
@@ -355,7 +367,7 @@ class Reconstruction:
         self.verified_censored_controls = 0
         self.unverifiable_censored_controls = 0
 
-    def attempt(self, directory, assignment, case, paths):
+    def attempt(self, directory, assignment, case, paths, starts=None):
         work = directory/assignment["work_dir"]
         if not self.inv.entry(work, True):
             return dict(status="unrun")
@@ -385,7 +397,9 @@ class Reconstruction:
             if "process.json.partial" in result["raw"]:
                 if result["status"] == "complete":
                     self.verified_censored_controls += result["reinferred_decisions"]
-                result = unpublished_process(result,work,assignment["job"],case,paths[0] is None)
+                result = unpublished_process(result,work,assignment["job"],case,paths[0] is None,self.edges,starts)
+            elif result["status"] == "complete":
+                bind_start(result["row"],assignment["job"],self.edges,starts)
         for name in result["raw"]:
             self.inv.entry(work/name)
         if result["process"]:
@@ -411,13 +425,7 @@ class Reconstruction:
         for a in ledger:
             job = a["job"]
             try:
-                result = self.attempt(directory, a, bank["cases"][job["case"]], paths[a["candidate_id"]])
-                if result["status"] == "complete":
-                    row = result["row"]
-                    equal({k:row[k] for k in job}, job, "raw result/assignment")
-                    trial.match_starts({"arm":[row]}, [job["episode_id"]], self.edges)
-                    start = [row[k] for k in trial.prior.START]
-                    equal(start, starts.setdefault(job["episode_id"],start), "different actual starts")
+                result = self.attempt(directory, a, bank["cases"][job["case"]], paths[a["candidate_id"]], starts)
             except (ValueError, KeyError, IndexError, TypeError, OSError) as exc:
                 raise ValueError(f"{stage}/{label}/{a['work_dir']}: {exc}") from exc
             attempts.append(result)
