@@ -42,3 +42,17 @@ In each published receipt, `trace_evidence.receipt_sha256` hashes the original
 private harness output before qualification metadata was added to the
 checked-in JSON. The `trace_evidence.trace_sha256` value hashes the exact
 bytes of the published JSONL trace named in `trace_evidence.trace_file`.
+
+### Canyon Oasis water entry
+
+On `m10.jkl`, the old route planner clipped the rim of a water shaft when it
+tested a straight diagonal from the dry ledge. The bot now checks body
+clearance across the opening and down into the water, then uses ordinary
+movement to enter. The source fixture uses the engine collision routines and
+privately supplied stock world surfaces. From sector 41, reachable nodes
+increased from 13 to 517 of 552, and reachable items from 1 to 19 of 42.
+Both versions anchored 38 items. The first browser match reported 555 nodes.
+
+`native/tests/run_bot_portal_tests.py` exercises the same maneuver on synthetic
+geometry, including closed, hazardous, AI-only and undersized openings.
+Live execution of the revised route is pending.

@@ -46,15 +46,15 @@
     },
     "bin/bots-jkweb/openjkdf2.js": {
       "mode": 420,
-      "sha256": "f3535c1d59e48cd3ef9c21552d1f8dd52a3c2a0ce69d1455fbb382a2287bc015"
+      "sha256": "7617e26cd8e8008c5d1a47d59aa05731cd8ed3aff5f8984571e508ca92324ef8"
     },
     "bin/bots-jkweb/openjkdf2.wasm": {
       "mode": 493,
-      "sha256": "cc88d4c36626f04016986ffcf0c7d5d5db1d8762e32b38ba10a0e39a8988e777"
+      "sha256": "e3973a65d21fec4116a09ee9ef13e23e35898c40100cb4b08db13f73bbec8334"
     },
     "bin/bots-linux-x86_64/jk-bot-client": {
       "mode": 493,
-      "sha256": "f12e62f47ddb7014488eb96eb67e412d8103c5f104cefceb33055521f3e61e00"
+      "sha256": "2a6e9a436b59856c7932d0bdd73a477f26645afa70c698e3893cf8986657cc94"
     },
     "bin/bots-linux-x86_64/libGameNetworkingSockets.so": {
       "mode": 493,
@@ -510,7 +510,7 @@
     },
     "native/BOT_BUILD.json": {
       "mode": 420,
-      "sha256": "6a81b662cc3357fce348db97c79c725f6916d2a0084313f3b7567b23e1060151"
+      "sha256": "f49a17345fdcc170b8260ca1c01cadf009e287c56d52ab3023ca5f2dfe89810c"
     },
     "native/BUILD.json": {
       "mode": 420,
@@ -522,11 +522,11 @@
     },
     "native/bot-client.patch": {
       "mode": 420,
-      "sha256": "a3f93704cd47a4f40c70e63cd79184fc87dd6ebbf4883447cac06d8040083caa"
+      "sha256": "41bc3e0bc5a175aaba24ceebbd56411ffc1882f7a650e5c949cc03abc0651c97"
     },
     "native/bot-relink-linux-x86_64.tar.gz": {
       "mode": 420,
-      "sha256": "bb48ac26badaa05419e2ff5525d7064fdae513c35f957edd4d4f540609f16132"
+      "sha256": "48960d64e88523088d4b3b67870a53b6b46d8ce7f5909fd2b059408cc8aedc7b"
     },
     "native/build.sh": {
       "mode": 493,
@@ -620,13 +620,17 @@
       "mode": 420,
       "sha256": "5169007ec76144be733a08462126c2f123d0ec45ccfb6ca3da3a3b3fd7b43ae0"
     },
+    "native/tests/test_bot_combat.inc": {
+      "mode": 420,
+      "sha256": "81b7c4b06e6d5e67c0e760b15d730a6eb9921bd484eb4396d5921e25b127f0f5"
+    },
     "native/tests/test_bot_companion.c": {
       "mode": 420,
       "sha256": "8f0cae969f14b3ee2a2d810dc05c17f9c9b56f1978d37c528bd6560fd94fefd7"
     },
     "native/tests/test_bot_driver.c": {
       "mode": 420,
-      "sha256": "37924d13d431c777e9c8100db162289642dd556237ad88d8d1f924ef3d7a0ea0"
+      "sha256": "d34b1b211c6d23b3e74972c9fdebbff19e3a98f1eea74c7347dbb9a36dbbdf7a"
     },
     "native/tests/test_bot_hearing.c": {
       "mode": 420,
@@ -642,7 +646,7 @@
     },
     "native/tests/test_bot_portal_collision.c": {
       "mode": 420,
-      "sha256": "e22e848bcf600a6fe17a8039fc2c2509dcf731084cdf3abcecdabf450c843ec9"
+      "sha256": "63e24e4b18143a2de860db38870e1be5cdb2fe632dc211d66753c663a97d37d6"
     },
     "native/tests/test_bot_slope_geometry.inc": {
       "mode": 420,
@@ -815,6 +819,10 @@
     "qa/bots-initial-anchor-regression.json": {
       "mode": 420,
       "sha256": "7bbfb33fbd00df366a3780671ff5736e130fa8a8e5a6d04c3248ec01b8293fbc"
+    },
+    "qa/bots-jkweb-mode-startup.json": {
+      "mode": 420,
+      "sha256": "dc84e5301f2b02a4e8409e2133140e87b5af1b297e42150b79967e153348948d"
     },
     "qa/bots-low-ceiling-regression.json": {
       "mode": 420,
@@ -1174,7 +1182,7 @@
     },
     "qa/competitive-force/README.md": {
       "mode": 420,
-      "sha256": "cdb0864b76f510c5265c78616f00c580b50a045f362b271d3c7e57c48e6b9236"
+      "sha256": "8d197c658f4b2298b5863b06c8097b952f4a6a6eb2023f0a40bf0c9d4fc1b0ee"
     },
     "qa/competitive-force/harness.py": {
       "mode": 420,
@@ -1586,11 +1594,11 @@
     },
     "tests/test_web_bot_client.js": {
       "mode": 420,
-      "sha256": "5fff1bd5806f9560f41cd2c45a15b579fb698909d30fa67bc3acf8cdcd2c3b52"
+      "sha256": "e826b7a1d5e93a3f98d66e237f3f0b31f0f86e053543e4da990ce5de668d9d91"
     },
     "tests/test_web_bot_host.py": {
       "mode": 420,
-      "sha256": "828653f7fc0c48cfbff12164d78a46700c4c3379d1113673ee3a7c2788906155"
+      "sha256": "53e7caa09739836cb31d6d269becd120e0e116bd6d369906b1f3ed160f413d19"
     },
     "tools/admin-helper.css": {
       "mode": 420,
@@ -1610,11 +1618,11 @@
     },
     "web_bots/BUILD.json": {
       "mode": 420,
-      "sha256": "a4b02276eee7e8aedeeb663dc2ba62d975fdb6d3a565e995fc94c93356b98b0b"
+      "sha256": "d7192142d7352202bb4b0fe1ba05068c0a86db945106d7f5ac3b1b57b55c5728"
     },
     "web_bots/README.md": {
       "mode": 420,
-      "sha256": "9bcc786f3686559d1a6c4f53d93bd5b9373b3cfb1f07d58c2c9e2e1684964f67"
+      "sha256": "4af04f25379f8a8ec8682c7d565baeb868ffcb59aed4c35dccadab612395fdca"
     },
     "web_bots/build.sh": {
       "mode": 493,
@@ -1622,15 +1630,15 @@
     },
     "web_bots/client.js": {
       "mode": 420,
-      "sha256": "0b8881af4814523b900373672775282bc0d56342d6ffc1a246c3726c26d19105"
+      "sha256": "8f7b78e697d5d53b5e737dc4982a224ef36ac87f0aa9ee903c63e43f0bec0a42"
     },
     "web_bots/engine-relink.tar.gz": {
       "mode": 420,
-      "sha256": "5fad8e59d3e7bfbd8e8eb77bb3291aa79a77d262a8ee5c33c54ac46ad7130837"
+      "sha256": "6d566bb7fd49646648f5af90556fad6e12c7134d990413b22b975dcb35424174"
     },
     "web_bots/engine.patch": {
       "mode": 420,
-      "sha256": "e41499e9894b171994476329d3086c8f0a0d72455f3b4cabf0ecfedcbc6d4799"
+      "sha256": "3aed8078e07d6fe994f282f4c65f4956a7431174ea7fee21b59519603fbcf7e8"
     },
     "web_bots/fetch_relay.py": {
       "mode": 420,
@@ -1650,7 +1658,7 @@
     },
     "web_bots/serve.py": {
       "mode": 420,
-      "sha256": "f8c6a99b61183186e92d29c36153073774bba9a0829a9de11caee15210b9057c"
+      "sha256": "e785cfc38face9082fb657e30cc1f064943ddf6cba43dcc32dbf0d3227e2c221"
     },
     "web_gateway/README.md": {
       "mode": 420,

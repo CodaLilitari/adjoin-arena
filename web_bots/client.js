@@ -129,7 +129,7 @@
       mod = globalThis.Module = {
         canvas,
         arguments: boot.mod ? ["-path","jkmods/companion"] : [],
-        jkBotConfig:{role:env.JK_BOT_WEB_ROLE,room:env.JK_BOT_WEB_ROOM,name:env.JK_BOT_WEB_NAME,
+        jkBotConfig:{mode:env.JK_BOT_WEB_MODE,role:env.JK_BOT_WEB_ROLE,room:env.JK_BOT_WEB_ROOM,name:env.JK_BOT_WEB_NAME,
                      model:env.JK_BOT_WEB_MODEL,sound:env.JK_BOT_WEB_SOUND,side:env.JK_BOT_FORCE_SIDE,
                      style:env.JK_BOT_FORCE_STYLE,thirdPerson:env.JK_BOT_WEB_THIRD_PERSON==="1",elite:true},
         jkRelayUrl:"ws://"+location.host+"/relay",

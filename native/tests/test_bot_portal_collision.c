@@ -210,6 +210,76 @@ static void test_grounded_portal_clearance(void)
     puts("PASS ordinary low passage and supported step with headroom retain routes; query stack balanced");
 }
 
+/* A dry shelf above water, with a short dry shaft between the two.
+   The diagonal from the shelf to the water hits the edge of the floor. */
+static int test_horizontal_face(int sector,flex_t left,flex_t right,flex_t z,int upward)
+{
+    flex_t y=upward ? -0.3f : 0.3f;
+    return test_box_face(sector,(rdVector3){0,0,upward ? 1 : -1},
+        (rdVector3){left,y,z},(rdVector3){right,y,z},(rdVector3){right,-y,z},(rdVector3){left,-y,z});
+}
+
+static void test_water_entry(void)
+{
+    test_low_threshold(0,0.5f);
+    memset(test_surfaces,0,sizeof(test_surfaces)); memset(test_adjoins,0,sizeof(test_adjoins));
+    memset(test_sectors,0,sizeof(test_sectors));
+    test_world.numSurfaces=test_world.numVertices=0;
+    int bottom[3],top[3];
+    for (int i=0;i<3;i++) {
+        flex_t left=i ? .20f : 0,right=.65f,low=i==0 ? 0 : i==1 ? -.05f : -.65f;
+        flex_t high=i==0 ? .6f : i==1 ? 0 : -.05f;
+        SithSector *s=&test_sectors[i]; s->id=i;
+        s->boundingbox_onecorner=(rdVector3){left,-.3f,low};
+        s->boundingbox_othercorner=(rdVector3){right,.3f,high};
+        s->surfaces=&test_surfaces[test_world.numSurfaces];
+        test_end_face(i,left,0,low,high); test_end_face(i,right,1,low,high);
+        test_box_face(i,(rdVector3){0,1,0},(rdVector3){left,-.3f,low},(rdVector3){left,-.3f,high},
+            (rdVector3){right,-.3f,high},(rdVector3){right,-.3f,low});
+        test_box_face(i,(rdVector3){0,-1,0},(rdVector3){right,.3f,low},(rdVector3){right,.3f,high},
+            (rdVector3){left,.3f,high},(rdVector3){left,.3f,low});
+        top[i]=test_horizontal_face(i,left,right,high,0);
+        if (!i) test_horizontal_face(i,left,.20f,low,1);
+        bottom[i]=test_horizontal_face(i,.20f,right,low,1);
+    }
+    test_sectors[2].flags=SITH_SECTOR_UNDERWATER;
+    for (int i=0;i<4;i++) {
+        int upper=i/2; SithSurface *p=&test_surfaces[(i%2) ? top[upper+1] : bottom[upper]];
+        SithSurfaceAdjoin *a=&test_adjoins[i]; a->mirror=&test_adjoins[i^1];
+        a->surface=p; a->sector=&test_sectors[(i%2) ? upper : upper+1];
+        a->flags=SITHSURF_ADJOIN_ALLOW_MOVEMENT|SITHSURF_ADJOIN_VISIBLE;
+        p->pAdjoin=a; p->flags=0; a->next=p->pSector->adjoins;p->pSector->adjoins=a;
+    }
+    BotNode dry={.pos={.08f,0,BOT_FOOT_HEIGHT},.sector=&test_sectors[0]};
+    BotNode wet={.pos={.41f,0,-.2f},.sector=&test_sectors[2]};
+    SithThing self={0}; self.position=dry.pos;self.sector=dry.sector;
+    self.moveSize=self.collideSize=.065f; self.attach_flags=SITH_ATTACH_SURFACE;
+    self.orient.lvec=(rdVector3){1,0,0};self.orient.rvec=(rdVector3){0,-1,0};
+    sithPlayer_g_pLocalPlayerThing=&self;
+    assert(!Bot_Clear(NULL,dry.sector,dry.pos,wet.pos,.045f,1));
+    bot.nNodes=2;bot.nodes[0]=dry;bot.nodes[1]=wet;
+    assert(Bot_EdgeMode(0,1)==BOT_ROUTE_WATER_ENTRY);
+    assert(Bot_EnterWater(&self,&wet,BOT_ROUTE_WATER_ENTRY));
+    assert(bot.axes[INPUT_FUNC_FORWARD]>0.5f && !bot.keys[INPUT_FUNC_JUMP] && !bot.keys[INPUT_FUNC_DUCK]);
+    assert(Bot_Distance(self.position,dry.pos)==0);
+    BotNode tooClose=wet;tooClose.pos.x=.21f;
+    assert(!Bot_WaterEntry(&dry,&tooClose));
+    test_adjoins[2].flags&=~SITHSURF_ADJOIN_ALLOW_MOVEMENT;
+    memset(bot.axes,0,sizeof(bot.axes));
+    assert(Bot_EdgeMode(0,1)<0);
+    assert(Bot_EnterWater(&self,&wet,BOT_ROUTE_WATER_ENTRY) && bot.goal==-1 && !bot.axes[INPUT_FUNC_FORWARD]);
+    test_adjoins[2].flags|=SITHSURF_ADJOIN_ALLOW_MOVEMENT|SITHSURF_ADJOIN_ALLOW_AI_ONLY;
+    assert(!Bot_WaterEntry(&dry,&wet));
+    test_adjoins[2].flags&=~SITHSURF_ADJOIN_ALLOW_AI_ONLY;
+    test_sectors[1].flags|=SITH_SECTOR_FALLDEATH;
+    assert(!Bot_WaterEntry(&dry,&wet));
+    test_sectors[1].flags=0;test_sectors[2].flags=0;
+    assert(!Bot_WaterEntry(&dry,&wet));
+    assert(sithCollision_searchStackIdx==-1);
+    sithPlayer_g_pLocalPlayerThing=NULL;
+    puts("PASS dry ledge enters verified water through a thin shaft with ordinary inputs; closed, hazardous and narrow openings rejected");
+}
+
 int main(void)
 {
     test_geometry();
@@ -250,5 +320,6 @@ int main(void)
     assert(sithCollision_searchStackIdx==-1);
     puts("PASS closed/AI-only portals and unsupported landings remain rejected; query stack balanced");
     test_grounded_portal_clearance();
+    test_water_entry();
     return 0;
 }

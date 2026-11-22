@@ -70,6 +70,31 @@ class HostTests(unittest.IsolatedAsyncioTestCase):
         body=dict(instance="a"*32,frames=[base64.b64encode(raw).decode() for raw in datagrams],**extra)
         return await self.client.post("/engine/lily/frames",json=body,headers=self.auth)
 
+    async def test_four_competitive_modes_reach_every_seat_and_manifest(self):
+        for mode in ("ff-guns","ff-sabers","nf-guns","nf-sabers"):
+            with self.subTest(mode=mode):
+                arena = serve.Host(self.root/"game", self.root/"engine", self.root/mode,
+                                   "Canyon", None, False, mode=mode)
+                browser = TestClient(TestServer(arena.app(), host="127.0.0.1"))
+                try:
+                    await browser.start_server()
+                    arena.set_port(browser.server.port)
+                    self.assertEqual(json.loads((arena.runtime/"run.json").read_text())["mode"],mode)
+                    self.assertEqual((await (await browser.get("/status")).json())["mode"],mode)
+                    for ident in serve.SEATS:
+                        res = await browser.post(f"/engine/{ident}/boot",json={"instance":"a"*32},
+                                   headers={"Authorization":"Bearer "+arena.tokens[ident]})
+                        self.assertEqual(res.status,200)
+                        self.assertEqual((await res.json())["env"]["JK_BOT_WEB_MODE"],mode)
+                finally:
+                    await browser.close()
+                    arena.close()
+        self.assertEqual((await self.boot())["env"]["JK_BOT_WEB_MODE"],"ff-guns")
+        with self.assertRaisesRegex(ValueError, "mode"):
+            serve.Host(self.root/"game", self.root/"engine", self.root/"invalid",
+                       "Canyon", None, False, mode="anything")
+        self.assertFalse((self.root/"invalid").exists())
+
     async def test_model_and_engine_credential_never_served_as_public_files(self):
         conf=await self.boot()
         self.assertFalse(conf["mod"])

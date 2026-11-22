@@ -6,7 +6,7 @@ const path = require("node:path");
 const crypto = require("node:crypto");
 const delay = ms => new Promise(resolve => setTimeout(resolve,ms));
 
-async function check() {
+async function check(mode) {
   const nodes = new Map();
   const el = id => {
     if (!nodes.has(id)) nodes.set(id,{});
@@ -39,7 +39,7 @@ async function check() {
       assert.equal(opts.headers.Authorization,"Bearer synthetic-key");
       if(url.endsWith("/boot")) return {ok:true,json:async()=>({mod:true,assets:[{path:"/jk1/resource/Res2.gob"}],
         env:{JK_BOT_WEB_NAME:"Darth_Lilitari",JK_BOT_WEB_MODEL:"dlil.3do",JK_BOT_WEB_SOUND:"dlil.snd",
-             JK_BOT_WEB_ROOM:"Canyon",JK_BOT_WEB_ROLE:"host",JK_BOT_FORCE_SIDE:"dark",JK_BOT_FORCE_STYLE:"competitive",JK_BOT_WEB_THIRD_PERSON:"1"}})};
+             JK_BOT_WEB_MODE:mode,JK_BOT_WEB_ROOM:"Canyon",JK_BOT_WEB_ROLE:"host",JK_BOT_FORCE_SIDE:"dark",JK_BOT_FORCE_STYLE:"competitive",JK_BOT_WEB_THIRD_PERSON:"1"}})};
       if(url.endsWith("/assets/0"))return {ok:true,arrayBuffer:async()=>new ArrayBuffer(17)};
       assert.ok(url.endsWith("/frames"));
       const msg=JSON.parse(opts.body);
@@ -56,6 +56,8 @@ async function check() {
   assert.ok(dirs.includes("/jk1/player") && dirs.includes("/mots/persist"));
   assert.deepEqual(files,[["/jk1/resource/Res2.gob",17]]);
   assert.equal(ctx.Module.jkSavesMounted,true);
+  assert.equal(ctx.Module.jkBotConfig.mode,mode);
+  assert.equal(ctx.Module.ENV.JK_BOT_WEB_MODE,mode);
   assert.equal(ctx.Module.jkBotConfig.elite,true);
   assert.equal(ctx.Module.jkBotConfig.sound,"dlil.snd");
   assert.equal(ctx.Module.jkRelayUrl,"ws://127.0.0.1:3912/relay");
@@ -64,4 +66,4 @@ async function check() {
   assert.equal(new DataView(delivered[0].buffer).getFloat64(20,true),102);
   console.log("Browser client boot, scoped MEMFS, frame transfer and monotonic TTL mapping passed.");
 }
-check().catch(e=>{console.error(e);process.exitCode=1;});
+Promise.all(["ff-guns","ff-sabers","nf-guns","nf-sabers"].map(check)).catch(e=>{console.error(e);process.exitCode=1;});

@@ -28,6 +28,7 @@ from bots.companion import ACK, HEADER, Hub
 
 HERE = Path(__file__).resolve().parent
 ASSETS = ("resource/Res1hi.gob", "resource/Res2.gob", "resource/jk_.cd", "episode/JK1MP.gob")
+ARENA_MODES = ("ff-guns", "ff-sabers", "nf-guns", "nf-sabers")
 SEATS = {
     "lily": ("Darth_Lilitari", "ky.3do", "ky.snd", "dark"),
     "boba": ("Bot_BobaFett", "kyh4.3do", "kybobafett.snd", "dark"),
@@ -124,7 +125,10 @@ def child_relay(path):
 
 
 class Host:
-    def __init__(self, data, engine, runtime, room, model, chat):
+    def __init__(self, data, engine, runtime, room, model, chat, mode="ff-guns"):
+        if mode not in ARENA_MODES:
+            raise ValueError("Unknown arena mode. Choose one of " + ", ".join(ARENA_MODES) + ".")
+        self.mode = mode
         if not isinstance(room,str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,31}",room) or room != room.strip():
             raise ValueError("Room must be 1..31 ASCII letters, digits, underscores or hyphens.")
         self.room, self.engine, self.runtime = room, Path(engine), Path(runtime)
@@ -156,7 +160,7 @@ class Host:
         self.url = f"http://127.0.0.1:{port}"
         for ident,token in self.tokens.items():
             private_json(self.secrets_dir/(ident+".json"),{"version":1,"id":ident,"url":self.url,"token":token})
-        private_json(self.runtime/"run.json", {"url":self.url,"status":self.url+"/status","room":self.room,
+        private_json(self.runtime/"run.json", {"url":self.url,"status":self.url+"/status","room":self.room,"mode":self.mode,
             "pages":{i:self.url+"/bot/"+i for i in SEATS}, "companion":self.hub.url,
             "engine_credentials":"engines","companion_credentials":"companion"})
 
@@ -253,7 +257,7 @@ class Host:
         if ident == "lily" and self.model:
             model,sound="dlil.3do","dlil.snd"
         response = web.json_response({"id":ident,"assets":[{"path":path,"url":f"/engine/{ident}/assets/{n}"} for n,(path,_) in enumerate(self.assets)],
-            "mod":self.model,"env":{"JK_BOT_WEB_ROLE":"host" if ident=="lily" else "join","JK_BOT_WEB_ROOM":self.room,
+            "mod":self.model,"env":{"JK_BOT_WEB_ROLE":"host" if ident=="lily" else "join","JK_BOT_WEB_ROOM":self.room,"JK_BOT_WEB_MODE":self.mode,
                 "JK_BOT_WEB_NAME":name,"JK_BOT_WEB_MODEL":model,"JK_BOT_WEB_SOUND":sound,
                 "JK_BOT_FORCE_SIDE":side,"JK_BOT_FORCE_STYLE":"competitive","JK_BOT_WEB_THIRD_PERSON":"1" if ident=="lily" else "0"}})
         response.set_cookie("jkrelay_"+ident,seat["cookie"],httponly=True,samesite="Strict",path="/relay")
@@ -341,7 +345,7 @@ class Host:
                     "self":None if not active else {k:b.state[k] for k in ("slot","net_id","position","health","kills","deaths","mode")},
                     "graphics":seat["graphics"],"view":seat["view"],"stage":seat["stage"],"browser_dropped":seat["dropped"]}
         capture={k:v for k,v in self.capture.items() if k not in ("file","capture_id","instance")} if self.capture else None
-        return web.json_response({"room":self.room,"joined_count":sum(v["joined"] for v in seats.values()),
+        return web.json_response({"room":self.room,"mode":self.mode,"joined_count":sum(v["joined"] for v in seats.values()),
                                   "custom_model":self.model,"seats":seats,"capture":capture})
 
     async def record(self, request):
@@ -444,7 +448,7 @@ def relay_ready_port(line):
 
 async def serve(args):
     run=Path(args.runtime)/("arena-"+time.strftime("%Y%m%d-%H%M%S")+"-"+secrets.token_hex(4))
-    host=Host(args.data,args.engine_dir,run,args.room,args.model_gob,args.companion_chat)
+    host=Host(args.data,args.engine_dir,run,args.room,args.model_gob,args.companion_chat,mode=args.mode)
     runner=web.AppRunner(host.app(),access_log=None,shutdown_timeout=1.)
     proc=drain=None
     try:
@@ -474,7 +478,7 @@ async def serve(args):
             site=web.TCPSite(runner,"127.0.0.1",args.port)
             await site.start()
             host.set_port(runner.addresses[0][1])
-            print(json.dumps({"runtime":str(run.resolve()),"url":host.url,"pages":list(SEATS),"room":host.room}),flush=True)
+            print(json.dumps({"runtime":str(run.resolve()),"url":host.url,"pages":list(SEATS),"room":host.room,"mode":host.mode}),flush=True)
             while proc.returncode is None:
                 host.hub.pump()
                 await asyncio.sleep(.05)
@@ -504,6 +508,7 @@ def main(argv=None):
     p.add_argument("--runtime",type=Path,default=HERE.parent/"runtime"/"web-bots")
     p.add_argument("--model-gob",type=Path)
     p.add_argument("--port",type=int,default=0)
+    p.add_argument("--mode", choices=ARENA_MODES, default="ff-guns", help="Force profile and bot weapon policy on Canyon Oasis.")
     p.add_argument("--room",default="Canyon_"+secrets.token_hex(4))
     p.add_argument("--companion-chat",action="store_true")
     args=p.parse_args(argv)

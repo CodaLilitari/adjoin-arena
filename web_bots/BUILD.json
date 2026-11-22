@@ -14,17 +14,17 @@
     " 5a82f71ed1dfc0bec044d9702463dbdf84ea3b71 lib/zlib (5a82f71)"
   ],
   "changed_sources": {
-    "src/AI/jkBot.c": "c64122dd5a9ab060ef50d0f400127ea7f64e1a6060059f714e8f030c9c886b9a",
+    "src/AI/jkBot.c": "674887f31ac61d268931380c338c0debb327d6861fa804b3c019bc8223f9d0ed",
     "src/AI/jkBot.h": "d822c0f525b820307b9dde817677b81af8ccca5b3024d2a7859d0cb16314f70f",
     "src/AI/jkBotBehavior.h": "5cad5dc201e93c01d8dd5b72f6d3d9b425f29b528f83aeb4ec14c811da245e49",
     "src/AI/jkBotBehavior.inc": "ef13f015be070f0658fa2f08a6b63066228168ee129f04a79747e4e6bab63a16",
-    "src/AI/jkBotCombat.inc": "5d67e4eb5c20003a65843a213a5c881c4a491268c8dc467eee64fa165d94fc2a",
+    "src/AI/jkBotCombat.inc": "44af6b5f6b84fd5b6f86903156c64388b5e07b48123b530ac6e5ed5c33f03417",
     "src/AI/jkBotCompanion.inc": "91e1e975bb34f46cf1553ba77bcfbd4f57db550c1e6d1981facc1d62c44eacdc",
     "src/AI/jkBotForce.inc": "6952ac1b7cda850d2f696b68a046c84a84252d52e5204d0650908ae791e3d354",
     "src/AI/jkBotHearing.inc": "30c08aeefde67acaab5bdc63cfd93be0941f5b4614e8eec1ea357841ba6aee8a",
     "src/AI/jkBotLoadout.h": "aab6d025bb9ec2c431beb2d6bd559992b664e9ce075fcaa9c1103ae9ed5dcdc1",
-    "src/AI/jkBotNavigate.inc": "50a106bd52c4783677daf7bf3082236867124a0a4986f47fddeebf1bcc8a18fe",
-    "src/AI/jkBotNavigation.inc": "bd4551b2e84d88e3c102eb15a89228d7752cbfeb8376b92e6791dc34448f6cfc",
+    "src/AI/jkBotNavigate.inc": "2fc32a7d29d94d04cbebf88092b44b9da92b9657ae86f211298d64b4c80a4991",
+    "src/AI/jkBotNavigation.inc": "dbd5a098b9c9389acb19504bdbf76c337fe5ac3d1e2f0d9d3662f93cb2f3e651",
     "src/AI/jkBotPersona.c": "618f31f58e45a13d89b5dc0493233d446d5eaeada681bd0de758a155a50d578d",
     "src/AI/jkBotPersona.h": "e193097d937ed22400fe84d86a1e9e7f18884cc2be876fb1540627bee96e0bfb",
     "src/Cog/sithCog.c": "1b6e11427af188d95868b2d652b14478d9859b74f58f2148ff95537b34343c21",
@@ -33,7 +33,7 @@
     "src/Devices/sithSoundMixer.h": "932ae40638ffa450fe1d154118d7fc6e7813d6229a523abe3eac277958527ef9",
     "src/Dss/jkDSS.c": "2a06406afe669368fa1f31e433947bd522fe4093966dd4028e89b6c05b4d1b09",
     "src/Dss/sithMulti.c": "3e2129e114072fcbe4915ed66b54ad158de3a1ae0287776eff691cbd9bc6d678",
-    "src/Gui/jkGUIMultiplayer.c": "f5bda11bf4671713e8264379ef0611c5dc184df8984f9f207d7260dc876b2c7d",
+    "src/Gui/jkGUIMultiplayer.c": "6936efe646118ec3854c42f22d269c7f415158508004eb2a6e2b4b26265daf6e",
     "src/Gui/jkGUIMultiplayer.h": "504d0390e4d6f4fa31f42230ce273fa3125d24d42053feec9d85cc601a0d4287",
     "src/Main/Main.c": "5bcfdaa2a985f542310b675929dda6f00b0b7bbe9c783bb0fada6ad2677ac4f7",
     "src/Win95/stdSound.c": "8d9415e5e8e2bd25d39851183731deaa910af79c1e72e11d5e18fbc87305e321",
@@ -43,20 +43,20 @@
   },
   "files": {
     "bin/bots-jkweb/openjkdf2.js": {
-      "sha256": "f3535c1d59e48cd3ef9c21552d1f8dd52a3c2a0ce69d1455fbb382a2287bc015",
+      "sha256": "7617e26cd8e8008c5d1a47d59aa05731cd8ed3aff5f8984571e508ca92324ef8",
       "bytes": 563022
     },
     "bin/bots-jkweb/openjkdf2.wasm": {
-      "sha256": "cc88d4c36626f04016986ffcf0c7d5d5db1d8762e32b38ba10a0e39a8988e777",
-      "bytes": 3753033
+      "sha256": "e3973a65d21fec4116a09ee9ef13e23e35898c40100cb4b08db13f73bbec8334",
+      "bytes": 3759204
     },
     "web_bots/engine.patch": {
-      "sha256": "e41499e9894b171994476329d3086c8f0a0d72455f3b4cabf0ecfedcbc6d4799",
-      "bytes": 198988
+      "sha256": "3aed8078e07d6fe994f282f4c65f4956a7431174ea7fee21b59519603fbcf7e8",
+      "bytes": 207341
     },
     "web_bots/engine-relink.tar.gz": {
-      "sha256": "5fad8e59d3e7bfbd8e8eb77bb3291aa79a77d262a8ee5c33c54ac46ad7130837",
-      "bytes": 1547092
+      "sha256": "6d566bb7fd49646648f5af90556fad6e12c7134d990413b22b975dcb35424174",
+      "bytes": 1549844
     }
   }
 }

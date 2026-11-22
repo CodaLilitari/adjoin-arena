@@ -1,6 +1,6 @@
 # Private four-bot JKWeb arena
 
-This launcher runs the bot-enabled **current JKWeb browser engine**. Lily's browser hosts the game and the other three browser engines join through a private instance of the upstream relay. The match is stock JK1MP Canyon Oasis at rank eight. The browser clients execute gameplay and ordinary multiplayer traffic. The external companion can observe or issue expiring strategy requests through a separate local API.
+This launcher runs the bot-enabled **current JKWeb browser engine**. Lily's browser hosts the game and the other three browser engines join through a private instance of the upstream relay. The match runs on stock JK1MP Canyon Oasis. The default is full Force with guns (`ff-guns`). The browser clients execute gameplay and ordinary multiplayer traffic. The external companion can observe or issue expiring strategy requests through a separate local API.
 
 ## Start the arena
 
@@ -13,6 +13,17 @@ From the repository root:
 ```sh
 python -m web_bots.serve --data "/path/to/installed/JK" --relay-script "/path/to/relay.py" --runtime "/path/to/private/runs" --room CanyonPractice
 ```
+
+Choose a match format with `--mode`. Each of the four browsers receives the same format at startup.
+
+| Mode | Stock rank | Bot combat policy |
+| --- | --- | --- |
+| `ff-guns` (default) | 8 | Full Force and normal stock weapon decisions |
+| `ff-sabers` | 8 | Full Force and saber-only weapon attacks |
+| `nf-guns` | 0 | No Force and normal stock weapon decisions |
+| `nf-sabers` | 0 | No Force and saber-only weapon attacks |
+
+In full-Force sabers, the bot can still use stock offensive Force powers. The saber restriction governs weapon attacks. Stock game rules still determine what a player can pick up, damage, and how fast a player moves. All four formats disable the bot's fists-as-peace convention for this competitive arena. The launcher records the selected mode in `run.json` and reports it at `/status`.
 
 Use `--model-gob /path/to/cosmetic.gob` to stage a privately supplied cosmetic archive containing `dlil.3do` and `dlil.snd`. Lily uses those resources. All four clients mount the same archive under the same mod path. Without it, Lily uses a stock model and sound. The launcher treats the supplied GOB as trusted mod content; prepare a cosmetic-only archive when retaining stock game rules. The only retail files it serves are the local installation's `resource/Res1hi.gob`, `resource/Res2.gob`, `resource/jk_.cd` and `episode/JK1MP.gob`. These routes require a seat credential. Each browser gets its own in-memory copy and profile.
 
