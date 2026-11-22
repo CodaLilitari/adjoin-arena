@@ -8,7 +8,8 @@ the bots spatial hearing without interrupting local gameplay.
 
 **Architecture:** Scoped Python HTTP/CLI control over inherited nonblocking
 native datagram channels. Actual sound requests feed a bounded native auditory
-memory. Native clients continue sharing Cross Server with JKWeb players.
+memory. Current JKWeb bot builds host/join a private netcode-2 browser room; native
+Cross Server support is a separate compatibility path.
 
 **Tech Stack:** Python standard library, existing Python project dependencies,
 C native OpenJKDF2 input driver, Unix socketpair, current packaged engine inputs.
@@ -29,7 +30,7 @@ C native OpenJKDF2 input driver, Unix socketpair, current packaged engine inputs
 - A slow/crashed companion must leave gameplay and autonomous fallback running.
 - A reused player slot or world must never inherit an old command/target.
 - A duplicate or dropped acknowledgment must not duplicate chat or report false success.
-- A hidden/muted event must not become omniscient player tracking or disappear solely because audio is offscreen.
+- Auditory events must remain actual sound observations; the separately authorized elite policy may read synchronized player positions. Audio playback gates must not suppress hearing.
 - Browser transport compatibility and actual native/client hook execution must be proven separately from fixture tests.
 
 ## Task 1: Scoped hub, CLI and launcher
@@ -70,7 +71,7 @@ callback and `jkBot_GetHearing` summary plus turn/investigation behavior.
 - [ ] Establish failing audible rear-step versus silent negative-control tests.
 - [ ] Preserve emitter/class metadata before audio rendering gates.
 - [ ] Implement bounded acoustic path, attenuation, coarse memory and expiry.
-- [ ] Integrate auditory attention without hidden target acquisition or blind fire.
+- [ ] Integrate auditory attention, elite 360-degree awareness and privileged route pursuit while preserving physical shot checks.
 - [ ] Verify closed portals, own sounds, ambiguous arrivals and lifecycle reset.
 
 ## Task 4: Integrate, build and qualify
@@ -84,14 +85,17 @@ the previously rebuilt bot/GUI pair.
 - [ ] Add the smallest ordinary visible-bot/third-person hook needed for demo.
 - [ ] Package verified native inputs; run private game observation, strategy ACK,
       expiry and independent chat-receipt checks on the user's authorized PC.
-- [ ] Attempt current JKWeb mixed-client qualification; document any blocker.
+- [ ] Qualify current JKWeb custom clients through the current upstream private relay; document any blocker.
 - [ ] If assets and hardware/render path are ready, capture and inspect requested
       120-second Canyon Oasis four-bot demo; otherwise report exact missing part.
 - [ ] Fresh independent review, fixes, manifest refresh, commit and publish PR update.
 
 ## Progress
 
-Implementation not yet started. Initial source reconnaissance complete. Current
-upstream JKWeb optional channels use Classic fallback with older hosts; this is
-source evidence, not this increment's live interoperability result. Source audit
-of the stock Grip/input path confirms a binding-dependent Supergrip mechanism.
+Tasks 1–3 implemented in separate ownership areas and integrated. Native hearing,
+companion and 32 driver fixture groups pass. The current JKWeb WASM build compiles
+with Emscripten 6.0.12; 220 Python tests pass (two existing skips). A private
+netcode-2 relay handshake has been exercised. These are not live-game or
+human-strength results. The user's subsequent current-JKWeb/privileged-knowledge
+instruction supersedes the initial pinned-browser-only architecture. Runtime
+qualification and demo capture remain task 4.

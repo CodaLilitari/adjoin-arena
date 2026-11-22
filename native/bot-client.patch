@@ -1,9 +1,9 @@
 diff --git a/src/AI/jkBot.c b/src/AI/jkBot.c
 new file mode 100644
-index 0000000..d299029
+index 0000000000000000000000000000000000000000..62b1a99dd2f914b2b91bcabb5654a130d8fde805
 --- /dev/null
 +++ b/src/AI/jkBot.c
-@@ -0,0 +1,547 @@
+@@ -0,0 +1,612 @@
 +/*
 + * Ordinary-client multiplayer bot input driver, reconstructed October 2026.
 + * Copyright (C) OpenJKDF2 contributors.
@@ -29,6 +29,7 @@ index 0000000..d299029
 +#include "Gameplay/sithPlayer.h"
 +#include "World/sithWorld.h"
 +#include "World/sithSector.h"
++#include "World/sithSoundClass.h"
 +#include "World/sithSurface.h"
 +#include "World/jkPlayer.h"
 +#include "World/sithTemplate.h"
@@ -62,7 +63,7 @@ index 0000000..d299029
 +
 +static struct {
 +    int enabled, joined;
-+    int sabersOnly, fistsPeace, forceEnabled, competitiveForce, traceForce;
++    int sabersOnly, fistsPeace, forceEnabled, competitiveForce, elite, traceForce;
 +    flex_t nextForceTrace;
 +    char behaviorFile[4096];
 +    flex_t nextBehavior, frameDt, forceThreatUntil, forceUntil, nextForce;
@@ -79,6 +80,7 @@ index 0000000..d299029
 +    SithWorld *world;
 +    BotNode nodes[BOT_NODES];
 +    int nNodes, buildNode, graphDone, graphEdges;
++    uint32_t targetNetId, targetSignature;
 +    int targetSlot, targetGuid, goal, route[BOT_PATH], routeCount, routePos;
 +    int wasDead, recoverySide;
 +    rdVector3 seenPos, progressPos;
@@ -210,6 +212,7 @@ index 0000000..d299029
 +static int Bot_ForceReady(SithThing *self,int bin,flex_t cost);
 +static int Bot_RequestForce(SithThing *self,int bin,flex_t holdSeconds,int targetSlot);
 +
++#include "AI/jkBotCompanion.inc"
 +#include "AI/jkBotNavigation.inc"
 +
 +static int Bot_CtfOpponent(SithThing *self,int slot)
@@ -230,34 +233,63 @@ index 0000000..d299029
 +    return 1;
 +}
 +
++/* The elite gun controller may use synchronized positions even under Blind or
++   Persuasion. Hostile Force checks use their existing eligibility policy. */
++static int Bot_KineticEnemyAllowed(SithThing *self,int slot)
++{
++    if (!bot.elite) return Bot_EnemyAllowed(self,slot);
++    return Bot_EnemyBase(self,slot) && !Bot_IsPeaceful(self,slot);
++}
++
++static int Bot_VisibleTarget(SithThing *self,SithThing *target)
++{
++    rdVector3 delta=Bot_Sub(target->position,self->position);
++    flex_t distance=Bot_Len(delta);
++    return distance>0.0001f && distance<=20.0f &&
++        Bot_Dot(delta,self->orient.lvec)>=-0.12f*distance && sithCollision_HasLOS(self,target,0);
++}
++
++/* Competitive clients may use synchronized world knowledge to acquire in
++   any direction. A wall still blocks the actual weapon and Force actions. */
++static int Bot_CanAcquire(SithThing *self,SithThing *target)
++{
++    if (!bot.elite) return Bot_VisibleTarget(self,target);
++    return isfinite(Bot_Distance(self->position,target->position)) && sithCollision_HasLOS(self,target,0);
++}
++
 +static SithThing *Bot_UpdateTarget(SithThing *self)
 +{
-+    if (self->actorParams.flags&SITH_AF_BLIND) {
-+        bot.targetSlot=-1; bot.nextScan=bot.now+0.18f; return NULL;
++    if (!bot.elite && (self->actorParams.flags&SITH_AF_BLIND)) {
++        bot.targetSlot=-1; bot.nextScan=bot.now+(bot.elite ? 0.06f : 0.18f); return NULL;
 +    }
 +    SithThing *target=NULL;
-+    if (Bot_EnemyAllowed(self,bot.targetSlot)) {
++    if (Bot_KineticEnemyAllowed(self,bot.targetSlot)) {
 +        target=jkPlayer_playerInfos[bot.targetSlot].pLocalPlayer;
-+        if ((int)target->guid!=bot.targetGuid) target=NULL;
++        if ((int)target->guid!=bot.targetGuid || target->signature!=bot.targetSignature ||
++            jkPlayer_playerInfos[bot.targetSlot].playerNetId!=bot.targetNetId || !Bot_CanAcquire(self,target)) {
++            target=NULL; bot.targetSlot=-1;
++        }
 +    }
 +    if (bot.now>=bot.nextScan) {
-+        bot.nextScan=bot.now+0.18f;
++        bot.nextScan=bot.now+(bot.elite ? 0.06f : 0.18f);
 +        int bestSlot=-1;
 +        flex_t best=1e20f;
 +        for (unsigned int i=0;i<jkPlayer_maxPlayers && i<JKPLAYER_NUM_INFOS;i++) {
-+            if (!Bot_EnemyAllowed(self,(int)i)) continue;
++            if (!Bot_KineticEnemyAllowed(self,(int)i)) continue;
 +            SithThing *t=jkPlayer_playerInfos[i].pLocalPlayer;
-+            rdVector3 diff=Bot_Sub(t->position,self->position);
-+            flex_t d=Bot_Len(diff), forward=Bot_Dot(diff,self->orient.lvec);
-+            if (d>20.0f || (d>0.6f && forward/d < -0.12f && t!=target && bot.now>=bot.hurtUntil)) continue;
-+            if (!sithCollision_HasLOS(self,t,0)) continue;
++            if (!Bot_CanAcquire(self,t)) continue;
++            flex_t d=Bot_Distance(t->position,self->position);
 +            flex_t score=d*(t==target ? 0.65f : 1.0f)*(Bot_ObjectiveCarrier(t) ? 0.40f : 1.0f);
++            if (companion.policy.mode && companion.policy.net==jkPlayer_playerInfos[i].playerNetId &&
++                companion.policy.guid==t->guid && companion.policy.signature==t->signature) score*=0.45f;
 +            if (score<best) { best=score; bestSlot=(int)i; }
 +        }
 +        if (bestSlot>=0) {
 +            SithThing *next=jkPlayer_playerInfos[bestSlot].pLocalPlayer;
-+            if (next!=target) bot.reactionUntil=bot.now+0.22f+Bot_Unit()*0.2f;
++            if (next!=target) bot.reactionUntil=bot.now+(bot.elite ?
++                0.08f+Bot_Unit()*0.04f : 0.22f+Bot_Unit()*0.20f);
 +            bot.targetSlot=bestSlot; bot.targetGuid=(int)next->guid;
++            bot.targetSignature=next->signature; bot.targetNetId=jkPlayer_playerInfos[bestSlot].playerNetId;
 +            bot.seenPos=next->position; bot.seenAt=bot.now; target=next;
 +        } else if (!target || bot.now-bot.seenAt>1.7f) {
 +            bot.targetSlot=-1; target=NULL;
@@ -355,8 +387,25 @@ index 0000000..d299029
 +}
 +
 +#include "AI/jkBotNavigate.inc"
++#include "AI/jkBotHearing.inc"
 +
 +#include "AI/jkBotForce.inc"
++
++static flex_t Bot_EngagementForward(int melee,flex_t distance)
++{
++    if (!companion.policy.mode)
++        return melee ? 1.0f : distance>2.5f ? 0.5f : distance<0.75f ? -0.5f : 0.0f;
++    flex_t range=companion.policy.range;
++    if (!range) {
++        if (companion.policy.mode==CP_RECOVER) range=4.0f;
++        else if (companion.policy.mode==CP_PRESSURE) range=melee ? 0.25f : 1.0f;
++        else range=melee ? 0.3f : 2.0f;
++    }
++    range*=1.15f-0.30f*companion.policy.risk;
++    if (distance>range*1.15f) return melee ? 1.0f : 0.5f+0.3f*companion.policy.risk;
++    if (distance<range*0.75f) return -0.65f;
++    return 0;
++}
 +
 +static void Bot_Combat(SithThing *self, SithThing *target)
 +{
@@ -399,7 +448,7 @@ index 0000000..d299029
 +    flex_t h=Bot_Horizontal(d);
 +    if (h>0.001f && !urgent) {
 +        d.x/=h; d.y/=h; d.z=0;
-+        flex_t forward=melee ? 1.0f : distance>2.5f ? 0.5f : distance<0.75f ? -0.5f : 0.0f;
++        flex_t forward=Bot_EngagementForward(melee,distance);
 +        rdVector3 move={d.x*forward-d.y*0.55f*bot.strafeSide,
 +                       d.y*forward+d.x*0.55f*bot.strafeSide,0};
 +        if (melee && distance<0.16f) move=(rdVector3){0,0,0};
@@ -455,9 +504,12 @@ index 0000000..d299029
 +{
 +    (void)skin;
 +    memset(&bot,0,sizeof(bot)); memset(&nav,0,sizeof(nav)); bot.enabled=1;
++    Companion_Configure();
 +    bot.fistsPeace=bot.forceEnabled=1;
 +    bot.competitiveForce=jkBotLoadout_Style(getenv("JK_BOT_FORCE_STYLE"))==JKBOT_STYLE_COMPETITIVE;
 +    bot.forceBin=bot.forceTarget=bot.forceEffectBin=bot.forceEffectTarget=-1;
++    const char *elite=getenv("JK_BOT_ELITE");
++    bot.elite=elite && (!strcmp(elite,"1") || !strcmp(elite,"0")) ? *elite=='1' : bot.competitiveForce;
 +    const char *trace=getenv("JK_BOT_TRACE_FORCE");
 +    bot.traceForce=trace && !strcmp(trace,"1");
 +    const char *settings=getenv("JK_BOT_BEHAVIOR_FILE");
@@ -473,6 +525,9 @@ index 0000000..d299029
 +
 +void jkBot_OnJoined(void)
 +{
++    Bot_ResetHearing();
++    companion.identified=0;
++    Companion_ResetPlan();
 +    bot.joined=1; bot.world=NULL; bot.now=bot.nextForceTrace=0; bot.nextLog=10.0f;
 +    bot.targetSlot=-1; bot.goal=-1; bot.routeCount=bot.routePos=0;
 +    bot.wasDead=0; bot.nextScan=bot.nextPlan=bot.nextSelect=0;
@@ -496,7 +551,9 @@ index 0000000..d299029
 +    if (self->type!=SITH_THING_PLAYER || !self->sector || !self->actorParams.pPlayer) return;
 +    Bot_TraceForce(self);
 +    if (bot.world!=sithWorld_g_pCurrentWorld) {
++        Bot_ResetHearing();
 +        bot.world=sithWorld_g_pCurrentWorld;
++        Companion_NewWorld();
 +        memset(bot.peers,0,sizeof(bot.peers));
 +        bot.forceBin=bot.forceTarget=bot.forceEffectBin=bot.forceEffectTarget=-1;
 +        Bot_BuildNodes(self); bot.progressPos=self->position; bot.stuckAt=bot.now;
@@ -504,13 +561,14 @@ index 0000000..d299029
 +    if (!bot.graphDone) Bot_BuildGraphStep();
 +    Bot_ObservePeers(self);
 +    int dead=(self->flags&SITH_TF_DEAD)!=0 || self->actorParams.health<=0;
++    Companion_Tick(self,dead);
 +    if (!dead && !bot.wasDead && bot.previousHealth>self->actorParams.health+0.5f) {
 +        bot.hurtUntil=bot.now+2.5f;
 +        bot.nextScan=0;
 +    }
 +    bot.previousHealth=self->actorParams.health;
 +    if (dead) {
-+        if (!bot.wasDead) { bot.deadAt=bot.now; bot.targetSlot=-1; bot.goal=-1; }
++        if (!bot.wasDead) { Bot_ResetHearing(); bot.deadAt=bot.now; bot.targetSlot=-1; bot.goal=-1; }
 +        /* QOL respawn accepts a press followed by release. */
 +        if (bot.now-bot.deadAt>1.5f && fmodf(bot.now-bot.deadAt,1.4f)<0.18f)
 +            bot.keys[INPUT_FUNC_ACTIVATE]=1;
@@ -521,11 +579,18 @@ index 0000000..d299029
 +            fprintf(stderr,"BOT_RESPAWN name=%s health=%.1f\n",bot.name,(double)self->actorParams.health);
 +            fflush(stderr);
 +        }
++        Bot_CheckPursuit(self);
++        Bot_UpdateAudioLoops(self);
 +        SithThing *target=Bot_UpdateTarget(self);
 +        if (target) Bot_Combat(self,target);
-+        else { Bot_SelectWeapon(self,2.0f); Bot_Navigate(self); Bot_ForceTick(self,NULL,180.0f); }
++        else {
++            Bot_SelectWeapon(self,2.0f);
++            if (!Bot_InvestigateSound(self)) Bot_Navigate(self);
++            Bot_ForceTick(self,NULL,180.0f);
++        }
 +        Bot_Recovery(self);
 +    }
++    Companion_Publish(self,dead);
 +    bot.wasDead=dead;
 +    for (int i=0;i<INPUT_FUNC_MAX;i++) bot.presses[i]=bot.keys[i] && !bot.previous[i];
 +    if (bot.now>=bot.nextLog) {
@@ -553,10 +618,10 @@ index 0000000..d299029
 +}
 diff --git a/src/AI/jkBot.h b/src/AI/jkBot.h
 new file mode 100644
-index 0000000..feb5fae
+index 0000000000000000000000000000000000000000..e647f521184742239a74562c90ba8c13768b4968
 --- /dev/null
 +++ b/src/AI/jkBot.h
-@@ -0,0 +1,16 @@
+@@ -0,0 +1,30 @@
 +#ifndef _JKBOT_H
 +#define _JKBOT_H
 +#include "types.h"
@@ -567,7 +632,21 @@ index 0000000..feb5fae
 +void jkBot_Tick(flex_t dt);
 +flex_t jkBot_GetAxis(int functionId);
 +int jkBot_GetKey(int functionId, int *presses);
++typedef struct jkBotHearing {
++    int kind;
++    rdVector3 position;
++    flex_t age, strength, uncertainty;
++} jkBotHearing;
++enum { JKBOT_SOUND_RAW = -1, JKBOT_SOUND_MUZZLE = -2 };
++void jkBot_ObserveSound(SithThing *emitter, SithSector *sector, const rdVector3 *position,
++    const sithSound *sound, flex_t volume, flex_t minRadius, flex_t maxRadius, int flags, int soundClass);
++void jkBot_AdjustSound(const sithPlayingSound *channel, flex_t volume, flex_t fadeSeconds);
++void jkBot_StopSound(const SithThing *emitter, const sithSound *sound);
++int jkBot_GetHearing(jkBotHearing *out);
 +/* Observe existing ordinary gameplay events; never alter the event. */
++void jkBotCompanion_SetTransport(int (*emit)(const uint8_t *,size_t));
++int jkBotCompanion_Receive(const uint8_t *data,size_t size);
++void jkBot_ObserveChat(int destination,int slot,uint32_t sender,const char *text);
 +void jkBot_ObserveDamage(SithThing *victim, SithThing *source, flex_t damage);
 +void jkBot_ObserveSkill(SithThing *victim, SithThing *source, int bin);
 +void jkBot_ObserveProjectile(SithThing *shooter, const SithThing *projectile, const rdVector3 *direction);
@@ -575,7 +654,7 @@ index 0000000..feb5fae
 +#endif
 diff --git a/src/AI/jkBotBehavior.h b/src/AI/jkBotBehavior.h
 new file mode 100644
-index 0000000..52fbd84
+index 0000000000000000000000000000000000000000..52fbd84c143f03d646119988ca7bf1bfc1c6d044
 --- /dev/null
 +++ b/src/AI/jkBotBehavior.h
 @@ -0,0 +1,9 @@
@@ -590,7 +669,7 @@ index 0000000..52fbd84
 +#endif
 diff --git a/src/AI/jkBotBehavior.inc b/src/AI/jkBotBehavior.inc
 new file mode 100644
-index 0000000..44d07bd
+index 0000000000000000000000000000000000000000..44d07bd49623f3bb0341e962db4b7b982a76b712
 --- /dev/null
 +++ b/src/AI/jkBotBehavior.inc
 @@ -0,0 +1,186 @@
@@ -782,10 +861,10 @@ index 0000000..44d07bd
 +}
 diff --git a/src/AI/jkBotCombat.inc b/src/AI/jkBotCombat.inc
 new file mode 100644
-index 0000000..bf61c56
+index 0000000000000000000000000000000000000000..d52e5ce2b503b8f9869154a528324d9ebc78d7c2
 --- /dev/null
 +++ b/src/AI/jkBotCombat.inc
-@@ -0,0 +1,92 @@
+@@ -0,0 +1,94 @@
 +/* Copyright (c) 2026 Coda Lilitari. SPDX-License-Identifier: MIT */
 +static int Bot_HasWeapon(SithThing *self, int weapon)
 +{
@@ -817,7 +896,7 @@ index 0000000..bf61c56
 +static int Bot_SafeShot(SithThing *self, SithThing *target, rdVector3 aim, flex_t splash, flex_t spread)
 +{
 +    rdVector3 line=Bot_Sub(aim,self->position); flex_t length=Bot_Len(line);
-+    if (!target || length<0.01f || !Bot_EnemyAllowed(self,Bot_PlayerSlot(target))) return 0;
++    if (!target || length<0.01f || !Bot_KineticEnemyAllowed(self,Bot_PlayerSlot(target))) return 0;
 +    if (splash>0 && (length<splash+0.4f || Bot_ProtectedNear(self,target->position,splash+0.3f))) return 0;
 +    if (!Bot_Clear(self,self->sector,self->position,aim,0.015f,1)) return 0;
 +    for (unsigned i=0;i<jkPlayer_maxPlayers && i<JKPLAYER_NUM_INFOS;i++) {
@@ -835,7 +914,7 @@ index 0000000..bf61c56
 +{
 +    int chosen=0, current=sithInventory_GetCurrentWeapon(self);
 +    flex_t best=-1e9f;
-+    SithThing *target=Bot_EnemyAllowed(self,bot.targetSlot) ? jkPlayer_playerInfos[bot.targetSlot].pLocalPlayer : NULL;
++    SithThing *target=Bot_KineticEnemyAllowed(self,bot.targetSlot) ? jkPlayer_playerInfos[bot.targetSlot].pLocalPlayer : NULL;
 +    for (int weapon=1;weapon<=10;weapon++) {
 +        if (!Bot_HasWeapon(self,weapon) || (bot.sabersOnly && weapon!=SITHBIN_LIGHTSABER)) continue;
 +        /* Mines/hand grenades need authored traps and ballistic arcs; do not
@@ -852,6 +931,8 @@ index 0000000..bf61c56
 +            case SITHBIN_CONCUSSION_RIFLE: score=distance>3 ? 88 : -50; break;
 +            case SITHBIN_RAIL_DETONATOR: score=distance>3 && distance<9 ? 72 : -50; break;
 +        }
++        if (companion.policy.mode && companion.policy.weapon==weapon && score>0)
++            score+=24.0f;
 +        if ((weapon==SITHBIN_CONCUSSION_RIFLE || weapon==SITHBIN_RAIL_DETONATOR) &&
 +            (!target || !Bot_SafeShot(self,target,target->position,2.8f,0))) score=-100;
 +        if (weapon==current) score+=7; /* Do not juggle weapons near a range boundary. */
@@ -878,9 +959,417 @@ index 0000000..bf61c56
 +    if (!Bot_Clear(self,self->sector,self->position,aim,0.015f,1)) return target->position;
 +    return aim;
 +}
+diff --git a/src/AI/jkBotCompanion.inc b/src/AI/jkBotCompanion.inc
+new file mode 100644
+index 0000000000000000000000000000000000000000..aedb241f993796f19786c847842b61099a898d0e
+--- /dev/null
++++ b/src/AI/jkBotCompanion.inc
+@@ -0,0 +1,402 @@
++/* Copyright (c) 2026 Coda Lilitari. SPDX-License-Identifier: MIT
++   Private local companion transport. The ordinary game protocol is unchanged. */
++#include "Dss/sithMulti.h"
++#include <errno.h>
++#include <limits.h>
++#include <time.h>
++#if defined(__EMSCRIPTEN__)
++#include <emscripten.h>
++#elif !defined(PLATFORM_POSIX) && defined(SDL2_RENDER)
++#include <SDL_timer.h>
++#endif
++#ifdef PLATFORM_POSIX
++#include <fcntl.h>
++#include <sys/socket.h>
++#include <unistd.h>
++#endif
++
++enum { CP_STATE=1, CP_ACK, CP_CHAT, CP_SOUND, CP_STRATEGY=16, CP_SAY, CP_RELEASE };
++enum { CP_APPLIED, CP_REJECTED, CP_EXPIRED, CP_STALE, CP_RATE };
++enum { CP_OK, CP_INVALID, CP_UNAVAILABLE, CP_OBSOLETE, CP_RESERVED, CP_TOO_FAST, CP_TOO_LATE };
++enum { CP_AUTO, CP_PRESSURE, CP_RESOURCE, CP_RECOVER };
++
++typedef struct CompanionPolicy {
++    double until;
++    int mode, weapon, resource;
++    float range, risk;
++    uint32_t net, guid, signature;
++} CompanionPolicy;
++
++typedef struct CompanionReply {
++    uint32_t sequence;
++    unsigned char kind, status, reason, length;
++    unsigned char request[118]; /* largest well-formed command: SAY */
++} CompanionReply;
++
++static struct {
++    int fd, identified, dead;
++    uint32_t world, life, eventSeq, highest, net, guid, signature, thing;
++    int slot;
++    double nextState, nextChat;
++    uint32_t drops;
++    flex_t heardAt;
++    rdVector3 heardPosition;
++    int heardKind, hasPursuit;
++    rdVector3 pursuitAt;
++    flex_t pursuitTime;
++    int (*emit)(const uint8_t *,size_t);
++    unsigned queueRead, queueCount;
++    struct { unsigned short length; unsigned char data[512]; } queue[16];
++    double now;
++    CompanionPolicy policy;
++    CompanionReply replies[64];
++} companion = {.fd=-1};
++
++static int Companion_Connected(void) { return companion.fd>=0 || companion.emit!=NULL; }
++static double Companion_Clock(void)
++{
++#if defined(__EMSCRIPTEN__)
++    return emscripten_get_now()/1000.0;
++#elif defined(PLATFORM_POSIX)
++    struct timespec t;
++    if (clock_gettime(CLOCK_MONOTONIC,&t)==0) return t.tv_sec+t.tv_nsec/1e9;
++#elif defined(SDL2_RENDER)
++    uint64_t frequency=SDL_GetPerformanceFrequency();
++    if (frequency) return (double)SDL_GetPerformanceCounter()/frequency;
++#endif
++    return -1;
++}
++static int Bot_EnemyAllowed(SithThing *self, int slot);
++static int Bot_PlayerSlot(SithThing *thing);
++
++static void Companion_ResetPlan(void)
++{
++    if (companion.policy.mode) {
++        bot.goal=-1;
++        bot.nextPlan=bot.nextScan=bot.nextSelect=0;
++    }
++    companion.policy=(CompanionPolicy){0};
++}
++static uint32_t Companion_Next(uint32_t n) { return n==UINT32_MAX ? 1 : n+1; }
++
++static void Companion_NewWorld(void)
++{
++    if (!Companion_Connected()) return;
++    Companion_ResetPlan();
++    companion.world=Companion_Next(companion.world);
++    companion.life=1;
++    companion.identified=companion.heardKind=companion.hasPursuit=0;
++    companion.highest=0;
++    memset(companion.replies,0,sizeof(companion.replies));
++}
++
++static void Companion_Configure(void)
++{
++#ifdef PLATFORM_POSIX
++    const char *arg=getenv("JK_BOT_COMPANION_FD");
++    int fd=-1;
++    if (arg && *arg>='0' && *arg<='9') {
++        char *end;
++        long value=strtol(arg,&end,10);
++        if (!*end && value>=3 && value<=INT_MAX) fd=(int)value;
++    }
++    if (companion.fd>=0 && companion.fd!=fd) close(companion.fd);
++    int (*emit)(const uint8_t *,size_t)=companion.emit;
++    memset(&companion,0,sizeof(companion)); companion.fd=-1; companion.emit=emit;
++    struct sockaddr_storage peer;
++    socklen_t length=sizeof(peer), size=sizeof(int);
++    int type=0;
++    if (fd<0 || getsockopt(fd,SOL_SOCKET,SO_TYPE,&type,&size)<0 || type!=SOCK_DGRAM ||
++        getpeername(fd,(struct sockaddr *)&peer,&length)<0 || peer.ss_family!=AF_UNIX) return;
++    int fl=fcntl(fd,F_GETFL), fdFlags=fcntl(fd,F_GETFD);
++    if (fl<0 || fdFlags<0 || fcntl(fd,F_SETFL,fl|O_NONBLOCK)<0 ||
++        fcntl(fd,F_SETFD,fdFlags|FD_CLOEXEC)<0) return;
++    companion.fd=fd;
++#endif
++}
++
++void jkBotCompanion_SetTransport(int (*emit)(const uint8_t *,size_t))
++{
++    if (companion.emit==emit) return;
++    Companion_ResetPlan();
++    companion.identified=0;
++    companion.queueRead=companion.queueCount=0;
++    companion.emit=emit;
++    if (Companion_Connected() && bot.joined && bot.world) Companion_NewWorld();
++}
++
++int jkBotCompanion_Receive(const uint8_t *data,size_t size)
++{
++    if (!companion.emit || !data || size<20 || size>512 || companion.queueCount>=16) return 0;
++    unsigned at=(companion.queueRead+companion.queueCount)%16;
++    companion.queue[at].length=(unsigned short)size;
++    memcpy(companion.queue[at].data,data,size);
++    companion.queueCount++;
++    return 1;
++}
++
++static uint32_t Companion_Word(const unsigned char *p)
++{
++    return p[0]|((uint32_t)p[1]<<8)|((uint32_t)p[2]<<16)|((uint32_t)p[3]<<24);
++}
++static void Companion_Put(unsigned char *p,uint32_t value)
++{
++    p[0]=(unsigned char)value; p[1]=(unsigned char)(value>>8);
++    p[2]=(unsigned char)(value>>16); p[3]=(unsigned char)(value>>24);
++}
++static float Companion_Float(const unsigned char *p)
++{
++    uint32_t bits=Companion_Word(p); float value;
++    memcpy(&value,&bits,4); return value;
++}
++static void Companion_PutFloat(unsigned char *p,float value)
++{
++    uint32_t bits; memcpy(&bits,&value,4); Companion_Put(p,bits);
++}
++static void Companion_Vector(unsigned char *p,rdVector3 pos)
++{
++    Companion_PutFloat(p,pos.x); Companion_PutFloat(p+4,pos.y); Companion_PutFloat(p+8,pos.z);
++}
++static void Companion_Send(int kind,uint32_t world,uint32_t life,uint32_t seq,
++                           const unsigned char *payload,int length)
++{
++    if (!Companion_Connected()) return;
++    unsigned char frame[512]={'J','K','C','P',1};
++    frame[5]=kind; frame[6]=length; frame[7]=length>>8;
++    Companion_Put(frame+8,world); Companion_Put(frame+12,life); Companion_Put(frame+16,seq);
++    memcpy(frame+20,payload,length);
++    if (companion.emit) {
++        if (!companion.emit(frame,(size_t)(20+length))) companion.drops++;
++        return;
++    }
++#ifdef PLATFORM_POSIX
++    if (send(companion.fd,frame,20+length,MSG_DONTWAIT)<0) {
++        companion.drops++;
++        if (errno==ECONNREFUSED || errno==EPIPE || errno==ENOTCONN) {
++            close(companion.fd); companion.fd=-1; Companion_ResetPlan();
++        }
++    }
++#endif
++}
++static void Companion_Event(int kind,const unsigned char *p,int length)
++{
++    companion.eventSeq=Companion_Next(companion.eventSeq);
++    Companion_Send(kind,companion.world,companion.life,companion.eventSeq,p,length);
++}
++
++static int Companion_Reserved(const unsigned char *p,int length)
++{
++    while (length && *p==' ') { p++; length--; }
++    return length>=5 && tolower(p[0])=='a' && tolower(p[1])=='d' && tolower(p[2])=='m' &&
++        tolower(p[3])=='i' && tolower(p[4])=='n' && (length==5 || p[5]==' ');
++}
++static int Companion_Printable(const unsigned char *p,int length)
++{
++    if (length<1 || length>110) return 0;
++    for (int i=0;i<length;i++) if (p[i]<32 || p[i]>126) return 0;
++    return 1;
++}
++/* Called only after ordinary game-message validation. Authoritative local
++   transport sender must agree with the claimed player slot. */
++void jkBot_ObserveChat(int destination,int slot,uint32_t sender,const char *text)
++{
++    if (!Companion_Connected() || !companion.identified || !bot.joined || !sithNet_isMulti ||
++        (g_submodeFlags&8) || bot.world!=sithWorld_g_pCurrentWorld || destination!=-1 || slot<0 ||
++        slot>=JKPLAYER_NUM_INFOS || (unsigned)slot>=jkPlayer_maxPlayers || !sender || !text) return;
++    SithPlayer *speaker=&jkPlayer_playerInfos[slot];
++    if (!(speaker->flags&1) || speaker->playerNetId!=sender) return;
++    int length=(int)strlen(text);
++    const unsigned char *data=(const unsigned char *)text;
++    if (!Companion_Printable(data,length) || Companion_Reserved(data,length)) return;
++    unsigned char payload[118];
++    Companion_Put(payload,slot); Companion_Put(payload+4,sender);
++    memcpy(payload+8,data,length); Companion_Event(CP_CHAT,payload,8+length);
++}
++
++static SithThing *Companion_Visible(SithThing *self,int slot)
++{
++    if (!Bot_EnemyAllowed(self,slot)) return NULL;
++    SithThing *t=jkPlayer_playerInfos[slot].pLocalPlayer;
++    rdVector3 delta=Bot_Sub(t->position,self->position);
++    flex_t distance=Bot_Len(delta);
++    if (distance<=0.0001f || distance>20 || Bot_Dot(delta,self->orient.lvec)<-0.12f*distance ||
++        !sithCollision_HasLOS(self,t,0)) return NULL;
++    return t;
++}
++static int Companion_ResourceAllowed(unsigned bin)
++{
++    switch (bin) {
++        case 0: case 11: case 12: case 14: case 15: case 40: case 60:
++        case 62: case 63: case 64: case 65: case 66: return 1;
++        default: return 0;
++    }
++}
++static int Companion_SetPolicy(SithThing *self,const unsigned char *p,double expiry)
++{
++    CompanionPolicy policy={.until=expiry,.mode=p[8],.weapon=p[9],.resource=p[10]|(p[11]<<8),
++        .range=Companion_Float(p+12),.risk=Companion_Float(p+16),
++        .net=Companion_Word(p+20),.guid=Companion_Word(p+24)};
++    if (policy.mode>CP_RECOVER || policy.weapon>10 || !Companion_ResourceAllowed(policy.resource) ||
++        !isfinite(policy.range) || (policy.range!=0 && (policy.range<0.2f || policy.range>12)) ||
++        !isfinite(policy.risk) || policy.risk<0 || policy.risk>1 || (!policy.net)!=(!policy.guid)) return CP_INVALID;
++    if (policy.net) {
++        int slot=bot.targetSlot;
++        SithThing *target=Companion_Visible(self,slot);
++        if (!target || jkPlayer_playerInfos[slot].playerNetId!=policy.net ||
++            target->guid!=policy.guid || (int)target->guid!=bot.targetGuid) return CP_OBSOLETE;
++        policy.signature=target->signature;
++    }
++    Companion_ResetPlan();
++    if (policy.mode!=CP_AUTO) {
++        companion.policy=policy;
++        bot.goal=-1; bot.nextPlan=bot.nextScan=bot.nextSelect=0;
++    }
++    return CP_OK;
++}
++static void Companion_Ack(uint32_t world,uint32_t life,uint32_t seq,int kind,int status,int reason)
++{
++    unsigned char p[4]={status,kind,reason,0};
++    Companion_Send(CP_ACK,world,life,seq,p,4);
++}
++static void Companion_Command(SithThing *self,const unsigned char *frame,int n,double now)
++{
++    if (n<20 || n>512 || memcmp(frame,"JKCP",4) || frame[4]!=1) return;
++    int kind=frame[5], size=frame[6]|(frame[7]<<8);
++    uint32_t seq=Companion_Word(frame+16);
++    if (size!=n-20 || !seq || (kind!=CP_STRATEGY && kind!=CP_SAY && kind!=CP_RELEASE)) return;
++    if ((kind==CP_STRATEGY && size!=28) || (kind==CP_SAY && (size<9 || size>118)) ||
++        (kind==CP_RELEASE && size!=8)) return;
++    uint32_t world=Companion_Word(frame+8), life=Companion_Word(frame+12);
++    if (world!=companion.world || life!=companion.life) {
++        Companion_Ack(world,life,seq,kind,CP_STALE,CP_OBSOLETE); return;
++    }
++    const unsigned char *p=frame+20;
++    CompanionReply *r=&companion.replies[seq%64];
++    if (r->sequence==seq) {
++        if (r->kind==kind && r->length==size && !memcmp(r->request,p,size))
++            Companion_Ack(world,life,seq,kind,r->status,r->reason);
++        else Companion_Ack(world,life,seq,kind,CP_REJECTED,CP_INVALID);
++        return;
++    }
++    if (companion.highest && (int32_t)(seq-companion.highest)<=0) {
++        Companion_Ack(world,life,seq,kind,CP_STALE,CP_OBSOLETE); return;
++    }
++    companion.highest=seq;
++    uint64_t bits=Companion_Word(p)|((uint64_t)Companion_Word(p+4)<<32);
++    double expiry; memcpy(&expiry,&bits,sizeof(expiry));
++    int status=CP_APPLIED, reason=CP_OK;
++    if (!isfinite(expiry) || expiry>now+30) { status=CP_REJECTED; reason=CP_INVALID; }
++    else if (expiry<=now) { status=CP_EXPIRED; reason=CP_TOO_LATE; }
++    else if (kind==CP_RELEASE) Companion_ResetPlan();
++    else if (!companion.identified || companion.dead) { status=CP_REJECTED; reason=CP_UNAVAILABLE; }
++    else if (kind==CP_STRATEGY) {
++        reason=Companion_SetPolicy(self,p,expiry);
++        if (reason) status=reason==CP_OBSOLETE ? CP_STALE : CP_REJECTED;
++    } else if (!Companion_Printable(p+8,size-8)) { status=CP_REJECTED; reason=CP_INVALID; }
++    else if (Companion_Reserved(p+8,size-8)) { status=CP_REJECTED; reason=CP_RESERVED; }
++    else if (now<companion.nextChat) { status=CP_RATE; reason=CP_TOO_FAST; }
++    else {
++        char text[111];
++        memcpy(text,p+8,size-8); text[size-8]=0;
++        sithMulti_SendChat(text,-1,playerThingIdx);
++        companion.nextChat=now+5;
++    }
++    r->sequence=seq; r->kind=kind; r->status=status; r->reason=reason; r->length=size;
++    memcpy(r->request,p,size);
++    Companion_Ack(world,life,seq,kind,status,reason);
++}
++static void Companion_Tick(SithThing *self,int dead)
++{
++    if (!Companion_Connected()) return;
++    double now=Companion_Clock();
++    companion.now=now;
++    if (now<0) { Companion_ResetPlan(); return; }
++    SithPlayer *own=self->actorParams.pPlayer;
++    if (!own->playerNetId || playerThingIdx<0 || playerThingIdx>=JKPLAYER_NUM_INFOS ||
++        (unsigned)playerThingIdx>=jkPlayer_maxPlayers || &jkPlayer_playerInfos[playerThingIdx]!=own ||
++        !(own->flags&1) || own->pLocalPlayer!=self) {
++        if (companion.identified) Companion_NewWorld();
++        return;
++    }
++    if (companion.identified && (dead!=companion.dead || self->idx!=companion.thing ||
++        self->signature!=companion.signature || self->guid!=companion.guid ||
++        own->playerNetId!=companion.net || playerThingIdx!=companion.slot)) {
++        companion.life=Companion_Next(companion.life);
++        Companion_ResetPlan(); companion.heardKind=companion.hasPursuit=0;
++        companion.highest=0; memset(companion.replies,0,sizeof(companion.replies));
++    }
++    companion.identified=1; companion.dead=dead; companion.thing=self->idx;
++    companion.guid=self->guid; companion.signature=self->signature; companion.slot=playerThingIdx;
++    companion.net=own->playerNetId;
++    if (companion.policy.until && now>=companion.policy.until) Companion_ResetPlan();
++    for (int i=0;i<8;i++) {
++        if (companion.emit) {
++            if (!companion.queueCount) break;
++            unsigned at=companion.queueRead;
++            unsigned char local[512];
++            int length=companion.queue[at].length;
++            memcpy(local,companion.queue[at].data,length);
++            companion.queueRead=(at+1)%16; companion.queueCount--;
++            Companion_Command(self,local,length,now);
++            continue;
++        }
++#ifdef PLATFORM_POSIX
++        if (companion.fd<0) break;
++        unsigned char frame[513];
++        ssize_t n=recv(companion.fd,frame,sizeof(frame),MSG_DONTWAIT);
++        if (n<0) break;
++        Companion_Command(self,frame,(int)n,now);
++#else
++        break;
++#endif
++    }
++}
++static void Companion_Publish(SithThing *self,int dead)
++{
++    if (!Companion_Connected() || !companion.identified) return;
++    double now=companion.now;
++    if (now<companion.nextState) return;
++    companion.nextState=now+0.2;
++    unsigned char p[144]={0};
++    SithPlayer *own=self->actorParams.pPlayer;
++    Companion_Put(p,playerThingIdx); Companion_Put(p+4,own->playerNetId);
++    Companion_Put(p+8,self->guid); Companion_Put(p+12,self->signature);
++    Companion_PutFloat(p+16,sithTime_g_secGameTime); Companion_Vector(p+20,self->position);
++    Companion_PutFloat(p+32,self->actorParams.health);
++    Companion_PutFloat(p+36,sithInventory_GetInventory(self,SITHBIN_SHIELDS));
++    Companion_PutFloat(p+40,sithInventory_GetInventory(self,SITHBIN_FORCEMANA));
++    Companion_Put(p+44,sithInventory_GetCurrentWeapon(self)); Companion_Put(p+48,own->numKills);
++    Companion_Put(p+52,own->numKilled); Companion_Put(p+56,companion.policy.mode);
++    Companion_Put(p+60,(uint32_t)bot.goal); Companion_Put(p+68,UINT32_MAX);
++    uint32_t flags=(dead ? 1u:0u)|((self->actorParams.flags&SITH_AF_BLIND)?2u:0u)|4u|
++        (companion.policy.mode ? 32u:0u);
++    int slot=bot.targetSlot;
++    SithThing *t=dead ? NULL : Companion_Visible(self,slot);
++    if (t && (int)t->guid==bot.targetGuid) {
++        companion.hasPursuit=1; companion.pursuitTime=bot.now; companion.pursuitAt=t->position;
++        flags|=8; Companion_Put(p+68,slot); Companion_Put(p+72,jkPlayer_playerInfos[slot].playerNetId);
++        Companion_Put(p+76,t->guid); Companion_Put(p+80,t->signature); Companion_Vector(p+84,t->position);
++        /* LOS and view cone were just checked. This is a fresh observation. */
++    }
++    jkBotHearing cue;
++    if (!dead && jkBot_GetHearing(&cue) && cue.kind>=1 && cue.kind<=4) {
++        flags|=16; Companion_Put(p+100,cue.kind); Companion_Vector(p+104,cue.position);
++        Companion_PutFloat(p+116,cue.age); Companion_PutFloat(p+120,cue.strength);
++        flex_t start=bot.now-cue.age;
++        if (cue.kind!=companion.heardKind || fabsf(start-companion.heardAt)>0.025f ||
++            Bot_Distance(cue.position,companion.heardPosition)>0.1f) {
++            unsigned char sound[24];
++            Companion_Put(sound,cue.kind); Companion_Vector(sound+4,cue.position);
++            Companion_PutFloat(sound+16,cue.strength); Companion_PutFloat(sound+20,cue.uncertainty);
++            Companion_Event(CP_SOUND,sound,sizeof(sound));
++            companion.heardKind=cue.kind; companion.heardAt=start; companion.heardPosition=cue.position;
++        }
++    } else companion.heardKind=0;
++    Companion_Put(p+64,flags);
++    const int ammo[]={SITHBIN_ENERGY,SITHBIN_POWER,SITHBIN_THERMAL_DETONATOR,SITHBIN_RAILCHARGES};
++    for (int i=0;i<4;i++) Companion_PutFloat(p+124+4*i,sithInventory_GetInventory(self,ammo[i]));
++    uint32_t active=0;
++    for (int bin=21;bin<=34;bin++) if (sithInventory_IsInventoryActivated(self,bin)) active|=1u<<(bin-21);
++    Companion_Put(p+140,active);
++    Companion_Event(CP_STATE,p,sizeof(p));
++}
 diff --git a/src/AI/jkBotForce.inc b/src/AI/jkBotForce.inc
 new file mode 100644
-index 0000000..eacb7e2
+index 0000000000000000000000000000000000000000..eacb7e2d500a21cae1a824f7cb2c0c87b684e825
 --- /dev/null
 +++ b/src/AI/jkBotForce.inc
 @@ -0,0 +1,242 @@
@@ -1126,9 +1615,345 @@ index 0000000..eacb7e2
 +        Bot_RequestForce(self,SITHBIN_F_BLINDING,0.46f,slot)) return;
 +    if (distance<3.9f && Bot_ForceDebris(self)) Bot_RequestForce(self,SITHBIN_F_THROW,0.46f,slot);
 +}
+diff --git a/src/AI/jkBotHearing.inc b/src/AI/jkBotHearing.inc
+new file mode 100644
+index 0000000000000000000000000000000000000000..3af581b6948219675d6dc7280a048ab58db45045
+--- /dev/null
++++ b/src/AI/jkBotHearing.inc
+@@ -0,0 +1,330 @@
++/* Perception of spatial playback requests. Anchors are estimates in world units.
++   Only an active, attached weapon loop may sample a moving source again. */
++enum { BOT_HEARD_MOVE=1, BOT_HEARD_WEAPON, BOT_HEARD_PROJECTILE, BOT_HEARD_ARRIVAL };
++enum { BOT_HEARD_CAP=24, BOT_SOUND_LOOPS=12, BOT_ACOUSTIC_PORTALS=40 };
++
++typedef struct BotHeard {
++    jkBotHearing cue;
++    flex_t first, last;
++    int slot;
++    uint32_t netId, guid, signature;
++} BotHeard;
++
++typedef struct BotSoundLoop {
++    const sithSound *sound;
++    uint32_t idx, signature;
++    flex_t volume, nearRadius, farRadius, next;
++    flex_t targetVolume, fadeStart, fadeEnd;
++} BotSoundLoop;
++
++static struct {
++    BotHeard records[BOT_HEARD_CAP];
++    BotSoundLoop loops[BOT_SOUND_LOOPS];
++    const SithThing *listener;
++    uint32_t guid, signature, netId;
++} ears;
++
++static void Bot_ResetHearing(void) { memset(&ears,0,sizeof(ears)); }
++
++static SithThing *Bot_HearingListener(void)
++{
++    SithThing *self=sithPlayer_g_pLocalPlayerThing;
++    if (!bot.enabled || !bot.joined || !bot.world || bot.world!=sithWorld_g_pCurrentWorld ||
++        !self || !self->sector || !self->actorParams.pPlayer || self->type!=SITH_THING_PLAYER ||
++        self->actorParams.health<=0 || self->flags&(SITH_TF_DEAD|SITH_TF_DISABLED|SITH_TF_DESTROYED)) {
++        if (ears.listener) Bot_ResetHearing();
++        return NULL;
++    }
++    uint32_t net=self->actorParams.pPlayer->playerNetId;
++    if (ears.listener!=self || ears.guid!=self->guid || ears.signature!=self->signature || ears.netId!=net) {
++        Bot_ResetHearing();
++        ears.listener=self; ears.guid=self->guid; ears.signature=self->signature; ears.netId=net;
++    }
++    return self;
++}
++
++static int Bot_SoundKind(const SithThing *emitter, const sithSound *sound, int mode)
++{
++    if (mode==JKBOT_SOUND_MUZZLE) return BOT_HEARD_WEAPON;
++    if (emitter && (emitter->type==SITH_THING_WEAPON || emitter->type==SITH_THING_EXPLOSION))
++        return BOT_HEARD_PROJECTILE;
++    if (emitter && emitter->type==SITH_THING_PLAYER) {
++        if (mode>=SITH_SC_LWALKHARD && mode<=SITH_SC_LANDHURT) return BOT_HEARD_MOVE;
++        if (mode>=SITH_SC_FIRE1 && mode<=SITH_SC_FIRE4) return BOT_HEARD_WEAPON;
++    }
++    if (Bot_NameEquals(sound->sound_fname,"ForceThrow01.wav")) return BOT_HEARD_ARRIVAL;
++    return 0;
++}
++
++static int Bot_OwnAudio(const SithThing *emitter,const SithThing *self)
++{
++    for (int i=0;emitter && i<5;i++) {
++        if (emitter==self) return 1;
++        if (!emitter->pParent || emitter->parentSignature!=emitter->pParent->signature) break;
++        emitter=emitter->pParent;
++    }
++    return 0;
++}
++
++typedef struct BotAcousticStep {
++    SithSector *sector;
++    SithSurfaceAdjoin *entry;
++    rdVector3 point, firstPortal;
++    flex_t length;
++    int indirect, done;
++} BotAcousticStep;
++
++/* Prefer the straight line across an aperture. When the ray misses its convex
++   polygon, use the doorway center as a coarse diffracted path. */
++static int Bot_AcousticOpening(SithSurface *surface, rdVector3 from, rdVector3 source,
++                               rdVector3 *opening, int *indirect)
++{
++    if (!surface || !bot.world->aVertices || !Bot_FaceCenter(surface,opening)) return 0;
++    rdFace *face=&surface->surfaceInfo.face;
++    rdVector3 direction=Bot_Sub(source,from);
++    flex_t denominator=Bot_Dot(direction,face->normal);
++    if (fabsf(denominator)>0.00001f) {
++        flex_t t=Bot_Dot(Bot_Sub(*opening,from),face->normal)/denominator;
++        if (t>=0 && t<=1) {
++            rdVector3 point=Bot_Mix(from,source,t);
++            int inside=1;
++            for (unsigned i=0;i<face->numVertices;i++) {
++                rdVector3 a=bot.world->aVertices[face->vertexPosIdx[i]];
++                rdVector3 b=bot.world->aVertices[face->vertexPosIdx[(i+1)%face->numVertices]];
++                rdVector3 edge=Bot_Sub(b,a), n=face->normal;
++                rdVector3 side={edge.y*n.z-edge.z*n.y,edge.z*n.x-edge.x*n.z,edge.x*n.y-edge.y*n.x};
++                if (Bot_Dot(Bot_Sub(point,a),side)*Bot_Dot(Bot_Sub(*opening,a),side)<-0.0000001f) { inside=0; break; }
++            }
++            if (inside) { *opening=point; return 1; }
++        }
++    }
++    *indirect=1;
++    return 1;
++}
++
++static int Bot_AcousticPath(SithThing *self,SithSector *sourceSector,rdVector3 source,
++                            flex_t radius,rdVector3 *anchor,flex_t *length,int *indirect)
++{
++    flex_t direct=Bot_Distance(self->position,source);
++    if (!isfinite(direct) || direct>radius || !sourceSector) return 0;
++    *anchor=source; *length=direct; *indirect=0;
++    if (sourceSector==self->sector) return 1;
++    BotAcousticStep path[BOT_ACOUSTIC_PORTALS]={{0}};
++    path[0].sector=self->sector; path[0].point=self->position;
++    int count=1, edges=0, found=0;
++    flex_t best=radius;
++    for (;;) {
++        int index=-1;
++        for (int i=0;i<count;i++)
++            if (!path[i].done && path[i].length<=best && (index<0 || path[i].length<path[index].length)) index=i;
++        if (index<0) break;
++        BotAcousticStep *step=&path[index]; step->done=1;
++        if (step->sector==sourceSector) {
++            flex_t distance=step->length+Bot_Distance(step->point,source);
++            if (distance<=best) {
++                best=distance; found=1; *indirect=step->indirect;
++                *anchor=step->indirect ? step->firstPortal : source;
++            }
++            continue;
++        }
++        for (SithSurfaceAdjoin *a=step->sector->adjoins;a && ++edges<=192;a=a->next) {
++            if (!a->sector || !a->mirror || !(a->flags&SITHSURF_ADJOIN_ALLOW_SOUND) ||
++                !(a->mirror->flags&SITHSURF_ADJOIN_ALLOW_SOUND) || a->sector==self->sector) continue;
++            rdVector3 point;
++            int bent=step->indirect;
++            if (!Bot_AcousticOpening(a->surface,step->point,source,&point,&bent)) continue;
++            flex_t lengthToPortal=step->length+Bot_Distance(step->point,point);
++            if (lengthToPortal+Bot_Distance(point,source)>best) continue;
++            int next=1;
++            while (next<count && path[next].entry!=a) next++;
++            if (next==count) {
++                if (count==BOT_ACOUSTIC_PORTALS) continue;
++                count++;
++            } else if (path[next].done || path[next].length<=lengthToPortal) continue;
++            path[next]=(BotAcousticStep){a->sector,a,point,index ? step->firstPortal : point,lengthToPortal,bent,0};
++        }
++    }
++    *length=best;
++    return found;
++}
++
++static flex_t Bot_HearingLifetime(int kind)
++{
++    return kind==BOT_HEARD_MOVE ? 1.15f : kind==BOT_HEARD_PROJECTILE ? 0.85f : 1.65f;
++}
++
++static int Bot_HearingCurrent(BotHeard *r)
++{
++    if (!r->cue.kind || bot.now-r->last>Bot_HearingLifetime(r->cue.kind)) return 0;
++    if (r->slot<0) return 1;
++    BotPeer *p=Bot_Peer(r->slot);
++    return p && p->netId==r->netId && p->guid==r->guid && p->signature==r->signature &&
++        !(jkPlayer_playerInfos[r->slot].pLocalPlayer->flags&(SITH_TF_DEAD|SITH_TF_DISABLED|SITH_TF_DESTROYED));
++}
++
++static flex_t Bot_AttentionScore(BotHeard *r)
++{
++    flex_t age=bot.now-r->last;
++    flex_t weight=r->cue.kind==BOT_HEARD_PROJECTILE ? 1.4f : r->cue.kind==BOT_HEARD_WEAPON ? 1.2f : 1;
++    return weight*r->cue.strength*(1-age/Bot_HearingLifetime(r->cue.kind));
++}
++
++static void Bot_Hear(SithThing *self,SithThing *emitter,SithSector *sector,rdVector3 source,
++                     flex_t volume,flex_t nearRadius,flex_t farRadius,int kind)
++{
++    rdVector3 anchor;
++    flex_t distance;
++    int indirect;
++    if (!Bot_AcousticPath(self,sector,source,farRadius,&anchor,&distance,&indirect)) return;
++    flex_t gain=Bot_Clamp(volume,0,1.5f);
++    if (farRadius>nearRadius) gain*=1-Bot_Clamp((distance-nearRadius)/(farRadius-nearRadius),0,1);
++    if (indirect) gain*=0.62f;
++    if (gain<0.055f) return;
++    gain=Bot_Min(gain,1);
++    /* A fixed grid avoids recovering precise coordinates by averaging jitter
++       across identical events. Never keep the true source position in memory. */
++    flex_t grid=indirect ? 0.4f : gain>=0.55f ? 0.16f : 0.32f;
++    anchor.x=(floorf(anchor.x/grid)+0.5f)*grid;
++    anchor.y=(floorf(anchor.y/grid)+0.5f)*grid;
++    anchor.z=(floorf(anchor.z/grid)+0.5f)*grid;
++    int slot=emitter && emitter->type==SITH_THING_PLAYER ? Bot_PlayerSlot(emitter) : -1;
++    BotPeer *peer=slot>=0 ? Bot_Peer(slot) : NULL;
++    uint32_t signature=emitter ? emitter->signature : 0;
++    int replace=0;
++    flex_t lowest=1e20f, first=bot.now;
++    for (int i=0;i<BOT_HEARD_CAP;i++) {
++        BotHeard *r=&ears.records[i];
++        int valid=Bot_HearingCurrent(r);
++        if (valid && r->cue.kind==kind && r->slot==slot && r->signature==signature &&
++            Bot_Distance(r->cue.position,anchor)<grid*2.2f && bot.now-r->last<0.32f) {
++            replace=i; first=r->first; break;
++        }
++        flex_t score=valid ? Bot_AttentionScore(r) : -1;
++        if (score<lowest) { replace=i; lowest=score; }
++    }
++    ears.records[replace]=(BotHeard){{kind,anchor,0,gain,indirect ? distance+grid : grid},first,bot.now,
++        slot,peer ? peer->netId : 0,peer ? peer->guid : 0,signature};
++    if (gain>=0.22f) bot.nextScan=bot.now;
++}
++
++static void Bot_RegisterAudioLoop(SithThing *thing,const sithSound *sound,flex_t volume,
++                                  flex_t nearRadius,flex_t farRadius)
++{
++    int dest=-1;
++    for (int i=0;i<BOT_SOUND_LOOPS;i++) {
++        BotSoundLoop *loop=&ears.loops[i];
++        if (loop->sound==sound && loop->idx==thing->idx && loop->signature==thing->signature) { dest=i; break; }
++        if (!loop->sound && dest<0) dest=i;
++    }
++    if (dest>=0) ears.loops[dest]=(BotSoundLoop){sound,thing->idx,thing->signature,volume,nearRadius,farRadius,bot.now+0.09f,volume,bot.now,bot.now};
++}
++
++void jkBot_ObserveSound(SithThing *emitter,SithSector *sector,const rdVector3 *position,
++    const sithSound *sound,flex_t volume,flex_t minRadius,flex_t maxRadius,int flags,int soundClass)
++{
++    if (!bot.enabled || !bot.joined || !sound || !position || !isfinite(volume) || volume<=0 ||
++        !isfinite(minRadius) || !isfinite(maxRadius) || minRadius<0 || maxRadius<=0 ||
++        maxRadius<minRadius || (flags&SITHSOUNDFLAG_AMBIENT_NOPAN)) return;
++    SithThing *self=Bot_HearingListener();
++    if (!self || Bot_OwnAudio(emitter,self)) return;
++    int kind=Bot_SoundKind(emitter,sound,soundClass);
++    if (!kind) return;
++    const int followLoop=SITHSOUNDFLAG_FOLLOWSTHING|SITHSOUNDFLAG_LOOP;
++    if ((flags&followLoop)==followLoop && soundClass>=0 && emitter && emitter->type==SITH_THING_WEAPON)
++        Bot_RegisterAudioLoop(emitter,sound,volume,minRadius,maxRadius);
++    if (!isfinite(position->x) || !isfinite(position->y) || !isfinite(position->z)) return;
++    rdVector3 source=*position;
++    if (!sector) {
++        if (Bot_Distance(source,self->position)>maxRadius) return;
++        sector=Bot_SectorAt(&source,self->sector);
++    }
++    Bot_Hear(self,emitter,sector,source,volume,minRadius,maxRadius,kind);
++}
++
++static flex_t Bot_LoopVolume(const BotSoundLoop *loop)
++{
++    if (bot.now>=loop->fadeEnd) return loop->targetVolume;
++    flex_t t=(bot.now-loop->fadeStart)/(loop->fadeEnd-loop->fadeStart);
++    return loop->volume+(loop->targetVolume-loop->volume)*Bot_Clamp(t,0,1);
++}
++
++void jkBot_AdjustSound(const sithPlayingSound *channel,flex_t volume,flex_t fadeSeconds)
++{
++    const int required=SITHSOUNDFLAG_LOOP|SITHSOUNDFLAG_FOLLOWSTHING;
++    if (!bot.enabled || !channel || !channel->thing || (channel->flags&required)!=required ||
++        !isfinite(volume) || !isfinite(fadeSeconds)) return;
++    for (int i=0;i<BOT_SOUND_LOOPS;i++) {
++        BotSoundLoop *loop=&ears.loops[i];
++        if (loop->sound && loop->sound==channel->sound && loop->idx==channel->thing->idx &&
++            loop->signature==channel->thing->signature) {
++            loop->volume=Bot_LoopVolume(loop);
++            loop->targetVolume=Bot_Clamp(volume,0,1.5f);
++            loop->fadeStart=bot.now; loop->fadeEnd=bot.now+Bot_Max(0,fadeSeconds);
++        }
++    }
++}
++
++void jkBot_StopSound(const SithThing *emitter,const sithSound *sound)
++{
++    if (!bot.enabled || !emitter) return;
++    for (int i=0;i<BOT_SOUND_LOOPS;i++) {
++        BotSoundLoop *loop=&ears.loops[i];
++        if (loop->idx==emitter->idx && loop->signature==emitter->signature && (!sound || sound==loop->sound))
++            loop->sound=NULL;
++    }
++}
++
++static void Bot_UpdateAudioLoops(SithThing *self)
++{
++    if (!Bot_HearingListener()) return;
++    for (int i=0;i<BOT_SOUND_LOOPS;i++) {
++        BotSoundLoop *loop=&ears.loops[i];
++        if (!loop->sound) continue;
++        if (loop->idx>=(unsigned)Bot_ThingCount()) { loop->sound=NULL; continue; }
++        SithThing *t=&bot.world->aThings[loop->idx];
++        if (t->signature!=loop->signature || t->type!=SITH_THING_WEAPON ||
++            !t->sector || t->flags&(SITH_TF_DEAD|SITH_TF_DISABLED|SITH_TF_DESTROYED)) { loop->sound=NULL; continue; }
++        if (bot.now>=loop->next) {
++            loop->next=bot.now+0.09f;
++            flex_t volume=Bot_LoopVolume(loop);
++            if (volume>0) Bot_Hear(self,t,t->sector,t->position,volume,loop->nearRadius,loop->farRadius,BOT_HEARD_PROJECTILE);
++        }
++    }
++}
++
++static BotHeard *Bot_Attention(void)
++{
++    BotHeard *best=NULL;
++    flex_t bestScore=0;
++    for (int i=0;i<BOT_HEARD_CAP;i++) {
++        BotHeard *r=&ears.records[i];
++        if (!Bot_HearingCurrent(r)) { r->cue.kind=0; continue; }
++        flex_t score=Bot_AttentionScore(r);
++        if (score>bestScore) { best=r; bestScore=score; }
++    }
++    return best;
++}
++
++int jkBot_GetHearing(jkBotHearing *out)
++{
++    if (!out) return 0;
++    memset(out,0,sizeof(*out));
++    if (!Bot_HearingListener()) return 0;
++    BotHeard *r=Bot_Attention();
++    if (!r) return 0;
++    *out=r->cue;
++    out->age=bot.now-r->last;
++    return 1;
++}
++
++static int Bot_InvestigateSound(SithThing *self)
++{
++    if (Bot_ObjectiveUrgent(self) || Bot_NavigationWaiting(self)) return 0;
++    BotHeard *r=Bot_Attention();
++    if (!r || bot.now-r->first<(r->cue.strength>=0.35f ? 0.05f : 0.12f)) return 0;
++    rdVector3 d=Bot_Sub(r->cue.position,self->position);
++    flex_t error=Bot_Aim(self,r->cue.position,1);
++    if (error<45 && Bot_Horizontal(d)>0.28f && r->cue.kind!=BOT_HEARD_PROJECTILE)
++        Bot_Move(self,d,0);
++    return 1;
++}
 diff --git a/src/AI/jkBotLoadout.h b/src/AI/jkBotLoadout.h
 new file mode 100644
-index 0000000..d167eb8
+index 0000000000000000000000000000000000000000..d167eb8e228734fa0eab9a9b7f060524a0586fd8
 --- /dev/null
 +++ b/src/AI/jkBotLoadout.h
 @@ -0,0 +1,59 @@
@@ -1193,7 +2018,7 @@ index 0000000..d167eb8
 +#endif
 diff --git a/src/AI/jkBotNavigate.inc b/src/AI/jkBotNavigate.inc
 new file mode 100644
-index 0000000..1d10ee8
+index 0000000000000000000000000000000000000000..1d10ee8688b2fde8492756ddda4e336f4952e35b
 --- /dev/null
 +++ b/src/AI/jkBotNavigate.inc
 @@ -0,0 +1,214 @@
@@ -1413,10 +2238,10 @@ index 0000000..1d10ee8
 +}
 diff --git a/src/AI/jkBotNavigation.inc b/src/AI/jkBotNavigation.inc
 new file mode 100644
-index 0000000..881bd3c
+index 0000000000000000000000000000000000000000..a11caa0f3cbec4620e7a9f4a050f7ab20e06cdea
 --- /dev/null
 +++ b/src/AI/jkBotNavigation.inc
-@@ -0,0 +1,966 @@
+@@ -0,0 +1,1035 @@
 +/* Ordinary-input navigation; see jkBot.c for license.
 + * The graph is made from the loaded map, not a map-name waypoint lookup.
 + * CTF observes stock CTF_MAIN bindings and synchronized flag attachment state;
@@ -1443,6 +2268,8 @@ index 0000000..881bd3c
 +    int objective, objectiveThing, objectiveTeam, objectiveValid;
 +    rdVector3 objectivePos;
 +    SithSector *objectiveSector;
++    int pursuitSlot;
++    uint32_t pursuitNet, pursuitGuid, pursuitSignature;
 +    int objectiveRouteNode, itemNodes, missingItemNodes, truncated;
 +    int liftCount, liftForNode[BOT_NODES];
 +    BotLift lifts[64];
@@ -2130,6 +2957,13 @@ index 0000000..881bd3c
 +            break;
 +        default: break;
 +    }
++    if (companion.policy.mode && value>0) {
++        if (companion.policy.mode==CP_RESOURCE) value*=1.7f;
++        if (companion.policy.mode==CP_RECOVER &&
++            (pickup.kind==BOT_ITEM_HEALTH || pickup.kind==BOT_ITEM_BACTA ||
++             pickup.kind==BOT_ITEM_SHIELD || pickup.kind==BOT_ITEM_REVIVE)) value*=2.5f;
++        if (companion.policy.resource && pickup.bin==companion.policy.resource) value*=2.0f;
++    }
 +    return value*availability;
 +}
 +
@@ -2330,6 +3164,46 @@ index 0000000..881bd3c
 +    return best;
 +}
 +
++/* A route destination never becomes a combat target or companion sighting.
++   Select a reachable anchor inside a living opponent's sector. */
++static int Bot_ElitePursuit(SithThing *self,int start,const flex_t *distance,int *slot)
++{
++    if (!bot.elite || nav.objective!=BOT_OBJECTIVE_NONE || self->actorParams.health<40 ||
++        companion.policy.mode==CP_RESOURCE || companion.policy.mode==CP_RECOVER) return -1;
++    int best=-1;
++    flex_t lowest=1e20f;
++    for (unsigned i=0;i<jkPlayer_maxPlayers && i<JKPLAYER_NUM_INFOS;i++) {
++        if (!Bot_EnemyBase(self,(int)i) || Bot_IsPeaceful(self,(int)i)) continue;
++        SithThing *t=jkPlayer_playerInfos[i].pLocalPlayer;
++        if (!t || t->actorParams.health<=0) continue;
++        for (int j=0;j<bot.nNodes;j++) {
++            BotNode *n=&bot.nodes[j];
++            if (j==start || n->sector!=t->sector || n->avoidUntil>bot.now ||
++                nav.liftForNode[j] || distance[j]>=1e19f) continue;
++            flex_t remaining=Bot_Distance(n->pos,t->position);
++            flex_t cost=distance[j]+remaining*2.0f;
++            if (companion.policy.net && companion.policy.net==jkPlayer_playerInfos[i].playerNetId &&
++                companion.policy.guid==t->guid && companion.policy.signature==t->signature) cost*=0.60f;
++            if (cost<lowest) { lowest=cost; best=j; *slot=(int)i; }
++        }
++    }
++    return best;
++}
++
++static void Bot_CheckPursuit(SithThing *self)
++{
++    if (!nav.pursuitNet) return;
++    if (Bot_EnemyBase(self,nav.pursuitSlot) && !Bot_IsPeaceful(self,nav.pursuitSlot)) {
++        SithPlayer *player=&jkPlayer_playerInfos[nav.pursuitSlot];
++        SithThing *t=player->pLocalPlayer;
++        if (player->playerNetId==nav.pursuitNet && t->guid==nav.pursuitGuid &&
++            t->signature==nav.pursuitSignature && t->actorParams.health>0 &&
++            self->actorParams.health>=40 && companion.policy.mode!=CP_RESOURCE &&
++            companion.policy.mode!=CP_RECOVER) return;
++    }
++    nav.pursuitNet=0; bot.goal=-1; bot.routeCount=bot.routePos=0; bot.nextPlan=0;
++}
++
 +static void Bot_Plan(SithThing *self)
 +{
 +    flex_t distance[BOT_NODES]; int parent[BOT_NODES];
@@ -2351,22 +3225,42 @@ index 0000000..881bd3c
 +            if (value>=10 && value/(0.6f+distance[i])>best) { best=value/(0.6f+distance[i]); goal=i; }
 +        }
 +    }
++    int oldPursuit=nav.pursuitNet!=0, pursuitSlot=-1;
++    nav.pursuitNet=0;
++    int pursuit=goal<0 ? Bot_ElitePursuit(self,start,distance,&pursuitSlot) : -1;
 +    /* Keep an unreached goal even after it becomes the nearest start node. */
-+    if (goal<0 && bot.goal>=0 && bot.goal<bot.nNodes && distance[bot.goal]<1e19f &&
++    if (goal<0 && pursuit<0 && !oldPursuit && bot.goal>=0 && bot.goal<bot.nNodes && distance[bot.goal]<1e19f &&
 +        bot.nodes[bot.goal].avoidUntil<=bot.now && bot.now-bot.goalSetAt<14.0f &&
 +        Bot_Distance(self->position,bot.nodes[bot.goal].pos)>0.11f &&
 +        (bot.nodes[bot.goal].item<0 || Bot_ItemValue(self,bot.nodes[bot.goal].item)>0.05f)) goal=bot.goal;
 +    if (goal<0) {
++        /* Nearby high-value pickups can still outrank an opponent across
++           the map. A pursuit goal gets no bonus for an unreachable shortcut. */
 +        flex_t best=-1e20f;
++        if (pursuit>=0) {
++            goal=pursuit; best=9.0f/(0.8f+0.22f*distance[pursuit]);
++        }
 +        for (int i=0;i<bot.nNodes;i++) {
 +            BotNode *n=&bot.nodes[i];
 +            if (distance[i]>=1e19f || n->avoidUntil>bot.now || nav.liftForNode[i] ||
 +                Bot_Distance(self->position,n->pos)<0.20f) continue;
 +            flex_t unseen=Bot_Clamp((bot.now-n->visited)/30.0f,0.0f,1.0f);
 +            flex_t value=Bot_ItemValue(self,n->item)+2.4f*unseen+Bot_Unit()*0.4f;
-+            flex_t score=value/(0.8f+distance[i]*0.42f);
++            if (companion.policy.mode==CP_PRESSURE && companion.hasPursuit &&
++                bot.now-companion.pursuitTime<=3.0f) {
++                flex_t separation=Bot_Distance(n->pos,companion.pursuitAt);
++                value+=(4.0f+3.0f*companion.policy.risk)/(0.5f+separation);
++            }
++            flex_t travelCost=companion.policy.mode ? 0.56f-0.28f*companion.policy.risk : 0.42f;
++            flex_t score=value/(0.8f+distance[i]*travelCost);
 +            if (score>best) { best=score; goal=i; }
 +        }
++    }
++    if (goal>=0 && goal==pursuit) {
++        SithPlayer *player=&jkPlayer_playerInfos[pursuitSlot];
++        nav.pursuitSlot=pursuitSlot; nav.pursuitNet=player->playerNetId;
++        nav.pursuitGuid=player->pLocalPlayer->guid; nav.pursuitSignature=player->pLocalPlayer->signature;
++        bot.nextPlan=bot.now+0.4f;
 +    }
 +    if (goal!=bot.goal) bot.goalSetAt=bot.now;
 +    bot.goal=goal; bot.routeCount=bot.routePos=0;
@@ -2385,7 +3279,7 @@ index 0000000..881bd3c
 +}
 diff --git a/src/AI/jkBotPersona.c b/src/AI/jkBotPersona.c
 new file mode 100644
-index 0000000..d94f22c
+index 0000000000000000000000000000000000000000..d94f22cb6ba755d3c3557880b8c5518f2238e1dd
 --- /dev/null
 +++ b/src/AI/jkBotPersona.c
 @@ -0,0 +1,155 @@
@@ -2546,7 +3440,7 @@ index 0000000..d94f22c
 +}
 diff --git a/src/AI/jkBotPersona.h b/src/AI/jkBotPersona.h
 new file mode 100644
-index 0000000..ab67201
+index 0000000000000000000000000000000000000000..ab6720149012f1e79331b2ffc7fb3b752dd61239
 --- /dev/null
 +++ b/src/AI/jkBotPersona.h
 @@ -0,0 +1,6 @@
@@ -2557,7 +3451,7 @@ index 0000000..ab67201
 +void jkBotPersona_Tick(float dt);
 +#endif
 diff --git a/src/Cog/sithCog.c b/src/Cog/sithCog.c
-index 35fb5be..d65f48a 100644
+index 35fb5be42f64f9d97b23bab285576ab3f66a7d98..d65f48a50de9cb72edc0a852767f35399d8a5a0c 100644
 --- a/src/Cog/sithCog.c
 +++ b/src/Cog/sithCog.c
 @@ -1,3 +1,4 @@
@@ -2577,7 +3471,7 @@ index 35fb5be..d65f48a 100644
      if ((sithMulti_multiModeFlags & MULTIMODEFLAG_COOP) && messageType == SITH_MESSAGE_USER0 && sithCog_g_pMasterCog && pCog->idx == sithCog_g_pMasterCog->idx && sithNet_isMulti)
      {
 diff --git a/src/Devices/sithControl.c b/src/Devices/sithControl.c
-index 20f1ce8..9f3b141 100644
+index 20f1ce8b986d67e7b8c6e4c6ab7125de51e649c1..9f3b14183e535561323215a6921839ba11104768 100644
 --- a/src/Devices/sithControl.c
 +++ b/src/Devices/sithControl.c
 @@ -1,4 +1,6 @@
@@ -2633,8 +3527,104 @@ index 20f1ce8..9f3b141 100644
      stdControlKeyInfoEntry *v1; // edi
      stdControlKeyInfoEntry *v2; // esi
      uint32_t v3; // ebp
+diff --git a/src/Devices/sithSoundMixer.c b/src/Devices/sithSoundMixer.c
+index 04f1e74dc0bfa0a534530f3ec878e7dbd0cf88dc..cdb65c1662ee06662826037e47f0a47b15b5639a 100644
+--- a/src/Devices/sithSoundMixer.c
++++ b/src/Devices/sithSoundMixer.c
+@@ -1,4 +1,5 @@
+ #include "sithSoundMixer.h"
++#include "AI/jkBot.h"
+ 
+ #include "AI/sithAIAwareness.h"
+ #include "Devices/sithControl.h"
+@@ -373,7 +374,7 @@ LABEL_46:
+     return result;
+ }
+ 
+-sithPlayingSound* sithSoundMixer_PlaySoundPos(sithSound *hSnd, rdVector3 *pos, SithSector *pSector, flex_t volume, flex_t minRadius, flex_t maxRadius, int playflags)
++static sithPlayingSound* sithSoundMixer_OutputPosition(sithSound *hSnd, rdVector3 *pos, SithSector *pSector, flex_t volume, flex_t minRadius, flex_t maxRadius, int playflags)
+ {
+     int32_t v7; // ebx
+     flex_d_t v10; // st7
+@@ -417,7 +418,7 @@ sithPlayingSound* sithSoundMixer_PlaySoundPos(sithSound *hSnd, rdVector3 *pos, S
+     return NULL;
+ }
+ 
+-sithPlayingSound* sithSoundMixer_PlaySoundThing(sithSound *hSnd, SithThing *pThing, flex_t volume, flex_t minRadius, flex_t maxRadius, int playflags)
++static sithPlayingSound* sithSoundMixer_OutputThing(sithSound *hSnd, SithThing *pThing, flex_t volume, flex_t minRadius, flex_t maxRadius, int playflags)
+ {
+     sithPlayingSound *v11; // esi
+     int v12; // eax
+@@ -559,6 +560,29 @@ LABEL_51:
+     return NULL;
+ }
+ 
++sithPlayingSound* sithSoundMixer_PlaySpatial(sithSound *sound, SithThing *emitter, rdVector3 *position, SithSector *sector,
++    flex_t volume, flex_t minRadius, flex_t maxRadius, int flags, int soundClass)
++{
++    if (!sound || !position) return NULL;
++    jkBot_ObserveSound(emitter, sector, position, sound, volume, minRadius, maxRadius, flags, soundClass);
++    if ((flags & SITHSOUNDFLAG_FOLLOWSTHING) && emitter)
++        return sithSoundMixer_OutputThing(sound, emitter, volume, minRadius, maxRadius, flags);
++    return sithSoundMixer_OutputPosition(sound, position, sector, volume, minRadius, maxRadius, flags);
++}
++
++sithPlayingSound* sithSoundMixer_PlaySoundPos(sithSound *sound, rdVector3 *position, SithSector *sector, flex_t volume, flex_t minRadius, flex_t maxRadius, int flags)
++{
++    return sithSoundMixer_PlaySpatial(sound, NULL, position, sector, volume, minRadius, maxRadius,
++        flags | SITHSOUNDFLAG_ABSOLUTE, JKBOT_SOUND_RAW);
++}
++
++sithPlayingSound* sithSoundMixer_PlaySoundThing(sithSound *sound, SithThing *thing, flex_t volume, flex_t minRadius, flex_t maxRadius, int flags)
++{
++    if (!thing) return NULL;
++    return sithSoundMixer_PlaySpatial(sound, thing, &thing->position, thing->sector, volume, minRadius, maxRadius,
++        flags | SITHSOUNDFLAG_FOLLOWSTHING, JKBOT_SOUND_RAW);
++}
++
+ void sithSoundMixer_PlayingSoundReset(sithPlayingSound *sound)
+ {
+     stdSound_BufferReset(sound->pSoundBuf);
+@@ -625,6 +649,7 @@ void sithSoundMixer_FadeVolume(sithPlayingSound *hChannel, flex_t volume, flex_t
+     flex_t a2; // [esp+0h] [ebp-4h]
+ 
+     volume = stdMath_Clamp(volume, 0.0, 1.5);
++    jkBot_AdjustSound(hChannel,volume,secFadeTime);
+     v3 = volume - hChannel->vol_2;
+     if ( v3 != 0.0 )
+     {
+@@ -655,6 +680,7 @@ void sithSoundMixer_FadeVolume(sithPlayingSound *hChannel, flex_t volume, flex_t
+ 
+ void sithSoundMixer_SetVolume(sithPlayingSound *hChannel, flex_t volume)
+ {
++    jkBot_AdjustSound(hChannel,volume,0);
+     hChannel->vol_2 = stdMath_Clamp(volume, 0.0, 1.5);
+     if (!hChannel->pSoundBuf)
+         return;
+@@ -1297,6 +1323,8 @@ int32_t sithSoundMixer_GetThingSoundIdx(SithThing *thing, sithSound *sound)
+ void sithSoundMixer_StopSound(sithPlayingSound *hChannel)
+ {
+     if (!hChannel) return; // Added
++    if ((hChannel->flags & (SITHSOUNDFLAG_FOLLOWSTHING|SITHSOUNDFLAG_LOOP)) ==
++        (SITHSOUNDFLAG_FOLLOWSTHING|SITHSOUNDFLAG_LOOP)) jkBot_StopSound(hChannel->thing,hChannel->sound);
+ 
+     if ( (hChannel->flags & SITHSOUNDFLAG_PLAYING) != 0 )
+     {
+diff --git a/src/Devices/sithSoundMixer.h b/src/Devices/sithSoundMixer.h
+index 49233468e551f6dbf097ef64406e20d4bc2ebfe1..5f453e6a769cf7539fe5a9ef5e9e8afbcc51d357 100644
+--- a/src/Devices/sithSoundMixer.h
++++ b/src/Devices/sithSoundMixer.h
+@@ -56,6 +56,8 @@ void sithSoundMixer_StopAll();
+ void sithSoundMixer_ResumeAll();
+ sithPlayingSound* sithSoundMixer_PlayingSoundFromSound(sithSound *sound, int flags);
+ sithPlayingSound* sithSoundMixer_PlaySound(sithSound *hSnd, flex_t volume, flex_t pan, int playflags);
++sithPlayingSound* sithSoundMixer_PlaySpatial(sithSound *sound, SithThing *emitter, rdVector3 *position, SithSector *sector,
++    flex_t volume, flex_t minRadius, flex_t maxRadius, int flags, int soundClass);
+ sithPlayingSound* sithSoundMixer_PlaySoundPos(sithSound *hSnd, rdVector3 *pos, SithSector *pSector, flex_t volume, flex_t minRadius, flex_t maxRadius, int playflags);
+ sithPlayingSound* sithSoundMixer_PlaySoundThing(sithSound *hSnd, SithThing *a2, flex_t volume, flex_t minRadius, flex_t maxRadius, int playflags);
+ void sithSoundMixer_PlayingSoundReset(sithPlayingSound *sound);
 diff --git a/src/Dss/jkDSS.c b/src/Dss/jkDSS.c
-index 7fc7167..821bd99 100644
+index 7fc71676a1a6f37d695ed10d9580f5cca6a41b9e..821bd9966e1b460f6d2da4d02b3c8906f9ec74e4 100644
 --- a/src/Dss/jkDSS.c
 +++ b/src/Dss/jkDSS.c
 @@ -1,3 +1,4 @@
@@ -2650,8 +3640,54 @@ index 7fc7167..821bd99 100644
      pPlayerInfo->maxTwinkles = arg2;
      pPlayerInfo->twinkleSpawnRate = arg3;
      return 1;
+diff --git a/src/Dss/sithMulti.c b/src/Dss/sithMulti.c
+index 92f6076996a5edc1743668ef6eaa62b8413a5fac..6fad617937d58b757c9f1bd1a19e7b691f9ead49 100644
+--- a/src/Dss/sithMulti.c
++++ b/src/Dss/sithMulti.c
+@@ -20,6 +20,7 @@
+ #include "Main/sithMain.h"
+ #include "Main/Main.h"
+ #include "AI/sithAI.h"
++#include "AI/jkBot.h"
+ #include "Devices/sithComm.h"
+ #include "stdPlatform.h"
+ 
+@@ -60,19 +61,20 @@ void sithMulti_SendChat(const char *pStr, int arg0, int arg1)
+ // MOTS altered
+ int sithMulti_ProcessChat(SithMessage *pMsg)
+ {
+-    // Added: 132 -> 256
+-    char v5[256];
+-
+-    NETMSG_IN_START(pMsg);
+-
+-    int arg0 = NETMSG_POPS32();
+-    int arg1 = NETMSG_POPS32();
+-    int arg2 = NETMSG_POPS32();
+-
+-    if ( arg2 >= 0x80 )
+-        arg2 = 128;
+-    NETMSG_POPSTR(v5, arg2);
+-    v5[arg2 + 1] = 0;
++    if (!pMsg || pMsg->netMsg.msg_size<13 || pMsg->netMsg.msg_size>sizeof(pMsg->pktData)) return 0;
++    const unsigned char *payload=(const unsigned char *)pMsg->pktData;
++    int32_t destination, arg1;
++    uint32_t length;
++    memcpy(&destination,payload,4);
++    memcpy(&arg1,payload+4,4);
++    memcpy(&length,payload+8,4);
++    if (!length || length>128 || length>pMsg->netMsg.msg_size-12 ||
++        arg1>=(int32_t)jkPlayer_maxPlayers || arg1>=JKPLAYER_NUM_INFOS) return 0;
++    const char *v5=(const char *)(payload+12);
++    if (v5[length-1] || memchr(v5,0,length-1)) return 0;
++    for (uint32_t i=0;i+1<length;i++)
++        if ((unsigned char)v5[i]<32 || (unsigned char)v5[i]==127) return 0;
++    jkBot_ObserveChat(destination,arg1,pMsg->netMsg.idx,v5);
+ 
+     if ( arg1 < 0 )
+         jk_snwprintf(sithMulti_chatWStrTmp, 256, u"%S", v5); // Added: char -> wchar
 diff --git a/src/Engine/sithIntersect.c b/src/Engine/sithIntersect.c
-index 3fcf106..9e38be7 100644
+index 3fcf106926f905b594c3ff9a09eeddfd9a154a54..9e38be7191b8c02b4ce4d943db708ac5266ed335 100644
 --- a/src/Engine/sithIntersect.c
 +++ b/src/Engine/sithIntersect.c
 @@ -604,6 +604,11 @@ int sithIntersect_CheckSphereHit(const rdVector3 *startPos, const rdVector3 *mov
@@ -2667,7 +3703,7 @@ index 3fcf106..9e38be7 100644
              return 1;
          }
 diff --git a/src/Gui/jkGUIDialog.c b/src/Gui/jkGUIDialog.c
-index a5bda0e..6ba690b 100644
+index a5bda0ea0f67c69aa916a3a5cf918e57205d3c45..6ba690b43db682c1169890275b9817c495e6b88d 100644
 --- a/src/Gui/jkGUIDialog.c
 +++ b/src/Gui/jkGUIDialog.c
 @@ -1,4 +1,5 @@
@@ -2716,7 +3752,7 @@ index a5bda0e..6ba690b 100644
      int v5; // esi
  
 diff --git a/src/Gui/jkGUIMultiplayer.c b/src/Gui/jkGUIMultiplayer.c
-index 5e12ab8..9cc656e 100644
+index 5e12ab80f2f6c309c419b7194b71c0411c95911d..9cc656e3c31ca4681c4938d3ce164d1c6d5a6070 100644
 --- a/src/Gui/jkGUIMultiplayer.c
 +++ b/src/Gui/jkGUIMultiplayer.c
 @@ -1,4 +1,15 @@
@@ -2884,7 +3920,7 @@ index 5e12ab8..9cc656e 100644
      char16_t *v3; // [esp-4h] [ebp-4h]
  
 diff --git a/src/Gui/jkGUIMultiplayer.h b/src/Gui/jkGUIMultiplayer.h
-index 4a9a45e..b7007d1 100644
+index 4a9a45ebe16c7fdad8f70e431d06bf2679f7188b..b7007d152c2d063ed8a3ca48c8983e2e964b65dc 100644
 --- a/src/Gui/jkGUIMultiplayer.h
 +++ b/src/Gui/jkGUIMultiplayer.h
 @@ -34,6 +34,7 @@
@@ -2896,7 +3932,7 @@ index 4a9a45e..b7007d1 100644
  int jkGuiMultiplayer_ShowSynchronizing();
  
 diff --git a/src/Main/Main.c b/src/Main/Main.c
-index fd2c8ac..7aa8421 100644
+index fd2c8acec614cf2d22613c069ad97c562f02f83b..7aa8421fde265075253410b1569fdbb815633c93 100644
 --- a/src/Main/Main.c
 +++ b/src/Main/Main.c
 @@ -1,4 +1,8 @@
@@ -3069,7 +4105,7 @@ index fd2c8ac..7aa8421 100644
          fprintf(stderr, "autostart: -character requires -autostart multiplayer mode\n");
          exit(6);
 diff --git a/src/Win95/Window.c b/src/Win95/Window.c
-index 012b5cb..b575f72 100644
+index 012b5cb53ed6c4b443b1c1a877f4017c10b6f9db..b575f7230857fe54a8f987e27a5772d0326773e4 100644
 --- a/src/Win95/Window.c
 +++ b/src/Win95/Window.c
 @@ -1,4 +1,5 @@
@@ -3135,7 +4171,7 @@ index 012b5cb..b575f72 100644
          strcat(cmdLine, argv[i]);
          strcat(cmdLine, " ");
 diff --git a/src/Win95/Windows.c b/src/Win95/Windows.c
-index e3b6290..458dda4 100644
+index e3b629051e2dd4be07d67269af2c220ff0efba3c..458dda4409f818d076be2cce3d02f94bebf15561 100644
 --- a/src/Win95/Windows.c
 +++ b/src/Win95/Windows.c
 @@ -1,4 +1,5 @@
@@ -3177,8 +4213,284 @@ index e3b6290..458dda4 100644
      if (Window_bRenderProbe) {
          va_end(va);
          fprintf(stderr,"RENDERPROBE_FAILED fatal game error: %s\n",tmp);
+diff --git a/src/Win95/stdSound.c b/src/Win95/stdSound.c
+index fc1de368d4ab259dd2cdfec7a0baa2d655dd6345..17d9a5435bec8de7e960042fa48968d06d45b237 100644
+--- a/src/Win95/stdSound.c
++++ b/src/Win95/stdSound.c
+@@ -65,6 +65,14 @@ uint32_t stdSound_ParseWav(stdFile_t sound_file, uint32_t *nSamplesPerSec, int32
+ #define AL_FORMAT_MONO24 (0xFFFF0000)
+ #define AL_FORMAT_STEREO24 (0xFFFF0001)
+ 
++#include "AI/jkBot.h"
++/* Keep WAV metadata available to a bot if the actual playback device fails. */
++static int stdSound_botWithoutDevice;
++static int stdSound_SkipOutput(void)
++{
++    return stdSound_botWithoutDevice || Main_bHeadless || stdCapture_IsActive();
++}
++
+ ALCdevice *device;
+ ALCcontext *context;
+ static ALfloat stdSound_listenerPos[3] = {0.0f, 0.0f , 0.0f};
+@@ -87,8 +95,9 @@ void stdSound_ALToDS3D(rdVector3* pOut, ALfloat* pIn)
+ int stdSound_Startup()
+ {
+     jkGuiSound_b3DSound_3 = 1;
++    stdSound_botWithoutDevice = 0;
+ 
+-    if ((Main_bHeadless || stdCapture_IsActive())) return 1;
++    if (stdSound_SkipOutput()) return 1;
+ 
+ 	ALboolean enumeration;
+ 	const ALCchar *defaultDeviceName = NULL;
+@@ -113,15 +122,21 @@ int stdSound_Startup()
+ 	device = alcOpenDevice(defaultDeviceName);
+ 	if (!device) {
+ 		fprintf(stderr, "unable to open default device\n");
+-		return 0;
++        stdSound_botWithoutDevice = jkBot_IsEnabled();
++        return stdSound_botWithoutDevice;
+ 	}
+ 
+ 	alGetError();
+ 
+ 	context = alcCreateContext(device, NULL);
+-	if (!alcMakeContextCurrent(context)) {
++	if (!context || !alcMakeContextCurrent(context)) {
+ 		fprintf(stderr, "failed to make default context\n");
+-		return 0;
++        if (context) alcDestroyContext(context);
++        alcCloseDevice(device);
++        context = NULL;
++        device = NULL;
++        stdSound_botWithoutDevice = jkBot_IsEnabled();
++        return stdSound_botWithoutDevice;
+ 	}
+ 
+ 	/* set orientation */
+@@ -145,7 +160,7 @@ int stdSound_Startup()
+ 
+ void stdSound_Shutdown()
+ {
+-    if ((Main_bHeadless || stdCapture_IsActive())) return;
++    if (stdSound_SkipOutput()) return;
+ 
+ 	device = alcGetContextsDevice(context);
+ 	alcMakeContextCurrent(NULL);
+@@ -181,7 +196,7 @@ stdSound_buffer_t* stdSound_BufferCreate(int bStereo, uint32_t nSamplesPerSec, u
+     out->vel[1] = 0.0;
+     out->vel[2] = 0.0;
+     
+-    if (!(Main_bHeadless || stdCapture_IsActive()))
++    if (!stdSound_SkipOutput())
+         alGenBuffers(1, &out->buffer);
+     
+     int format = 0;
+@@ -238,7 +253,7 @@ void* stdSound_BufferSetData(stdSound_buffer_t* sound, int bufferBytes, int32_t*
+     
+     _memset(sound->data, 0, sound->bufferBytes);
+     
+-    if (!(Main_bHeadless || stdCapture_IsActive()))
++    if (!stdSound_SkipOutput())
+         alBufferData(sound->buffer, sound->format, sound->data, sound->bufferBytes, sound->nSamplesPerSec);
+     
+     
+@@ -247,7 +262,7 @@ void* stdSound_BufferSetData(stdSound_buffer_t* sound, int bufferBytes, int32_t*
+ 
+ int stdSound_BufferUnlock(stdSound_buffer_t* sound, void* buffer, int bufferRead)
+ {
+-    if ((Main_bHeadless || stdCapture_IsActive())) return 1;
++    if (stdSound_SkipOutput()) return 1;
+     
+     if (sound->format == AL_FORMAT_STEREO24 || sound->format == AL_FORMAT_MONO24)
+     {
+@@ -313,7 +328,7 @@ int stdSound_BufferPlay(stdSound_buffer_t* buf, int loop)
+ {
+     ALint source_type;
+ 
+-    if ((Main_bHeadless || stdCapture_IsActive())) return 1;
++    if (stdSound_SkipOutput()) return 1;
+ 
+     //alSourceStop(buf->source);
+     
+@@ -357,7 +372,7 @@ int stdSound_BufferQueueAfterAnother(stdSound_buffer_t* bufPrev, stdSound_buffer
+     ALint source_state = 0;
+     ALint processed = 0;
+     ALint source_type = AL_UNDETERMINED;
+-    if ((Main_bHeadless || stdCapture_IsActive())) return 1;
++    if (stdSound_SkipOutput()) return 1;
+ 
+     if (!bufPrev->source)
+     {
+@@ -410,7 +425,7 @@ void stdSound_BufferRelease(stdSound_buffer_t* sound)
+ {
+     ALint source_state;
+     
+-    if ((Main_bHeadless || stdCapture_IsActive()))
++    if (stdSound_SkipOutput())
+         goto end;
+ 
+     //sound->refcnt--;
+@@ -449,7 +464,7 @@ end:
+ 
+ int stdSound_BufferReset(stdSound_buffer_t* sound)
+ {
+-    if ((Main_bHeadless || stdCapture_IsActive())) return 1;
++    if (stdSound_SkipOutput()) return 1;
+ 
+     //alSourcef(sound->source, AL_PITCH, 1.0);
+ 	//alSourcef(sound->source, AL_GAIN, 1.0);
+@@ -480,7 +495,7 @@ void stdSound_BufferSetPan(stdSound_buffer_t* a1, flex_t a2)
+ 
+ void stdSound_BufferSetFrequency(stdSound_buffer_t* sound, int freq)
+ {
+-    if ((Main_bHeadless || stdCapture_IsActive())) return;
++    if (stdSound_SkipOutput()) return;
+ 
+     flex_t pitch = (flex_d_t)freq / (flex_d_t)sound->nSamplesPerSec;
+     
+@@ -535,7 +550,7 @@ void stdSound_IA3D_idk(flex_t a)
+ 
+ int stdSound_BufferStop(stdSound_buffer_t* buf)
+ {
+-    if ((Main_bHeadless || stdCapture_IsActive())) return 1;
++    if (stdSound_SkipOutput()) return 1;
+ 
+     if (buf->source)
+     {
+@@ -547,7 +562,7 @@ int stdSound_BufferStop(stdSound_buffer_t* buf)
+ 
+ void stdSound_BufferSetVolume(stdSound_buffer_t* sound, flex_t vol)
+ {
+-    if ((Main_bHeadless || stdCapture_IsActive())) return;
++    if (stdSound_SkipOutput()) return;
+     if (!sound) return;
+     
+     sound->vol = vol * stdSound_fMenuVolume;
+@@ -586,7 +601,7 @@ void stdSound_SetPositionOrientation(rdVector3 *pos, rdVector3 *lvec, rdVector3
+     stdSound_DS3DToAL(&stdSound_listenerOri[0], lvec);
+     stdSound_DS3DToAL(&stdSound_listenerOri[3], uvec);
+ 
+-    if ((Main_bHeadless || stdCapture_IsActive())) return;
++    if (stdSound_SkipOutput()) return;
+ 
+     alListenerfv(AL_POSITION, stdSound_listenerPos);
+     alListenerfv(AL_ORIENTATION, stdSound_listenerOri);
+@@ -601,7 +616,7 @@ void stdSound_SetPosition(stdSound_buffer_t* pSoundBuf, rdVector3 *pos)
+     if (!pSoundBuf->source)
+         return;
+ 
+-    if ((Main_bHeadless || stdCapture_IsActive())) return;
++    if (stdSound_SkipOutput()) return;
+ 
+     alSourcei(pSoundBuf->source, AL_SOURCE_RELATIVE, AL_FALSE);
+     alSourcefv(pSoundBuf->source, AL_POSITION, pSoundBuf->pos);
+@@ -617,7 +632,7 @@ void stdSound_SetVelocity(stdSound_buffer_t* pSoundBuf, rdVector3 *vel)
+     if (!pSoundBuf->source)
+         return;
+ 
+-    if ((Main_bHeadless || stdCapture_IsActive())) return;
++    if (stdSound_SkipOutput()) return;
+ 
+     alSourcei(pSoundBuf->source, AL_SOURCE_RELATIVE, AL_FALSE);
+     alSourcefv(pSoundBuf->source, AL_VELOCITY, pSoundBuf->vel); // FLEXTODO
+@@ -639,7 +654,7 @@ int stdSound_IsPlaying(stdSound_buffer_t* pSoundBuf, rdVector3 *pos)
+     if (pSoundBuf->vol == 0.0)
+         return 0;
+ 
+-    if ((Main_bHeadless || stdCapture_IsActive())) return 0;
++    if (stdSound_SkipOutput()) return 0;
+ 
+     ALint source_state;
+     alGetSourcei(pSoundBuf->source, AL_SOURCE_STATE, &source_state);
+diff --git a/src/World/sithSoundClass.c b/src/World/sithSoundClass.c
+index a02049a299154848956ac1f9fb8fa797c3b7c9c1..04e1b9e85b68fd72743ab9dffd8a35fd1ceb549f 100644
+--- a/src/World/sithSoundClass.c
++++ b/src/World/sithSoundClass.c
+@@ -1,4 +1,5 @@
+ #include "sithSoundClass.h"
++#include "AI/jkBot.h"
+ 
+ #include "stdPlatform.h"
+ #include "General/stdHashtbl.h"
+@@ -363,6 +364,8 @@ int sithSoundClass_LoadEntry(sithSoundClass *pClass, char *pPath)
+     return 1;
+ }
+ 
++static sithPlayingSound* sithSoundClass_PlaySelected(SithThing *pThing, sithSoundClassEntry *pEntry, flex_t volume, int mode);
++
+ void sithSoundClass_PlayModeFirst(SithThing *pThing, unsigned int mode)
+ {
+     sithSoundClass *pSoundClass; // eax
+@@ -385,7 +388,7 @@ void sithSoundClass_PlayModeFirst(SithThing *pThing, unsigned int mode)
+ 
+         v3 = pSoundClass->entries[mode];
+         if ( v3 )
+-            sithSoundClass_PlayModeEntry(pThing, v3, 1.0);
++            sithSoundClass_PlaySelected(pThing, v3, 1.0, mode);
+     }
+ }
+ 
+@@ -433,7 +436,7 @@ sithPlayingSound* sithSoundClass_PlayMode(SithThing *pThing, int mode, flex_t se
+                     while ( v7 );
+                 }
+             }
+-            return sithSoundClass_PlayModeEntry(pThing, v4, 1.0);
++            return sithSoundClass_PlaySelected(pThing, v4, 1.0, mode);
+         }
+     }
+     return NULL;
+@@ -460,7 +463,7 @@ void sithSoundClass_PlayModeFirstEx(SithThing *pThing, int mode, flex_t volume)
+ 
+         entry = pThing->pSoundClass->entries[mode];
+         if ( entry )
+-            sithSoundClass_PlayModeEntry(pThing, entry, volume);
++            sithSoundClass_PlaySelected(pThing, entry, volume, mode);
+     }
+ }
+ 
+@@ -553,13 +556,18 @@ sithPlayingSound* sithSoundClass_PlayModeRandom(SithThing *pThing, uint32_t mode
+                     v3 = v3->pNextMode;
+             }
+ 
+-            return sithSoundClass_PlayModeEntry(pThing, v3, 1.0);
++            return sithSoundClass_PlaySelected(pThing, v3, 1.0, mode);
+         }
+     }
+     return NULL;
+ }
+ 
+ sithPlayingSound* sithSoundClass_PlayModeEntry(SithThing *pThing, sithSoundClassEntry *pEntry, flex_t volume)
++{
++    return sithSoundClass_PlaySelected(pThing, pEntry, volume, JKBOT_SOUND_RAW);
++}
++
++static sithPlayingSound* sithSoundClass_PlaySelected(SithThing *pThing, sithSoundClassEntry *pEntry, flex_t volume, int mode)
+ {
+     sithSound* pSithSound = pEntry->sound;
+     if ( !pEntry->sound )
+@@ -586,16 +594,17 @@ sithPlayingSound* sithSoundClass_PlayModeEntry(SithThing *pThing, sithSoundClass
+     
+     if (pEntry->playflags & SITHSOUNDFLAG_ABSOLUTE) {
+         //printf("absolute\n");
+-        return sithSoundMixer_PlaySoundPos(pSithSound, &pThing->position, pThing->sector, pEntry->maxVolume * volume, pEntry->minRadius, pEntry->maxRadius, pEntry->playflags);
++        return sithSoundMixer_PlaySpatial(pSithSound, pThing, &pThing->position, pThing->sector, pEntry->maxVolume * volume, pEntry->minRadius, pEntry->maxRadius, pEntry->playflags & ~SITHSOUNDFLAG_FOLLOWSTHING, mode);
+     }
+     else {
+         //printf("thing\n");
+-        return sithSoundMixer_PlaySoundThing(pSithSound, pThing, pEntry->maxVolume * volume, pEntry->minRadius, pEntry->maxRadius, pEntry->playflags);
++        return sithSoundMixer_PlaySpatial(pSithSound, pThing, &pThing->position, pThing->sector, pEntry->maxVolume * volume, pEntry->minRadius, pEntry->maxRadius, pEntry->playflags | SITHSOUNDFLAG_FOLLOWSTHING, mode);
+     }
+ }
+ 
+ void sithSoundClass_StopSound(SithThing *thing, sithSound *sound)
+ {
++    jkBot_StopSound(thing, sound);
+     sithPlayingSound* v3; // esi
+     sithPlayingSound *v5; // edi
+ 
 diff --git a/src/World/sithThing.c b/src/World/sithThing.c
-index 76c4d88..b4e68e1 100644
+index 76c4d881099ea31e193ad2f8af7b3b8446adad98..b4e68e1846bd21182412360a3ff193b7cb2a2959 100644
 --- a/src/World/sithThing.c
 +++ b/src/World/sithThing.c
 @@ -1,4 +1,5 @@
@@ -3196,7 +4508,7 @@ index 76c4d88..b4e68e1 100644
      {
          param1 = (flex_t)(unsigned int)hitType; // FLEXTODO
 diff --git a/src/World/sithWeapon.c b/src/World/sithWeapon.c
-index 88c6f10..bd31718 100644
+index 88c6f100880d39ff7cc6a654d7b17ac982164e09..696ee5a9b49611e8056cb49c0a34123853f1c50e 100644
 --- a/src/World/sithWeapon.c
 +++ b/src/World/sithWeapon.c
 @@ -1,3 +1,4 @@
@@ -3212,3 +4524,12 @@ index 88c6f10..bd31718 100644
          rdMatrix_BuildFromLook34(&a3a, pFireDir);
  
          flex_t fVar3, fVar2;
+@@ -607,7 +609,7 @@ SithThing* sithWeapon_WeaponFireProjectile(SithThing *pShooter, SithThing *pProj
+ 
+ LABEL_31:
+     if ( hFireSnd ) {
+-        sithSoundMixer_PlaySoundThing(hFireSnd, pShooter, 1.0, 1.0, 4.0, SITHSOUNDFLAG_FOLLOWSTHING|SITHSOUNDFLAG_HIGHPRIO);
++        sithSoundMixer_PlaySpatial(hFireSnd, pShooter, &pShooter->position, pShooter->sector, 1.0, 1.0, 4.0, SITHSOUNDFLAG_FOLLOWSTHING|SITHSOUNDFLAG_HIGHPRIO, JKBOT_SOUND_MUZZLE);
+     }
+     if ( submode >= 0 )
+     {

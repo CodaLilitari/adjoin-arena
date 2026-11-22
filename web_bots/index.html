@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JKWeb bot</title>
+<style>
+:root { color-scheme:dark; font:14px system-ui,sans-serif; background:#121318; color:#eee }
+body { margin:0 auto; max-width:1280px }
+header { display:flex; gap:1rem; align-items:center; flex-wrap:wrap; padding:.65rem 1rem }
+h1 { font-size:1rem; margin:0 }
+button,input { font:inherit }
+canvas { display:block; width:100%; height:auto; background:black }
+#state { margin-left:auto }
+#error { color:#ffb6b6; white-space:pre-wrap; padding:0 1rem }
+</style>
+<header><h1 id="title">JKWeb bot</h1><label id="login">Open engine credential <input type="file" id="credential" accept=".json"></label><button id="record" hidden>Record 120 seconds</button><span id="state">Waiting for engine credential</span></header>
+<canvas id="canvas" width="960" height="540" tabindex="0"></canvas>
+<p id="error" role="alert"></p>
+<script src="/client.js"></script>
+</html>

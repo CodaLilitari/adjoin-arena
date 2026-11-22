@@ -6,8 +6,10 @@ Andrei authorized implementation of the external companion, necessary game hooks
 auditory awareness and continued competitive work, prioritizing JKWeb. He also
 authorized a future private, hardware-rendered two-minute third-person demo of
 Darth Lilitari in a four-bot FF Guns match on Canyon Oasis. The supplied character
-ZIP was unavailable at the start of this increment. That asset and a verified
-render/capture path are prerequisites for the character demo, not for this work.
+ZIP has been inspected. A separately staged cosmetic GOB excludes its optional
+dance COG; all 91 overlapping stock keyframe animations retain their original
+frame counts, frame rates and event markers. Actual multiplayer loading and
+hardware capture remain separate runtime checks.
 
 The inherited design is `2026-11-21-competitive-bots-design.md`. Local game AI
 owns movement, aim, Force and survival on every frame. An external companion
@@ -16,20 +18,25 @@ No language-model call, HTTP request or blocked consumer may stall a frame.
 
 ## Chosen implementation
 
-Use an ordinary native bot beside unchanged browser players in Cross Server.
-Each bot receives one inherited private, nonblocking Unix datagram socket. A
-Python companion hub owns its peer and exposes a loopback HTTP API and a CLI.
-The native engine uses ordinary inputs and `sithMulti_SendChat`; no new game
-packets, server authority or browser patch are introduced. The hub has scoped
-per-bot credentials, distinct from server administration credentials.
+The user subsequently selected current JKWeb and explicitly authorized privileged
+engine knowledge while prohibiting altered movement, damage or other physical
+game rules. This supersedes the initial preference for unchanged browser clients.
+The primary implementation now ports the ordinary bot input driver into current
+JKWeb `web-mp` commit `7a6f95c9a3399e59acbf019dc6b25f9981d29dff`.
+Four browser players create/join a private local room using the upstream netcode-2
+relay, pinned at `642afa116f392e5734bad742bfd77c65119a0c52`. Upstream packet
+handling, shared starts and synchronized joins remain in charge.
 
-This is the builder's implementation choice under the user's instruction to
-proceed. Alternatives considered were browser-hosted bot logic (requires a new
-WASM distribution and browser lifecycle), and adapting the fork's single-player
-agent bridge (its explicit multiplayer exclusion does not fit this task).
-Current upstream JKWeb has optional netcode channels absent from the pinned
-gateway. Source fallback to Classic must be distinguished from a tested mixed
-session. Do not advertise compatibility with an arbitrary public lobby.
+The native companion is retained as a secondary path. Both transports use the
+same bounded binary records: a native nonblocking datagram socket or a browser
+callback/inbox. The scoped Python hub exposes HTTP and CLI control. The browser
+host translates clock origins conservatively, charges transport delay against
+command expiry, and never blocks the game loop on HTTP. A custom bot browser
+build is explicitly allowed. This does not establish a tested public-lobby join.
+
+Current upstream netcode 2 is incompatible with the legacy Cross Server netcode-0
+gateway. The legacy gateway rejects explicit incompatible versions before
+upgrade instead of admitting a misleading partial connection.
 
 ## Native ABI, version 1
 
@@ -63,9 +70,11 @@ pressure=1, resource=2, recover=3. Weapon 0 means automatic; 1..10 are stock
 preferences still bounded by availability and rules. Resource 0 means automatic;
 otherwise it is an explicitly supported stock pickup bin. Range 0 means the
 local default; otherwise 0.2..12 world units. Risk is 0..1. Both focus fields
-must be zero or identify an observed player; a focus preference cannot bypass
-visibility, team/peace rules, Persuasion, blindness or stale identity checks.
-Expiration must be finite, in the future, and at most 30 seconds ahead. A
+must be zero or identify a target accepted by the version-1 companion sighting
+contract. That contract remains narrower than the elite controller's internal
+engine knowledge; team/peace rules and stale identity checks always apply.
+Supported resource bins are 0,11,12,14,15,40,60,62,63,64,65,66. Expiration
+must be finite, in the future, and at most 30 seconds ahead. A
 duplicate never extends its original expiration.
 
 SAY payload is an expiration double followed by 1..110 printable ASCII bytes,
@@ -77,8 +86,8 @@ of delivery to another participant.
 
 ACK payload is `<BBH`: status, original command kind, reason. Status 0 means
 applied, 1 rejected, 2 expired, 3 stale, 4 rate-limited. Reason 0 means success;
-nonzero documented reason codes distinguish invalid parameters, unavailable
-player, stale observation and reserved chat. A source/read-only interface
+Reason codes are invalid=1, unavailable/dead=2, stale=3, reserved chat=4,
+rate-limited=5 and expired=6. A source/read-only interface
 cannot falsely advertise these hooks as active before a native round trip.
 
 STATE payload is 144 bytes, emitted no faster than five times per second:
@@ -101,8 +110,9 @@ STATE payload is 144 bytes, emitted no faster than five times per second:
 
 Flags: dead=1, blind=2, joined=4, visible target=8, hearing cue=16,
 strategy active=32. Absent target slot is UINT32_MAX and all other target
-fields are zero. Absent hearing fields are zero. Never export hidden target
-coordinates or inventory. STATE does not expose map-wide spectator data.
+fields are zero. Absent hearing fields are zero. This compact version-1 STATE
+message does not yet expose map-wide players or inventories. That is an API
+limitation, not a restriction on the user-authorized elite knowledge policy.
 
 CHAT payload is sender slot int32, sender network ID uint32, then at most
 110 printable ASCII bytes. Only validated, broadcast, player-attributed chat
@@ -118,7 +128,8 @@ allowed and counted; they must not block play.
 The launcher enables the bridge explicitly with `--companion-port` (0 selects
 an unused loopback port). It writes a private credential file, reports only its
 path and public URL, passes socket descriptors explicitly, and closes all owned
-descriptors/listeners/threads on failure or shutdown. No secret goes into logs,
+descriptors/listeners/threads on failure or shutdown. Outgoing chat additionally
+requires the explicit `--companion-chat` option. No secret goes into logs,
 game chat, URLs, model observations, public receipts or native process arguments.
 The runner continues to function without the companion option.
 
@@ -170,14 +181,15 @@ Use mixer distance/volume semantics and bounded traversal through sound-allowed
 adjoins. Around corners, report a coarse portal/region bearing with increased
 uncertainty. Keep at most 24 sensory observations, coalesce repeated/looped
 cues, expire old cues, clear on lifecycle changes and invalidate reused source
-identities. Hearing can turn and investigate but never supplies precise unseen
-aim. Loud nearby cues preempt idle scanning quickly. Distinguish urgent danger
+identities. Hearing can turn and investigate; independently, the elite controller may use
+replicated positions for pursuit and awareness. Collision and shot-safety checks
+still govern firing. Loud nearby cues preempt idle scanning quickly. Distinguish urgent danger
 from distant cues so a noise cannot make the bot abandon a confirmed close fight.
 
-Remove accidental rear acquisition based only on hidden proximity or current
-target pointer. A stationary silent opponent behind the field of view is the
-negative control. A nearby rear footstep should prompt a turn and then normal
-visual acquisition. Stock ForceThrow01.WAV is ambiguous between Force Throw
+The hearing channel has a silent negative control, but elite target acquisition
+is deliberately 360 degrees. An elite bot may route toward a silent occluded
+opponent using synchronized engine position. That route destination is separate
+from the combat target, so it does not cause an impossible shot through a wall. Stock ForceThrow01.WAV is ambiguous between Force Throw
 and respawn; do not invent a specific respawn notification from that sample.
 
 ## Verification and demo boundary
@@ -188,8 +200,9 @@ strategy effects. Hearing tests include rear movement vs silent controls,
 closed/open acoustic paths, occluded sound with no blind fire, expiry and
 audio-device-independent delivery. Rebuild every changed native translation
 unit, package with provenance, and run a private real-game bridge round trip.
-Attempt current browser/native mixed qualification using primary-source
-versions and report the actual path used.
+Qualify the current browser-hosted runtime through the pinned netcode-2 relay
+and report the exact path used. Native and legacy mixed-client claims require
+their own build-specific evidence.
 
 The optional visible bot/camera hook must retain ordinary joining and inputs,
 enable third-person rendering, and permit actual hardware OpenGL. A demo is

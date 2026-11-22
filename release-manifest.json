@@ -6,7 +6,7 @@
     },
     ".gitattributes": {
       "mode": 420,
-      "sha256": "3b2e7f51ef05175419b00c8486fbcbc724830e946836d6e0e0e4d022b49b4af7"
+      "sha256": "3ffefae306c520527c4a38dca632c1185ea7c1363dd30d327ade930945dd0084"
     },
     ".gitignore": {
       "mode": 420,
@@ -22,7 +22,7 @@
     },
     "NOTICE.md": {
       "mode": 420,
-      "sha256": "5852d59401ec37d395d2934539cc51797ccd7921c6690deee8913d4c9f6fd5df"
+      "sha256": "f6f54d73b0879c241c7b7a980219cb3ce6ff322950df972317f6237bb7467ca7"
     },
     "README.md": {
       "mode": 420,
@@ -44,9 +44,17 @@
       "mode": 420,
       "sha256": "18e0107a109f9d2cd41e45f0b36ebfdc72c62a4d08ce46e1dab6314312c00159"
     },
+    "bin/bots-jkweb/openjkdf2.js": {
+      "mode": 420,
+      "sha256": "f3535c1d59e48cd3ef9c21552d1f8dd52a3c2a0ce69d1455fbb382a2287bc015"
+    },
+    "bin/bots-jkweb/openjkdf2.wasm": {
+      "mode": 493,
+      "sha256": "cc88d4c36626f04016986ffcf0c7d5d5db1d8762e32b38ba10a0e39a8988e777"
+    },
     "bin/bots-linux-x86_64/jk-bot-client": {
       "mode": 493,
-      "sha256": "fc5331973d4c68d53ceba238ecaca50eb606f66d7a647c00ce0c5e6daaf1bd67"
+      "sha256": "f12e62f47ddb7014488eb96eb67e412d8103c5f104cefceb33055521f3e61e00"
     },
     "bin/bots-linux-x86_64/libGameNetworkingSockets.so": {
       "mode": 493,
@@ -76,6 +84,14 @@
       "mode": 420,
       "sha256": "bcb2d17ad45888a115146a9491ee107f968593ede7cc98a1163b15b69a653893"
     },
+    "bots/companion.py": {
+      "mode": 420,
+      "sha256": "c480d997865b81be76bdf91293df9e1e3df33ff73db64d3f7d0d072ca04eab0e"
+    },
+    "bots/companion_cli.py": {
+      "mode": 420,
+      "sha256": "c150b2d0cf9c197ffb638297135738711857d358cd15c3cab5fba91c9af21eb5"
+    },
     "bots/map_audit.py": {
       "mode": 420,
       "sha256": "9354db3bc60ecd031b51f933b37eb809ebb6bfb4c5cd2b2a6b1e38b373119df4"
@@ -86,7 +102,7 @@
     },
     "bots/run.py": {
       "mode": 420,
-      "sha256": "232f76e1f75d0563ab3b123c08e7a9145fce54682ee9c77eda87a511ca349b2a"
+      "sha256": "d400c897af228252a2fcbab582e8d9b33531bca78ad643b8a248fb7a63ef7c7f"
     },
     "bots/settings.py": {
       "mode": 420,
@@ -180,6 +196,10 @@
       "mode": 420,
       "sha256": "a424f328e2c9587842ff207024ac891f477519afa5eb3eeb73419ec5d8bd6abc"
     },
+    "docs/COMPANION.md": {
+      "mode": 420,
+      "sha256": "f72fa63ebfac7f8939aea8dc095f9e09e8ca14f59964cd93ce28e5c1daa90e61"
+    },
     "docs/NETWORKING.md": {
       "mode": 420,
       "sha256": "1647f09f1fb1fc81b4080ec8aa0d97309857e83ebf20c99bc1047564e31f279a"
@@ -228,6 +248,10 @@
       "mode": 420,
       "sha256": "d6c9c8faa363647e65fdce82be028a634924825115633cee289669cd33354272"
     },
+    "docs/superpowers/plans/2026-11-21-companion-hearing.md": {
+      "mode": 420,
+      "sha256": "be5b8ddd400df5bd84d84de86b665578d89310a32f0d6537d8cfd8567ec161c2"
+    },
     "docs/superpowers/plans/2026-11-21-competitive-bot-foundation.md": {
       "mode": 420,
       "sha256": "6c883f2519887bbc0b94ed15b9d70a464e16a2175cb41e661a45325207cf68f8"
@@ -239,6 +263,10 @@
     "docs/superpowers/specs/2026-10-28-browser-spectator-design.md": {
       "mode": 420,
       "sha256": "2b344376d42cc9926b18715dd2c1afd55fbfcc934f075cd2c68ed60c60f558f5"
+    },
+    "docs/superpowers/specs/2026-11-21-companion-hearing-design.md": {
+      "mode": 420,
+      "sha256": "af3a78bb0e286e6d562bd9d159cfa11d9ee92d7042ce64c25f324e1f05fcb1e1"
     },
     "docs/superpowers/specs/2026-11-21-competitive-bots-design.md": {
       "mode": 420,
@@ -482,7 +510,7 @@
     },
     "native/BOT_BUILD.json": {
       "mode": 420,
-      "sha256": "e1c33fef1fbd9827f542b014abe2096540c099f3b8b31a91982df77bd7d39251"
+      "sha256": "6a81b662cc3357fce348db97c79c725f6916d2a0084313f3b7567b23e1060151"
     },
     "native/BUILD.json": {
       "mode": 420,
@@ -494,11 +522,11 @@
     },
     "native/bot-client.patch": {
       "mode": 420,
-      "sha256": "d318b22a03a8fad496be56605b0189ac34b9b99a4150912ad555884d14d6f8e9"
+      "sha256": "a3f93704cd47a4f40c70e63cd79184fc87dd6ebbf4883447cac06d8040083caa"
     },
     "native/bot-relink-linux-x86_64.tar.gz": {
       "mode": 420,
-      "sha256": "a2998752735eaa70c07ab49089d8e110a25bf7859e9b4545b1a8a2c36d3ff73c"
+      "sha256": "bb48ac26badaa05419e2ff5525d7064fdae513c35f957edd4d4f540609f16132"
     },
     "native/build.sh": {
       "mode": 493,
@@ -540,9 +568,17 @@
       "mode": 420,
       "sha256": "29594eea7c7112870f4c2936f430c55c27f98b8110409fd58dc4111156b148c7"
     },
+    "native/tests/run_bot_companion_tests.py": {
+      "mode": 420,
+      "sha256": "47da97e5226f0eb284e13c4e9e57629b8cb6fbbe1da8457abfc6ad2066adbf44"
+    },
     "native/tests/run_bot_driver_tests.py": {
       "mode": 420,
       "sha256": "bdac9790732dd061dc6ae6e7b635bbf60ebe19a9b53ba586d97e10ef02982095"
+    },
+    "native/tests/run_bot_hearing_tests.py": {
+      "mode": 420,
+      "sha256": "4e8aa979c8f03b2dcc21f6e090c4231e38d89c55f5b2ceb32f49b2f95ba9dcc5"
     },
     "native/tests/run_bot_loadout_tests.py": {
       "mode": 420,
@@ -584,9 +620,17 @@
       "mode": 420,
       "sha256": "5169007ec76144be733a08462126c2f123d0ec45ccfb6ca3da3a3b3fd7b43ae0"
     },
+    "native/tests/test_bot_companion.c": {
+      "mode": 420,
+      "sha256": "8f0cae969f14b3ee2a2d810dc05c17f9c9b56f1978d37c528bd6560fd94fefd7"
+    },
     "native/tests/test_bot_driver.c": {
       "mode": 420,
       "sha256": "37924d13d431c777e9c8100db162289642dd556237ad88d8d1f924ef3d7a0ea0"
+    },
+    "native/tests/test_bot_hearing.c": {
+      "mode": 420,
+      "sha256": "e7246dd51e0ec43cf2fdfc0d7021464f907be44f829d56d937aa0dc11ead1d92"
     },
     "native/tests/test_bot_loadout.c": {
       "mode": 420,
@@ -1462,11 +1506,15 @@
     },
     "tests/test_bots.py": {
       "mode": 420,
-      "sha256": "d64552cecfb791b15ae7dc4c6201ce6bb75c25b91565ea74538d8de43964a478"
+      "sha256": "af3f0515de073020db3855eaa43b276c78ff7e6c06c9abbc6c7e5068d5ace2af"
     },
     "tests/test_chat_admin.py": {
       "mode": 420,
       "sha256": "d540f59227de6902d2cd27fdd75067a0e50f11cc25f10f016bbb364a4c649e4d"
+    },
+    "tests/test_companion.py": {
+      "mode": 420,
+      "sha256": "4c4623e4154b9d38a2f8b8735fdd027d92728cfc1b7c28109fb039316f283e67"
     },
     "tests/test_container_runtime.py": {
       "mode": 420,
@@ -1532,6 +1580,14 @@
       "mode": 420,
       "sha256": "47df11f2e9b572918abbdf04116bb52f1fa3d38dc4f895f2a1269e5f3e04faaa"
     },
+    "tests/test_web_bot_client.js": {
+      "mode": 420,
+      "sha256": "5fff1bd5806f9560f41cd2c45a15b579fb698909d30fa67bc3acf8cdcd2c3b52"
+    },
+    "tests/test_web_bot_host.py": {
+      "mode": 420,
+      "sha256": "f7b064a446fd4a5f631a8b806a27702a0557b6f06277e62bb8dfc44448406b33"
+    },
     "tools/admin-helper.css": {
       "mode": 420,
       "sha256": "8dc8e255a458102f6ea3e274f69c183426fe43ca6f900affaa9c73f8d90b935f"
@@ -1547,6 +1603,50 @@
     "tools/admin_key.py": {
       "mode": 420,
       "sha256": "73e8f97cd451290fb2b74312b767bc4f6974ac9c2fee77c39a4a24137f41feb0"
+    },
+    "web_bots/BUILD.json": {
+      "mode": 420,
+      "sha256": "a4b02276eee7e8aedeeb663dc2ba62d975fdb6d3a565e995fc94c93356b98b0b"
+    },
+    "web_bots/README.md": {
+      "mode": 420,
+      "sha256": "9bcc786f3686559d1a6c4f53d93bd5b9373b3cfb1f07d58c2c9e2e1684964f67"
+    },
+    "web_bots/build.sh": {
+      "mode": 493,
+      "sha256": "20d12fe43d12c44cc0aeeb522a2f5f947d9ffe042a63ac80f62044455057d892"
+    },
+    "web_bots/client.js": {
+      "mode": 420,
+      "sha256": "0b8881af4814523b900373672775282bc0d56342d6ffc1a246c3726c26d19105"
+    },
+    "web_bots/engine-relink.tar.gz": {
+      "mode": 420,
+      "sha256": "5fad8e59d3e7bfbd8e8eb77bb3291aa79a77d262a8ee5c33c54ac46ad7130837"
+    },
+    "web_bots/engine.patch": {
+      "mode": 420,
+      "sha256": "e41499e9894b171994476329d3086c8f0a0d72455f3b4cabf0ecfedcbc6d4799"
+    },
+    "web_bots/fetch_relay.py": {
+      "mode": 420,
+      "sha256": "7181c576b08055f490143146ba172675980dfb46b3a32774348e51bd91133a41"
+    },
+    "web_bots/index.html": {
+      "mode": 420,
+      "sha256": "8102a86774389606fa1c9c15d982db87b5c0be8642ab85fbc0f09cf0ee29db9d"
+    },
+    "web_bots/launch_chrome.py": {
+      "mode": 420,
+      "sha256": "365167a8a03d265ccd236d878e970b0ce7f0cd5f8b104571ce9fc4eadc8faa55"
+    },
+    "web_bots/package_engine.py": {
+      "mode": 420,
+      "sha256": "d0bda481713170a3f60021cb900a14c93f16bf537d89462c63a0946fd8db85e5"
+    },
+    "web_bots/serve.py": {
+      "mode": 420,
+      "sha256": "c8fd08a844eb083d1533699946fbd742f618a3644a7fa08221f2d848561106d3"
     },
     "web_gateway/README.md": {
       "mode": 420,
@@ -1574,7 +1674,7 @@
     },
     "web_gateway/gateway.py": {
       "mode": 420,
-      "sha256": "9dba4b358bc2b5090cd3ef90b2feb98170b8d3c45be3908cc9a762c37fadb155"
+      "sha256": "618cbd5acf5e6eee3d1a5c77dcca6c3fda68f63ae08c7c3b349ea15af2c8a399"
     },
     "web_gateway/ipc.py": {
       "mode": 420,
@@ -1598,7 +1698,7 @@
     },
     "web_gateway/test_gateway.py": {
       "mode": 420,
-      "sha256": "fb98f5812bfcd84a707b10648e294e190714e6904e2121257ae43cb80e4d1bd4"
+      "sha256": "fa32e715d5ebc807d57368e0d0e9c47a0b8b232df2539bd36fdd2bfb5d63dbab"
     },
     "web_gateway/test_published_client.py": {
       "mode": 420,
