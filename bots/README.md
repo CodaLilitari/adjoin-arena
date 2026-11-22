@@ -298,3 +298,17 @@ python3 -m unittest tests.test_bots tests.test_bot_manager tests.test_bot_maps -
 The process tests use small helper programs. Engine policy tests use controlled
 game-state and collision fixtures. Their scope and the separate live evidence
 are recorded in [the current behavior report](../docs/BOTS_BEHAVIOR.md).
+
+### Authored multiplayer starts
+
+Run `python -m bots.spawn_atlas --game-data PATH --output atlas.json` from the
+repository root with your installed JKDF2 game-data directory. The command reads
+`Episode/JK1MP.GOB` and `Episode/JK1CTF.GOB`, recording archive and map SHA-256
+hashes and the authored player starts from the nine expected maps. Keep generated
+map data private. Check the exit code and report status before using the output.
+Incomplete input or invalid records produce an error report and a nonzero exit.
+
+Each start retains the source thing index, zero-based order among all placed
+things, position, orientation (pitch, yaw, roll), sector and effective template
+properties. Authored order can differ from index order. Engine start ordinals,
+team/lobby eligibility and traversable routes require separate qualification.

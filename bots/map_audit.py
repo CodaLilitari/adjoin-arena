@@ -10,6 +10,7 @@ import argparse
 from collections import Counter
 import hashlib
 import json
+import math
 from pathlib import Path
 import re
 from manager.content import archive_index, child_casefold
@@ -39,7 +40,8 @@ def parse_jkl(text: str) -> dict:
     cogs: list[dict] = []
     counts: dict[str, int] = {}
     errors: list[str] = []
-    for original in text.splitlines():
+    authored_order = 0
+    for line_number, original in enumerate(text.splitlines(), 1):
         line = original.split("#", 1)[0].strip()
         if not line:
             continue
@@ -62,10 +64,15 @@ def parse_jkl(text: str) -> dict:
             templates[name] = props
         elif section == "things":
             row = line.split()
-            if not row or not re.fullmatch(r"\d+:", row[0]):
+            if line.casefold() == "end" or re.fullmatch(r"(?i)world\s+things\s+\d+", line):
+                continue
+            order = authored_order
+            authored_order += 1
+            if not re.fullmatch(r"\d+:", row[0]):
+                errors.append(f"Malformed thing index on line {line_number}")
                 continue
             if len(row) < 10:
-                errors.append("Incomplete thing row")
+                errors.append(f"Incomplete thing row on line {line_number}")
                 continue
             try:
                 index = int(row[0][:-1]); name = row[1].casefold()
@@ -75,10 +82,14 @@ def parse_jkl(text: str) -> dict:
                     raise ValueError(f"Duplicate thing {index}")
                 props = templates[name].copy()
                 props.update({k.casefold(): v.casefold() for k, v in re.findall(r"(\w+)=([^\s]+)", line)})
-                things[index] = {"template": name, "position": tuple(float(x) for x in row[3:6]),
-                                 "sector": int(row[9]), "properties": props}
+                position = tuple(float(x) for x in row[3:6])
+                orientation = tuple(float(x) for x in row[6:9])
+                if not all(math.isfinite(x) for x in position + orientation):
+                    raise ValueError(f"Thing {index} has nonfinite pose")
+                things[index] = {"template": name, "position": position, "orientation": orientation,
+                                 "authored_order": order, "sector": int(row[9]), "properties": props}
             except ValueError as exc:
-                errors.append(str(exc))
+                errors.append(f"Line {line_number}: {exc}")
         elif section == "cogs":
             row = line.split()
             if len(row) >= 2 and re.fullmatch(r"\d+:", row[0]):
