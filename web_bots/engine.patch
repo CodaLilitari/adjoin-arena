@@ -1,9 +1,9 @@
 diff --git a/src/AI/jkBot.c b/src/AI/jkBot.c
 new file mode 100644
-index 0000000..8893421
+index 0000000..770afd9
 --- /dev/null
 +++ b/src/AI/jkBot.c
-@@ -0,0 +1,775 @@
+@@ -0,0 +1,787 @@
 +/*
 + * Ordinary-client multiplayer bot input driver, reconstructed October 2026.
 + * Copyright (C) OpenJKDF2 contributors.
@@ -64,7 +64,7 @@ index 0000000..8893421
 +static struct {
 +    int enabled, joined;
 +    int sabersOnly, fistsPeace, forceEnabled, competitiveForce, elite, traceForce;
-+    flex_t nextForceTrace;
++    flex_t nextForceTrace, nextSpeedProbe;
 +    char behaviorFile[4096];
 +    flex_t nextBehavior, frameDt, physicsStep, forceThreatUntil, forceUntil, nextForce;
 +    int forceBin, forceTarget, forceCancel, forceEffectBin, forceEffectTarget, forceAvoid;
@@ -328,16 +328,13 @@ index 0000000..8893421
 +    return Bot_Max(fabsf(yaw),fabsf(pitch));
 +}
 +
-+static int Bot_SafeDirection(SithThing *self, rdVector3 direction, int allowDrop,
-+                             flex_t remaining, rdVector3 *blockedAt)
++static int Bot_GroundCorridor(SithThing *self, rdVector3 direction, int allowDrop,
++                              flex_t lookahead, int sprint, rdVector3 *blockedAt)
 +{
 +    flex_t length=Bot_Horizontal(direction);
 +    if (length<0.001f) return 0;
 +    direction.x/=length; direction.y/=length; direction.z=0;
 +    rdVector3 to=self->position;
-+    /* Probe beyond stopping distance, not merely the next frame. */
-+    flex_t lookahead=0.20f+Bot_Min(0.16f,Bot_Horizontal(self->physicsParams.vel)*0.15f);
-+    lookahead=Bot_Min(lookahead,Bot_Max(0.08f,remaining));
 +    to.x+=direction.x*lookahead; to.y+=direction.y*lookahead;
 +    *blockedAt=to;
 +    /* Follow supporting ground in short segments. A horizontal sweep on a
@@ -355,6 +352,8 @@ index 0000000..8893421
 +        SithSector *sector;
 +        p.z=previous.z+0.02f;
 +        if (!Bot_Floor(p,hint,allowDrop ? BOT_MAX_DROP+0.3f : 0.43f,&floor,&sector)) return 0;
++        if (sprint && ((sector->flags&(SITH_SECTOR_UNDERWATER|SITH_SECTOR_USETHRUST|SITH_SECTOR_NOGRAVITY)) ||
++            supportedZ-floor.z>step*1.55f+0.01f)) return 0;
 +        /* Floor normals already require z>=.55; 1.55 bounds the rise/run
 +           of those supported slopes, with only a small rounding allowance. */
 +        if (floor.z-supportedZ>Bot_Min(BOT_STEP_UP,step*1.55f+0.01f) ||
@@ -368,7 +367,18 @@ index 0000000..8893421
 +        if (!Bot_Clear(self,hint,previous,sweep,self->collideSize*0.85f,0)) return 0;
 +        supportedZ=floor.z; previous=sweep; hint=sector;
 +    }
-+    return 1;
++    /* The short probes allow contact at their endpoints. For Speed, also
++       sweep the full player body continuously across the proposed runway. */
++    return !sprint || Bot_Clear(self,self->sector,self->position,previous,self->moveSize,0);
++}
++
++static int Bot_SafeDirection(SithThing *self, rdVector3 direction, int allowDrop,
++                             flex_t remaining, rdVector3 *blockedAt)
++{
++    /* Probe beyond stopping distance, not merely the next frame. */
++    flex_t lookahead=0.20f+Bot_Min(0.16f,Bot_Horizontal(self->physicsParams.vel)*0.15f);
++    lookahead=Bot_Min(lookahead,Bot_Max(0.08f,remaining));
++    return Bot_GroundCorridor(self,direction,allowDrop,lookahead,0,blockedAt);
 +}
 +
 +static void Bot_Move(SithThing *self, rdVector3 desired, int allowDrop)
@@ -668,7 +678,7 @@ index 0000000..8893421
 +    Bot_ResetHearing();
 +    companion.identified=0;
 +    Companion_ResetPlan();
-+    bot.joined=1; bot.world=NULL; bot.now=bot.nextForceTrace=0; bot.nextLog=10.0f;
++    bot.joined=1; bot.world=NULL; bot.now=bot.nextForceTrace=bot.nextSpeedProbe=0; bot.nextLog=10.0f;
 +    bot.targetSlot=-1; bot.goal=-1; bot.routeCount=bot.routePos=0;
 +    bot.wasDead=0; bot.nextScan=bot.nextPlan=bot.nextSelect=0;
 +    bot.forceBin=bot.forceTarget=bot.forceEffectBin=bot.forceEffectTarget=-1; bot.nextForce=bot.forceUntil=0;
@@ -735,6 +745,7 @@ index 0000000..8893421
 +            if (!nav.waterSince || bot.wasDead) nav.waterSince=bot.now;
 +        } else nav.waterSince=0;
 +        bot.followingRoute=bot.routeAim=0; bot.routeMode=-1;
++        int releasingPower=bot.forceBin>=0;
 +        Bot_CheckPursuit(self);
 +        Bot_UpdateAudioLoops(self);
 +        SithThing *target=Bot_UpdateTarget(self);
@@ -747,6 +758,7 @@ index 0000000..8893421
 +            Bot_ForceTick(self,NULL,180.0f);
 +        }
 +        Bot_Recovery(self);
++        if (!releasingPower) Bot_TryMovementSpeed(self);
 +    }
 +    Companion_Publish(self,dead);
 +    bot.wasDead=dead;
@@ -1639,10 +1651,10 @@ index 0000000..aedb241
 +}
 diff --git a/src/AI/jkBotForce.inc b/src/AI/jkBotForce.inc
 new file mode 100644
-index 0000000..094b1ed
+index 0000000..e76b6a9
 --- /dev/null
 +++ b/src/AI/jkBotForce.inc
-@@ -0,0 +1,283 @@
+@@ -0,0 +1,323 @@
 +/* Copyright (c) 2026 Coda Lilitari. SPDX-License-Identifier: MIT
 +   Use ordinary inventory hotkeys: stock COGs own eligibility, cost and effects. */
 +static int Bot_PowerKey(int bin)
@@ -1797,6 +1809,46 @@ index 0000000..094b1ed
 +    }
 +    return 0;
 +}
++/* Run after movement and Force arbitration. A visible enemy can call for
++   chasing, backing away or strafing; check the direction actually selected. */
++static void Bot_TryMovementSpeed(SithThing *self)
++{
++    if (!bot.competitiveForce || !bot.forceEnabled || bot.forceBin>=0 || bot.forceAvoid ||
++        bot.forceCancel || bot.keys[INPUT_FUNC_NEXTSKILL] || bot.now<bot.nextForce ||
++        bot.now<bot.nextSpeedProbe || bot.nextRecovery>0 || Bot_NavigationWaiting(self) ||
++        nav.waterExitUntil>0 || nav.seekingSurface || nav.crossingEntry ||
++        bot.keys[INPUT_FUNC_JUMP] || bot.keys[INPUT_FUNC_DUCK] || bot.keys[INPUT_FUNC_ACTIVATE] ||
++        !(self->attach_flags&SITH_ATTACH_SURFACE) || !Bot_SectorSafe(self->sector) ||
++        (self->sector->flags&(SITH_SECTOR_UNDERWATER|SITH_SECTOR_USETHRUST|SITH_SECTOR_NOGRAVITY)) ||
++        (self->physicsParams.flags&(SITH_PF_ONWATERSURFACE|SITH_PF_CROUCHING)) ||
++        (self->actorParams.flags&SITH_AF_IMMOBILE) ||
++        (self->attachedSurface && (self->attachedSurface->flags&(SITH_SURFACE_WATER|SITH_SURFACE_VERYDEEPWATER))) ||
++        sithInventory_IsInventoryActivated(self,SITHBIN_F_GRIP)) return;
++    flex_t forward=bot.axes[INPUT_FUNC_FORWARD], slide=bot.axes[INPUT_FUNC_SLIDE];
++    if (forward*forward+slide*slide<0.30f) return; /* Includes slow pickup contact. */
++    int node=bot.armNode-1;
++    if (bot.followingRoute) {
++        if (bot.routeMode!=BOT_ROUTE_WALK || bot.routePos>=bot.routeCount) return;
++        node=bot.route[bot.routePos];
++    }
++    const flex_t runway=0.60f;
++    if (node>=0 && (node>=bot.nNodes || Bot_Horizontal(Bot_Sub(bot.nodes[node].pos,self->position))<runway)) return;
++
++    /* Keep two ordinary utility casts (Jump and Pull) in reserve. Stock
++       surges waive the debit but still require the activation minimum. */
++    flex_t budget=Bot_ForceCost(self,SITHBIN_F_SPEED);
++    if (sithInventory_GetInventory(self,SITHBIN_S_DARK)!=1 && sithInventory_GetInventory(self,SITHBIN_S_LIGHT)!=1)
++        budget+=Bot_ForceCost(self,SITHBIN_F_JUMP)+Bot_ForceCost(self,SITHBIN_F_PULL);
++    if (!Bot_ForceReady(self,SITHBIN_F_SPEED,budget)) return;
++    bot.nextSpeedProbe=bot.now+0.40f;
++    if (forward<0) forward*=0.5f;
++    slide*=0.7f;
++    rdVector3 direction={self->orient.lvec.x*forward+self->orient.rvec.x*slide,
++                         self->orient.lvec.y*forward+self->orient.rvec.y*slide,0}, blocked;
++    if (Bot_GroundCorridor(self,direction,0,runway,1,&blocked))
++        Bot_RequestForce(self,SITHBIN_F_SPEED,0.10f,-1);
++}
++
 +static void Bot_ForceTick(SithThing *self, SithThing *target, flex_t aimError)
 +{
 +    bot.forceAvoid=0;
@@ -1897,7 +1949,7 @@ index 0000000..094b1ed
 +        Bot_RequestForce(self,SITHBIN_F_PROTECTION,0.1f,-1)) return;
 +    if (self->actorParams.health<35 && Bot_RequestForce(self,SITHBIN_F_PERSUASION,0.1f,-1)) return;
 +    if (!target || !Bot_EnemyAllowed(self,Bot_PlayerSlot(target))) {
-+        if (bot.routePos<bot.routeCount && bot.route[bot.routePos]>=0 && bot.route[bot.routePos]<bot.nNodes) {
++        if (!bot.competitiveForce && bot.routePos<bot.routeCount && bot.route[bot.routePos]>=0 && bot.route[bot.routePos]<bot.nNodes) {
 +            BotNode here={0}; here.pos=self->position; here.sector=self->sector;
 +            BotNode *goal=&bot.nodes[bot.route[bot.routePos]]; int drop=0;
 +            /* Speed only for a verified straight supported walking segment. */
@@ -2329,10 +2381,10 @@ index 0000000..d167eb8
 +#endif
 diff --git a/src/AI/jkBotNavigate.inc b/src/AI/jkBotNavigate.inc
 new file mode 100644
-index 0000000..b3623d0
+index 0000000..5ce787c
 --- /dev/null
 +++ b/src/AI/jkBotNavigate.inc
-@@ -0,0 +1,507 @@
+@@ -0,0 +1,519 @@
 +/* Movement execution for jkBotNavigation.inc; ordinary inputs only. */
 +/* Stock FreeCam tilts forward thrust with head pitch. Keep the extra
 +   upward stroke inside checked water clearance, including its lateral drift. */
@@ -2364,6 +2416,14 @@ index 0000000..b3623d0
 +    return 1;
 +}
 +
++/* Match the acceleration used to validate a precision jump even if stock
++   Speed activates or expires between two control frames. */
++static flex_t Bot_PrecisionThrottle(SithThing *self)
++{
++    flex_t thrust=self->actorParams.maxThrust, extra=self->actorParams.extraSpeed;
++    return extra>0 && thrust>0 ? thrust/(thrust+extra) : 1.0f;
++}
++
 +static int Bot_NavDirectMove(SithThing *self, rdVector3 target, int swim)
 +{
 +    rdVector3 delta=Bot_Sub(target,self->position);
@@ -2376,6 +2436,11 @@ index 0000000..b3623d0
 +        flex_t throttle=horizontal<0.13f ? 0.4f : 1.0f;
 +        bot.axes[INPUT_FUNC_FORWARD]=Bot_Clamp(Bot_Dot(direction,self->orient.lvec)*throttle,-0.65f,1.0f);
 +        bot.axes[INPUT_FUNC_SLIDE]=Bot_Clamp(Bot_Dot(direction,self->orient.rvec)*throttle,-1.0f,1.0f);
++        if (!swim && nav.jumpUntil>bot.now) {
++            flex_t scale=Bot_PrecisionThrottle(self);
++            bot.axes[INPUT_FUNC_FORWARD]*=scale;
++            bot.axes[INPUT_FUNC_SLIDE]*=scale;
++        }
 +    }
 +    if (swim) {
 +        if (delta.z>0.05f) {
@@ -2420,8 +2485,7 @@ index 0000000..b3623d0
 +{
 +    /* Stock Force Speed adds to the actor's thrust. Use the same planned
 +       acceleration by easing the analog input during this precision jump. */
-+    flex_t thrust=self->actorParams.maxThrust;
-+    flex_t throttle=thrust/(thrust+self->actorParams.extraSpeed);
++    flex_t throttle=Bot_PrecisionThrottle(self);
 +    bot.axes[INPUT_FUNC_FORWARD]=Bot_Clamp(Bot_Dot(direction,self->orient.lvec),-1,1)*throttle;
 +    bot.axes[INPUT_FUNC_SLIDE]=Bot_Clamp(Bot_Dot(direction,self->orient.rvec)/0.7f,-1,1)*throttle;
 +}

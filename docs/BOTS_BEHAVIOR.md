@@ -115,7 +115,7 @@ In range formulas, `L` means stars in that power (1–4), not the session rank.
 | Power | Decision and ordinary-input behavior |
 |---|---|
 | Jump | A validated route gap or first-anchor approach with sufficient rank/mana. Full charges reach the stock rank limit. A sustained grounded movement stall can consider up to four nearby higher footholds using actual body clearance, stock air movement, current control cadence and a supported landing. Ordinary hotkey hold and release perform the jump. |
-| Speed | A sufficiently long, verified supported walking segment rather than a drop. |
+| Speed | Competitive bots can use Speed while closing distance, backing away, strafing or following a pickup or walking route. They check the ground and body clearance in the direction they will actually move. Balanced and master bots use Speed on verified walking segments longer than two world units when they have no eligible target. |
 | Seeing | Current local Blind, or an eligible hostile player's synchronized Persuasion effect within the normal forward view, range and line of sight. Both the twinkle and actor invisibility flags must identify Persuasion; Force Jump's twinkle alone does not count. Ordinary combat, damage and generic Force threats do not trigger it. Stock Seeing prevents subsequent Blind effects; it does not cure an existing Blind timer. |
 | Pull | Disarm an eligible gun user within `0.5 + L/2` world units. |
 | Healing | Low health, with the stock mana and availability gates. |
@@ -135,6 +135,19 @@ requests. Competitive style uses a 0.15-second guard between power requests; leg
 consumption while most powers still require nominal mana to activate. Protection is an exception:
 its stock script deducts mana without a minimum-mana gate. A requested hotkey is not proof of a
 successful effect; `BOT_FORCE_INPUT` records the request only.
+
+Competitive bots consider Speed after selecting their movement, weapon fire and other Force input.
+A cast needs 0.60 world units of dry, supported ground ahead and a clear sweep for the player's
+whole body. A selected walking waypoint or pickup must also be at least that far away. A bot can
+keep firing while it presses the Speed hotkey. It defers Speed during Grip, jump preparation or
+flight, swimming, water exits, lift waits and obstacle recovery.
+
+Stock Speed costs 20 mana. A competitive bot normally waits until it has at least 60, leaving 40
+for Jump and Pull. Either stock Force surge waives the debit while retaining the 20-mana minimum.
+At four stars the stock script adds 2.5 thrust and sets a 15-second timer, then fades the sound for
+0.75 seconds before clearing the effect. During a committed precision jump the bot eases its
+ordinary movement inputs while Speed is active, so its landing plan also applies if the effect
+expires in flight. See the [Force Speed checks](../qa/bots-force-speed-followup.json).
 
 The new full-charge prediction models the repeated scaling of airborne thrust
 between browser control frames. It may reject a ledge at a slow control rate

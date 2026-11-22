@@ -162,8 +162,87 @@ static void test_vertical_swim_progress(int direction,int targetDepth)
     else assert(bot.nodes[1].avoidUntil>bot.now);
 }
 
+/* Actual frame arbitration on a controlled, dry floor. Stock inventory and
+ * physics effects are observed separately in a live engine run. */
+static void test_competitive_speed(void)
+{
+    SithWorld world={0}; SithSector sector={0}; SithThing self={0},enemy={0};
+    SithPlayer own={0};
+    jkBot_Configure("Speed_Test","ky.3do"); Bot_ResetHearing();
+    bot.world=sithWorld_g_pCurrentWorld=&world;
+    sithPlayer_g_pLocalPlayer=&own; sithPlayer_g_pLocalPlayerThing=&self;
+    corridorMode=0; testCombatArena=1; testCombatWall=0; testLOS=1;
+    bot.forceEnabled=bot.competitiveForce=bot.elite=bot.graphDone=bot.joined=sithNet_isMulti=1;
+    bot.fistsPeace=0; bot.nextLog=bot.nextBehavior=100; bot.now=bot.stuckAt=1;
+    self.type=enemy.type=SITH_THING_PLAYER; self.sector=enemy.sector=&sector;
+    self.actorParams.health=enemy.actorParams.health=100;
+    self.actorParams.pPlayer=&own; self.actorParams.maxRotVelocity=200;
+    self.moveSize=self.collideSize=0.065f; self.position.z=BOT_FOOT_HEIGHT;
+    self.orient.lvec.y=self.orient.rvec.x=1;
+    self.attach_flags=SITH_ATTACH_SURFACE; self.attachedSurface=&corridorFloor;
+    own.curWeaponID=SITHBIN_BRYARPISTOL;
+    own.aItems[SITHBIN_BRYARPISTOL].state=SITHINVENTORY_ITEM_AVAILABLE;
+    own.aItems[SITHBIN_BRYARPISTOL].amount=1; own.aItems[SITHBIN_ENERGY].amount=100;
+    int speed=SITHBIN_F_SPEED, key=Bot_PowerKey(speed);
+    own.aItems[speed].state=SITHINVENTORY_ITEM_AVAILABLE; own.aItems[speed].amount=4;
+    own.aItems[SITHBIN_FORCEMANA].amount=60;
+    memset(jkPlayer_playerInfos,0,sizeof(jkPlayer_playerInfos));
+    jkPlayer_maxPlayers=2;
+    jkPlayer_playerInfos[1].flags=1; jkPlayer_playerInfos[1].playerNetId=42;
+    jkPlayer_playerInfos[1].pLocalPlayer=&enemy;
+    enemy.position=self.position; enemy.position.y+=4;
+    bot.targetSlot=1; bot.targetNetId=42;
+    jkBot_Tick(0.04f);
+    assert(bot.targetSlot==1 && !bot.followingRoute && bot.forceBin==speed);
+    assert(jkBot_GetKey(key,NULL) && bot.presses[key] && bot.keys[INPUT_FUNC_FIRE1]);
+    assert(own.aItems[SITHBIN_FORCEMANA].amount==60 && self.actorParams.extraSpeed==0);
+    jkBot_Tick(0.04f); assert(bot.keys[key] && !bot.presses[key]);
+    own.aItems[speed].state|=SITHINVENTORY_ITEM_ACTIVATED;
+    for (int i=0;i<13;i++) jkBot_Tick(0.04f);
+    assert(bot.forceBin<0 && !bot.keys[key] && bot.keys[INPUT_FUNC_FIRE1]);
+
+    /* Same normal dispatcher, no opponent, item route shorter than the old
+       two-unit threshold. Preserve the reserve, including the exact edge. */
+    jkPlayer_maxPlayers=0; own.aItems[speed].state=SITHINVENTORY_ITEM_AVAILABLE;
+    bot.targetSlot=-1; bot.nNodes=2; bot.goal=1; bot.routeCount=2; bot.routePos=1;
+    bot.nodes[0]=(BotNode){.pos=self.position,.sector=&sector,.item=-1,.nEdges=1};
+    bot.nodes[0].edges[0]=(BotEdge){1,1,BOT_ROUTE_WALK};
+    bot.nodes[1]=(BotNode){.pos={0,1,BOT_FOOT_HEIGHT},.sector=&sector,.item=-1};
+    bot.route[0]=0; bot.route[1]=1; bot.nextPlan=bot.now+5;
+    own.aItems[SITHBIN_FORCEMANA].amount=59;
+    jkBot_Tick(0.05f); assert(bot.routeMode==BOT_ROUTE_WALK && !bot.keys[key]);
+    own.aItems[SITHBIN_FORCEMANA].amount=60; testCombatWall=1;
+    jkBot_Tick(0.05f); assert(bot.axes[INPUT_FUNC_FORWARD]>0.9f && !bot.keys[key]);
+    bot.now+=0.41f; testCombatWall=0; jkBot_Tick(0.05f);
+    assert(bot.keys[key] && bot.presses[key]);
+    puts("PASS competitive Speed uses ordinary held/released hotkey during gunfire and short walks, checks reserve and extended clearance");
+
+    bot.forceBin=-1; bot.now+=1; bot.nextForce=bot.nextSpeedProbe=0;
+    memset(bot.keys,0,sizeof(bot.keys)); nav.forceJumpPending=1;
+    Bot_TryMovementSpeed(&self); assert(bot.forceBin<0); nav.forceJumpPending=0;
+    nav.waterExitUntil=bot.now+2; Bot_TryMovementSpeed(&self); assert(bot.forceBin<0); nav.waterExitUntil=0;
+    sector.flags=SITH_SECTOR_UNDERWATER; Bot_TryMovementSpeed(&self); assert(bot.forceBin<0); sector.flags=0;
+    own.aItems[SITHBIN_F_GRIP].state=SITHINVENTORY_ITEM_ACTIVATED;
+    Bot_TryMovementSpeed(&self); assert(bot.forceBin<0); own.aItems[SITHBIN_F_GRIP].state=0;
+    own.aItems[SITHBIN_FORCEMANA].amount=19; own.aItems[SITHBIN_S_LIGHT].amount=1;
+    Bot_TryMovementSpeed(&self); assert(bot.forceBin<0);
+    own.aItems[SITHBIN_FORCEMANA].amount=20; Bot_TryMovementSpeed(&self); assert(bot.forceBin==speed);
+
+    self.attach_flags=0; nav.jumpTarget=(rdVector3){1,1,BOT_FOOT_HEIGHT+0.5f};
+    nav.jumpStarted=bot.now; nav.jumpUntil=bot.now+1; self.actorParams.maxThrust=2;
+    self.actorParams.extraSpeed=2.5f; Bot_Navigate(&self);
+    flex_t boostedForward=bot.axes[INPUT_FUNC_FORWARD], boostedSlide=bot.axes[INPUT_FUNC_SLIDE];
+    self.actorParams.extraSpeed=0; Bot_Navigate(&self);
+    assert(boostedForward>0 && boostedSlide>0);
+    assert(fabsf(4.5f*boostedForward-2*bot.axes[INPUT_FUNC_FORWARD])<0.0001f);
+    assert(fabsf(4.5f*boostedSlide-2*bot.axes[INPUT_FUNC_SLIDE])<0.0001f);
+    assert(queryDepth==0); testCombatArena=0;
+    puts("PASS Speed respects jump/water/Grip commitments and stock surge minimum, dry flight retains planned thrust across expiry");
+}
+
 static void test_bot_movement_ownership(void)
 {
+    test_competitive_speed();
     test_bot_movement_tick(1,1,0,0);
     test_bot_movement_tick(1,0,1,0);
     test_bot_movement_tick(1,0,0,0);

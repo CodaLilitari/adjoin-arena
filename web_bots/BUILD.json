@@ -14,16 +14,16 @@
     " 5a82f71ed1dfc0bec044d9702463dbdf84ea3b71 lib/zlib (5a82f71)"
   ],
   "changed_sources": {
-    "src/AI/jkBot.c": "3db4ff342ab8a006b438b06be444ade50ad0c8c94b35bc0c49a8962c55fe45e4",
+    "src/AI/jkBot.c": "9a9c7bb79adeda591d99b54d00a741f055ac1f487fddae7b9429a1d01fe79367",
     "src/AI/jkBot.h": "d822c0f525b820307b9dde817677b81af8ccca5b3024d2a7859d0cb16314f70f",
     "src/AI/jkBotBehavior.h": "c00a67f6f3db10f47200b111521818ac96e6435b48f38fa366d2f4cfebcf387b",
     "src/AI/jkBotBehavior.inc": "b5f77326432392e708b6ef5f717d97644e4e99d66aa21f02889c40d388fac18f",
     "src/AI/jkBotCombat.inc": "496a42a6ff47906b6040c58e141bbec44ab6252a066db66a18d6a3e4c6a07ce2",
     "src/AI/jkBotCompanion.inc": "91e1e975bb34f46cf1553ba77bcfbd4f57db550c1e6d1981facc1d62c44eacdc",
-    "src/AI/jkBotForce.inc": "aee1eea7ff6bb0e1ea3f296500f6140ad548079b00a9f2cdd12c07693d027d5c",
+    "src/AI/jkBotForce.inc": "a0f3e70292acf9d5f4f5524465c1009807412fb045924ed78465081b100d170a",
     "src/AI/jkBotHearing.inc": "30c08aeefde67acaab5bdc63cfd93be0941f5b4614e8eec1ea357841ba6aee8a",
     "src/AI/jkBotLoadout.h": "aab6d025bb9ec2c431beb2d6bd559992b664e9ce075fcaa9c1103ae9ed5dcdc1",
-    "src/AI/jkBotNavigate.inc": "ec953ce418cf766a590d3fca0a68b758e5ce56e6bf87681d4a99d42db771e4b2",
+    "src/AI/jkBotNavigate.inc": "0e719c14845d55c308488df88b25fdc15efac51a861ad42046aa4d3732ff96e7",
     "src/AI/jkBotNavigation.inc": "6cb8710a7b5397795bb30204dc3540cc8ffff00c415951ee32f3af0adfe4c68f",
     "src/AI/jkBotPersona.c": "618f31f58e45a13d89b5dc0493233d446d5eaeada681bd0de758a155a50d578d",
     "src/AI/jkBotPersona.h": "e193097d937ed22400fe84d86a1e9e7f18884cc2be876fb1540627bee96e0bfb",
@@ -44,20 +44,20 @@
   },
   "files": {
     "bin/bots-jkweb/openjkdf2.js": {
-      "sha256": "7b52a7616729167a8ccb2377d5dbfe8dc04acd447fc28d5a784a364762efbac7",
+      "sha256": "cea0a334571f31eea397f4b5693f2f1c366723d19b1a69afad507ce8581e6db9",
       "bytes": 563022
     },
     "bin/bots-jkweb/openjkdf2.wasm": {
-      "sha256": "6a000aaf1770ecb8014284b27fa2ba4522a8ab2acd888848930c368c5674d5d7",
-      "bytes": 3790517
+      "sha256": "d0c5521497c7841d04e0a97184c362199c1e88ac46425aee0b3fdacb196ebae6",
+      "bytes": 3791831
     },
     "web_bots/engine.patch": {
-      "sha256": "9cedcac3368cd57c8c9153618e5deeddd7ba390d95ef17b8993a1c948779a1e2",
-      "bytes": 254679
+      "sha256": "0a1c81b9663b0610e9b8b10b281e63e4b92496b4cf97ebd91993b49f7f61e7da",
+      "bytes": 258554
     },
     "web_bots/engine-relink.tar.gz": {
-      "sha256": "fc48eaf3e370f290b3c5ba9e27984f8a8178000b415847fded93fe31b0e9fde5",
-      "bytes": 1562924
+      "sha256": "3d76dc170c94f73d83375995789b6642176e1fb6e10bf1c49d0966d7029d5cdd",
+      "bytes": 1563538
     }
   }
 }
