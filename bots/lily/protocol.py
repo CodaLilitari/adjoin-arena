@@ -42,7 +42,7 @@ def encode_command(kind, body, deadline):
     _number(deadline, 0, 1e308)
     if not deadline:
         raise ValueError("expected a positive deadline")
-    if kind not in (COMMIT, MOTOR):
+    if type(kind) is not int or kind not in (COMMIT, MOTOR):
         raise ValueError("unknown command")
     common = ("sample_id", "revision")
     _keys(body, common + (("offer_id", "node") if kind == COMMIT else ("steps",)))
@@ -81,7 +81,7 @@ def _finite(values):
 
 def decode_event(kind, payload):
     """Decode a single payload. Unrecognized or malformed data returns None."""
-    if not isinstance(payload, (bytes, bytearray, memoryview)) or len(payload) > 492:
+    if type(kind) is not int or not isinstance(payload, (bytes, bytearray, memoryview)) or len(payload) > 492:
         return None
     try:
         if kind == OFFERS:
