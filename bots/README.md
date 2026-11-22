@@ -8,9 +8,14 @@ players use their existing clients; the bots consume ordinary player slots.
 
 This extension adds managed rosters, live combat rules, legal Force character
 builds, weapon and pickup decisions, and stock CTF objectives. It remains a
-prototype. **Live gameplay qualification of the newly integrated build is
-pending.** Configuration and input tests, and a complete stock pickup catalog,
-do not establish complete map traversal or successful CTF matches. Read the
+prototype. The qualification harness launched two ordinary native bot clients
+against the packaged dedicated server on each of two stock maps. Both clients joined
+and loaded their rank-eight competitive builds in each session. Both showed active Jump on
+[m2.jkl](../qa/bots-competitive-force-native-m2.json). On
+[m_boss17.jkl](../qa/bots-competitive-force-native-m_boss17.json), the traces
+showed active Seeing on both clients, Grip on the dark client, and Absorb and
+Healing on the light client. These runs leave complete map traversal, current
+JKWeb interoperability, CTF matches, and performance against humans unmeasured. Read the
 [current behavior and evidence report](../docs/BOTS_BEHAVIOR.md) for the exact
 build, checks, and outstanding limits. The earlier rank-zero reconstruction and
 its mixed-client results remain in the

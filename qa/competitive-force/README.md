@@ -37,3 +37,8 @@ health changes and immobility. It does not attribute damage or immobility to a
 particular caster, prove a short effect was absent between samples, establish
 current JKWeb interoperability, or measure strength against humans. The
 packaged `BOT_FORCE_STATE` trace samples only each bot's own state.
+
+In each published receipt, `trace_evidence.receipt_sha256` hashes the original
+private harness output before qualification metadata was added to the
+checked-in JSON. The `trace_evidence.trace_sha256` value hashes the exact
+bytes of the published JSONL trace named in `trace_evidence.trace_file`.

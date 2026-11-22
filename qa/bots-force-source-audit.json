@@ -146,6 +146,11 @@
     "dark_six_four_star": "direct historical expert recommendation; prospective modern benchmark baseline",
     "light_six_four_star": "legal engineering hypothesis based on stock mechanics, not claimed elite-player allocation"
   },
+  "not_established_scope": "The source and original-script audit alone does not establish the items below. Separate live native observations are recorded in the linked receipts.",
+  "live_native_receipts": [
+    "qa/bots-competitive-force-native-m2.json",
+    "qa/bots-competitive-force-native-m_boss17.json"
+  ],
   "not_established": [
     "Current top-player win rate",
     "Connected-client effects for this new build",
