@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "title": "Canyon Oasis recording review: movement ownership and repeated Force Pull",
+  "baseline_runtime": "42154174ec8421e642bfcb56308b2959c2db22e2",
+  "reviewed_video_sha256": "fd6c8f7fc25cea86019cebdc08a967caec35962600f095e763155f3415cbad3e",
+  "revised_wasm_sha256": "be8bb4b15124e3524518243d84e864c2ceda668a6a98c76b5f4bf2a34ece24d5",
+  "review_method": "Rendered video samples across the full two minutes, synchronized own-state traces and retained engine console events, followed by source tracing and normal-tick regressions.",
+  "observed_stalls": [
+    {
+      "session_start_seconds": 68.778,
+      "duration_seconds": 15.196,
+      "observations": 53,
+      "samples_with_target": 53,
+      "samples_with_hearing": 42
+    },
+    {
+      "session_start_seconds": 103.294,
+      "duration_seconds": 15.677,
+      "observations": 55,
+      "samples_with_target": 0,
+      "samples_with_hearing": 49
+    }
+  ],
+  "stall_measure": "Fresh alive observations remaining within 0.13 map units horizontally of a fixed anchor. Full-session times include warmup; these are not video timestamps. Jumping in place does not count as horizontal progress. The two reported episodes also show wall contact in the recording.",
+  "force_pull": {
+    "stock_bryar_eligible": true,
+    "excluded_weapons": [
+      "fists",
+      "lightsaber"
+    ],
+    "active_absorb_blocks_player_disarm": true,
+    "stock_player_script_sha256": "cf68cc4754acd78d2d84297eb6d05df80d0e8e265fa5d5a902b7101f8e523955",
+    "stock_pull_script_sha256": "9ab4429c7334bcf1baa286e7027bc4e7ea4e4bcc9907342254d27b2659605141",
+    "observations": "Two retained request bursts (five requests around session seconds 83-86 and ten around 124-131) targeted Jan holding the Bryar while her own active-power trace showed Absorb. Her weapon remained unchanged. With Absorb down around seconds 98-99, a subsequent request was followed by fists. The observations identify a tactical failure, not a causal attribution of every individual input.",
+    "hud_name_means": "power selection, not successful disarm",
+    "changes": [
+      "Validate recognized synchronized weapon model at request and release.",
+      "At release require range and the actual stock COG marker to identify the intended player; cancel through ordinary deselection when invalid.",
+      "After a validated release, wait 2 seconds before repeating Pull on the same opponent and unchanged weapon; further unchanged releases use 4, 8, 16 and at most 20 seconds.",
+      "A known weapon change, death or changed peer identity resets retry history. Unknown weapon models do not clear it.",
+      "Other opponents, gunfire and other eligible powers remain available. The bot does not read private remote Absorb state."
+    ],
+    "stock_rules_modified": false
+  },
+  "movement_changes": [
+    "Advance underwater time on every living tick and treat the need for air as an urgent navigation objective.",
+    "After sustained lack of horizontal progress, route movement receives a bounded recovery interval during combat and hearing.",
+    "Attribute a failed route only after continuous ownership on the same node and goal; evaluate the expiry frame before returning control.",
+    "Preserve route heading and pitch for jump approach, committed flight and water exit while still checking physical aim for gunfire and servicing Force hold/cancellation."
+  ],
+  "normal_tick_tests": {
+    "source": "native/tests/test_bot_movement_tick.inc",
+    "sha256": "015532f6382e49bd0821b8a99cc83524f327deeb931e7121b4f0c36cb24e4456",
+    "covers": [
+      "underwater visible opponent",
+      "underwater recurring sound",
+      "underwater control without distractions",
+      "dry wall with visible opponent",
+      "dry wall with recurring sound",
+      "actual horizontal progress clears stall attribution",
+      "brief ownership does not blame an unused route",
+      "failed full recovery interval penalizes the driven route",
+      "off-axis opponent cannot steal ordinary/Force jump approach or flight heading",
+      "aligned gunfire and ordinary Force Jump hold remain available"
+    ]
+  },
+  "private_stock_geometry_replay": {
+    "map": "JK1MP/m10.jkl",
+    "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+    "method": "Build navigation graph and run jkBot_Tick with stock swim/airborne physics and swept collision. Do not seed a navigation goal or exit phase.",
+    "physics_hz": 20,
+    "matched_original_cases": 4,
+    "original_landings": 0,
+    "revised_landings_on_matched_cases": 4,
+    "additional_off_axis_opponent_cases": 2,
+    "additional_landings": 2,
+    "ordinary_jumps_per_success": 1,
+    "limits": "One shoreline, controlled starts facing the bank. Off-axis cases rotate the visible opponent 39.5 degrees from the required exit heading. This is not a live multiplayer qualification or coverage of every shoreline."
+  },
+  "native_verification": {
+    "build_metadata_sha256": "cd179bad436e2979662a34fa4ebe07a24a00f066081651856dcb9e35b1dddea0",
+    "files": {
+      "bin/bots-linux-x86_64/jk-bot-client": {
+        "sha256": "aeaef94fbe4b2bd0bce487d25eb93593209c64d6f20cbe2d06a103087f5bd8c1",
+        "bytes": 8652256
+      },
+      "bin/bots-linux-x86_64/libGameNetworkingSockets.so": {
+        "sha256": "8246a869b1d72115ecc849309629aa1abbce0bf1a0f23cc70deaded98d82d8e9",
+        "bytes": 3644744
+      },
+      "native/bot-client.patch": {
+        "sha256": "a1eefdb97b673572e6900a99a3240e1fa3ae52569892bddc116aef60649c15a0",
+        "bytes": 242904
+      },
+      "native/bot-relink-linux-x86_64.tar.gz": {
+        "sha256": "999d59517c7d8844b611c54b1443e1cae4d63b3033975afb5e425c9496da4a20",
+        "bytes": 6020764
+      }
+    },
+    "scanned_units": 205,
+    "rebuilt_units": [
+      "src/AI/jkBot.c"
+    ],
+    "verification": {
+      "prior_global_symbols_removed": 0,
+      "clean_pinned_source_accepts_patch": true,
+      "packaged_source_dependency_hashes_verified": 222,
+      "all_packaged_link_input_hashes_verified": 218,
+      "relinked_executable_sha256": "aeaef94fbe4b2bd0bce487d25eb93593209c64d6f20cbe2d06a103087f5bd8c1",
+      "headless_invalid_profile_exit": 6,
+      "patched_source_regressions": [
+        "hearing and elite pursuit",
+        "companion transport and strategies",
+        "bot driver, combat and arming",
+        "collision",
+        "portal geometry, water entry/exit and recessed pickup contact",
+        "loadout"
+      ],
+      "live_multiplayer_match": false
+    },
+    "pass_groups": {
+      "collision": 3,
+      "companion": 1,
+      "driver": 38,
+      "hearing": 7,
+      "portal": 8
+    },
+    "loadout": "54 legal combinations plus invalid inputs",
+    "six_suites_exit_zero": true
+  },
+  "live_comparison": {
+    "status": "pending",
+    "claim": "No live improvement is claimed by this receipt until a result is added."
+  }
+}

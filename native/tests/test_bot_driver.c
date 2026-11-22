@@ -109,6 +109,7 @@ SithThing *sithTemplate_GetTemplate(const char *name)
 }
 #include "test_bot_behavior.inc"
 #include "test_bot_navigation.inc"
+#include "test_bot_movement_tick.inc"
 
 int main(void)
 {
@@ -175,7 +176,11 @@ int main(void)
     bot.progressPos=(rdVector3){0,0,0};
     self.position=(rdVector3){0,0,0.20f};
     self.attach_flags=0;
-    Bot_Recovery(&self);
+    bot.followingRoute=1; bot.frameDt=0.05f; bot.stuckAt=bot.now;
+    for (int i=0;i<41;i++) {
+        bot.now+=bot.frameDt;
+        Bot_Recovery(&self);
+    }
     assert(bot.goal==-1 && bot.routeCount==0);
     assert(bot.keys[INPUT_FUNC_ACTIVATE]==1 && bot.nodes[0].avoidUntil>bot.now);
     puts("PASS vertical jumping alone does not conceal a navigation stall");
@@ -225,5 +230,6 @@ int main(void)
     test_bot_navigation();
     test_bot_gunshots();
     test_bot_arming();
+    test_bot_movement_ownership();
     return 0;
 }

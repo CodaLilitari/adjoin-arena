@@ -2,6 +2,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <time.h>
+#define TEST_CUSTOM_CHAT_HANDLER
 #define main existing_driver_regressions
 #include "test_bot_driver.c"
 #undef main

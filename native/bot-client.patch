@@ -1,9 +1,9 @@
 diff --git a/src/AI/jkBot.c b/src/AI/jkBot.c
 new file mode 100644
-index 0000000000000000000000000000000000000000..87410bbe6af98ea9f563633c800cfda6e3a2f136
+index 0000000000000000000000000000000000000000..7b3bbb1e5077c0cf9df59eb4bbeea9a0f6b3d8f9
 --- /dev/null
 +++ b/src/AI/jkBot.c
-@@ -0,0 +1,717 @@
+@@ -0,0 +1,741 @@
 +/*
 + * Ordinary-client multiplayer bot input driver, reconstructed October 2026.
 + * Copyright (C) OpenJKDF2 contributors.
@@ -82,7 +82,9 @@ index 0000000000000000000000000000000000000000..87410bbe6af98ea9f563633c800cfda6
 +    int nNodes, buildNode, graphDone, graphEdges;
 +    uint32_t targetNetId, targetSignature;
 +    int targetSlot, targetGuid, goal, route[BOT_PATH], routeCount, routePos;
-+    int wasDead, recoverySide;
++    int wasDead, recoverySide, followingRoute, routeAim;
++    int stalledNode, stalledGoal;
++    flex_t routeStallTime;
 +    rdVector3 seenPos, progressPos;
 +    int armNode; /* one-based contact node; zero means no detour */
 +    flex_t armNext, armUntil;
@@ -310,8 +312,12 @@ index 0000000000000000000000000000000000000000..87410bbe6af98ea9f563633c800cfda6
 +    flex_t yaw=-atan2f(Bot_Dot(d,self->orient.rvec),Bot_Dot(d,self->orient.lvec))*BOT_DEG;
 +    flex_t pitch=atan2f(d.z,horizontal)*BOT_DEG-self->actorParams.headPYR.x;
 +    flex_t yawRate=Bot_Max(45.0f,self->actorParams.maxRotVelocity);
-+    bot.axes[INPUT_FUNC_TURN]=Bot_Clamp(yaw*(combat ? 5.0f : 4.0f)/yawRate,-0.90f,0.90f);
-+    bot.axes[INPUT_FUNC_PITCH]=Bot_Clamp(pitch*4.0f/90.0f,-0.8f,0.8f);
++    /* A committed traversal owns the heading. Combat still measures the
++       physical aim error for weapon and Force eligibility on this frame. */
++    if (!combat || !bot.routeAim) {
++        bot.axes[INPUT_FUNC_TURN]=Bot_Clamp(yaw*(combat ? 5.0f : 4.0f)/yawRate,-0.90f,0.90f);
++        bot.axes[INPUT_FUNC_PITCH]=Bot_Clamp(pitch*4.0f/90.0f,-0.8f,0.8f);
++    }
 +    return Bot_Max(fabsf(yaw),fabsf(pitch));
 +}
 +
@@ -506,7 +512,7 @@ index 0000000000000000000000000000000000000000..87410bbe6af98ea9f563633c800cfda6
 +
 +static void Bot_Combat(SithThing *self, SithThing *target)
 +{
-+    int urgent=Bot_ObjectiveUrgent(self) || nav.forceJumpPending || nav.jumpUntil>bot.now;
++    int urgent=bot.nextRecovery>0 || Bot_ObjectiveUrgent(self) || nav.forceJumpPending || nav.jumpUntil>bot.now;
 +    if (urgent) Bot_Navigate(self);
 +    if (!sithCollision_HasLOS(self,target,0)) {
 +        if (!urgent) Bot_Navigate(self);
@@ -559,15 +565,26 @@ index 0000000000000000000000000000000000000000..87410bbe6af98ea9f563633c800cfda6
 +
 +static void Bot_Recovery(SithThing *self)
 +{
-+    if (Bot_NavigationWaiting(self)) { bot.stuckAt=bot.now; bot.progressPos=self->position; return; }
-+    /* Vertical jumps at an obstruction are not navigation progress. */
-+    if (Bot_Horizontal(Bot_Sub(self->position,bot.progressPos))>0.13f) {
-+        bot.progressPos=self->position; bot.stuckAt=bot.now; return;
++    int recovering=bot.nextRecovery>0;
++    if (recovering && bot.now>=bot.nextRecovery) bot.nextRecovery=0;
++    if (Bot_NavigationWaiting(self) ||
++        Bot_Horizontal(Bot_Sub(self->position,bot.progressPos))>0.13f) {
++        bot.progressPos=self->position; bot.stuckAt=bot.now; bot.routeStallTime=0;
++        return;
 +    }
-+    if (bot.now-bot.stuckAt<2.0f || bot.now<bot.nextRecovery) return;
++    int node=bot.followingRoute && bot.routePos<bot.routeCount ? bot.route[bot.routePos] : -1;
++    if (node<0 || node!=bot.stalledNode || bot.goal!=bot.stalledGoal) bot.routeStallTime=0;
++    bot.stalledNode=node; bot.stalledGoal=bot.goal;
++    if (node>=0) bot.routeStallTime+=bot.frameDt;
++    if (bot.now-bot.stuckAt<2.0f || bot.nextRecovery>0) return;
++    /* Charge only the route actually driven across this failed interval.
++       Movement on the deadline frame still belongs to recovery. */
++    if (node>=0 && bot.routeStallTime+0.001f>=(recovering ? 1.5f : 2.0f)) {
++        bot.nodes[node].avoidUntil=bot.now+6.0f;
++        if (bot.goal>=0) bot.nodes[bot.goal].avoidUntil=bot.now+7.0f;
++    }
++    bot.routeStallTime=0;
 +    bot.recoverySide=(Bot_Random()&1u) ? 1 : -1; bot.nextRecovery=bot.now+1.5f;
-+    if (bot.routePos<bot.routeCount) bot.nodes[bot.route[bot.routePos]].avoidUntil=bot.now+6.0f;
-+    if (bot.goal>=0) bot.nodes[bot.goal].avoidUntil=bot.now+7.0f;
 +    bot.goal=-1; bot.routeCount=0; bot.nextPlan=0;
 +    bot.keys[INPUT_FUNC_ACTIVATE]=1;
 +    if (self->attach_flags && bot.now>=bot.nextJump) {
@@ -659,6 +676,7 @@ index 0000000000000000000000000000000000000000..87410bbe6af98ea9f563633c800cfda6
 +        bot.forceBin=bot.forceTarget=bot.forceEffectBin=bot.forceEffectTarget=-1;
 +        bot.armNode=0; bot.armNext=0;
 +        Bot_BuildNodes(self); bot.progressPos=self->position; bot.stuckAt=bot.now;
++        bot.nextRecovery=bot.routeStallTime=0;
 +    }
 +    if (!bot.graphDone) Bot_BuildGraphStep();
 +    Bot_ObservePeers(self);
@@ -676,13 +694,18 @@ index 0000000000000000000000000000000000000000..87410bbe6af98ea9f563633c800cfda6
 +            bot.keys[INPUT_FUNC_ACTIVATE]=1;
 +    } else {
 +        if (bot.wasDead) {
-+            nav.waterExitUntil=0;
++            nav.waterExitUntil=0; bot.nextRecovery=0; bot.routeStallTime=0;
 +            bot.armNode=0; bot.armNext=0;
 +            bot.goal=-1; bot.routeCount=0; bot.nextPlan=0; bot.targetSlot=-1;
 +            bot.progressPos=self->position; bot.stuckAt=bot.now;
 +            fprintf(stderr,"BOT_RESPAWN name=%s health=%.1f\n",bot.name,(double)self->actorParams.health);
 +            fflush(stderr);
 +        }
++        /* Combat and sound investigation can own many consecutive ticks. */
++        if (self->sector->flags&SITH_SECTOR_UNDERWATER) {
++            if (!nav.waterSince || bot.wasDead) nav.waterSince=bot.now;
++        } else nav.waterSince=0;
++        bot.followingRoute=bot.routeAim=0;
 +        Bot_CheckPursuit(self);
 +        Bot_UpdateAudioLoops(self);
 +        SithThing *target=Bot_UpdateTarget(self);
@@ -690,7 +713,8 @@ index 0000000000000000000000000000000000000000..87410bbe6af98ea9f563633c800cfda6
 +        else if (target) Bot_Combat(self,target);
 +        else {
 +            Bot_SelectWeapon(self,2.0f);
-+            if (!Bot_ArmingMove(self,1e20f) && !Bot_InvestigateSound(self)) Bot_Navigate(self);
++            if (bot.nextRecovery>0 || (!Bot_ArmingMove(self,1e20f) && !Bot_InvestigateSound(self)))
++                Bot_Navigate(self);
 +            Bot_ForceTick(self,NULL,180.0f);
 +        }
 +        Bot_Recovery(self);
@@ -759,25 +783,27 @@ index 0000000000000000000000000000000000000000..e647f521184742239a74562c90ba8c13
 +#endif
 diff --git a/src/AI/jkBotBehavior.h b/src/AI/jkBotBehavior.h
 new file mode 100644
-index 0000000000000000000000000000000000000000..52fbd84c143f03d646119988ca7bf1bfc1c6d044
+index 0000000000000000000000000000000000000000..af98b84564dad21f7b4bf751e76491db230ce23a
 --- /dev/null
 +++ b/src/AI/jkBotBehavior.h
-@@ -0,0 +1,9 @@
+@@ -0,0 +1,11 @@
 +/* Copyright (c) 2026 Coda Lilitari. SPDX-License-Identifier: MIT */
 +#ifndef JKBOT_BEHAVIOR_H
 +#define JKBOT_BEHAVIOR_H
 +typedef struct BotPeer {
 +    uint32_t netId, guid, signature;
 +    int weapon, seenWeapon, swaps;
++    int pullTracking, pullWeapon;
++    flex_t pullRetryAt, pullRetryDelay;
 +    flex_t hostileUntil, swapWindow, blockSince, lastBlock;
 +} BotPeer;
 +#endif
 diff --git a/src/AI/jkBotBehavior.inc b/src/AI/jkBotBehavior.inc
 new file mode 100644
-index 0000000000000000000000000000000000000000..44d07bd49623f3bb0341e962db4b7b982a76b712
+index 0000000000000000000000000000000000000000..daa1ee24cda2b33d7391787950a0ea51a26e9913
 --- /dev/null
 +++ b/src/AI/jkBotBehavior.inc
-@@ -0,0 +1,186 @@
+@@ -0,0 +1,189 @@
 +/* Copyright (c) 2026 Coda Lilitari. SPDX-License-Identifier: MIT
 +   Read-only observations of ordinary local game state. No game-rule writes. */
 +static int Bot_EnemyBase(SithThing *self, int slot)
@@ -896,6 +922,9 @@ index 0000000000000000000000000000000000000000..44d07bd49623f3bb0341e962db4b7b98
 +    if (!bot.enabled || !bot.joined || !self || !player) return;
 +    int slot=Bot_PlayerSlot(player), weapon=Bot_WeaponFromModel(model);
 +    BotPeer *p=Bot_Peer(slot); if (!p || weapon<0) return;
++    if (p->pullWeapon && weapon!=p->pullWeapon) {
++        p->pullWeapon=0; p->pullRetryAt=p->pullRetryDelay=0;
++    }
 +    if (p->seenWeapon && weapon!=p->weapon && Bot_EnemyBase(self,slot) &&
 +        Bot_Distance(player->position,self->position)<3.0f && sithCollision_HasLOS(self,player,0)) {
 +        if (bot.now-p->swapWindow>3.0f) { p->swapWindow=bot.now; p->swaps=0; }
@@ -1576,10 +1605,10 @@ index 0000000000000000000000000000000000000000..aedb241f993796f19786c847842b6109
 +}
 diff --git a/src/AI/jkBotForce.inc b/src/AI/jkBotForce.inc
 new file mode 100644
-index 0000000000000000000000000000000000000000..0e19f1f3eb8efb293876bb46e16a32abb9b9585a
+index 0000000000000000000000000000000000000000..5394975ac2866437674a6ecb9e5a19f1210aa8bc
 --- /dev/null
 +++ b/src/AI/jkBotForce.inc
-@@ -0,0 +1,242 @@
+@@ -0,0 +1,275 @@
 +/* Copyright (c) 2026 Coda Lilitari. SPDX-License-Identifier: MIT
 +   Use ordinary inventory hotkeys: stock COGs own eligibility, cost and effects. */
 +static int Bot_PowerKey(int bin)
@@ -1673,6 +1702,11 @@ index 0000000000000000000000000000000000000000..0e19f1f3eb8efb293876bb46e16a32ab
 +    return bot.competitiveForce && bot.forceEffectBin==SITHBIN_F_GRIP &&
 +        sithInventory_IsInventoryActivated(self,SITHBIN_F_GRIP);
 +}
++static int Bot_PullWeapon(SithThing *target)
++{
++    int weapon=target->playerInfo ? Bot_WeaponFromModel(target->playerInfo->rd_thing.model3) : -1;
++    return weapon>SITHBIN_FISTS && weapon<SITHBIN_LIGHTSABER && !(target->actorParams.flags&SITH_AF_DROID) ? weapon : 0;
++}
 +static int Bot_RequestForce(SithThing *self, int bin, flex_t holdSeconds, int targetSlot)
 +{
 +    if (bot.forceBin>=0 || bot.now<bot.nextForce || Bot_ActiveCompetitiveGrip(self) ||
@@ -1682,6 +1716,15 @@ index 0000000000000000000000000000000000000000..0e19f1f3eb8efb293876bb46e16a32ab
 +        SithThing *target=jkPlayer_playerInfos[targetSlot].pLocalPlayer;
 +        if (Bot_Distance(self->position,target->position)>Bot_ForceRange(self,bin) ||
 +            !sithCollision_HasLOS(self,target,0) || Bot_ProtectedNear(self,self->position,8.0f)) return 0;
++        if (bin==SITHBIN_F_PULL) {
++            int weapon=Bot_PullWeapon(target);
++            if (!weapon) return 0;
++            if (bot.competitiveForce) {
++                BotPeer *peer=Bot_Peer(targetSlot);
++                if (!peer || (peer->pullWeapon==weapon && bot.now<peer->pullRetryAt)) return 0;
++                peer->pullTracking=1;
++            }
++        }
 +        if (bot.competitiveForce && bin==SITHBIN_F_GRIP) {
 +            bot.gripTarget.idx=target->idx;
 +            bot.gripTarget.guid=target->guid;
@@ -1725,6 +1768,15 @@ index 0000000000000000000000000000000000000000..0e19f1f3eb8efb293876bb46e16a32ab
 +            (Bot_EnemyAllowed(self,bot.forceTarget) &&
 +             sithCollision_HasLOS(self,jkPlayer_playerInfos[bot.forceTarget].pLocalPlayer,0) &&
 +             !Bot_ProtectedNear(self,self->position,8.0f)));
++        if (allowed && bot.competitiveForce && bin==SITHBIN_F_PULL) {
++            SithThing *intended=jkPlayer_playerInfos[bot.forceTarget].pLocalPlayer;
++            int victim;
++            BotPeer *peer=Bot_Peer(bot.forceTarget);
++            allowed=peer && peer->pullTracking && Bot_PullWeapon(intended) &&
++                Bot_Distance(self->position,intended->position)<=Bot_ForceRange(self,bin) &&
++                (bot.now<bot.forceUntil ||
++                 (Bot_ForceVictim(bin,&victim) && victim>=0 && (uint32_t)victim==intended->idx));
++        }
 +        if (allowed && bot.competitiveForce && bin==SITHBIN_F_GRIP) {
 +            SithThing *intended=jkPlayer_playerInfos[bot.forceTarget].pLocalPlayer;
 +            allowed=!(self->actorParams.flags&SITH_AF_CONTROLSDISABLED) &&
@@ -1755,6 +1807,16 @@ index 0000000000000000000000000000000000000000..0e19f1f3eb8efb293876bb46e16a32ab
 +            bot.keys[key]=1;
 +            if (hostile) bot.keys[INPUT_FUNC_FIRE1]=bot.keys[INPUT_FUNC_FIRE2]=0;
 +            return;
++        }
++        if (bot.competitiveForce && bin==SITHBIN_F_PULL) {
++            BotPeer *peer=Bot_Peer(bot.forceTarget);
++            int weapon=Bot_PullWeapon(jkPlayer_playerInfos[bot.forceTarget].pLocalPlayer);
++            /* Give the remote weapon update time to arrive. Repeated unchanged
++               releases spend less time attempting Pull and leave gunfire available. */
++            peer->pullRetryDelay=peer->pullWeapon==weapon ? Bot_Min(20.0f,2*peer->pullRetryDelay) : 2.0f;
++            peer->pullWeapon=weapon;
++            peer->pullRetryAt=bot.now+peer->pullRetryDelay;
++            peer->pullTracking=0;
 +        }
 +        bot.forceBin=-1; bot.forceTarget=-1; return; /* Normal key release. */
 +    }
@@ -1805,7 +1867,7 @@ index 0000000000000000000000000000000000000000..0e19f1f3eb8efb293876bb46e16a32ab
 +    if (aimError>6.0f || bot.now<bot.reactionUntil ||
 +        !sithCollision_HasLOS(self,target,0) || Bot_ProtectedNear(self,self->position,8.0f)) return;
 +    flex_t distance=Bot_Distance(self->position,target->position);
-+    int slot=Bot_PlayerSlot(target), weapon=target->playerInfo ? Bot_WeaponFromModel(target->playerInfo->rd_thing.model3) : -1;
++    int slot=Bot_PlayerSlot(target);
 +    int enemies=0;
 +    for (unsigned i=0;i<jkPlayer_maxPlayers && i<JKPLAYER_NUM_INFOS;i++)
 +        if (Bot_EnemyAllowed(self,(int)i) &&
@@ -1816,7 +1878,7 @@ index 0000000000000000000000000000000000000000..0e19f1f3eb8efb293876bb46e16a32ab
 +    if (distance<=0.95f && Bot_RequestForce(self,SITHBIN_F_GRIP,0.46f,slot)) return;
 +    if (distance<4.5f && Bot_SafeShot(self,target,target->position,0,0.20f) &&
 +        Bot_RequestForce(self,SITHBIN_F_LIGHTNING,0.68f,slot)) return;
-+    if (distance<0.45f+sithInventory_GetInventory(self,SITHBIN_F_PULL)*0.5f && weapon>SITHBIN_FISTS && weapon!=SITHBIN_LIGHTSABER &&
++    if (distance<0.45f+sithInventory_GetInventory(self,SITHBIN_F_PULL)*0.5f &&
 +        Bot_RequestForce(self,SITHBIN_F_PULL,0.46f,slot)) return;
 +    if (distance<0.95f+sithInventory_GetInventory(self,SITHBIN_F_BLINDING) &&
 +        Bot_RequestForce(self,SITHBIN_F_BLINDING,0.46f,slot)) return;
@@ -2225,10 +2287,10 @@ index 0000000000000000000000000000000000000000..d167eb8e228734fa0eab9a9b7f060524
 +#endif
 diff --git a/src/AI/jkBotNavigate.inc b/src/AI/jkBotNavigate.inc
 new file mode 100644
-index 0000000000000000000000000000000000000000..32c297ade1d665490a0005bd72e93bcefb2be8f5
+index 0000000000000000000000000000000000000000..9b6a055c5ed0614dd884493adc97f708acbb1c17
 --- /dev/null
 +++ b/src/AI/jkBotNavigate.inc
-@@ -0,0 +1,316 @@
+@@ -0,0 +1,320 @@
 +/* Movement execution for jkBotNavigation.inc; ordinary inputs only. */
 +static int Bot_NavDirectMove(SithThing *self, rdVector3 target, int swim)
 +{
@@ -2419,9 +2481,11 @@ index 0000000000000000000000000000000000000000..32c297ade1d665490a0005bd72e93bce
 +
 +static void Bot_Navigate(SithThing *self)
 +{
-+    if (nav.waterExitUntil>0) { Bot_ExitWaterMove(self); return; }
++    bot.followingRoute=1;
++    if (nav.waterExitUntil>0) { bot.routeAim=1; Bot_ExitWaterMove(self); return; }
 +    if (Bot_JoinMove(self)) return;
 +    if (nav.forceJumpPending) {
++        bot.routeAim=1;
 +        if (!self->attach_flags && bot.now>=nav.forceChargeUntil) {
 +            nav.forceJumpPending=0; nav.jumpStarted=bot.now;
 +            nav.jumpUntil=bot.now+nav.forceFlight+0.4f;
@@ -2435,6 +2499,7 @@ index 0000000000000000000000000000000000000000..32c297ade1d665490a0005bd72e93bce
 +    if (nav.jumpUntil>bot.now) {
 +        if (self->attach_flags && bot.now-nav.jumpStarted>0.2f) nav.jumpUntil=0;
 +        else {
++            bot.routeAim=1;
 +            Bot_Aim(self,nav.jumpTarget,0);
 +            Bot_NavDirectMove(self,nav.jumpTarget,0);
 +            return;
@@ -2492,6 +2557,7 @@ index 0000000000000000000000000000000000000000..32c297ade1d665490a0005bd72e93bce
 +        if (Bot_Walkable(&actual,node,&drop)) mode=drop ? BOT_ROUTE_DROP : BOT_ROUTE_WALK;
 +        else if (Bot_Jumpable(&actual,node,&duration)) mode=BOT_ROUTE_JUMP;
 +    }
++    bot.routeAim=mode==BOT_ROUTE_JUMP || mode==BOT_ROUTE_FORCEJUMP || mode==BOT_ROUTE_WATER_EXIT;
 +    rdVector3 aim=node->pos;
 +    if (mode!=BOT_ROUTE_SWIM) aim.z=self->position.z;
 +    Bot_Aim(self,aim,0);
@@ -2547,10 +2613,10 @@ index 0000000000000000000000000000000000000000..32c297ade1d665490a0005bd72e93bce
 +}
 diff --git a/src/AI/jkBotNavigation.inc b/src/AI/jkBotNavigation.inc
 new file mode 100644
-index 0000000000000000000000000000000000000000..2d9fa12c72993cbe124ffc5f71441d03ea48f2a6
+index 0000000000000000000000000000000000000000..7c793d9b6801beb27115d5cd7930a62bb823f9d1
 --- /dev/null
 +++ b/src/AI/jkBotNavigation.inc
-@@ -0,0 +1,1159 @@
+@@ -0,0 +1,1163 @@
 +/* Ordinary-input navigation; see jkBot.c for license.
 + * The graph is made from the loaded map, not a map-name waypoint lookup.
 + * CTF observes stock CTF_MAIN bindings and synchronized flag attachment state;
@@ -2675,8 +2741,15 @@ index 0000000000000000000000000000000000000000..2d9fa12c72993cbe124ffc5f71441d03
 +static int Bot_ObjectiveCarrier(SithThing *thing)
 +{ return thing && nav.ctf && (Bot_FlagCarrier(1)==thing || Bot_FlagCarrier(2)==thing); }
 +
++static int Bot_NeedsAir(SithThing *self)
++{
++    return self->sector && (self->sector->flags&SITH_SECTOR_UNDERWATER) &&
++        (self->actorParams.health<30 || (nav.waterSince>0 && bot.now-nav.waterSince>14.0f));
++}
++
 +static int Bot_ObjectiveUrgent(SithThing *self)
 +{
++    if (Bot_NeedsAir(self)) return 1;
 +    if (!nav.ctf || !self->actorParams.pPlayer) return 0;
 +    int team=self->actorParams.pPlayer->teamNum;
 +    return team==0 || (team>=1 && team<=2 && Bot_FlagCarrier(3-team)==self);
@@ -3425,13 +3498,10 @@ index 0000000000000000000000000000000000000000..2d9fa12c72993cbe124ffc5f71441d03
 +static void Bot_UpdateObjective(SithThing *self)
 +{
 +    nav.objective=BOT_OBJECTIVE_NONE; nav.objectiveValid=0; nav.objectiveThing=-1;
-+    if (self->sector->flags&SITH_SECTOR_UNDERWATER) {
-+        if (!nav.waterSince) nav.waterSince=bot.now;
-+        if (bot.now-nav.waterSince>14.0f || self->actorParams.health<30) {
-+            nav.objective=BOT_OBJECTIVE_AIR;
-+            return;
-+        }
-+    } else nav.waterSince=0;
++    if (Bot_NeedsAir(self)) {
++        nav.objective=BOT_OBJECTIVE_AIR;
++        return;
++    }
 +    if (!nav.ctf || !self->actorParams.pPlayer) return;
 +    int team=self->actorParams.pPlayer->teamNum;
 +    nav.objectiveTeam=team;

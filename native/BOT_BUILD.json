@@ -35,17 +35,17 @@
     " 5a82f71ed1dfc0bec044d9702463dbdf84ea3b71 lib/zlib (5a82f71)"
   ],
   "compiled_sources": {
-    "src/AI/jkBot.c": "63855a03de4b98948a59e821b3a13411d7561b2e5a8d417d47b1951f24932c13",
+    "src/AI/jkBot.c": "4920a853aae8a5a194cfd1426613ea792bb81a110e2159c662f6c0e3802d8020",
     "src/AI/jkBot.h": "d822c0f525b820307b9dde817677b81af8ccca5b3024d2a7859d0cb16314f70f",
-    "src/AI/jkBotBehavior.h": "5cad5dc201e93c01d8dd5b72f6d3d9b425f29b528f83aeb4ec14c811da245e49",
-    "src/AI/jkBotBehavior.inc": "ef13f015be070f0658fa2f08a6b63066228168ee129f04a79747e4e6bab63a16",
+    "src/AI/jkBotBehavior.h": "c00a67f6f3db10f47200b111521818ac96e6435b48f38fa366d2f4cfebcf387b",
+    "src/AI/jkBotBehavior.inc": "b5f77326432392e708b6ef5f717d97644e4e99d66aa21f02889c40d388fac18f",
     "src/AI/jkBotCombat.inc": "496a42a6ff47906b6040c58e141bbec44ab6252a066db66a18d6a3e4c6a07ce2",
     "src/AI/jkBotCompanion.inc": "91e1e975bb34f46cf1553ba77bcfbd4f57db550c1e6d1981facc1d62c44eacdc",
-    "src/AI/jkBotForce.inc": "828e3c5e41e14e5457dc9d6c6848164a32aed92de530a8d92d5309570659b110",
+    "src/AI/jkBotForce.inc": "56de4d04719b082e7f9c6d69d0b40bb7ab7f496ffcb1e7dadbfad626e1deef64",
     "src/AI/jkBotHearing.inc": "30c08aeefde67acaab5bdc63cfd93be0941f5b4614e8eec1ea357841ba6aee8a",
     "src/AI/jkBotLoadout.h": "aab6d025bb9ec2c431beb2d6bd559992b664e9ce075fcaa9c1103ae9ed5dcdc1",
-    "src/AI/jkBotNavigate.inc": "ee88dec3d4e9abec0c7c83110b15e2f47e5ff5991dfe57d468c7298aec717543",
-    "src/AI/jkBotNavigation.inc": "7a0b913db9332ecff50cc76081630cc396b5ba78edd25a5601858887bd65614b",
+    "src/AI/jkBotNavigate.inc": "a3af023a6833f93f7605443c10fb9f888ba54a3d7bb7d836487132725dacf59a",
+    "src/AI/jkBotNavigation.inc": "775fdd496468ba16c443d651fc84d2661c36443fe794ef2f6fed33b8041ba22b",
     "src/AI/jkBotPersona.c": "618f31f58e45a13d89b5dc0493233d446d5eaeada681bd0de758a155a50d578d",
     "src/AI/jkBotPersona.h": "e193097d937ed22400fe84d86a1e9e7f18884cc2be876fb1540627bee96e0bfb",
     "src/AI/jkBotWaterExit.inc": "26da1dd699350c6c29bd254b68798624c0bdc8a972177911437cfa2d96f1eebc",
@@ -260,26 +260,26 @@
   },
   "files": {
     "bin/bots-linux-x86_64/jk-bot-client": {
-      "sha256": "41ec1d8b0d228bfffb5147bba104011eec3df7e815f2be45176cc277ff99ddce",
-      "bytes": 8648112
+      "sha256": "aeaef94fbe4b2bd0bce487d25eb93593209c64d6f20cbe2d06a103087f5bd8c1",
+      "bytes": 8652256
     },
     "bin/bots-linux-x86_64/libGameNetworkingSockets.so": {
       "sha256": "8246a869b1d72115ecc849309629aa1abbce0bf1a0f23cc70deaded98d82d8e9",
       "bytes": 3644744
     },
     "native/bot-client.patch": {
-      "sha256": "0ff9bbcd9713fbb7d93f52d5695acc6d04ade45ce4520af2c9bc064687ea4774",
-      "bytes": 239516
+      "sha256": "a1eefdb97b673572e6900a99a3240e1fa3ae52569892bddc116aef60649c15a0",
+      "bytes": 242904
     },
     "native/bot-relink-linux-x86_64.tar.gz": {
-      "sha256": "ec8df212d1613b9c378bfa4475c973ef67f41d85d1e56fd882e05f101e7300ac",
-      "bytes": 6019476
+      "sha256": "999d59517c7d8844b611c54b1443e1cae4d63b3033975afb5e425c9496da4a20",
+      "bytes": 6020764
     }
   },
   "relink_inputs": {
     "CMakeFiles/openjkdf2.dir/src/main.c.o": "5cac74e46ccdb6f00cfe4b60d06df1a8282ddc27ad1c7001009af728d3d88c95",
     "CMakeFiles/sith_engine.dir/generated/globals.c.o": "b8ea7a66262f5d97d72f6fbf66522fb48d49a57e62d9b4d0a8cf95a7603ca713",
-    "CMakeFiles/sith_engine.dir/src/AI/jkBot.c.o": "7c7483273419ed53aeda25e9a3290010054f8ee90b28df07ddaa733fb483175c",
+    "CMakeFiles/sith_engine.dir/src/AI/jkBot.c.o": "e01cc73c587b87758fe65a179bd68465c2183758bb319166df885580496dc123",
     "CMakeFiles/sith_engine.dir/src/AI/jkBotPersona.c.o": "4db8c6c71e81ce9ca8911974014861cebaca2a5279c5efa78e65b4010d9b89f3",
     "CMakeFiles/sith_engine.dir/src/AI/sithAI.c.o": "cbda1c7df0dd425eaeb69e14308b53c9869fe6120c6d98f2d1743d86076bddc5",
     "CMakeFiles/sith_engine.dir/src/AI/sithAIAwareness.c.o": "2b590541a50ed915d863874172cf0a84d9398a6114e62adb8da8e2ed6dea0cfb",
@@ -499,9 +499,9 @@
   "game_assets_included": false,
   "server_modified": false,
   "incremental_rebuild": {
-    "prior_relink_archive_sha256": "48960d64e88523088d4b3b67870a53b6b46d8ce7f5909fd2b059408cc8aedc7b",
-    "prior_patch_sha256": "41bc3e0bc5a175aaba24ceebbd56411ffc1882f7a650e5c949cc03abc0651c97",
-    "prior_binary_sha256": "2a6e9a436b59856c7932d0bdd73a477f26645afa70c698e3893cf8986657cc94",
+    "prior_relink_archive_sha256": "ec8df212d1613b9c378bfa4475c973ef67f41d85d1e56fd882e05f101e7300ac",
+    "prior_patch_sha256": "0ff9bbcd9713fbb7d93f52d5695acc6d04ade45ce4520af2c9bc064687ea4774",
+    "prior_binary_sha256": "41ec1d8b0d228bfffb5147bba104011eec3df7e815f2be45176cc277ff99ddce",
     "scanned_translation_units": 205,
     "dependency_method": "Compiler-preprocessed header dependencies of all linked engine-source units; actual rebuilt dependencies recorded with -MMD.",
     "compile_flags": [
@@ -575,7 +575,7 @@
     "units": {
       "src/AI/jkBot.c": {
         "object": "CMakeFiles/sith_engine.dir/src/AI/jkBot.c.o",
-        "sha256": "7c7483273419ed53aeda25e9a3290010054f8ee90b28df07ddaa733fb483175c",
+        "sha256": "e01cc73c587b87758fe65a179bd68465c2183758bb319166df885580496dc123",
         "engine_dependencies": [
           "src/AI/jkBot.c",
           "src/AI/jkBot.h",
@@ -648,7 +648,7 @@
       "clean_pinned_source_accepts_patch": true,
       "packaged_source_dependency_hashes_verified": 222,
       "all_packaged_link_input_hashes_verified": 218,
-      "relinked_executable_sha256": "41ec1d8b0d228bfffb5147bba104011eec3df7e815f2be45176cc277ff99ddce",
+      "relinked_executable_sha256": "aeaef94fbe4b2bd0bce487d25eb93593209c64d6f20cbe2d06a103087f5bd8c1",
       "headless_invalid_profile_exit": 6,
       "patched_source_regressions": [
         "hearing and elite pursuit",

@@ -70,6 +70,21 @@ These are private Canyon Oasis integration checks. They do not establish
 strength against skilled humans, public-lobby interoperability, reliable
 navigation from every spawn, or mastery of every stock map.
 
+The [recording follow-up](../qa/bots-movement-force-followup.json) records two
+execution problems found by reviewing that demo. Combat and recurring sounds
+could keep control of movement during wall stalls or delay the decision to seek
+air. Recovery now temporarily gives navigation control, preserves the heading
+needed for a jump, and penalizes only a route it actually drove unsuccessfully.
+The new regression exercises the normal bot tick; the earlier aligned water-exit
+replay had started after route selection and missed this arbitration failure.
+
+Stock multiplayer permits pulling the Bryar. Active Absorb prevents the
+disarm, and repeated requests against an unchanged weapon were wasting Lily's
+mana. The bot now checks the intended target again at release and backs off
+repeated Pulls on the same unchanged opponent weapon. A known weapon change or
+new life clears that history. The decision uses synchronized weapon changes;
+the victim's stock script remains authoritative about immunity and disarming.
+
 ## Build and relink
 
 The engine pin is `tristamus/OpenJKDF2` `web-mp` commit

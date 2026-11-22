@@ -14,17 +14,17 @@
     " 5a82f71ed1dfc0bec044d9702463dbdf84ea3b71 lib/zlib (5a82f71)"
   ],
   "changed_sources": {
-    "src/AI/jkBot.c": "63855a03de4b98948a59e821b3a13411d7561b2e5a8d417d47b1951f24932c13",
+    "src/AI/jkBot.c": "4920a853aae8a5a194cfd1426613ea792bb81a110e2159c662f6c0e3802d8020",
     "src/AI/jkBot.h": "d822c0f525b820307b9dde817677b81af8ccca5b3024d2a7859d0cb16314f70f",
-    "src/AI/jkBotBehavior.h": "5cad5dc201e93c01d8dd5b72f6d3d9b425f29b528f83aeb4ec14c811da245e49",
-    "src/AI/jkBotBehavior.inc": "ef13f015be070f0658fa2f08a6b63066228168ee129f04a79747e4e6bab63a16",
+    "src/AI/jkBotBehavior.h": "c00a67f6f3db10f47200b111521818ac96e6435b48f38fa366d2f4cfebcf387b",
+    "src/AI/jkBotBehavior.inc": "b5f77326432392e708b6ef5f717d97644e4e99d66aa21f02889c40d388fac18f",
     "src/AI/jkBotCombat.inc": "496a42a6ff47906b6040c58e141bbec44ab6252a066db66a18d6a3e4c6a07ce2",
     "src/AI/jkBotCompanion.inc": "91e1e975bb34f46cf1553ba77bcfbd4f57db550c1e6d1981facc1d62c44eacdc",
-    "src/AI/jkBotForce.inc": "7213f74f692304e7eeced39d7258976b199efc9b64c7b4fd4868e69d88404519",
+    "src/AI/jkBotForce.inc": "28d6b05d60353db55191b29ec0f6f3d779b5c6716c3b1ee8d6b9dbfdbe2a7ac8",
     "src/AI/jkBotHearing.inc": "30c08aeefde67acaab5bdc63cfd93be0941f5b4614e8eec1ea357841ba6aee8a",
     "src/AI/jkBotLoadout.h": "aab6d025bb9ec2c431beb2d6bd559992b664e9ce075fcaa9c1103ae9ed5dcdc1",
-    "src/AI/jkBotNavigate.inc": "ee88dec3d4e9abec0c7c83110b15e2f47e5ff5991dfe57d468c7298aec717543",
-    "src/AI/jkBotNavigation.inc": "7a0b913db9332ecff50cc76081630cc396b5ba78edd25a5601858887bd65614b",
+    "src/AI/jkBotNavigate.inc": "a3af023a6833f93f7605443c10fb9f888ba54a3d7bb7d836487132725dacf59a",
+    "src/AI/jkBotNavigation.inc": "775fdd496468ba16c443d651fc84d2661c36443fe794ef2f6fed33b8041ba22b",
     "src/AI/jkBotPersona.c": "618f31f58e45a13d89b5dc0493233d446d5eaeada681bd0de758a155a50d578d",
     "src/AI/jkBotPersona.h": "e193097d937ed22400fe84d86a1e9e7f18884cc2be876fb1540627bee96e0bfb",
     "src/AI/jkBotWaterExit.inc": "26da1dd699350c6c29bd254b68798624c0bdc8a972177911437cfa2d96f1eebc",
@@ -48,16 +48,16 @@
       "bytes": 563022
     },
     "bin/bots-jkweb/openjkdf2.wasm": {
-      "sha256": "ec1841b5070b2b67302bde5bc93c803566efe2c61e79e9baae69a49ad0eeac14",
-      "bytes": 3774772
+      "sha256": "be8bb4b15124e3524518243d84e864c2ceda668a6a98c76b5f4bf2a34ece24d5",
+      "bytes": 3777543
     },
     "web_bots/engine.patch": {
-      "sha256": "dee051ab458ba62b3de102c42c7cc926ae71c76a10a2ae2b8559887a10f82e6b",
-      "bytes": 230027
+      "sha256": "2020002dc4296d79f55e44e7b0531508f0b5d83df89516a78ff09f757747b6dd",
+      "bytes": 233415
     },
     "web_bots/engine-relink.tar.gz": {
-      "sha256": "29772d40b4546b9686cc5bb3fd370f2e69b8071fcf9173553ef83d3ef629a57c",
-      "bytes": 1555997
+      "sha256": "89acc1d3e27564a50a92f9ffe8fb11d5ac06d406a1eae373577d3b3688b6fac0",
+      "bytes": 1557534
     }
   }
 }

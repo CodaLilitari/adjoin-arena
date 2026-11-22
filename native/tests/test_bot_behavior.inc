@@ -100,6 +100,80 @@ static void test_competitive_force(SithThing *self, SithThing *peer, rdModel3 *g
     own->aItems[grip].amount=4; own->aItems[grip].state=SITHINVENTORY_ITEM_AVAILABLE;
     SithCogSymbol marker={0}; SithCogSymbolTable table={0}; sithCog cog={0};
     table.aSymbols=&marker; table.tableSize=table.numUsedSymbols=1; cog.pSymbolTable=&table;
+    int pull=SITHBIN_F_PULL;
+    rdModel3 bryar={0}, saber={0};
+    strcpy(bryar.filename,"bryg.3do"); strcpy(saber.filename,"sabg.3do");
+    own->aItems[pull].amount=4; own->aItems[pull].state=SITHINVENTORY_ITEM_AVAILABLE;
+    testInventoryTypes[pull].cog=&cog;
+    marker.pName="victim"; marker.val.type=COG_TYPE_INT;
+    bot.fistsPeace=0;
+    peer->playerInfo->rd_thing.model3=&saber;
+    assert(!Bot_RequestForce(self,pull,0.46f,1));
+    peer->playerInfo->rd_thing.model3=fists;
+    assert(!Bot_RequestForce(self,pull,0.46f,1));
+    peer->playerInfo->rd_thing.model3=NULL;
+    assert(!Bot_RequestForce(self,pull,0.46f,1));
+    enum { PULL_WRONG_MARKER, PULL_NO_MARKER, PULL_DISARMED, PULL_OUT_OF_RANGE, PULL_MATCH };
+    for (int scenario=PULL_WRONG_MARKER;scenario<=PULL_MATCH;scenario++) {
+        peer->playerInfo->rd_thing.model3=&bryar;
+        peer->position.y=0.7f;
+        bot.now+=1; test_force_frame();
+        assert(Bot_RequestForce(self,pull,0.46f,1)); own->curPower=pull;
+        marker.val.data[0]=(int)peer->idx;
+        if (scenario==PULL_WRONG_MARKER) marker.val.data[0]++;
+        if (scenario==PULL_NO_MARKER) marker.val.data[0]=-1;
+        if (scenario==PULL_DISARMED) peer->playerInfo->rd_thing.model3=fists;
+        if (scenario==PULL_OUT_OF_RANGE) peer->position.y=3;
+        bot.now+=0.5f; test_force_frame(); Bot_ForceTick(self,peer,0);
+        if (scenario!=PULL_MATCH) {
+            assert(bot.forceCancel && bot.keys[INPUT_FUNC_NEXTSKILL]);
+            own->curPower=SITHBIN_F_JUMP;
+            test_force_frame(); Bot_ForceTick(self,peer,0);
+        }
+        assert(bot.forceBin<0 && !bot.keys[Bot_PowerKey(pull)]);
+    }
+    /* The matching release above is still awaiting a visible weapon change. */
+    bot.now+=0.5f; test_force_frame();
+    assert(!Bot_RequestForce(self,pull,0.46f,1));
+    /* A different opponent can be disarmed while the first one's result is pending. */
+    SithThing other=*peer;
+    other.idx++; other.guid++;
+    jkPlayer_maxPlayers=3; jkPlayer_playerInfos[2]=jkPlayer_playerInfos[1];
+    jkPlayer_playerInfos[2].playerNetId++; jkPlayer_playerInfos[2].pLocalPlayer=&other;
+    assert(Bot_RequestForce(self,pull,0.46f,2));
+    bot.now+=0.5f; test_force_frame(); Bot_ForceTick(self,&other,0);
+    assert(bot.forceCancel); /* marker still points at the first opponent */
+    own->curPower=SITHBIN_F_JUMP;
+    test_force_frame(); Bot_ForceTick(self,&other,0);
+    jkPlayer_maxPlayers=2; memset(&jkPlayer_playerInfos[2],0,sizeof(jkPlayer_playerInfos[2]));
+    jkBot_ObserveWeapon(peer,NULL);
+    assert(!Bot_RequestForce(self,pull,0.46f,1));
+    bot.now+=2.0f;
+    assert(Bot_RequestForce(self,pull,0.46f,1)); own->curPower=pull;
+    bot.now+=0.5f; test_force_frame(); Bot_ForceTick(self,peer,0);
+    bot.now+=2.5f;
+    assert(!Bot_RequestForce(self,pull,0.46f,1)); /* unchanged weapon extends retry */
+    jkBot_ObserveWeapon(peer,fists); /* late remote disarm then rearm */
+    jkBot_ObserveWeapon(peer,&bryar);
+    assert(Bot_RequestForce(self,pull,0.46f,1)); own->curPower=pull;
+    bot.now+=0.5f; test_force_frame(); Bot_ForceTick(self,peer,0);
+    peer->signature++; /* same slot, fresh identity */
+    assert(Bot_RequestForce(self,pull,0.46f,1)); own->curPower=pull;
+    peer->signature++; /* identity also changes during acquisition */
+    bot.now+=0.5f; test_force_frame(); Bot_ForceTick(self,peer,0);
+    assert(bot.forceCancel);
+    own->curPower=SITHBIN_F_JUMP;
+    test_force_frame(); Bot_ForceTick(self,peer,0);
+    bot.now+=1; assert(Bot_RequestForce(self,pull,0.46f,1)); own->curPower=pull;
+    bot.now+=0.5f; test_force_frame(); Bot_ForceTick(self,peer,0);
+    peer->flags|=SITH_TF_DEAD; Bot_ObservePeers(self);
+    peer->flags&=~SITH_TF_DEAD; /* stock can respawn using the same thing */
+    assert(Bot_RequestForce(self,pull,0.46f,1)); own->curPower=pull;
+    bot.now+=0.5f; test_force_frame(); Bot_ForceTick(self,peer,0);
+    puts("PASS unchanged Pull results back off per opponent, reset on visible rearm, new identity or life");
+    bot.fistsPeace=1; peer->playerInfo->rd_thing.model3=gun;
+    own->aItems[pull].state=0; testInventoryTypes[pull].cog=NULL;
+    puts("PASS competitive Pull permits Bryar and cancels on wrong marker, disarm or lost range");
     enum { WRONG_MARKER, NO_VICTIM, UNKNOWN_SYMBOL, MISSING_COG, WRONG_TYPE, REUSED_IDX, REUSED_NETID, REUSED_GUID, REUSED_SIGNATURE,
            OUT_OF_RANGE, LOST_LOS, PEACE_HOLD, TEAM_HOLD, DISABLED_HOLD, ACTIVE_PEACE, ACTIVE_DISABLED,
            ACTIVE_REUSED, MATCH };
