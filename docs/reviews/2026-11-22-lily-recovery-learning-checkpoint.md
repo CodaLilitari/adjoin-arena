@@ -142,19 +142,22 @@ preserves all six input receipts, their raw file hashes/sizes, every assignment,
 the paired gains/regressions and the criterion. The
 [portable auditor](../../scripts/bot_development/analysis/audit_recovery_learning.py)
 reopens the evidence and reconstructs these results without fitting or running
-the game. A separate independent audit agreed with the portable result.
+the game. A separate independent audit agreed with the portable result. The final auditor
+regenerated the published receipt byte-for-byte after its interruption checks
+were corrected; its SHA-256 remains
+`3c9ac2887e7d2a00736f5656280cb76be5009bb59f6f9b65506533812022a263`.
 
 | Verification | Result |
 | --- | --- |
-| Final full regression suite, native tests enabled | 358 tests in 122.411 seconds; 355 passed, three platform-specific skips, zero failures. |
+| Final full regression suite, native tests enabled | 362 tests in 121.958 seconds; 359 passed, three platform-specific skips, zero failures. |
 | Evaluation continuity | 268 physical executions, 148,051 applied control ticks and 958,776 physics steps recorded. No model assistance and no censored result. |
 | Frozen evaluation inference | All 111,159 model decisions reproduced their quantized applied controls. |
 | Collection inference | All 1,842 model-prefix decisions reproduced frozen v2; all eight exact prefix/boundary comparisons passed. |
 | Start and native pairing | All 67 start quartets matched; all 67 repeated baseline native/motor traces matched byte-for-byte. Different policies chose different initial inputs, which is permitted. |
 | Historical preservation | All 54 original and 32 prior-nearby baseline/v2 rows exactly reproduced the preceding checkpoint, including trace identities. |
 | Training reconstruction | All original, correction and combined corpus digests matched the frozen 4,199-row candidate provenance; zero evaluation rows entered fitting. |
-| Fixture and trainer review | Held-key handoff, exact source/build identities, actual process outcomes, cap-before-filter and complete contradictory-decision rejection independently reviewed and regression tested. |
-| Release inventory | Version `0.4.0-dev`, 569 managed files; manifest and checksum verification recorded during publication. |
+| Fixture and trainer review | Held-key handoff, exact source/build identities, actual process outcomes, cap-before-filter and complete decision/actuation contradiction rejection independently reviewed and regression tested. |
+| Release inventory | Version `0.4.0-dev`, 569 managed files; refreshed manifest and checksum verification passed. |
 
 The three skipped tests require PowerShell or Windows SID/DACL support.
 Existing v1/v2 model and export bytes, production controller code and packaged

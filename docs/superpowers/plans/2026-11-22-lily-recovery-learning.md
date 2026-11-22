@@ -62,4 +62,4 @@ Here `original_directory` is the completed frozen-v2 original matrix used as the
 - [x] Before collection, declare the eight fixed branches and six fresh positions/four headings with exact hashes and geometry checks.
 - [x] After freeze, evaluate v2/v3/baseline on all 24 fresh, 27 original and 16 prior stress assignments; join across policies by actual starts and baseline trace bytes. Keep all outcomes.
 - [x] Compute the predeclared paired engineering criterion, independently audit attribution/inference, and document limitations and next evidence-based step.
-- [ ] Run meaningful full regressions and whole-change review, refresh/check release integrity, commit final evidence and push the existing development branch; update draft PR #2.
+- [x] Run meaningful full regressions and whole-change review, refresh/check release integrity, commit final evidence and push the existing development branch; update draft PR #2.

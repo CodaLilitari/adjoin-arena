@@ -358,7 +358,7 @@
     },
     "docs/reviews/2026-11-22-lily-recovery-learning-checkpoint.md": {
       "mode": 420,
-      "sha256": "71138bf1e3233f6f45112c5818c4c22e072dbe9a81682248f0758324100124f7"
+      "sha256": "0c80a42f20f68732ede13434a84c0f1a2bf325f745cf30d51363009585f7971c"
     },
     "docs/superpowers/plans/2026-10-28-browser-spectator.md": {
       "mode": 420,
@@ -398,7 +398,7 @@
     },
     "docs/superpowers/plans/2026-11-22-lily-recovery-learning.md": {
       "mode": 420,
-      "sha256": "21b11af8595c83d4e9bbdb098f7cda5fa8ef095ee0f7200cfe3f638808d95084"
+      "sha256": "98a2e6d16e42e949159941ae01839582f6a853722bddacbeb43ba08348e621fe"
     },
     "docs/superpowers/specs/2026-10-28-browser-spectator-design.md": {
       "mode": 420,
@@ -1890,7 +1890,7 @@
     },
     "scripts/bot_development/analysis/audit_recovery_learning.py": {
       "mode": 420,
-      "sha256": "af182057eb483361264c6f9d507923a4a51800706f3bee9e33908533e8d18e7b"
+      "sha256": "265440f5ba2d8b5a055558c431af66f3fe4a4111caf84fe317806ea279202215"
     },
     "scripts/bot_development/analysis/compare_gameplay.py": {
       "mode": 420,
@@ -2082,7 +2082,7 @@
     },
     "tests/test_lily_recovery_evaluation.py": {
       "mode": 420,
-      "sha256": "e6b78ffa45f896205d856926484efa867d84e01e119e065a6880443d377ba07f"
+      "sha256": "d6ee18a12602a92730cfd2d6c924693987e32f7f1620232681b55d4d89e7baaa"
     },
     "tests/test_lily_recovery_motor.py": {
       "mode": 420,
