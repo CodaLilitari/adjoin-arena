@@ -45,8 +45,11 @@ def main():
     parser.add_argument("--origin", type=int, default=41)
     parser.add_argument("--wet", type=int, default=54)
     parser.add_argument("--dry", type=int, default=41)
+    parser.add_argument("--start-sector", type=int, help="observed swimmer sector (defaults to --wet)")
     parser.add_argument("--position", type=float, nargs=3, required=True, metavar=("X", "Y", "Z"))
-    parser.add_argument("--control-hz", type=int, choices=(15, 20, 30, 60), required=True)
+    timing = parser.add_mutually_exclusive_group(required=True)
+    timing.add_argument("--control-hz", type=int, choices=(15, 20, 30, 60))
+    timing.add_argument("--control-dt", type=float, help="observed seconds per control update")
     parser.add_argument("--flags", type=lambda s: int(s, 16), required=True)
     parser.add_argument("--health", type=float, required=True)
     parser.add_argument("--endurance-ms", type=int, required=True)
@@ -54,6 +57,10 @@ def main():
     parser.add_argument("--yaw", type=float, default=0)
     parser.add_argument("--vertical-speed", type=float, required=True)
     args = parser.parse_args()
+    dt = args.control_dt if args.control_dt is not None else 1.0 / args.control_hz
+    if not 1.0 / 150 <= dt <= 0.25:
+        parser.error("control interval must be between 1/150 and 0.25 seconds")
+    start_sector = args.wet if args.start_sector is None else args.start_sector
     source = args.source.resolve()
     flags_file = args.build.resolve() / "CMakeFiles/sith_engine.dir/flags.make"
     flags = dict(line.split(" = ", 1) for line in flags_file.read_text().splitlines() if " = " in line)
@@ -74,12 +81,13 @@ def main():
         executable = work / "replay"
         subprocess.run([*compile_args, "-Wl,--gc-sections", "-lm", "-o", executable], check=True)
         x, y, z = args.position
-        values = dict(X=x, Y=y, Z=z, RATE=args.control_hz, PF=format(args.flags, "x"),
+        values = dict(X=x, Y=y, Z=z, PF=format(args.flags, "x"),
                       HEALTH=args.health, END=args.endurance_ms, PITCH=args.pitch,
                       YAW=args.yaw, VZ=args.vertical_speed)
         env = {k: v for k, v in os.environ.items() if not k.startswith("TRACE_") and k != "EXTRA"}
         env.update({f"TRACE_{key}": str(value) for key, value in values.items()})
-        subprocess.run([executable, geometry, str(args.origin), str(args.wet), str(args.dry)],
+        subprocess.run([executable, geometry, str(args.origin), str(args.wet), str(args.dry),
+                        str(start_sector), str(dt)],
                        check=True, env=env)
 
 

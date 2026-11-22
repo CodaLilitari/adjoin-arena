@@ -39,9 +39,32 @@ static void test_initial_anchor_jump(void)
     bot.nodes[0].pos.x=.40f; bot.nodes[0].pos.z=BOT_FOOT_HEIGHT+.22f;
     Bot_Navigate(&self);
     assert(!bot.keys[INPUT_FUNC_JUMP] && !nav.jumpUntil);
+    own.aItems[SITHBIN_F_JUMP].state=SITHINVENTORY_ITEM_AVAILABLE;
+    own.aItems[SITHBIN_F_JUMP].amount=3; own.aItems[SITHBIN_FORCEMANA].amount=19;
+    Bot_Navigate(&self); assert(!nav.forceJumpPending);
+    own.aItems[SITHBIN_FORCEMANA].amount=20;
+    Bot_Navigate(&self);
+    int jumpKey=Bot_PowerKey(SITHBIN_F_JUMP);
+    assert(nav.forceJumpPending && bot.keys[jumpKey] && !bot.keys[INPUT_FUNC_JUMP]);
+    assert(Bot_Distance(self.position,original)==0 && own.aItems[SITHBIN_FORCEMANA].amount==20);
+    /* A shove before release ends the dry route and drops the normal key.
+       Inventory scripts own any release effects, mana, and reactivation. */
+    self.attach_flags=0; bot.now+=0.1f; memset(bot.keys,0,sizeof(bot.keys));
+    Bot_Navigate(&self); Bot_ForceTick(&self,NULL,180.0f);
+    assert(!nav.forceJumpPending && !nav.jumpUntil && bot.forceBin==-1 && !bot.keys[jumpKey]);
+    for (int rank=3;rank<=4;rank++) {
+        self.attach_flags=SITH_ATTACH_SURFACE; own.aItems[SITHBIN_F_JUMP].amount=rank;
+        bot.now+=3; flex_t hold=rank*.35f;
+        assert(Bot_RequestForce(&self,SITHBIN_F_JUMP,hold,-1));
+        assert(fabsf(bot.forceUntil-(bot.now+hold))<0.001f);
+        bot.now=bot.forceUntil-.01f; memset(bot.keys,0,sizeof(bot.keys));
+        Bot_ForceTick(&self,NULL,180.0f); assert(bot.keys[jumpKey]);
+        bot.now=bot.forceUntil+.01f; memset(bot.keys,0,sizeof(bot.keys));
+        Bot_ForceTick(&self,NULL,180.0f); assert(!bot.keys[jumpKey] && bot.forceBin==-1);
+    }
     assert(queryDepth==0);
     jkBot_Configure("Bot_Reset","ky.3do");
-    puts("PASS actual initial anchor segment uses bounded ordinary jump inputs; airborne continuation, range and height limits retained");
+    puts("PASS dry initial anchor prefers ordinary jump, checks Force availability, releases on lost support and holds full rank 3/4 charge");
 }
 
 static void test_static_bridge_route(void)

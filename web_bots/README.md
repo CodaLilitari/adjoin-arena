@@ -85,10 +85,20 @@ surface jumps, preserves the shore route through a brief breach, and can clear
 crouch through an ordinary hop. A dry approach also walks to its water-entry
 anchor instead of repeatedly discarding a still-distant opening.
 
+The later sector 42 pool failure exposed two more gaps. Swim links now require
+clearance for the player's full body. When a blocked route leaves a swimmer
+needing air, a clear surface directly above is an immediate escape option. Bank
+prediction also checks the engine's wider floor-contact sweep, so a supported
+rim landing is not discarded just because a ray through the player's center
+misses the bank. An intervening standable object still blocks that prediction.
+
 The follow-up receipt retains the failed intermediate trials and explains the
 limits of the original simplified fixtures. An independent replay using stock
 engine collision, surface capture, sector transitions, drowning and controls
-reached sustained dry footing in all 36 observed-state cases. Actual browser
+reached sustained dry footing in all 36 shaft cases. The three recorded pool
+states also reach dry ground; the previous build drowns from all three on the
+same replay. The [reusable runner](../native/tests/stock_water_replay/README.md)
+accepts the observed control interval and initial wet sector. Actual browser
 multiplayer qualification is recorded separately.
 
 Stock multiplayer permits pulling the Bryar. Active Absorb prevents the
@@ -104,6 +114,15 @@ it. The Persuasion check requires both synchronized effect and actor invisibilit
 flags, so Force Jump's shared twinkle alone does not qualify. Seeing protects
 against a subsequent Blind; the current Blind timer remains
 under stock script control.
+
+Charged Force Jump now includes the stock rank limit, the actual first-anchor
+approach, and a checked uphill escape after a grounded movement stall. The
+full-charge predictor uses body clearance, stock air drag and thrust, and
+the observed browser control cadence. At Lily's recorded grounded stall,
+the normal bot tick selects and lands on an upper ledge at 30 and 60 Hz. It
+declines that tested jump at 15 and 20 Hz, where the current movement falls
+short. The follow-up receipt distinguishes these controlled stock-script
+replays from live browser observations.
 
 ## Build and relink
 

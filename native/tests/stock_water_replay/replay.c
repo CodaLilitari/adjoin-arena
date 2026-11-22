@@ -1,12 +1,12 @@
-#define main run_original_fixtures
+#define BOT_PORTAL_COLLISION_FIXTURE_ONLY
 #include "../test_bot_portal_collision.c"
-#undef main
+#undef BOT_PORTAL_COLLISION_FIXTURE_ONLY
 int sithInventory_IsInventoryActivated(SithThing *p,int b){return p->actorParams.pPlayer && (p->actorParams.pPlayer->aItems[b].state&SITHINVENTORY_ITEM_ACTIVATED);}
 #include "replay_loop.inc"
 static void vec(FILE *f,rdVector3 *v){float x,y,z;assert(fscanf(f,"%f%f%f",&x,&y,&z)==3);*v=(rdVector3){x,y,z};}
 static int integer(FILE *f){int n;assert(fscanf(f,"%d",&n)==1);return n;}
 int main(int argc,char **argv){
-    assert(argc==5);FILE *f=fopen(argv[1],"r");assert(f); SithWorld *w=&test_world;
+    assert(argc==7);FILE *f=fopen(argv[1],"r");assert(f); SithWorld *w=&test_world;
     bot.world=sithWorld_g_pCurrentWorld=w;w->gravity=4;strcpy(w->map_jkl_fname,"private");
     w->numVertices=integer(f);w->aVertices=calloc(w->numVertices,sizeof(*w->aVertices));
     for(int i=0;i<w->numVertices;i++)vec(f,&w->aVertices[i]);
@@ -39,7 +39,12 @@ int main(int argc,char **argv){
     sithPlayer_g_pLocalPlayerThing=me; me->actorParams.maxThrust=2; me->physicsParams.airDrag=.5f; Bot_BuildNodes(me);while(!bot.graphDone)Bot_BuildGraphStep();
     flex_t d[BOT_NODES];int parent[BOT_NODES],start=Bot_Nearest(me);assert(start>=0);Bot_PathDistances(me,start,d,parent);
 
+    int startSector=atoi(argv[5]);
+    if (startSector<0 || startSector>=w->numSectors || !(w->aSectors[startSector].flags&SITH_SECTOR_UNDERWATER)) {
+        fprintf(stderr,"Start sector %d must be an underwater map sector\n",startSector);return 2;
+    }
     for(int i=0;i<bot.nNodes;i++){BotNode *n=&bot.nodes[i]; if(n->sector->id!=(unsigned)atoi(argv[3]))continue;for(int j=0;j<n->nEdges;j++){
         BotEdge *e=&n->edges[j]; if(e->drop!=BOT_ROUTE_WATER_EXIT || bot.nodes[e->to].sector->id!=(unsigned)atoi(argv[4]))continue;
-        int pass=play_exit(me,i,e->to,.05f);fprintf(stderr,"STOCK FULL TICK landed=%d\n",pass);return !pass;
+        int pass=play_exit(me,i,e->to,&w->aSectors[startSector],atof(argv[6]));
+        fprintf(stderr,"STOCK FULL TICK landed=%d\n",pass);return !pass;
     }}return 2;}

@@ -46,11 +46,11 @@ __typeof__(sithTime_g_fps) sithTime_g_fps=20;
 #define SITHTHING_SQUEEZE_RADIUS_FACTOR .7f
 static void sithControl_PlayerMovementMots(SithThing *me){abort();}
 #include "stock_functions.inc"
-static int play_exit(SithThing *me,int from,int to,float dt) {
+static int play_exit(SithThing *me,int from,int to,SithSector *startSector,float dt) {
     BotNode *wet=&bot.nodes[from], *dry=&bot.nodes[to];rdVector3 surface;flex_t duration;
     assert(Bot_WaterExitArc(wet,dry,&nav.waterExitStart,&duration));
     assert(Bot_WaterSurface(wet,me->moveSize,&surface));
-    me->sector=wet->sector;me->position=wet->pos;me->physicsParams.flags=0x4a4f;me->physicsParams.mass=150;me->physicsParams.buoyancy=0;
+    me->sector=startSector;me->position=wet->pos;me->physicsParams.flags=0x4a4f;me->physicsParams.mass=150;me->physicsParams.buoyancy=0;
     me->physicsParams.vel=(rdVector3){0};me->physicsParams.physicsRolloverFrames=0;
     rdVector3 dir=Bot_Sub(dry->pos,wet->pos);float h=Bot_Horizontal(dir);
     me->orient.lvec=(rdVector3){dir.x/h,dir.y/h,0};me->orient.rvec=(rdVector3){dir.y/h,-dir.x/h,0};me->orient.uvec=(rdVector3){0,0,1};
@@ -61,10 +61,13 @@ static int play_exit(SithThing *me,int from,int to,float dt) {
     bot.now=1;Bot_ResetHearing();Bot_HearingListener();
     if(getenv("TRACE_X")) {
         me->position=(rdVector3){atof(getenv("TRACE_X")),atof(getenv("TRACE_Y")),atof(getenv("TRACE_Z"))};
+        if (!sithIntersect_IsSphereInSector(&me->position,0,startSector)) {
+            fprintf(stderr,"Observed position lies outside swimmer start sector %d\n",startSector->id);
+            return 0;
+        }
         bot.now=80;nav.waterSince=60;bot.stuckAt=bot.now;bot.progressPos=me->position;
         me->actorParams.health=78;
     }
-    if(getenv("TRACE_RATE")) dt=1.0f/atof(getenv("TRACE_RATE"));
     me->actorParams.flags|=SITH_AF_CANROTATEHEAD;
     me->actorParams.minHeadPitch=-80;me->actorParams.maxHeadPitch=80;
     me->physicsParams.maxRotationVelocity=200;

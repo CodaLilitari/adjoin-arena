@@ -7,8 +7,8 @@
 #ifdef NDEBUG
 #error Assertions must remain enabled for the portal regression
 #endif
-/* This fixture has no things. Keep its world-surface collision path real,
- * while making any accidental thing-intersection dependency fail explicitly. */
+/* Use stock world collision and sphere intersections. Mesh fixtures require
+ * model data and are outside the scope of this test. */
 #define sithIntersect_CheckSphereThingIntersection TestUnusedThingIntersection
 #include "Engine/sithIntersect.c"
 #undef sithIntersect_CheckSphereThingIntersection
@@ -35,14 +35,20 @@ int sithIntersect_CheckSphereThingIntersection(SithThing *thing,const rdVector3 
     const rdVector3 *direction,flex_t distance,flex_t radius,SithThing *other,int flags,
     flex_t *hit,rdMesh **mesh,rdFace **face,rdVector3 *normal)
 {
-    (void)thing; (void)start; (void)direction; (void)distance; (void)radius; (void)other;
-    (void)flags; (void)hit; (void)mesh; (void)face; (void)normal;
-    fputs("Unexpected thing collision in world-only fixture\n",stderr); abort();
+    assert(!thing && other->collide==SITH_COLLIDE_SPHERE);
+    *mesh=NULL; *face=NULL;
+    if (!sithIntersect_CheckSphereIntersection(start,direction,distance,radius,
+            &other->position,other->collideSize,hit,0,flags)) return 0;
+    *normal=Bot_Sub(*start,other->position);
+    rdVector_ScaleAdd3Acc(normal,direction,*hit);
+    rdVector_Normalize3Acc(normal);
+    return SITHCOLLISION_THING;
 }
 flex_t sithInventory_GetInventory(SithThing *thing,int bin)
 { return thing->actorParams.pPlayer ? thing->actorParams.pPlayer->aItems[bin].amount : 0; }
 
 static SithWorld test_world;
+#ifndef BOT_PORTAL_COLLISION_FIXTURE_ONLY
 static SithSector test_sectors[3];
 static SithSurface test_surfaces[24];
 static SithSurfaceAdjoin test_adjoins[4];
@@ -211,6 +217,22 @@ static void test_grounded_portal_clearance(void)
     puts("PASS ordinary low passage and supported step with headroom retain routes; query stack balanced");
 }
 
+static void test_swim_clearance(void)
+{
+    test_low_threshold(.10f,.21f);
+    for (int i=0;i<3;i++) test_sectors[i].flags|=SITH_SECTOR_UNDERWATER;
+    bot.nodes[0]=(BotNode){.pos={.9f,0,.155f},.sector=&test_sectors[0]};
+    bot.nodes[1]=(BotNode){.pos={1.5f,0,.155f},.sector=&test_sectors[2]};
+    bot.nNodes=2;
+    SithThing self={0}; sithPlayer_g_pLocalPlayerThing=&self;
+    self.moveSize=.045f;
+    assert(Bot_EdgeMode(0,1)==BOT_ROUTE_SWIM);
+    self.moveSize=.065f;
+    assert(Bot_EdgeMode(0,1)<0 && Bot_EdgeMode(1,0)<0);
+    sithPlayer_g_pLocalPlayerThing=NULL;
+    puts("PASS swim portal requires clearance for the active player body");
+}
+
 /* A dry shelf above water, with a short dry shaft between the two.
    The diagonal from the shelf to the water hits the edge of the floor. */
 static int test_horizontal_face(int sector,flex_t left,flex_t right,flex_t z,int upward)
@@ -257,6 +279,32 @@ static void test_water_entry(void)
     self.moveSize=self.collideSize=.065f; self.attach_flags=SITH_ATTACH_SURFACE;
     self.orient.lvec=(rdVector3){1,0,0};self.orient.rvec=(rdVector3){0,-1,0};
     sithPlayer_g_pLocalPlayerThing=&self;
+    rdVector3 rim={.22f,0,.066f},supported;
+    SithSector *rimSector=NULL;
+    assert(!Bot_Floor(rim,dry.sector,.16f,&supported,&rimSector));
+    assert(Bot_BankRimSupport(&self,rim,&dry,&supported));
+    assert(fabsf(supported.z-BOT_FOOT_HEIGHT)<.00001f);
+    /* Stock FindFloor stops at a standable sphere with no attachable face.
+       A center-ray hit below the rim and a radius-only hit beside the actor
+       must each prevent an apparent attachment to the shelf behind it. */
+    SithThing blocker={.type=SITH_THING_COG,.flags=SITH_TF_STANDABLE,
+        .collide=SITH_COLLIDE_SPHERE,.collideSize=.005f,.position={.22f,0,.008f}};
+    dry.sector->pFirstThingInSector=&blocker;
+    assert(!Bot_BankRimSupport(&self,rim,&dry,&supported));
+    blocker.position=(rdVector3){.24f,0,.060f};
+    assert(!Bot_BankRimSupport(&self,rim,&dry,&supported));
+    dry.sector->pFirstThingInSector=NULL;
+    assert(sithCollision_searchStackIdx==-1);
+    rim.x=.30f;
+    assert(!Bot_BankRimSupport(&self,rim,&dry,&supported));
+    self.sector=wet.sector; self.position=wet.pos; self.attach_flags=0;
+    self.actorParams.endurance=19000;
+    assert(Bot_SeekSurface(&self) && nav.seekingSurface && bot.routeAim && bot.keys[INPUT_FUNC_JUMP]);
+    test_adjoins[3].flags&=~SITHSURF_ADJOIN_ALLOW_MOVEMENT;
+    assert(!Bot_SeekSurface(&self) && !nav.seekingSurface);
+    test_adjoins[3].flags|=SITHSURF_ADJOIN_ALLOW_MOVEMENT;
+    self.position=dry.pos; self.sector=dry.sector; self.attach_flags=SITH_ATTACH_SURFACE;
+    self.actorParams.endurance=0; memset(bot.keys,0,sizeof(bot.keys));
     assert(!Bot_Clear(NULL,dry.sector,dry.pos,wet.pos,.045f,1));
     bot.nNodes=2;bot.nodes[0]=dry;bot.nodes[1]=wet;
     assert(Bot_EdgeMode(0,1)==BOT_ROUTE_WATER_ENTRY);
@@ -473,7 +521,9 @@ int main(void)
     assert(sithCollision_searchStackIdx==-1);
     puts("PASS closed/AI-only portals and unsupported landings remain rejected; query stack balanced");
     test_grounded_portal_clearance();
+    test_swim_clearance();
     test_water_entry();
     test_pickup_contact_approach();
     return 0;
 }
+#endif

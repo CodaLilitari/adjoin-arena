@@ -12,7 +12,19 @@ python3 native/tests/stock_water_replay/run.py \
   --pitch "$PITCH" --yaw "$YAW_OFFSET" --vertical-speed "$VERTICAL_SPEED"
 ```
 
-The yaw offset rotates the initial heading relative to the wet-to-dry edge. The default Canyon Oasis setup starts the graph builder at spawn sector 41 and selects an exit edge from sector 54 to sector 41. The actor starts at the supplied observation position with zero horizontal velocity. The fixture uses the stock player size, standing height, air drag and thrust. The bot's underwater timer starts at 20 seconds so these cases exercise air recovery; the supplied endurance field governs actual drowning. This fixture does not establish when a fresh dive first selects an air objective.
+The default Canyon Oasis setup builds the graph from spawn sector 41, selects an exit edge from sector 54 to sector 41, and starts the swimmer in sector 54. Set `--start-sector` if the observed swimmer occupies a different underwater sector from the selected exit edge. The actor starts at the supplied position with zero horizontal velocity. Yaw zero points along the selected wet-to-dry graph edge. The replay uses these assumptions for the three pool captures below.
+
+Use either `--control-hz` for the existing 15, 20, 30, or 60 Hz cases or `--control-dt` for a measured interval in seconds. The replay holds that interval constant. It accepts intervals from one 150 Hz physics step through the bot's 0.25 second frame limit.
+
+For the three pool captures below, use `--origin 41 --wet 44 --dry 10 --start-sector 42 --flags cb4f --yaw 0` with each row's arguments. Sector 44 supplies the exit edge and heading. The swimmer starts in sector 42 and must reach sustained floor attachment in sector 10.
+
+| Capture (s) | `--position` | `--control-dt` | `--health` | `--endurance-ms` | `--pitch` | `--vertical-speed` |
+|---|---|---:|---:|---:|---:|---:|
+| 90 | `-1.946 1.935 -.276` | .040 | 100 | 15480 | 2.9 | .001 |
+| 100 | `-1.873 1.848 -.349` | .079 | 70 | 19473 | 15.6 | .003 |
+| 110 | `-1.798 1.874 -.312` | .026 | 20 | 19526 | 12.7 | .037 |
+
+The fixture uses the stock player size, standing height, air drag, and thrust. The bot's underwater timer starts at 20 seconds so these cases exercise air recovery. The supplied endurance governs drowning. A fresh dive's first choice of an air objective is outside the scope of this fixture.
 
 The runner extracts the required stock control, movement, sector transition and endurance functions from the supplied source checkout. Physics and world collision code come from that checkout as well. The map conversion, generated C include and executable live in a temporary directory. Rendering, sound, inventory powers, multiplayer transport and other players are outside this fixture. The actor begins with the specified health, and the damage callback deducts the stock actor timer's damage directly.
 

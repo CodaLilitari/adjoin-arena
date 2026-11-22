@@ -114,7 +114,7 @@ In range formulas, `L` means stars in that power (1–4), not the session rank.
 
 | Power | Decision and ordinary-input behavior |
 |---|---|
-| Jump | A validated route gap with sufficient rank/mana; ordinary charged hotkey and landing checks. |
+| Jump | A validated route gap or first-anchor approach with sufficient rank/mana. Full charges reach the stock rank limit. A sustained grounded movement stall can consider up to four nearby higher footholds using actual body clearance, stock air movement, current control cadence and a supported landing. Ordinary hotkey hold and release perform the jump. |
 | Speed | A sufficiently long, verified supported walking segment rather than a drop. |
 | Seeing | Current local Blind, or an eligible hostile player's synchronized Persuasion effect within the normal forward view, range and line of sight. Both the twinkle and actor invisibility flags must identify Persuasion; Force Jump's twinkle alone does not count. Ordinary combat, damage and generic Force threats do not trigger it. Stock Seeing prevents subsequent Blind effects; it does not cure an existing Blind timer. |
 | Pull | Disarm an eligible gun user within `0.5 + L/2` world units. |
@@ -135,6 +135,16 @@ requests. Competitive style uses a 0.15-second guard between power requests; leg
 consumption while most powers still require nominal mana to activate. Protection is an exception:
 its stock script deducts mana without a minimum-mana gate. A requested hotkey is not proof of a
 successful effect; `BOT_FORCE_INPUT` records the request only.
+
+The new full-charge prediction models the repeated scaling of airborne thrust
+between browser control frames. It may reject a ledge at a slow control rate
+that is reachable at a faster one. Recorded-pose replay verifies one Canyon
+Oasis recovery at 30 and 60 Hz; this does not establish every jump or frame
+rate. Recovery excludes water, active objectives and other pending powers.
+Charging and committed flight retain navigation's heading, and a loss of
+support ends the held key. No change is made to the stock jump script, mana,
+cooldown, collision or physics. See the
+[movement and Force follow-up](../qa/bots-movement-force-followup.json).
 
 The controller cannot suppress the stock inventory handler's own forced release when actor controls
 become disabled during a held power. That handler sends `DEACTIVATED` before a next-skill cancellation

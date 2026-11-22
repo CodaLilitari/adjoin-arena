@@ -168,6 +168,15 @@ in each side power and leaves eight stars unspent, allowing the stock game to
 derive Protection or Deadly Sight. A master uses the balanced allocation at
 lower ranks.
 
+Force Jump considers the actual approach to the first route anchor and can use
+the full learned charge: 1.05 seconds at three stars or 1.40 at four. A sustained
+grounded stall can also trigger a bounded search for a nearby higher foothold.
+It checks at most four candidates, requires an attempted move and available
+Force, and predicts the new full-charge landing with the player's body size,
+stock air movement and current control cadence. Charging and flight keep their
+route heading. Stock scripts still own takeoff, the 20-mana cost and bin wait;
+losing support during charge releases the ordinary key.
+
 Seeing requires a specific countering opportunity: the bot is currently Blind,
 or an eligible hostile player's synchronized Persuasion effect is within the
 normal forward view, range and line of sight. Persuasion requires both its
