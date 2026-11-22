@@ -81,7 +81,10 @@ def parse_jkl(text: str) -> dict:
                 if index in things:
                     raise ValueError(f"Duplicate thing {index}")
                 props = templates[name].copy()
-                props.update({k.casefold(): v.casefold() for k, v in re.findall(r"(\w+)=([^\s]+)", line)})
+                for key, value in re.findall(r"(\w+)=([^\s]*)", " ".join(row[10:])):
+                    if not value:
+                        raise ValueError(f"Thing {index} has empty override {key}")
+                    props[key.casefold()] = value.casefold()
                 position = tuple(float(x) for x in row[3:6])
                 orientation = tuple(float(x) for x in row[6:9])
                 if not all(math.isfinite(x) for x in position + orientation):

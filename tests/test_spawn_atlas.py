@@ -56,6 +56,19 @@ class SpawnAtlasTests(unittest.TestCase):
             self.assertEqual(start["source_kind"], "authored_player_thing")
             self.assertEqual(start["engine_eligibility"], "not_checked")
 
+    def test_empty_placed_property_fails_validation(self):
+        from bots.spawn_atlas import build_map_atlas
+        for override in (b"type=", b"type= thingflags=0x20"):
+            with self.subTest(override=override):
+                report = build_map_atlas("arena.jkl", LEVEL.replace(b"type=actor\n5:", override + b"\n5:"))
+                self.assertEqual(report["status"], "incomplete")
+                self.assertTrue(any("type" in e and "empty" in e for e in report["errors"]))
+                self.assertNotIn(1, [s["thing_index"] for s in report["starts"]])
+        valid = LEVEL.replace(b"type=player\nend", b"type=player thingflags=0x20 orient=(0/90/0)\nend")
+        report = build_map_atlas("arena.jkl", valid)
+        self.assertEqual(report["errors"], [])
+        self.assertEqual(report["starts"][-1]["properties"]["orient"], "(0/90/0)")
+
     def test_invalid_records(self):
         from bots.spawn_atlas import build_map_atlas
         for before, after in [(b"5:", b"8:"), (b"5:", b"5"), (b"5:", b"-1:"),
