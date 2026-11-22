@@ -483,7 +483,8 @@ class Hub:
             if method == "GET":
                 need(not query or route == "events", "Unexpected query.")
                 if route == "capabilities":
-                    extra = {"lily": {"version": 1}} if bot.adaptive_lily else {}
+                    extra = ({"lily": {"version": 1}, "lily_request_floor": str(bot.lily_request_number)}
+                             if bot.adaptive_lily else {})
                     return 200, dict(fence, **extra, protocol=1, native_active=fresh, chat_enabled=self.allow_chat,
                                      modes=MODES, resource_bins=RESOURCES, lease_seconds=30)
                 if route == "observation":
@@ -515,11 +516,10 @@ class Hub:
                 need(type(body["controller"]) is str and IDENTIFIER.fullmatch(body["controller"]), "Invalid controller.")
                 need(fresh, "Waiting for native state.", 409)
                 need(not bot.lease, "A controller holds this bot.", 409)
-                bot.lily_request_number = 0
-                bot.lily_commands.clear()
                 bot.lease = secrets.token_urlsafe(24)
                 bot.lease_until = now + 30
-                return 200, dict(fence, lease_id=bot.lease, expires_in=30)
+                extra = {"lily_request_floor": str(bot.lily_request_number)} if bot.adaptive_lily else {}
+                return 200, dict(fence, **extra, lease_id=bot.lease, expires_in=30)
             if route in KINDS:
                 return self.command(bot, route, body, now, fresh)
             fields(body, FENCE | {"lease_id"})
@@ -583,7 +583,7 @@ class Hub:
             payload = struct.pack("<d", deadline)
         if route != "release":
             need(len(bot.pending) < MAX_PENDING, "Native command queue is full.", 429)
-        # Adaptive IDs carry a per-lease monotonic counter. Once evicted, the
+        # Adaptive IDs carry a per-run monotonic counter. Once evicted, the
         # high-water mark still rejects replay without retaining every receipt.
         history = bot.lily_commands if adaptive else bot.commands
         limit = LILY_HISTORY if adaptive else COMMAND_HISTORY + (route == "release")

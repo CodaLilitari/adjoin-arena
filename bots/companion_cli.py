@@ -140,8 +140,12 @@ def execute(args):
     if not 0 <= args.wait <= 10:
         raise ValueError("--wait must be in 0..10 seconds.")
     adaptive = op in ("commit", "motor")
-    default_id = f"lily.{time.time_ns()}" if adaptive else secrets.token_hex(12)
-    body = dict(lease, request_id=args.request_id or default_id)
+    request_id = args.request_id
+    if request_id is None and adaptive:
+        capabilities = call(cred, "capabilities")
+        floor = int(capabilities.get("lily_request_floor", "0"))
+        request_id = f"lily.{max(time.time_ns(), floor + 1)}"
+    body = dict(lease, request_id=request_id or secrets.token_hex(12))
     if adaptive:
         with args.payload.open("rb") as source:
             raw = source.read(4097)

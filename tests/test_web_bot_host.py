@@ -219,7 +219,7 @@ class HostTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(obs["world_epoch"], 2)
         self.assertEqual(obs["lily"]["offers"], {"sample_id":83, "offer_id":90, "choices":[]})
         sense = cp.lily.SENSE_HEADER.pack(83, 0, 0, 0, -1, 0, 0, 1, 1, 0,
-                                          *([0.] * 19), 0, 0, 0, 0)
+                                          *([0.] * 14), 16., *([0.] * 4), 0, 0, 0, 0)
         self.assertEqual((await send("lily", "frames", "b", [cp.frame(7, 1, 1, 3, sense)])).status, 200)
         fresh = {key: obs[key] for key in cp.FENCE}
         ticket = request("attach", dict(fresh, controller="fixture"))

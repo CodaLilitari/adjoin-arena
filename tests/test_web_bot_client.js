@@ -15,6 +15,7 @@ async function check(mode, adaptive) {
   const dirs = [], files = [], delivered = [];
   const heap = new Uint8Array(2048);
   let sent = false, payloadReceived = false, inited = false;
+  let wasmNow = 100;
   const clockCmd = new Uint8Array(20+28);
   clockCmd.set(Buffer.from("JKCP")); clockCmd[4]=1; clockCmd[5]=16;
   const view = new DataView(clockCmd.buffer);
@@ -32,7 +33,7 @@ async function check(mode, adaptive) {
       const m=ctx.Module;
       m.FS={mkdirTree:x=>dirs.push(x),writeFile:(p,b)=>files.push([p,b.length])};
       m.HEAPU8=heap; m.ENV={};
-      m._jkBotWebNow=()=>100;
+      m._jkBotWebNow=()=>wasmNow;
       m._jkBotWebInbox=()=>160;
       m._jkBotWebReceive=n=>delivered.push(heap.slice(160,160+n));
       m._jkBotWebViewFlags=()=>0;
@@ -57,8 +58,11 @@ async function check(mode, adaptive) {
       if(msg.frames.length)payloadReceived=true;
       for (const data of msg.frames) forwardedKinds.add(Buffer.from(data,"base64")[5]);
       const send=inited && !sent;
-      if(send)sent=true;
-      return {ok:true,json:async()=>({frames:send?[command(16,5002),command(19,5001),command(20,5002),command(20,4999)]:[],server_mono:5000})};
+      if (send) {
+        sent=true;
+        wasmNow+=0.75; // The POST began at 100; the response arrives at 100.75.
+      }
+      return {ok:true,json:async()=>({frames:send?[command(16,5002),command(19,5001),command(20,5002),command(20,4999),command(20,5000.5),command(16,5000.5)]:[],server_mono:5000})};
     }
   };
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,"../web_bots/client.js"),"utf8"),ctx);

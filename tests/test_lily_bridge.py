@@ -59,6 +59,7 @@ class LilyBridgeTests(unittest.TestCase):
     def test_scoped_capability_and_disabled_routes(self):
         self.assertEqual(self.call("capabilities")[1]["lily"]["version"], 1)
         self.assertNotIn("lily", self.call("capabilities", seat="yun")[1])
+        self.assertNotIn("lily_request_floor", self.call("capabilities", seat="yun")[1])
         self.assertNotIn("lily", self.call("observation", seat="yun")[1])
         self.assertIsNone(self.call("observation")[1]["lily"]["sense"])
         with self.assertRaises(c.Problem) as error:
@@ -99,6 +100,29 @@ class LilyBridgeTests(unittest.TestCase):
             self.call("motor", self.motor(3))
             self.assertEqual(self.call("motor", self.motor(1))[1]["status"], "pending")
             self.assert_status(409, "motor", self.motor(2))
+
+    def test_second_lease_cannot_rebind_or_replay_first_controllers_receipt(self):
+        self.send_sense()
+        first = self.call("motor", self.motor(1))[1]
+        self.hub.pump()
+        self.child.recv(513)
+        self.feed(2, first["action_seq"], struct.pack("<BBH", 0, 20, 0))
+        self.call("release", dict(self.lease, request_id="release-first"))
+        second_ticket = self.call("attach", dict(self.fence, controller="second"))[1]
+        self.lease = dict(self.fence, lease_id=second_ticket["lease_id"])
+        self.assert_status(409, "motor", self.motor(1))
+        self.assertEqual(second_ticket["lily_request_floor"], "1")
+        with patch.object(c, "LILY_HISTORY", 2):
+            second = self.call("motor", self.motor(2))[1]
+            retained = self.call("commands/lily.1")[1]
+            self.assertEqual((retained["action_seq"], retained["status"]), (first["action_seq"], "applied"))
+            self.assertNotEqual(first["action_seq"], second["action_seq"])
+            self.call("motor", self.motor(3))
+            with self.assertRaises(c.Problem) as error:
+                self.call("commands/lily.1")
+            self.assertEqual(error.exception.status, 404)
+            self.assert_status(409, "motor", self.motor(1))
+            self.assertEqual(self.call("capabilities")[1]["lily_request_floor"], "3")
 
     def test_telemetry_freshness_and_offer_supersession(self):
         self.send_sense()
@@ -170,3 +194,7 @@ class LilyBridgeTests(unittest.TestCase):
         self.assert_status(409, "motor", self.motor(1))
         self.feed(6, 4, struct.pack("<IIIBBBBIi", result["action_seq"], 19, 73, 1, 4, 0, 1, 20, 7))
         self.assertEqual(command("observe")["lily"]["progress"]["outcome"], "arrived")
+        # Even a wall clock behind an operator's previous numeric ID cannot
+        # generate an alias for an already accepted request.
+        with patch.object(cli.time, "time_ns", return_value=1):
+            self.assertEqual(command("commit", str(path), "--wait", "0")["request_id"], "lily.2")
