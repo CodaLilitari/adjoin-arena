@@ -14,7 +14,7 @@
     " 5a82f71ed1dfc0bec044d9702463dbdf84ea3b71 lib/zlib (5a82f71)"
   ],
   "changed_sources": {
-    "src/AI/jkBot.c": "46712f1ca48f42ee968f46cc1ea8fa1913c1f4727f7a132d7a6133f265e1b294",
+    "src/AI/jkBot.c": "7aa57b2534401057e24ba7f532efc572816fe67f0f86db9572cfc9da78f8ef14",
     "src/AI/jkBot.h": "47652fc419857c8c24bc0d4913b43dfe5f1a58ce5062c06f3b719400d02456b2",
     "src/AI/jkBotBehavior.h": "59ff972747fb3aa9514fae11c003e803da8b40f1e42b68801db969414a2416df",
     "src/AI/jkBotBehavior.inc": "f28ddaf54328b1ea8a6242902e268648b089fbf6b655f9657a006460a0cce559",
@@ -23,8 +23,8 @@
     "src/AI/jkBotForce.inc": "aa7267a52992928addde61240019dada4f58e0915fdd117db82e9638abd64c4c",
     "src/AI/jkBotHearing.inc": "fe85aa4d9c940086e504d39e981550130acaae397479f09bcce6ef1bad087d1c",
     "src/AI/jkBotLoadout.h": "aab6d025bb9ec2c431beb2d6bd559992b664e9ce075fcaa9c1103ae9ed5dcdc1",
-    "src/AI/jkBotNavigate.inc": "2d607385719fece9f8e12b454a1d778350f101da3486c23a1a144bca0d349b26",
-    "src/AI/jkBotNavigation.inc": "2f5d298517aa14ddea39d0eafe5aa8de4c596b8604465e1ee12a908503b41a40",
+    "src/AI/jkBotNavigate.inc": "fd8b8df6a1e209a7c69dde4705d52a7eb23243c5cb38417a0124cd99c0dbc756",
+    "src/AI/jkBotNavigation.inc": "7fffa3f3e1afa5cf051372f960707c5b057d7cae4763061bb27693690079051e",
     "src/AI/jkBotPersona.c": "618f31f58e45a13d89b5dc0493233d446d5eaeada681bd0de758a155a50d578d",
     "src/AI/jkBotPersona.h": "e193097d937ed22400fe84d86a1e9e7f18884cc2be876fb1540627bee96e0bfb",
     "src/AI/jkBotWaterExit.inc": "2d1b36d679222c48936b8d4e920991da87fda6e536010e783ea54232dc241383",
@@ -49,16 +49,16 @@
       "bytes": 563119
     },
     "bin/bots-jkweb/openjkdf2.wasm": {
-      "sha256": "7f5ab43857e84f0c3e905e28db07a23fc4575095174813c29459db48ad8f0adf",
-      "bytes": 3823446
+      "sha256": "9e802daf1ebeb808cf3822bd63e9b58506c34be4126a7ce5bdc26c9295751542",
+      "bytes": 3825023
     },
     "web_bots/engine.patch": {
-      "sha256": "c9f958c461214467a9287a08d7fab6cc6d2af3a06849195240e2ba15035536eb",
-      "bytes": 308720
+      "sha256": "4859dd7a550f612d6792fc73c1cef887815e90ed025089f20b751ff9ff14375a",
+      "bytes": 311029
     },
     "web_bots/engine-relink.tar.gz": {
-      "sha256": "f72078e64b3f6075578eb7252975afc846d5c2eb9b2bdff6e7179c351d95c9b8",
-      "bytes": 1575192
+      "sha256": "eef4a0a8713b00e7f95378cc63c94b5fda59858b252f76498fb6ebfde10649aa",
+      "bytes": 1575376
     }
   }
 }

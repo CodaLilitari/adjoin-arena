@@ -12,16 +12,16 @@
       "bytes": 563119
     },
     "bin/bots-jkweb/openjkdf2.wasm": {
-      "sha256": "7f5ab43857e84f0c3e905e28db07a23fc4575095174813c29459db48ad8f0adf",
-      "bytes": 3823446
+      "sha256": "9e802daf1ebeb808cf3822bd63e9b58506c34be4126a7ce5bdc26c9295751542",
+      "bytes": 3825023
     },
     "web_bots/engine.patch": {
-      "sha256": "c9f958c461214467a9287a08d7fab6cc6d2af3a06849195240e2ba15035536eb",
-      "bytes": 308720
+      "sha256": "4859dd7a550f612d6792fc73c1cef887815e90ed025089f20b751ff9ff14375a",
+      "bytes": 311029
     },
     "web_bots/engine-relink.tar.gz": {
-      "sha256": "f72078e64b3f6075578eb7252975afc846d5c2eb9b2bdff6e7179c351d95c9b8",
-      "bytes": 1575192
+      "sha256": "eef4a0a8713b00e7f95378cc63c94b5fda59858b252f76498fb6ebfde10649aa",
+      "bytes": 1575376
     }
   },
   "independent_direct_relink": {

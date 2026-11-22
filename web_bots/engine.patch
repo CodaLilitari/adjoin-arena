@@ -1,9 +1,9 @@
 diff --git a/src/AI/jkBot.c b/src/AI/jkBot.c
 new file mode 100644
-index 0000000..d1c4774
+index 0000000..d59f677
 --- /dev/null
 +++ b/src/AI/jkBot.c
-@@ -0,0 +1,1040 @@
+@@ -0,0 +1,1031 @@
 +/*
 + * Ordinary-client multiplayer bot input driver, reconstructed October 2026.
 + * Copyright (C) OpenJKDF2 contributors.
@@ -474,17 +474,9 @@ index 0000000..d1c4774
 +    if (!item || item->type!=SITH_THING_ITEM || !Bot_SectorSafe(item->sector) ||
 +        (item->flags&(SITH_TF_DISABLED|SITH_TF_DEAD))) return 0;
 +    if (Bot_LivePack(item)) return Bot_PackValue(self,item);
-+    BotPickupKind k=Bot_ClassifyPickup(Bot_ItemName(item));
-+    if (!k.kind && item->renderData.model3) k=Bot_ClassifyPickup(item->renderData.model3->filename);
++    BotPickupKind k=Bot_PickupType(item);
 +    if (k.kind==BOT_ITEM_WEAPON && (k.bin==SITHBIN_BRYARPISTOL || k.bin==SITHBIN_LIGHTSABER)) return 0;
-+    if (k.kind==BOT_ITEM_AMMO) {
-+        int usable=(k.bin==SITHBIN_ENERGY && (sithInventory_GetInventory(self,SITHBIN_BRYARPISTOL)>0 ||
-+                                              sithInventory_GetInventory(self,SITHBIN_STORMTROOPER_RIFLE)>0)) ||
-+            (k.bin==SITHBIN_POWER && (sithInventory_GetInventory(self,SITHBIN_CONCUSSION_RIFLE)>0 ||
-+                sithInventory_GetInventory(self,SITHBIN_REPEATER)>0 || sithInventory_GetInventory(self,SITHBIN_TUSKEN_PROD)>0)) ||
-+            (k.bin==SITHBIN_RAILCHARGES && sithInventory_GetInventory(self,SITHBIN_RAIL_DETONATOR)>0);
-+        if (!usable) return 0;
-+    }
++    if (k.kind==BOT_ITEM_AMMO && !Bot_UsesAmmo(self,k.bin)) return 0;
 +    flex_t value=Bot_ItemValue(self,index);
 +    if (value<=0) return 0;
 +    /* A short supply of the heavy weapon's own ammunition is worth chasing
@@ -607,8 +599,8 @@ index 0000000..d1c4774
 +{
 +    BotEquipmentRank racks[BOT_EQUIP_PROBES]={0},packs[BOT_EQUIP_PROBES+1]={0};
 +    BotGoalPaths all,restricted;
-+    const BotGoalPaths *wet=Bot_SearchGoalPaths(self,&all,&restricted);
-+    int deferDirect=wet!=&all && Bot_OnDeferredCrossing();
++    const BotGoalPaths *safe=Bot_SearchGoalPaths(self,&all,&restricted);
++    int deferDirect=safe!=&all && Bot_OnDeferredCrossing();
 +    BotNode here={.pos=self->position,.sector=self->sector}, contact={0};
 +    int anchor=-1, index=-1, direct=0;
 +    flex_t best=0;
@@ -618,9 +610,8 @@ index 0000000..d1c4774
 +        if (!item || !Bot_SectorSafe(item->sector) || Bot_LivePack(item) || node->avoidUntil>bot.now || Bot_AtEquipment(self,item)) continue;
 +        if (item->collide==SITH_COLLIDE_SPHERE &&
 +            Bot_Distance(node->pos,item->position)>=self->moveSize+item->collideSize) continue;
-+        int submerged=(item->sector->flags&SITH_SECTOR_UNDERWATER)!=0;
-+        if (submerged && deferDirect) continue;
-+        const BotGoalPaths *paths=submerged ? wet : &all;
++        const BotGoalPaths *paths=safe!=&all && Bot_OptionalSupply(self,item) ? safe : &all;
++        if (deferDirect && paths==safe) continue;
 +        int start=paths->start; const flex_t *distance=paths->distance;
 +        flex_t value=Bot_EquipmentValue(self,node->item);
 +        if (value<=0) continue;
@@ -640,7 +631,7 @@ index 0000000..d1c4774
 +    for (int i=0;i<Bot_ThingCount();i++) {
 +        SithThing *item=&bot.world->aThings[i];
 +        if (!Bot_LivePack(item) || !Bot_SectorSafe(item->sector)) continue;
-+        if (deferDirect && (item->sector->flags&SITH_SECTOR_UNDERWATER)) continue;
++        if (deferDirect && Bot_OptionalSupply(self,item)) continue;
 +        flex_t value=Bot_PackValue(self,item);
 +        if (value<=0 || Bot_AtEquipment(self,item)) continue;
 +        if (bot.armItem==i+1) value*=1.15f;
@@ -650,7 +641,7 @@ index 0000000..d1c4774
 +    for (int rank=0;rank<BOT_EQUIP_PROBES && racks[rank].score>0;rank++) {
 +        int i=racks[rank].index;
 +        BotNode *node=&bot.nodes[i];
-+        const BotGoalPaths *paths=Bot_WetDestination(node) ? wet : &all;
++        const BotGoalPaths *paths=safe!=&all && Bot_OptionalSupply(self,Bot_NavThing(node->item)) ? safe : &all;
 +        int start=paths->start; const flex_t *distance=paths->distance;
 +        int walk=Bot_EquipmentSpan(self,&here,node);
 +        if (!walk && (start<0 || start==i || distance[i]>=1e19f)) continue;
@@ -662,7 +653,7 @@ index 0000000..d1c4774
 +    for (int rank=0;rank<=BOT_EQUIP_PROBES && packs[rank].score>0;rank++) {
 +        int i=packs[rank].index; SithThing *pack=Bot_NavThing(i); BotNode end={0};
 +        if (!Bot_PackContact(self,pack,&end)) continue;
-+        const BotGoalPaths *paths=(pack->sector->flags&SITH_SECTOR_UNDERWATER) ? wet : &all;
++        const BotGoalPaths *paths=safe!=&all && Bot_OptionalSupply(self,pack) ? safe : &all;
 +        int start=paths->start; const flex_t *distance=paths->distance;
 +        int walk=Bot_EquipmentSpan(self,&here,&end), approach=-1;
 +        flex_t cost=Bot_Distance(here.pos,end.pos);
@@ -691,7 +682,7 @@ index 0000000..d1c4774
 +    }
 +    if (index<0) { Bot_ClearEquipment("no-route"); return; }
 +    SithThing *item=Bot_NavThing(index);
-+    const BotGoalPaths *chosen=(item->sector->flags&SITH_SECTOR_UNDERWATER) ? wet : &all;
++    const BotGoalPaths *chosen=safe!=&all && Bot_OptionalSupply(self,item) ? safe : &all;
 +    if (!direct && !(chosen==&all && bot.armItem==index+1 && !bot.armDirect && bot.goal==anchor &&
 +                     bot.routePos<bot.routeCount)) {
 +        if (!Bot_SetRoute(chosen->start,anchor,chosen->parent)) { Bot_ClearEquipment("path-limit"); return; }
@@ -714,7 +705,7 @@ index 0000000..d1c4774
 +    SithThing *item=Bot_NavThing(bot.armItem-1);
 +    if (bot.armItem && (!item || item->guid!=bot.armGuid || item->signature!=bot.armSignature ||
 +        Bot_Distance(item->position,bot.armPosition)>0.035f || Bot_EquipmentValue(self,bot.armItem-1)<=0 ||
-+        (Bot_WetSupply(self,item) && Bot_DeferSupplyApproaches(self) && Bot_OnDeferredCrossing())))
++        (Bot_DeferSupplyApproaches(self) && Bot_OnDeferredCrossing() && Bot_OptionalSupply(self,item))))
 +        Bot_ClearEquipment("state-or-contact");
 +    else if (item && Bot_AtEquipment(self,item)) {
 +        /* Physics can dispatch TOUCHED after this control frame. */
@@ -2955,10 +2946,10 @@ index 0000000..d167eb8
 +#endif
 diff --git a/src/AI/jkBotNavigate.inc b/src/AI/jkBotNavigate.inc
 new file mode 100644
-index 0000000..f73ca20
+index 0000000..7a4d61a
 --- /dev/null
 +++ b/src/AI/jkBotNavigate.inc
-@@ -0,0 +1,586 @@
+@@ -0,0 +1,591 @@
 +/* Movement execution for jkBotNavigation.inc; ordinary inputs only. */
 +/* Stock FreeCam tilts forward thrust with head pitch. Keep the extra
 +   upward stroke inside checked water clearance, including its lateral drift. */
@@ -3032,14 +3023,19 @@ index 0000000..f73ca20
 +static int Bot_EnterWater(SithThing *self, const BotNode *node, int mode, int from)
 +{
 +    if ((self->sector->flags&SITH_SECTOR_UNDERWATER) || !(node->sector->flags&SITH_SECTOR_UNDERWATER)) return 0;
-+    const SithThing *gear=Bot_NavThing(bot.armItem-1);
-+    int wetGoal=gear && gear->sector ? (gear->sector->flags&SITH_SECTOR_UNDERWATER)!=0 :
-+        !nav.pursuitNet && nav.objective==BOT_OBJECTIVE_NONE && bot.goal>=0 && bot.goal<bot.nNodes &&
-+        Bot_WetDestination(&bot.nodes[bot.goal]);
-+    if (wetGoal && Bot_DeferSupplyApproaches(self) && Bot_ApproachDeferred(Bot_ApproachBank(self),node->sector)) {
-+        /* A low-health or disarmed route may still be cached after recovery. */
-+        bot.goal=-1; bot.routeCount=bot.routePos=0; bot.armNext=bot.nextPlan=0;
-+        return 1;
++    if (Bot_DeferSupplyApproaches(self) && Bot_ApproachDeferred(Bot_ApproachBank(self),node->sector)) {
++        SithThing *gear=Bot_NavThing(bot.armItem-1);
++        int optional=Bot_OptionalSupply(self,gear);
++        if (!gear && !nav.pursuitNet && nav.objective==BOT_OBJECTIVE_NONE &&
++            bot.goal>=0 && bot.goal<bot.nNodes && nav.supplyApproach.lastResortGoal!=bot.goal+1) {
++            BotNode *goal=&bot.nodes[bot.goal];
++            optional=Bot_OptionalPatrolNode(self,goal,Bot_ItemValue(self,goal->item));
++        }
++        if (optional) {
++            /* This older route may have been valid before recovery/rearming. */
++            bot.goal=-1; bot.routeCount=bot.routePos=0; bot.armNext=bot.nextPlan=0;
++            return 1;
++        }
 +    }
 +    BotNode actual={.pos=self->position,.sector=self->sector};
 +    if (Bot_WaterEntry(&actual,node)) {
@@ -3547,10 +3543,10 @@ index 0000000..f73ca20
 +}
 diff --git a/src/AI/jkBotNavigation.inc b/src/AI/jkBotNavigation.inc
 new file mode 100644
-index 0000000..041f1c9
+index 0000000..6d82309
 --- /dev/null
 +++ b/src/AI/jkBotNavigation.inc
-@@ -0,0 +1,1466 @@
+@@ -0,0 +1,1528 @@
 +/* Ordinary-input navigation; see jkBot.c for license.
 + * The graph is made from the loaded map, not a map-name waypoint lookup.
 + * CTF observes stock CTF_MAIN bindings and synchronized flag attachment state;
@@ -3612,7 +3608,7 @@ index 0000000..041f1c9
 +    struct {
 +        SithSector *bank, *water;
 +        flex_t enteredAt, latestRetry;
-+        int enteredForGear;
++        int enteredForGear, lastResortGoal; /* one-based dry exploration goal */
 +        BotFailedApproach failed[BOT_FAILED_APPROACHES];
 +    } supplyApproach;
 +    int waterExitFrom, waterExitTo, waterExitPhase, seekingSurface;
@@ -3770,6 +3766,13 @@ index 0000000..041f1c9
 +    for (unsigned int i=0;i<sizeof(rows)/sizeof(rows[0]);i++)
 +        if (Bot_NameIs(name,rows[i].name) || Bot_NameIs(name,rows[i].model)) return rows[i].pickup;
 +    return (BotPickupKind){BOT_ITEM_UNKNOWN,0,0,0};
++}
++
++static BotPickupKind Bot_PickupType(SithThing *item)
++{
++    BotPickupKind kind=Bot_ClassifyPickup(Bot_ItemName(item));
++    if (!kind.kind && item->renderData.model3) kind=Bot_ClassifyPickup(item->renderData.model3->filename);
++    return kind;
 +}
 +
 +static int Bot_AddRawNode(rdVector3 floor, SithSector *floorSector, int item)
@@ -4496,8 +4499,9 @@ index 0000000..041f1c9
 +
 +/* Read the replicated stock contents, never the fallen player's current bins.
 +   The two engine layouts have different capacities. Refuse a partial snapshot. */
-+static flex_t Bot_PackValue(SithThing *self,SithThing *pack)
++static flex_t Bot_PackUtility(SithThing *self,SithThing *pack,int *restocksOwned)
 +{
++    if (restocksOwned) *restocksOwned=0;
 +    if (bot.sabersOnly || !self->actorParams.pPlayer || !Bot_LivePack(pack) || Bot_FailedDive(pack)) return 0;
 +    int count=pack->itemParams.numBins;
 +    if (count<1 || count>(int)(sizeof(pack->itemParams.contents)/sizeof(pack->itemParams.contents[0]))) return 0;
@@ -4523,6 +4527,7 @@ index 0000000..041f1c9
 +        if (!sithInventory_IsInventoryAvailable(self,gun) || (owned<=0 && stock[gun]<1)) continue;
 +        flex_t have=sithInventory_GetInventory(self,ammo), after=Bot_Min(guns[i].cap,have+stock[ammo]);
 +        if (after<guns[i].shot) continue;
++        if (restocksOwned && owned>0 && after>have && have<guns[i].cap*0.15f) *restocksOwned=1;
 +        if (owned<=0 || have<guns[i].shot) best=Bot_Max(best,guns[i].value);
 +        else if (after>have) {
 +            flex_t usable=Bot_Min(1.0f,(after-have)/(4.0f*guns[i].shot));
@@ -4531,6 +4536,9 @@ index 0000000..041f1c9
 +    }
 +    return best;
 +}
++
++static flex_t Bot_PackValue(SithThing *self,SithThing *pack)
++{ return Bot_PackUtility(self,pack,NULL); }
 +
 +static flex_t Bot_ItemValue(SithThing *self, int itemIndex)
 +{
@@ -4551,9 +4559,7 @@ index 0000000..041f1c9
 +        if (remaining>4.0f || remaining < -3.0f) return 0;
 +        availability=0.12f;
 +    } else if (itemIndex<BOT_NODES) nav.unavailable[itemIndex]=0;
-+    BotPickupKind pickup=Bot_ClassifyPickup(Bot_ItemName(item));
-+    if (!pickup.kind && item->renderData.model3)
-+        pickup=Bot_ClassifyPickup(item->renderData.model3->filename);
++    BotPickupKind pickup=Bot_PickupType(item);
 +    flex_t value=0;
 +    flex_t quantity=pickup.bin ? sithInventory_GetInventory(self,pickup.bin) : 0;
 +    switch (pickup.kind) {
@@ -4669,6 +4675,40 @@ index 0000000..041f1c9
 +    const SithThing *item=Bot_NavThing(node->item);
 +    const SithSector *sector=item && item->type==SITH_THING_ITEM && item->sector ? item->sector : node->sector;
 +    return (sector->flags&SITH_SECTOR_UNDERWATER)!=0;
++}
++
++static int Bot_UsesAmmo(SithThing *self,int bin)
++{
++    if (bin==SITHBIN_ENERGY) return sithInventory_GetInventory(self,SITHBIN_BRYARPISTOL)>0 ||
++        sithInventory_GetInventory(self,SITHBIN_STORMTROOPER_RIFLE)>0;
++    if (bin==SITHBIN_POWER) return sithInventory_GetInventory(self,SITHBIN_CONCUSSION_RIFLE)>0 ||
++        sithInventory_GetInventory(self,SITHBIN_REPEATER)>0 || sithInventory_GetInventory(self,SITHBIN_TUSKEN_PROD)>0;
++    return bin==SITHBIN_RAILCHARGES && sithInventory_GetInventory(self,SITHBIN_RAIL_DETONATOR)>0;
++}
++
++/* Called only while the bot already has a stocked heavy and an active
++   failed approach. Keep useful ammunition for an owned gun eligible. */
++static int Bot_OptionalSupply(SithThing *self,SithThing *item)
++{
++    if (!item || item->type!=SITH_THING_ITEM || !item->sector) return 0;
++    if (item->sector->flags&SITH_SECTOR_UNDERWATER) return 1;
++    if (Bot_LivePack(item)) {
++        int restocksOwned;
++        Bot_PackUtility(self,item,&restocksOwned);
++        return !restocksOwned;
++    }
++    BotPickupKind kind=Bot_PickupType(item);
++    if (kind.kind==BOT_ITEM_AMMO)
++        return !Bot_UsesAmmo(self,kind.bin) || sithInventory_GetInventory(self,kind.bin)>=kind.cap*0.15f;
++    if (kind.kind!=BOT_ITEM_WEAPON) return 0;
++    /* A duplicate rack can refill the gun actually in use. */
++    return kind.bin!=sithInventory_GetCurrentWeapon(self) || !kind.ammo ||
++        sithInventory_GetInventory(self,kind.ammo)>=kind.cap*0.15f;
++}
++
++static int Bot_OptionalPatrolNode(SithThing *self,BotNode *node,flex_t pickupValue)
++{
++    return pickupValue<=0.05f || Bot_WetDestination(node) || Bot_OptionalSupply(self,Bot_NavThing(node->item));
 +}
 +
 +static int Bot_NearestApproach(SithThing *self,int defer)
@@ -4811,8 +4851,8 @@ index 0000000..041f1c9
 +    flex_t distance[BOT_NODES];
 +} BotGoalPaths;
 +
-+/* Dry destinations, opponents and air always use the complete graph. Only
-+   optional submerged destinations get this second search during a retry. */
++/* Opponents, air and needed supplies use the complete graph. A second
++   path view prices optional supply and patrol goals during a costly retry. */
 +static const BotGoalPaths *Bot_SearchGoalPaths(SithThing *self,BotGoalPaths *all,BotGoalPaths *wet)
 +{
 +    all->start=Bot_Nearest(self);
@@ -4846,8 +4886,7 @@ index 0000000..041f1c9
 +        if (thing->type!=SITH_THING_ITEM || (thing->itemParams.flags&SITH_ITEM_BACKPACK) ||
 +            (thing->flags&SITH_TF_DESTROYED)) continue;
 +        total++;
-+        BotPickupKind kind=Bot_ClassifyPickup(Bot_ItemName(thing));
-+        if (!kind.kind && thing->renderData.model3) kind=Bot_ClassifyPickup(thing->renderData.model3->filename);
++        BotPickupKind kind=Bot_PickupType(thing);
 +        if (kind.kind) classified++;
 +        if (i<BOT_NODES && anchored[i]) anchoredCount++;
 +        if (i<BOT_NODES && reachable[i]) reachableCount++;
@@ -4949,9 +4988,10 @@ index 0000000..041f1c9
 +static void Bot_Plan(SithThing *self)
 +{
 +    BotGoalPaths all,restricted;
-+    const BotGoalPaths *wet=Bot_SearchGoalPaths(self,&all,&restricted), *chosen=&all;
++    const BotGoalPaths *safe=Bot_SearchGoalPaths(self,&all,&restricted), *chosen=&all;
 +    const flex_t *distance=all.distance;
 +    int start=all.start,goal=-1;
++    nav.supplyApproach.lastResortGoal=0;
 +    if (start<0) { bot.nextPlan=bot.now+0.4f; return; }
 +    bot.nextPlan=bot.now+1.0f;
 +    if (Bot_Distance(bot.nodes[start].pos,self->position)<0.22f) bot.nodes[start].visited=bot.now;
@@ -4972,26 +5012,42 @@ index 0000000..041f1c9
 +    nav.pursuitNet=0;
 +    int pursuit=goal<0 ? Bot_ElitePursuit(self,start,distance,&pursuitSlot) : -1;
 +    /* Keep an unreached goal even after it becomes the nearest start node. */
-+    if (goal<0 && pursuit<0 && !oldPursuit && bot.goal>=0 && bot.goal<bot.nNodes &&
-+        (Bot_WetDestination(&bot.nodes[bot.goal]) ? wet : &all)->distance[bot.goal]<1e19f &&
-+        bot.nodes[bot.goal].avoidUntil<=bot.now && bot.now-bot.goalSetAt<14.0f &&
-+        (Bot_Distance(self->position,bot.nodes[bot.goal].pos)>0.11f || Bot_PickupNeedsContact(self,&bot.nodes[bot.goal])) &&
-+        (bot.nodes[bot.goal].item<0 || Bot_ItemValue(self,bot.nodes[bot.goal].item)>0.05f)) goal=bot.goal;
++    if (goal<0 && pursuit<0 && !oldPursuit && bot.goal>=0 && bot.goal<bot.nNodes) {
++        BotNode *prior=&bot.nodes[bot.goal];
++        flex_t value=Bot_ItemValue(self,prior->item);
++        const BotGoalPaths *paths=safe!=&all && Bot_OptionalPatrolNode(self,prior,value) ? safe : &all;
++        if (paths->distance[bot.goal]<1e19f && prior->avoidUntil<=bot.now && bot.now-bot.goalSetAt<14.0f &&
++            (Bot_Distance(self->position,prior->pos)>0.11f || Bot_PickupNeedsContact(self,prior)) &&
++            (prior->item<0 || value>0.05f)) {
++            goal=bot.goal; chosen=paths;
++        }
++    }
 +    if (goal<0) {
 +        /* Nearby high-value pickups can still outrank an opponent across
 +           the map. A pursuit goal gets no bonus for an unreachable shortcut. */
-+        flex_t best=-1e20f;
++        flex_t best=-1e20f,backupScore=-1e20f;
++        int backup=-1;
 +        if (pursuit>=0) {
 +            goal=pursuit; best=9.0f/(0.8f+0.22f*distance[pursuit]);
 +        }
 +        for (int i=0;i<bot.nNodes;i++) {
 +            BotNode *n=&bot.nodes[i];
-+            const BotGoalPaths *paths=Bot_WetDestination(n) ? wet : &all;
-+            if (paths->distance[i]>=1e19f || n->avoidUntil>bot.now || nav.liftForNode[i] ||
++            if (distance[i]>=1e19f || n->avoidUntil>bot.now || nav.liftForNode[i] ||
 +                (Bot_Distance(self->position,n->pos)<0.20f &&
 +                 (!Bot_PickupNeedsContact(self,n) || Bot_ItemValue(self,n->item)<=0.05f))) continue;
 +            flex_t unseen=Bot_Clamp((bot.now-n->visited)/30.0f,0.0f,1.0f);
-+            flex_t value=Bot_ItemValue(self,n->item)+2.4f*unseen+Bot_Unit()*0.4f;
++            flex_t pickup=Bot_ItemValue(self,n->item), exploration=2.4f*unseen+Bot_Unit()*0.4f;
++            const BotGoalPaths *paths=safe!=&all && Bot_OptionalPatrolNode(self,n,pickup) ? safe : &all;
++            if (paths->distance[i]>=1e19f) {
++                /* If this crossing is the only way to move, keep a dry
++                   exploration destination without rewarding the extra gun. */
++                if (!(n->sector->flags&SITH_SECTOR_UNDERWATER) && !Bot_WetDestination(n)) {
++                    flex_t score=exploration/(0.8f+0.42f*distance[i]);
++                    if (score>backupScore) { backupScore=score; backup=i; }
++                }
++                continue;
++            }
++            flex_t value=pickup+exploration;
 +            if (companion.policy.mode==CP_PRESSURE && companion.hasPursuit &&
 +                bot.now-companion.pursuitTime<=3.0f) {
 +                flex_t separation=Bot_Distance(n->pos,companion.pursuitAt);
@@ -4999,16 +5055,18 @@ index 0000000..041f1c9
 +            }
 +            flex_t travelCost=companion.policy.mode ? 0.56f-0.28f*companion.policy.risk : 0.42f;
 +            flex_t score=value/(0.8f+paths->distance[i]*travelCost);
-+            if (score>best) { best=score; goal=i; }
++            if (score>best) { best=score; goal=i; chosen=paths; }
++        }
++        if (goal<0 && backup>=0) {
++            goal=backup; chosen=&all; nav.supplyApproach.lastResortGoal=backup+1;
 +        }
 +    }
 +    if (goal>=0 && goal==pursuit) {
 +        SithPlayer *player=&jkPlayer_playerInfos[pursuitSlot];
 +        nav.pursuitSlot=pursuitSlot; nav.pursuitNet=player->playerNetId;
 +        nav.pursuitGuid=player->pLocalPlayer->guid; nav.pursuitSignature=player->pLocalPlayer->signature;
-+        bot.nextPlan=bot.now+0.4f;
-+    } else if (goal>=0 && nav.objective==BOT_OBJECTIVE_NONE && Bot_WetDestination(&bot.nodes[goal]))
-+        chosen=wet;
++        bot.nextPlan=bot.now+0.4f; chosen=&all;
++    }
 +    if (!Bot_SetRoute(chosen->start,goal,chosen->parent)) return;
 +    if (nav.objective!=nav.loggedObjective || (nav.ctf && bot.now>=nav.nextObjectiveLog)) {
 +        nav.loggedObjective=nav.objective; nav.nextObjectiveLog=bot.now+10;

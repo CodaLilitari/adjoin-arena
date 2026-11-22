@@ -4,7 +4,7 @@
   "patch": "native/bot-client.patch",
   "platform": "Linux x86_64",
   "reconstructed_after_scratch_reset": true,
-  "method": "Verified the saved native refinement candidate 3 relink package; compiled 1 native translation units affected by changed sources and headers, then linked with the verified remaining objects and libraries.",
+  "method": "Verified the saved native refinement candidate 4 relink package; compiled 1 native translation units affected by changed sources and headers, then linked with the verified remaining objects and libraries.",
   "compiler": "cc (Debian 14.2.0-19) 14.2.0",
   "distribution": "PRETTY_NAME=\"Debian GNU/Linux 13 (trixie)\"\nNAME=\"Debian GNU/Linux\"\nVERSION_ID=\"13\"\nVERSION=\"13 (trixie)\"\nVERSION_CODENAME=trixie\nDEBIAN_VERSION_FULL=13.7\nID=debian\nHOME_URL=\"https://www.debian.org/\"\nSUPPORT_URL=\"https://www.debian.org/support\"\nBUG_REPORT_URL=\"https://bugs.debian.org/\"\n",
   "source_pins": [
@@ -35,7 +35,7 @@
     " 5a82f71ed1dfc0bec044d9702463dbdf84ea3b71 lib/zlib (5a82f71)"
   ],
   "compiled_sources": {
-    "src/AI/jkBot.c": "46712f1ca48f42ee968f46cc1ea8fa1913c1f4727f7a132d7a6133f265e1b294",
+    "src/AI/jkBot.c": "7aa57b2534401057e24ba7f532efc572816fe67f0f86db9572cfc9da78f8ef14",
     "src/AI/jkBot.h": "47652fc419857c8c24bc0d4913b43dfe5f1a58ce5062c06f3b719400d02456b2",
     "src/AI/jkBotBehavior.h": "59ff972747fb3aa9514fae11c003e803da8b40f1e42b68801db969414a2416df",
     "src/AI/jkBotBehavior.inc": "f28ddaf54328b1ea8a6242902e268648b089fbf6b655f9657a006460a0cce559",
@@ -44,8 +44,8 @@
     "src/AI/jkBotForce.inc": "3598befb0098bc3a748efdb1383bd8daf9e1da2380462a5dc30345309e5c3ad3",
     "src/AI/jkBotHearing.inc": "fe85aa4d9c940086e504d39e981550130acaae397479f09bcce6ef1bad087d1c",
     "src/AI/jkBotLoadout.h": "aab6d025bb9ec2c431beb2d6bd559992b664e9ce075fcaa9c1103ae9ed5dcdc1",
-    "src/AI/jkBotNavigate.inc": "2d607385719fece9f8e12b454a1d778350f101da3486c23a1a144bca0d349b26",
-    "src/AI/jkBotNavigation.inc": "2f5d298517aa14ddea39d0eafe5aa8de4c596b8604465e1ee12a908503b41a40",
+    "src/AI/jkBotNavigate.inc": "fd8b8df6a1e209a7c69dde4705d52a7eb23243c5cb38417a0124cd99c0dbc756",
+    "src/AI/jkBotNavigation.inc": "7fffa3f3e1afa5cf051372f960707c5b057d7cae4763061bb27693690079051e",
     "src/AI/jkBotPersona.c": "618f31f58e45a13d89b5dc0493233d446d5eaeada681bd0de758a155a50d578d",
     "src/AI/jkBotPersona.h": "e193097d937ed22400fe84d86a1e9e7f18884cc2be876fb1540627bee96e0bfb",
     "src/AI/jkBotWaterExit.inc": "2d1b36d679222c48936b8d4e920991da87fda6e536010e783ea54232dc241383",
@@ -261,26 +261,26 @@
   },
   "files": {
     "bin/bots-linux-x86_64/jk-bot-client": {
-      "sha256": "d2ad6f4527ee00de93e13d709ed9502ca6dadf4fef8ed8a3d95a8df6f4704808",
-      "bytes": 8690664
+      "sha256": "862e566209dae8fab218243a47455b5a5616bf98fb8d1f09fa65969f9c8519aa",
+      "bytes": 8694880
     },
     "bin/bots-linux-x86_64/libGameNetworkingSockets.so": {
       "sha256": "8246a869b1d72115ecc849309629aa1abbce0bf1a0f23cc70deaded98d82d8e9",
       "bytes": 3644744
     },
     "native/bot-client.patch": {
-      "sha256": "964ebedb05177d46a3a972da51aa08c8d56578c4a5d3c6e4d9f81540910b26d1",
-      "bytes": 317355
+      "sha256": "6950c859f9e82aca8285daac011e1b72cb2a57644f01d2a465987312100ac52d",
+      "bytes": 319664
     },
     "native/bot-relink-linux-x86_64.tar.gz": {
-      "sha256": "1b0063672d322b30c44599706d2b005694d416d18fa2cd367918cb609459a558",
-      "bytes": 6044283
+      "sha256": "ca63beaa5c3a283639950be045df0d5ffa5a2fb39cc259db479c3deee4a4a123",
+      "bytes": 6044446
     }
   },
   "relink_inputs": {
     "CMakeFiles/openjkdf2.dir/src/main.c.o": "5cac74e46ccdb6f00cfe4b60d06df1a8282ddc27ad1c7001009af728d3d88c95",
     "CMakeFiles/sith_engine.dir/generated/globals.c.o": "b8ea7a66262f5d97d72f6fbf66522fb48d49a57e62d9b4d0a8cf95a7603ca713",
-    "CMakeFiles/sith_engine.dir/src/AI/jkBot.c.o": "79035bacdeb23f871b17af25b07b5a648f41ac98d642c1e19611173c8bac7f2e",
+    "CMakeFiles/sith_engine.dir/src/AI/jkBot.c.o": "478aff61badcb3345aa2bd92b3d454aca5c945bb8342e7c6e2351bcd3000fd0d",
     "CMakeFiles/sith_engine.dir/src/AI/jkBotPersona.c.o": "4db8c6c71e81ce9ca8911974014861cebaca2a5279c5efa78e65b4010d9b89f3",
     "CMakeFiles/sith_engine.dir/src/AI/sithAI.c.o": "cbda1c7df0dd425eaeb69e14308b53c9869fe6120c6d98f2d1743d86076bddc5",
     "CMakeFiles/sith_engine.dir/src/AI/sithAIAwareness.c.o": "2b590541a50ed915d863874172cf0a84d9398a6114e62adb8da8e2ed6dea0cfb",
@@ -500,9 +500,9 @@
   "game_assets_included": false,
   "server_modified": false,
   "incremental_rebuild": {
-    "prior_relink_archive_sha256": "ed413a47baf01274576c04696689bd914064cdc2c16e3c12ad2f07c0afb92797",
-    "prior_patch_sha256": "e21eb3f2b71c428b199ed19489a77c224e104044440d299415bcb903509b6fe7",
-    "prior_binary_sha256": "900a7bbc87f696f13b22ed2887838129587640d86af3e099d91f868ec91bb7ab",
+    "prior_relink_archive_sha256": "1b0063672d322b30c44599706d2b005694d416d18fa2cd367918cb609459a558",
+    "prior_patch_sha256": "964ebedb05177d46a3a972da51aa08c8d56578c4a5d3c6e4d9f81540910b26d1",
+    "prior_binary_sha256": "d2ad6f4527ee00de93e13d709ed9502ca6dadf4fef8ed8a3d95a8df6f4704808",
     "scanned_translation_units": 205,
     "dependency_method": "Compiler-preprocessed header dependencies of all linked engine-source units; actual rebuilt dependencies recorded with -MMD.",
     "compile_flags": [
@@ -594,7 +594,7 @@
     "units": {
       "src/AI/jkBot.c": {
         "object": "CMakeFiles/sith_engine.dir/src/AI/jkBot.c.o",
-        "sha256": "79035bacdeb23f871b17af25b07b5a648f41ac98d642c1e19611173c8bac7f2e",
+        "sha256": "478aff61badcb3345aa2bd92b3d454aca5c945bb8342e7c6e2351bcd3000fd0d",
         "engine_dependencies": [
           "src/AI/jkBot.c",
           "src/AI/jkBot.h",
@@ -667,7 +667,7 @@
       "clean_pinned_source_accepts_patch": true,
       "packaged_source_dependency_hashes_verified": 223,
       "all_packaged_link_input_hashes_verified": 218,
-      "relinked_executable_sha256": "d2ad6f4527ee00de93e13d709ed9502ca6dadf4fef8ed8a3d95a8df6f4704808",
+      "relinked_executable_sha256": "862e566209dae8fab218243a47455b5a5616bf98fb8d1f09fa65969f9c8519aa",
       "headless_invalid_profile_exit": 6,
       "patched_source_regressions": [
         "hearing",

@@ -53,6 +53,16 @@ A far-bank pickup or an opponent can still justify that crossing through success
 rescans. The 27 bank replay outcomes stayed identical. The recorded multiplayer failure belongs
 to the preceding build. [Source checks and limits](../../qa/bots-supply-approach-retry.json)
 
+In candidate 4, Boba and Jan also crossed the failed entrance for guns located on dry ground.
+Boba was at full health and shields with 88 cells and a concussion rifle. The accepted candidate-5
+source gives an optional dry upgrade the same route restriction as a submerged supply. Needed
+ammunition, defensive recovery and pursuit retain the complete graph. In the dispatcher fixture
+the stocked bot changed its movement from inward slide toward a dry railgun to patrol along the
+bank. All 483 reachable anchors remained available. A crossing can still be the only way to
+explore onward, without a weapon bonus deciding the route. These checks cover decisions and
+inputs. The separate bank-escape replays retained all 27 prior outcomes. Four-player movement
+remains to be measured. [Dry supply detour tests](../../qa/bots-dry-supply-detour.json)
+
 ## Stock mechanics that change the recommendations
 
 The owned stock pickup handlers distinguish touch denial from positioning or item Pull:
@@ -74,6 +84,14 @@ Stock Grip's broad candidate enumeration is followed by a victim distance limit 
 Rapidly tapping the dedicated Grip binding does not accelerate that ordinary channel: reselecting the power cancels it. At rank four, an intact stock channel requests an immediate hit, another after about 0.10 game seconds, then one every 0.50 seconds, for ten requests of eight raw magic damage over 4.1 seconds. Protection and Absorb affect the received result. The generic selected-power binding follows a different re-entry path; source inspection supports the historical binding-dependent Supergrip report, including another mana debit and front-loaded damage. There is no matched two-client damage-rate benchmark for that path in this build, and it is not enabled by this follow-up.
 
 Max-rank Pull's 2.5-unit range is not inside concussion primary's 0.8-unit explosion radius. Sampled footage with no visible Pull messages cannot establish an optimal cast rate for stock full-Force play. Likewise, `kyle.cog` does not treat six offensive powers as one blanket immunity: Absorb vetoes disarm and mitigates damage carrying the magic bit; Seeing blocks Blind; Protection blocks Grip control. The disarm veto itself does not award mana, and damage absorption does not by itself remove Grip control.
+
+### Tactical decisions to verify in stock play
+
+- **Respond to Grip.** The victim’s `kyle.cog` handles skill bin 31. Protection gates immobilization, while Absorb mitigates incoming magic damage. Even full damage absorption can leave the victim immobilized. Lily’s competitive dark build has no Absorb. In a paired-client test, record the victim’s skill event, caster identity, actual control flag and health/shield/mana changes alongside the caster’s channel. Chat and a generic damage flash cannot establish the effect. Compare loss of sight and damage to the caster’s health, both of which the active `force_grip.cog` checks.
+- **Choose the mode by impact.** On stock Canyon Oasis the concussion primary has a 0.8-unit blast radius. Its secondary is a five-unit first-hit beam without splash. Both require eight power cells to activate and spend eight or four respectively. A blanket two-unit prohibition would discard legal beam shots. Rail primary can also injure the shooter within its 0.5-unit blast radius. Test each mode’s predicted first impact against walls, doors and moving players using the loaded templates. See `weap_concrifle.cog`, `weap_raildet.cog` and `jkBotCombat.inc`.
+- **Start the supply run before empty.** Estimate shots remaining at the expected pickup time from current fire mode, travel time and usable backup weapons. Compare inventory actually gained, combat time lost and exposure en route. The existing four-shot thresholds and replicated pack contents supply inputs for this test. [Equipment routing](../../qa/bots-equipment-routing.json)
+- **Protect teammates from displacement as well as health loss.** Team flags can suppress health damage while an explosion still applies impulse. For an attempted rescue, require an observed caster and test an ally near a ledge. Record team flags, ally displacement and health separately. See `sithExplosion.c`, `sithActor.c` and `sithPlayer.c`.
+- **Test corner fire and explosive traversal separately.** A proposed corner shot needs a recent sighting or eligible sound cue, a plausible first impact and a clear path around allies. Let the prediction expire and include trials without a cue. For a recoil- or blast-assisted jump, use stock-physics replays over multiple starting poses and compare landing, remaining health/shields/ammo and travel time with an ordinary crossing. The existing combat hop withholds heavy fire during committed flight. [Competitive bot design](../superpowers/specs/2026-11-21-competitive-bots-design.md) · [Combat jump tests](../../qa/bots-combat-jump.json)
 
 ## Strategic work still required
 

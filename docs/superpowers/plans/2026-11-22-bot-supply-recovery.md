@@ -12,7 +12,7 @@ Spec: `docs/superpowers/specs/2026-11-21-competitive-bots-design.md`. Review dis
 - Keep equivalent bot behavior in the native and browser source patches.
 - Match item slot, GUID and signature. Clear transient state on world/life reset; a replacement item must not inherit another identity's outcome.
 - Physical contact, an input request and a confirmed inventory grant remain distinct evidence.
-- Do not include retail assets, private credentials, raw private reviews or machine paths in the public repository.
+- Do not include retail assets, private credentials, raw private reviews or personal machine paths in the public repository. Compiler-generated build paths may remain in executable or relink inputs; do not claim that packaged binaries are path-free.
 - Preserve the completed candidate-2 recording as earlier evidence. A later build needs its own hash-qualified recording.
 
 ## Task 1: Repair reviewed equipment recovery edge cases
@@ -40,8 +40,8 @@ Own only the equivalent `src/AI/jkBotWaterExit.inc` change in both engine trees,
 The coordinating agent owns packaging and publication.
 
 - [x] Resolve the Task 1 and Task 2 reviews, refresh native/browser patches and rebuild the affected runtimes with verified source/build identities.
-- [ ] Install the exact candidate on the private Windows test setup, verify hashes, and record 240 seconds after all four accelerated clients qualify. Verify actual red saber side/tip materials.
-- [ ] Inspect full telemetry and representative video frames. Report water behavior, equipment selection and fire-mode evidence with their sampling and attribution limits; preserve any failure observed.
+- [x] Install the exact candidate on the private Windows test setup, verify hashes, and record 240 seconds after all four accelerated clients qualify. Verify actual red saber side/tip materials.
+- [x] Inspect full telemetry and representative video frames. Report water behavior, equipment selection and fire-mode evidence with their sampling and attribution limits; preserve any failure observed.
 - [ ] Refresh release metadata, verify the package, commit and push the authorized existing draft PR branch. Preserve draft status and record unfinished strategy work.
 - [ ] Save and deliver the validated gameplay recording, with a concise continuation checkpoint in the repository.
 
@@ -58,5 +58,16 @@ The candidate-3 live trial established a policy failure after the physical exit 
 ## Task 5: Rebuild and qualify the route-policy correction
 
 - [x] Resolve Task 4 review and rebuild/hash-verify both runtime packages and release metadata.
-- [ ] Install privately, record another autonomous four-seat 240-second trial, verify red saber and game audio, and compare equipment progress and prolonged confinement with both earlier candidates.
-- [ ] Preserve failed live evidence, save the final video, and record an accurate continuation checkpoint. Publishing the new payload remains blocked by automatic approval review until the user approves that concrete public push.
+- [x] Install privately, record another autonomous four-seat 240-second trial, verify red saber and game audio, and compare equipment progress and prolonged confinement with both earlier candidates. The capture passed; Boba and Jan exposed repeated optional dry-equipment trips through the failed water entrance.
+- [x] Preserve failed live evidence, save the fourth recording, and record an accurate continuation checkpoint. Publication of the new payload is pending.
+
+
+## Task 6: Distinguish optional dry upgrades from necessary water transit
+
+The fourth candidate recorded failed-approach memory, but a healthy bot with 88 concussion cells still revisited that approach for an extra railgun or repeater on dry ground. Destination wetness alone does not describe the cost of reaching it.
+
+- [x] Reproduce the actual dry-upgrade choice before changing production source. Include a productive alternative, cached equipment goal, fallback planning and an underwater rescan.
+- [x] Prefer the productive alternative for nonessential equipment while retaining the ordinary transit graph, needed recovery, explicit opponent pursuit and distinct entries. Inspect physical controls and movement ownership.
+- [x] Preserve the affected driver, portal, hearing, loadout and bank replay cases on both source configurations; obtain independent review of the scoped correction.
+- [ ] Rebuild and verify the exact native/browser packages, privately record a fresh four-seat 240-second match, and inspect all seats before qualifying movement.
+- [ ] Preserve every failed trial, deliver the validated final recording and update the continuation checkpoint and release metadata.

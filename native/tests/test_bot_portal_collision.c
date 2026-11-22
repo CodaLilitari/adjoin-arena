@@ -49,6 +49,10 @@ flex_t sithInventory_GetInventory(SithThing *thing,int bin)
 
 static SithWorld test_world;
 #ifndef BOT_PORTAL_COLLISION_FIXTURE_ONLY
+int sithInventory_GetCurrentWeapon(SithThing *thing)
+{ return thing->actorParams.pPlayer ? thing->actorParams.pPlayer->curWeaponID : 0; }
+int sithInventory_IsInventoryActivated(SithThing *thing,int bin)
+{ return thing->actorParams.pPlayer && (thing->actorParams.pPlayer->aItems[bin].state&SITHINVENTORY_ITEM_ACTIVATED); }
 int sithInventory_IsInventoryAvailable(SithThing *thing,int bin)
 { return thing->actorParams.pPlayer && (thing->actorParams.pPlayer->aItems[bin].state&SITHINVENTORY_ITEM_AVAILABLE); }
 

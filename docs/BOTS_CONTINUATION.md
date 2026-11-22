@@ -1,17 +1,40 @@
 # Competitive bot continuation
 
-## Packaged fourth refinement candidate
+## Packaged fifth refinement candidate
 
-The Linux and JKWeb packages include the reviewed supply-approach policy, earlier supply-recovery
-changes and bank-landing correction. Independent relinks reproduced each runtime file byte for
-byte. The four-seat 240-second gameplay check for this build is pending. The prior failed live
-movement trial used candidate 3.
+The Linux and JKWeb packages include the reviewed correction for optional dry upgrades through a
+recently failed water approach, alongside the earlier supply and bank-landing repairs. Independent
+relinks reproduced each runtime file byte for byte. Candidate 5's four-seat trial is pending. The
+failed movement qualifications for candidates 3 and 4 remain documented below.
 
 | Packaged runtime | SHA-256 | Verification |
 | --- | --- | --- |
-| Linux x86-64 bot | `d2ad6f4527ee00de93e13d709ed9502ca6dadf4fef8ed8a3d95a8df6f4704808` | 205 translation units scanned, one rebuilt (`jkBot.c`), 223 source and 218 link-input hashes verified. The patched source passed 78 named groups and 54 legal loadouts. [Native build receipt](../qa/bots-refinement-native-build.json) |
-| JKWeb WASM | `7f5ab43857e84f0c3e905e28db07a23fc4575095174813c29459db48ad8f0adf` | All 28 changed source hashes verified against the patched, pinned JKWeb source. [Browser build receipt](../qa/bots-refinement-web-build.json) |
+| Linux x86-64 bot | `862e566209dae8fab218243a47455b5a5616bf98fb8d1f09fa65969f9c8519aa` | 205 translation units scanned, one rebuilt (`jkBot.c`), 223 source and 218 link-input hashes verified. The patched source passed 79 named groups and 54 legal loadouts. [Native build receipt](../qa/bots-refinement-native-build.json) |
+| JKWeb WASM | `9e802daf1ebeb808cf3822bd63e9b58506c34be4126a7ce5bdc26c9295751542` | All 28 changed source hashes verified against the patched, pinned JKWeb source. [Browser build receipt](../qa/bots-refinement-web-build.json) |
 | JKWeb JavaScript | `dd348b7f5dace28a4cd387eca7942eb30e25ef78b091e87217937a39cf2a2cd7` | Matches the same browser relink. |
+
+## Fourth refinement trial
+
+All four seats ran autonomously on local runtime commit `097b361eed588cbe1eb543778218b489f0aa49a0`.
+The capture verified Lily’s third-person model, both red saber materials and game audio. Lily
+spent 23.15 seconds in intervals of little horizontal progress, down from 189.06 in candidate 3.
+She had no sampled positions in the problem shaft, so this round gave no direct test of her
+response at that bank. These three matches were unseeded.
+
+| Seat | Wet / living samples | Total time confined horizontally | Longest interval | Sampled opening → closing kills/deaths |
+| --- | ---: | ---: | ---: | --- |
+| Lily | 103 / 815 | 23.15 s | 5.37 s | 0/0 → 2/2 |
+| Boba | 387 / 826 | 125.81 s | 21.83 s | 0/0 → 2/2 |
+| Jan | 547 / 819 | 150.68 s | 25.37 s | 1/0 → 1/3 |
+| Yun | 300 / 826 | 61.00 s | 12.93 s | 0/1 → 5/3 |
+
+Boba returned through the failed sector 41→54 crossing for a railgun and repeater on dry ground.
+Across 62 and 61 consecutive shaft samples those trips showed 100 health, 100 shields, a selected
+concussion rifle, 88 cells and no target. Jan also returned for a dry railgun while armed.
+She had zero shields, which makes her separate trip toward shield recharge a different decision.
+The packaged correction targets optional dry upgrades that call for another costly dive while
+preserving necessary recovery, pursuit and objective transit. Controlled route tests and independent
+review passed; its fresh live trial is pending. [Dry-detour regression receipt](../qa/bots-dry-supply-detour.json) [Four-seat comparison and private video verification](../qa/bots-refinement4-live.json)
 
 ## Third refinement trial
 
@@ -36,8 +59,8 @@ opponent. The fixture verified that the bot keeps that destination through its u
 rescan. On the tested Canyon Oasis bank the ordinary graph still reaches 483 of 558 anchors.
 
 Independent review accepted the revision after rerunning all 55 driver groups against each source
-configuration. All 27 bank replay results matched the preceding build. A fresh four-minute match is needed to measure whether this changes Lily’s
-movement and combat opportunities. [Source fixtures and baseline exceptions](../qa/bots-supply-approach-retry.json)
+configuration. All 27 bank replay results matched the preceding build. The fourth refinement trial above exposed a remaining failure when the
+chosen item was dry and the route crossed the failed bank. [Source fixtures and baseline exceptions](../qa/bots-supply-approach-retry.json)
 
 ## Four-minute Canyon Oasis baseline
 

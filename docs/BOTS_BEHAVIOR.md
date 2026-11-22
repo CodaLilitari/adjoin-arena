@@ -143,6 +143,17 @@ and cached optional descents are checked again before entry. During the retry a 
 that only turns the bot can yield movement to navigation while on dry ground or traversing the
 known crossing. [Supply approach regression](../qa/bots-supply-approach-retry.json)
 
+Candidate 5 extends the same 45-second retry to optional equipment on dry ground. A spare gun,
+surplus ammunition or pack without a needed refill can still justify a route via another bank.
+Ammunition below 15% of its stock capacity for an available, owned gun can justify the original
+crossing. A duplicate rack can supply that refill. Needed dry health and shields, pursuit and air
+retain the full route search. The planner rechecks a cached descent after the bot’s reserves
+change and keeps a necessary destination through an underwater rescan. If the bank offers no
+productive alternative, it can choose a dry waypoint across the water for exploration using
+distance and visit age, without giving the weapon a bonus. Independent review accepted these
+source decisions. Their effect in a four-player match awaits a candidate-5 recording.
+[Dry supply detour regressions](../qa/bots-dry-supply-detour.json)
+
 Shoreline routes use a checked water entry or bank jump. A short swim to a
 nearly level bank requires full-body clearance to supported floor in the dry sector directly above
 the swimmer. In Canyon Oasis, all seven retained shallow exits reached their destination floor in

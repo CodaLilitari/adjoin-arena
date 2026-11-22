@@ -12,7 +12,9 @@
     "js_sha256": "8eee651e0804ca97b07113541b7ab613eab81fe6c59eba39adfc8da858f04331",
     "build_receipt": "qa/bots-refinement-web-build.json",
     "bank_replay_receipt": "qa/bots-bank-landing.json",
-    "supply_receipt": "qa/bots-supply-recovery.json"
+    "supply_receipt": "qa/bots-supply-recovery.json",
+    "build_receipt_revision": "536d293c2cd3a96fec6e01c1a4eadcd45978d132",
+    "build_receipt_sha256": "c61b8e4b4425cda6d8345a472d049b245367d26e46d43c6fbd66ad6a36dc8851"
   },
   "capture": {
     "map": "JK1MP/m10.jkl (Canyon Oasis)",
@@ -60,7 +62,7 @@
     ],
     "start_uncertainty_s": 0.053963,
     "states": "First active-driver sample per world, life and game time, with observation age 0 to 1 second. Wet and dry classify the sampled player center. Three Lily positions matched both. Floor attachment was not exposed in the live observations.",
-    "confinement": "At least 2 seconds within 0.13 horizontal world units of a segment’s first point. Vertical motion is allowed. Death, identity changes, poll gaps over 0.8 seconds, game-time gaps over 1 second or leaving the radius end the segment.",
+    "confinement": "At least 2 seconds within 0.13 horizontal world units of a segment\u2019s first point. Vertical motion is allowed. Death, identity changes, poll gaps over 0.8 seconds, game-time gaps over 1 second or leaving the radius end the segment.",
     "comparison": "Two unseeded autonomous matches with differing spawns, encounters and available pickups."
   },
   "metrics_columns": [
@@ -192,7 +194,7 @@
       94.652,
       184.922
     ],
-    "interpretation": "The eight returns and the later same-item plans are consistent with separate cooldowns. Different supplies in the same area can still attract an already armed bot back to water. The trace lacks each frame’s graph edge and full decision state."
+    "interpretation": "The eight returns and the later same-item plans are consistent with separate cooldowns. Different supplies in the same area can still attract an already armed bot back to water. The trace lacks each frame\u2019s graph edge and full decision state."
   },
   "combat_and_equipment": {
     "lily": "After 43.4 s, 700 of 706 remaining living samples showed concussion selected. Only ten had a target, and the power-cell balance increased twice by 32. The retained in-clip trigger log showed two Bryar-primary changes and one fists-primary change. Bow and repeater secondary appeared only during warm-up for Lily.",
