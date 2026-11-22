@@ -49,9 +49,9 @@
 
 Here `original_directory` is the completed frozen-v2 original matrix used as the collection reference, including its baseline arms. Its original 3,431 ordered rows and all 22 source trace identities were checked equal to the corpus used to fit v2; record the actual receipt used without relabeling it as the older receipt.
 
-- [ ] Add failing tests for physical failure/censor rejection, prefix/post-cap exclusion, nonzero boundary history, immutable original split/order, receipt/source tampering and zero-row no-fit gate.
-- [ ] Implement strict original corpus preservation and bounded successful correction extraction in case/K/tick order, with per-assignment inclusion/exclusion counts.
-- [ ] Verify the numerical recipe and standalone export parity. Obtain independent spec/quality review before fitting once.
+- [x] Add failing tests for physical failure/censor rejection, prefix/post-cap exclusion, nonzero boundary history, immutable original split/order, receipt/source tampering and zero-row no-fit gate.
+- [x] Implement strict original corpus preservation and bounded successful correction extraction in case/K/tick order, with per-assignment inclusion/exclusion counts.
+- [x] Verify the numerical recipe and standalone export parity. Obtain independent spec/quality review before fitting once.
 - [ ] Fit and freeze one candidate after complete collection and fresh-case declaration; record all inputs/code/settings/hashes without opening fresh outcomes.
 - [ ] Commit task code, tests and frozen artifacts; root runs the fixed evaluation and publishes results.
 
