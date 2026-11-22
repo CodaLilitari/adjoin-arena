@@ -207,12 +207,25 @@ def censored(job, reason):
                 ownership_complete=False, baseline_assisted=False)
 
 
-def run_trial(job, row, executable, geometry, out, policy, model):
-    work = out / (job["episode_id"]+"-"+job["controller"])
+def execute_trial(job, row, executable, geometry, work, policy, model, *, recovery_tick=None):
     work.mkdir(mode=0o700)
+    status = dict(schema=1, engine_returncode=None, worker_returncode=None, timed_out=None, error=None)
+    try:
+        return _execute_trial(job, row, executable, geometry, work, policy, model, recovery_tick, status)
+    except (OSError, ValueError, subprocess.SubprocessError) as exc:
+        status["error"] = str(exc) if isinstance(exc, ValueError) else type(exc).__name__
+        raise
+    finally:
+        if recovery_tick is not None:
+            (work/"process.json").write_text(json.dumps(status)+"\n")
+
+
+def _execute_trial(job, row, executable, geometry, work, policy, model, recovery_tick, status):
     env = case_environment(row,job["yaw_deg"])
     env.update(LILY_BANK_TRACE=str(work/"native.jsonl"), LILY_INDEPENDENT_TRACE=str(work/"motor.jsonl"),
                LILY_INDEPENDENT_ORIGIN=str(work/"start.json"), LILY_HOLD_TICKS=str(job["hold_ticks"]))
+    if recovery_tick is not None:
+        env.update(LILY_RECOVERY_TICK=str(recovery_tick), LILY_RECOVERY_HANDOFF=str(work/"handoff.json"))
     command = [executable,geometry,*[row[k] for k in ("origin","wet","dry","start_sector","control_dt")]]
     with (work/"engine.log").open("wb") as log:
         if job["controller"] == "baseline":
@@ -234,19 +247,32 @@ def run_trial(job, row, executable, geometry, out, policy, model):
                             try:
                                 code = engine.wait(timeout=75)
                             except subprocess.TimeoutExpired:
+                                status["timed_out"] = "engine"
                                 engine.kill()
                                 raise
+                            finally:
+                                status["engine_returncode"] = engine.wait()
                         if code not in (0,1) and process.poll() is None:
                             process.kill()
-                        worker_code = process.wait(timeout=1)
+                        try:
+                            worker_code = process.wait(timeout=1)
+                        except subprocess.TimeoutExpired:
+                            status["timed_out"] = "worker"
+                            raise
                     finally:
                         if process.poll() is None:
                             process.kill()
-                        process.wait()
+                        status["worker_returncode"] = process.wait()
             if code == 3:
                 match = re.search(rb"^INDEPENDENT_ERROR ([a-z_]+)$",(work/"engine.log").read_bytes(),re.M)
                 raise ValueError(match[1].decode() if match else "invalid_exchange")
             check(worker_code == 0, "worker_failed")
+    return code
+
+
+def run_trial(job, row, executable, geometry, out, policy, model):
+    work = out / (job["episode_id"]+"-"+job["controller"])
+    code = execute_trial(job, row, executable, geometry, work, policy, model)
     return assess(job,work,code,row)
 
 

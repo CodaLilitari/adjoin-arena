@@ -167,3 +167,44 @@ measurements do not establish deployed wet handovers or multiplayer performance.
 For native boundary tests, set `LILY_TEST_SOURCE`, `LILY_TEST_BUILD` and
 `LILY_TEST_MAP` to the corresponding inputs above and run
 `python3 -m unittest discover -s tests -p test_lily_independent_motor.py -v`.
+
+## Continuous corrective recovery
+
+Run the eight declared branches against the original frozen v2 matrix. Each
+assignment starts the actor at its original pose and runs a fresh process.
+The worker supplies every model tick up to the declared handoff. The ordinary
+native planner takes its first decision at that boundary using the held input,
+stock physics state and remaining time from the same episode.
+
+```sh
+python3 -B native/tests/stock_water_replay/collect_recovery.py \
+    --source /path/to/patched-engine --build /path/to/configured-build \
+    --map /path/to/m10.jkl --reference /path/to/original-v2-matrix \
+    --declaration qa/lily-recovery-declaration.json --output /new/private/collection
+```
+
+Each branch records the normal start, motor, decision and native traces.
+`process.json` retains the actual engine and worker exit codes and any timeout.
+A late process failure retains the native terminal as a diagnostic and makes
+the branch ineligible for training. Bookkeeping at takeover is recorded in
+`handoff.json`. This file records the planner checks, RNG, held buttons,
+control clock, and the exact before/after values of the five bookkeeping
+fields initialized at takeover. The native driver selects its own objective.
+A run ending before its handoff has a `reached: false` record. The total
+budget is 9,000 physics steps from spawn. All landings in the collection
+are assisted outcomes.
+
+`assess_recovery(output, reference, declaration)` verifies the assignment
+matrix, frozen model and build identities, full reference file digests, exact
+model prefix and boundary observation, ownership, held-key edges and physical
+terminal. Its rows carry the verified `teacher_start_tick`, total
+`control_ticks`, measured physics bounds and evidence hashes. Training may
+consume the bounded suffix of a successfully recovered branch. An infrastructure
+failure records a null physical result in its assigned slot. Each invocation
+uses a new directory and preserves the initial attempt.
+
+The private output directory retains `recovery-replay`, the compiled executable
+used for every branch. Re-audit checks its bytes against the build digest and
+the recorded fixture source manifest against the matching collector checkout.
+These checks identify the archived artifacts. Historical execution depends on
+the collection environment.

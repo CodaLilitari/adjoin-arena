@@ -107,6 +107,7 @@ static int play_exit(SithThing *me,int from,int to,SithSector *startSector,float
     bank_begin(dry);
 #ifdef INDEPENDENT_MOTOR
     independent_begin(wet);
+    recovery_begin();
 #endif
     for(;stepIndex<9000;tick++) {
 #else
@@ -137,7 +138,7 @@ static int play_exit(SithThing *me,int from,int to,SithSector *startSector,float
         if(tick%10==0)fprintf(stderr,"TICK %d ph%d from%d to%d pos%f,%f,%f goal%d key%d axes %.2f %.2f heading %.2f\n",tick,nav.waterExitPhase,nav.waterExitFrom,nav.waterExitTo,me->position.x,me->position.y,me->position.z,bot.goal,bot.keys[INPUT_FUNC_JUMP],bot.axes[INPUT_FUNC_FORWARD],bot.axes[INPUT_FUNC_SLIDE],bot.axes[INPUT_FUNC_TURN]);
         if(getenv("TRACE_X") && tick%10==0
 #ifdef INDEPENDENT_MOTOR
-           && independent.fd < 0
+           && recovery.native
 #endif
         ){
             int n=bot.routePos<bot.routeCount?bot.route[bot.routePos]:-1;

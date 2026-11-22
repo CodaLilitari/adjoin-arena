@@ -43,6 +43,8 @@ static unsigned independent_buttons(int presses)
     return mask;
 }
 
+#include "recovery.inc"
+
 static void ready_before(short events, double deadline)
 {
     struct pollfd fd = {.fd=independent.fd, .events=events};
@@ -103,7 +105,8 @@ static void independent_tick(SithThing *me, const BotNode *dry, int tick, int st
         me->physicsParams.flags&SITH_PF_ONWATERSURFACE?"true":"false",independent_buttons(0));
     if (length <= 0 || (size_t)length >= sizeof(observation)) motor_failure("observation_size");
     fputs(observation,independent.trace);
-    if (independent.fd < 0) {
+    if (recovery.tick && tick == recovery.tick) recovery_handoff(me, step);
+    if (recovery.native) {
         jkBot_Tick(dt);
         independent.source = tick;
     } else {
@@ -114,6 +117,7 @@ static void independent_tick(SithThing *me, const BotNode *dry, int tick, int st
         memset(bot.presses,0,sizeof(bot.presses));
         bot.frameDt=dt;
         bot.now+=dt;
+        if (recovery.tick) recovery_observe(me);
         for (int i=0; i<4; i++) bot.axes[lilyAxes[i]]=independent.axes[i]/100.0f;
         for (int i=0; i<2; i++) {
             int key=lilyButtons[i];
