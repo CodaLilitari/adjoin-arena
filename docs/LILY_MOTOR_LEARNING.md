@@ -5,11 +5,51 @@ network is an **unpromoted experiment**, not the default controller. The retaine
 route and skill estimates used by the adaptive policy are a separate, online
 learning mechanism. Training this network does not alter those estimates.
 
-The latest [corrective recovery checkpoint](reviews/2026-11-22-lily-recovery-learning-checkpoint.md)
-records a third experimental policy. One refit on the original corpus plus
-successful teacher corrections improved fresh unaided landings from 0/24 to
-10/24. The native baseline reached 23/24. All three neural artifacts remain
-available; no production controller or deployed engine package changed.
+The latest [autonomous outcome-learning checkpoint](reviews/2026-11-22-lily-outcome-learning-checkpoint.md)
+trained the output head from its own unaided physical results. Both measured
+checkpoints landed all 24 development pool starts, versus recovery v3's 11/24,
+but each lost one shaft success (7/8 versus 8/8). The retention rule selected
+neither. All 928 attempts and 519,793 model decisions passed the offline audit;
+sealed and historical evaluation remained unopened. The complete candidate
+lineage is preserved, and the deployed controllers remain unchanged.
+
+The preceding [corrective recovery checkpoint](reviews/2026-11-22-lily-recovery-learning-checkpoint.md)
+records the v3 initialization. One refit on the original corpus plus successful
+teacher corrections improved that earlier fresh bank from 0/24 to 10/24, against
+the native baseline's 23/24. That bank is distinct from the latest development
+set. The v1-v3 model and export bytes remain available unchanged.
+
+## Autonomous outcome learning
+
+The new experiment varies only the six-output head's 198 parameters, retaining
+v3's 17-feature, 32-unit hidden representation. Eight generations measure the
+incumbent plus six positive/negative perturbation pairs on eight shared starts.
+Successful supported-dry landings rank first; actual successful physics steps
+break ties, with each loss charged the full 9,000-step budget. A model owns every
+input from tick zero, without a teacher handoff or native rescue.
+
+| Development starts | v3 | Generation 4 | Generation 8 |
+| --- | ---: | ---: | ---: |
+| Pool | 11/24 | 24/24 | 24/24 |
+| Shaft | 8/8 | 7/8 | 7/8 |
+| Eligible for sealed evaluation | Reference | No | No |
+
+Both candidates gain 13 pool starts across all six development pool positions
+and lose `outcome-development-shaft-01-yaw90`. Each reaches first breath there,
+but times out without supported dry landing. V3 lands at step 1,366. The null
+selection preserves the predeclared requirement to retain every v3 development
+shaft win. The 144 sealed and 134 historical diagnostic executions were never
+assigned; this checkpoint has no sealed-transfer or native-comparison result.
+
+The [declaration](../qa/lily-outcome-declaration.json),
+[audit](../qa/lily-outcome-evaluation.json),
+[independent review](reviews/2026-11-22-lily-outcome-independent-review.md) and
+[checkpoint](reviews/2026-11-22-lily-outcome-learning-checkpoint.md) explain the
+fixed budget, geometry splits, physical oracle, failed retention gate, preserved
+artifacts and offline reconstruction. New helpers live under
+`scripts/bot_development/analysis/`; the historical stock fixture is unchanged.
+The source/QA checkpoint remains an experiment; no new policy is selected by a
+launcher or advertised as FF-guns combat competence.
 
 ## First measured candidate
 

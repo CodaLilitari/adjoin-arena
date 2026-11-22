@@ -96,6 +96,12 @@ is selected automatically or qualified for this deployed observation path.
 See [corrective recovery learning](LILY_MOTOR_LEARNING.md#corrective-recovery-candidate)
 and the [checkpoint](reviews/2026-11-22-lily-recovery-learning-checkpoint.md).
 
+The later [outcome-trained heads](reviews/2026-11-22-lily-outcome-learning-checkpoint.md)
+share this fixture-only input requirement. Both improved development pool
+landings to 24/24 from v3's 11/24, but each lost a v3 shaft win. Neither passed the
+retention gate. They are preserved with all candidates in
+`qa/lily-outcome-candidates.tar.gz`; there is no selected live replacement.
+
 ## Commit to a bank across motor commands
 
 The opt-in `escape-bank` directive gives the movement policy one task above its

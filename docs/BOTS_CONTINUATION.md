@@ -24,7 +24,24 @@ physics, including an unsuccessful unrestricted movement probe.
 Read [the operator guide](LILY_ADAPTIVE.md), [wire contract](LILY_PROTOCOL.md), and
 [learning experiment](LILY_MOTOR_LEARNING.md). The first small neural movement
 candidate was trained from 27 successful physical replays and remains unpromoted.
-The [latest review checkpoint](reviews/2026-11-22-lily-recovery-learning-checkpoint.md)
+The [latest outcome-learning checkpoint](reviews/2026-11-22-lily-outcome-learning-checkpoint.md)
+completed 832 unaided training executions and 96 development executions. G4 and
+G8 both improved pool landings from v3's 11/24 to 24/24, gaining starts across all
+six development pool positions. Both also lost the same shaft start, scoring 7/8
+against v3's 8/8. The predeclared retention rule selected neither, so the sealed
+and historical stages remained unopened. The audit verified every one of 519,793
+model decisions; all 928 attempts completed, including 100 simulation timeouts
+and one death. All 105 model/export artifacts and the complete private evidence
+are retained. The deployed controllers and existing engine packages are unchanged.
+
+The next learning question is retaining prior shaft behavior while improving
+pool movement and learning the transition from surfacing to stable support. The
+regressed heads reach first breath but never complete the required landing.
+Broader skill rehearsal and learned phase/history are proposed experiments, not
+current results or case-specific navigation rules. See the
+[independent measured-evidence review](reviews/2026-11-22-lily-outcome-independent-review.md).
+
+The [preceding recovery checkpoint](reviews/2026-11-22-lily-recovery-learning-checkpoint.md)
 records one corrective recovery fit. Frozen v2 first drove eight scheduled
 branches from the two original training pool poses; the native teacher then
 took over without resetting the actor or held inputs. Six branches landed and

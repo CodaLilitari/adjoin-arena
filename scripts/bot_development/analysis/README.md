@@ -217,3 +217,50 @@ produces a valid receipt. The native terminal recorder supplies the 38-step
 support streak. The 150 Hz support history and per-process OS exit status were
 not separately archived for the independent evaluations. Executable hashes
 are those captured by each evaluator during its temporary build.
+
+## Autonomous outcome-learning experiment
+
+The fixed [outcome checkpoint](../../../docs/reviews/2026-11-22-lily-outcome-learning-checkpoint.md)
+adds an unaided neural output-head search while retaining the stock fixture.
+`declare_outcome_poses.py` creates the geometry-only split proposal;
+`run_outcome_learning.py` owns the fixed train/select/evaluate stages;
+`outcome_rollouts.py` verifies actual process and physical evidence; and
+`outcome_build_inputs.py` binds the compiled external project dependencies.
+`audit_outcome_learning.py` independently reconstructs the retained experiment.
+
+The committed declaration fixes one run ID, all seeds, 832 training executions,
+96 development executions, and conditional sealed/diagnostic stages. Attempt and
+stage claims are exclusive. There is no retry, resume, alternative output ID,
+parameter-tuning CLI or outcome-dependent extension. A fresh reproduction needs
+an empty canonical run path and the declared source/build/map inputs. Existing
+recorded evidence should be audited using the restore procedure in the checkpoint.
+
+```sh
+python3 -B -m scripts.bot_development.analysis.run_outcome_learning train \
+  --declaration qa/lily-outcome-declaration.json \
+  --output /dev/shm/lily-outcome-learning-20261122-01 \
+  --source "$PATCHED_NATIVE_SOURCE" --build "$NATIVE_BUILD" \
+  --map "$OWNED_JKL" --workers 2
+python3 -B -m scripts.bot_development.analysis.run_outcome_learning select \
+  --declaration qa/lily-outcome-declaration.json \
+  --output /dev/shm/lily-outcome-learning-20261122-01 --workers 2
+```
+
+The recorded experiment selected no checkpoint: both G4 and G8 achieved 24/24
+pool development landings but lost one protected shaft win. It stopped after
+928 complete attempts. Do not run `evaluate` for this null selection. The audit
+is read-only and works with a restored run path:
+
+```sh
+python3 -B -m scripts.bot_development.analysis.audit_outcome_learning \
+  --declaration qa/lily-outcome-declaration.json --run "$RESTORED_RUN" \
+  --output "$NEW_AUDIT_JSON"
+```
+
+The two public compressed bundles preserve all 105 measured model/export
+artifacts and all 96 project build inputs, respectively. The latter includes its
+two license notices; extract only `build/*` into the restored run. Raw attempts,
+owned numeric geometry and the measured replay are kept in the private evidence
+archive. The three payloads reconstruct all 7,765 original files; archive digests
+and measured validation are recorded in
+[`qa/lily-outcome-validation.json`](../../../qa/lily-outcome-validation.json).
