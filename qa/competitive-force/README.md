@@ -1,10 +1,15 @@
 # Native competitive Force observation
 
-`harness.py` runs a bounded stock `JK1MP/m2.jkl` rank-eight session with the
+`harness.py` runs a bounded rank-eight session on a stock `JK1MP` map with the
 packaged dedicated server and two ordinary competitive bot clients. Supply
-the repository, owned game-data directory, and a new output directory as
-`--repo`, `--data`, and `--output`; `--duration` accepts 1 through 120 seconds
-after both clients join.
+the repository, owned game-data directory, and a new output directory with
+`--repo`, `--data`, and `--output`. The `--duration` option accepts 1 through
+120 seconds after both clients join.
+
+The default map is `m2.jkl`. Use `--map` to select `m4.jkl`, `m5.jkl`,
+`m10.jkl`, `m_boss15.jkl`, or `m_boss17.jkl`. The harness compares the
+selected JKL with its SHA-256 in `qa/bots-stock-map-audit.json` and records
+the map name and measured hash in the receipt.
 
 Run it in a private Linux network namespace with loopback enabled. The native
 GNS server normally binds all interfaces, so merely connecting the bots to

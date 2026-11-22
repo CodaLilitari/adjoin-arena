@@ -21,7 +21,7 @@ SERVER = "bin/linux-x86_64/openjkdf2"
 PATCH = "native/bot-client.patch"
 GNS = "libGameNetworkingSockets.so"
 STOCK_MP = "27a4b3642e0965753232f35b1e8e846c91df1eca1da77398b5efda66ca369a2e"
-STOCK_M2 = "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a"
+STOCK_MAPS = ("m2.jkl", "m4.jkl", "m5.jkl", "m10.jkl", "m_boss15.jkl", "m_boss17.jkl")
 EXPECTED = {"light": {21, 22, 23, 24, 25, 28}, "dark": {21, 22, 23, 24, 31, 33}}
 FLAGS = {"SDL_VIDEODRIVER": "offscreen", "SDL_VIDEO_DRIVER": "offscreen",
          "EGL_PLATFORM": "surfaceless", "LIBGL_ALWAYS_SOFTWARE": "1",
@@ -257,22 +257,26 @@ def run(args, receipt, tmp):
         hashes[p.name] = digest(p)
     if hashes["jk1mp.gob"] != STOCK_MP:
         raise Failure("stock_episode_hash_mismatch")
-    entry = next(e for e in archive_index(gob) if e["name"].casefold()=="jkl/m2.jkl")
+    audit = json.loads((repo / "qa/bots-stock-map-audit.json").read_text())
+    episode = next(item for item in audit["episodes"] if item["episode"] == "jk1mp")
+    expected_hash = next(item["sha256"] for item in episode["maps"] if item["map"] == args.map)
+    map_key = "jkl/" + args.map
+    entry = next(item for item in archive_index(gob) if item["name"].casefold() == map_key)
     with gob.open("rb") as inp:
         inp.seek(entry["offset"])
-        hashes["jkl/m2.jkl"] = hashlib.sha256(inp.read(entry["size"])).hexdigest()
-    if hashes["jkl/m2.jkl"] != STOCK_M2:
+        hashes[map_key] = hashlib.sha256(inp.read(entry["size"])).hexdigest()
+    if hashes[map_key] != expected_hash:
         raise Failure("stock_map_hash_mismatch")
     with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as sock:
         sock.bind(("127.0.0.1",0))
         port = sock.getsockname()[1]
-    cfg = dict(config.DEFAULT,rank=8,native_port=port,bots_fists_peace=False,bots_force_enabled=True,
+    cfg = dict(config.DEFAULT,map=args.map,rank=8,native_port=port,bots_fists_peace=False,bots_force_enabled=True,
                bots_sabers_only=False,bots_taunts=False,web_enabled=False,spectator_rendering=False,
                name="Native Force QA",max_players=4)
     registry = config.registry(cfg)
     receipt["server_registry"] = registry.copy()
     receipt["server_registry"].pop("serverPassword")
-    receipt["server_argv"] = ["-headless","-dedicatedServer","-episode","JK1MP","-map","m2.jkl"]
+    receipt["server_argv"] = ["-headless","-dedicatedServer","-episode","JK1MP","-map",args.map]
     (server_dir/"registry.json").write_text(dump(registry))
     (server_dir/"player").mkdir()
     write_behavior(tmp/"behavior.cfg",cfg)
@@ -353,12 +357,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for key in ("repo","data","output"):
         parser.add_argument("--"+key,type=Path,required=True)
+    parser.add_argument("--map", choices=STOCK_MAPS, default="m2.jkl")
     parser.add_argument("--duration",type=int,default=75,choices=range(1,121),metavar="1..120")
     args = parser.parse_args()
     os.umask(0o077)
     for sig in (signal.SIGTERM,signal.SIGINT,signal.SIGHUP):
         signal.signal(sig,lambda num,frame:STOP.append(num))
-    receipt = {"version":1,"requested_match_seconds":args.duration,"status":"failed"}
+    receipt = {"version":1,"requested_map":args.map,"requested_match_seconds":args.duration,"status":"failed"}
     made_output = False
     code = 1
     try:
