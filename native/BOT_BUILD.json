@@ -35,19 +35,20 @@
     " 5a82f71ed1dfc0bec044d9702463dbdf84ea3b71 lib/zlib (5a82f71)"
   ],
   "compiled_sources": {
-    "src/AI/jkBot.c": "674887f31ac61d268931380c338c0debb327d6861fa804b3c019bc8223f9d0ed",
+    "src/AI/jkBot.c": "63855a03de4b98948a59e821b3a13411d7561b2e5a8d417d47b1951f24932c13",
     "src/AI/jkBot.h": "d822c0f525b820307b9dde817677b81af8ccca5b3024d2a7859d0cb16314f70f",
     "src/AI/jkBotBehavior.h": "5cad5dc201e93c01d8dd5b72f6d3d9b425f29b528f83aeb4ec14c811da245e49",
     "src/AI/jkBotBehavior.inc": "ef13f015be070f0658fa2f08a6b63066228168ee129f04a79747e4e6bab63a16",
-    "src/AI/jkBotCombat.inc": "44af6b5f6b84fd5b6f86903156c64388b5e07b48123b530ac6e5ed5c33f03417",
+    "src/AI/jkBotCombat.inc": "496a42a6ff47906b6040c58e141bbec44ab6252a066db66a18d6a3e4c6a07ce2",
     "src/AI/jkBotCompanion.inc": "91e1e975bb34f46cf1553ba77bcfbd4f57db550c1e6d1981facc1d62c44eacdc",
-    "src/AI/jkBotForce.inc": "8b1436812dedc4ad9a1a97b19baa53b550f7404bbfd3fa298fa65561a297241b",
+    "src/AI/jkBotForce.inc": "828e3c5e41e14e5457dc9d6c6848164a32aed92de530a8d92d5309570659b110",
     "src/AI/jkBotHearing.inc": "30c08aeefde67acaab5bdc63cfd93be0941f5b4614e8eec1ea357841ba6aee8a",
     "src/AI/jkBotLoadout.h": "aab6d025bb9ec2c431beb2d6bd559992b664e9ce075fcaa9c1103ae9ed5dcdc1",
-    "src/AI/jkBotNavigate.inc": "2fc32a7d29d94d04cbebf88092b44b9da92b9657ae86f211298d64b4c80a4991",
-    "src/AI/jkBotNavigation.inc": "dbd5a098b9c9389acb19504bdbf76c337fe5ac3d1e2f0d9d3662f93cb2f3e651",
+    "src/AI/jkBotNavigate.inc": "ee88dec3d4e9abec0c7c83110b15e2f47e5ff5991dfe57d468c7298aec717543",
+    "src/AI/jkBotNavigation.inc": "7a0b913db9332ecff50cc76081630cc396b5ba78edd25a5601858887bd65614b",
     "src/AI/jkBotPersona.c": "618f31f58e45a13d89b5dc0493233d446d5eaeada681bd0de758a155a50d578d",
     "src/AI/jkBotPersona.h": "e193097d937ed22400fe84d86a1e9e7f18884cc2be876fb1540627bee96e0bfb",
+    "src/AI/jkBotWaterExit.inc": "26da1dd699350c6c29bd254b68798624c0bdc8a972177911437cfa2d96f1eebc",
     "src/AI/sithAI.h": "f2ff94dfc5741982e6557422e81ca1d00a4e05cffc2a9506c393680674de60fa",
     "src/AI/sithAIAwareness.h": "66464deaef0b0b56ea832ecb3fa7e4139fa7554d61d28725967f2aefa1732a54",
     "src/AI/sithAIClass.h": "cccb66bb2e8a3922e0d3ba8ffe0500e232a234f4dd811e901ffe3bbe8d46f979",
@@ -259,26 +260,26 @@
   },
   "files": {
     "bin/bots-linux-x86_64/jk-bot-client": {
-      "sha256": "2a6e9a436b59856c7932d0bdd73a477f26645afa70c698e3893cf8986657cc94",
-      "bytes": 8639440
+      "sha256": "41ec1d8b0d228bfffb5147bba104011eec3df7e815f2be45176cc277ff99ddce",
+      "bytes": 8648112
     },
     "bin/bots-linux-x86_64/libGameNetworkingSockets.so": {
       "sha256": "8246a869b1d72115ecc849309629aa1abbce0bf1a0f23cc70deaded98d82d8e9",
       "bytes": 3644744
     },
     "native/bot-client.patch": {
-      "sha256": "41bc3e0bc5a175aaba24ceebbd56411ffc1882f7a650e5c949cc03abc0651c97",
-      "bytes": 216764
+      "sha256": "0ff9bbcd9713fbb7d93f52d5695acc6d04ade45ce4520af2c9bc064687ea4774",
+      "bytes": 239516
     },
     "native/bot-relink-linux-x86_64.tar.gz": {
-      "sha256": "48960d64e88523088d4b3b67870a53b6b46d8ce7f5909fd2b059408cc8aedc7b",
-      "bytes": 6015386
+      "sha256": "ec8df212d1613b9c378bfa4475c973ef67f41d85d1e56fd882e05f101e7300ac",
+      "bytes": 6019476
     }
   },
   "relink_inputs": {
     "CMakeFiles/openjkdf2.dir/src/main.c.o": "5cac74e46ccdb6f00cfe4b60d06df1a8282ddc27ad1c7001009af728d3d88c95",
     "CMakeFiles/sith_engine.dir/generated/globals.c.o": "b8ea7a66262f5d97d72f6fbf66522fb48d49a57e62d9b4d0a8cf95a7603ca713",
-    "CMakeFiles/sith_engine.dir/src/AI/jkBot.c.o": "8c8d77eeda45d48ea37eb774d91c64cfded15bfd29a1cabc36ee91312a4ef838",
+    "CMakeFiles/sith_engine.dir/src/AI/jkBot.c.o": "7c7483273419ed53aeda25e9a3290010054f8ee90b28df07ddaa733fb483175c",
     "CMakeFiles/sith_engine.dir/src/AI/jkBotPersona.c.o": "4db8c6c71e81ce9ca8911974014861cebaca2a5279c5efa78e65b4010d9b89f3",
     "CMakeFiles/sith_engine.dir/src/AI/sithAI.c.o": "cbda1c7df0dd425eaeb69e14308b53c9869fe6120c6d98f2d1743d86076bddc5",
     "CMakeFiles/sith_engine.dir/src/AI/sithAIAwareness.c.o": "2b590541a50ed915d863874172cf0a84d9398a6114e62adb8da8e2ed6dea0cfb",
@@ -498,9 +499,9 @@
   "game_assets_included": false,
   "server_modified": false,
   "incremental_rebuild": {
-    "prior_relink_archive_sha256": "bb48ac26badaa05419e2ff5525d7064fdae513c35f957edd4d4f540609f16132",
-    "prior_patch_sha256": "a3f93704cd47a4f40c70e63cd79184fc87dd6ebbf4883447cac06d8040083caa",
-    "prior_binary_sha256": "f12e62f47ddb7014488eb96eb67e412d8103c5f104cefceb33055521f3e61e00",
+    "prior_relink_archive_sha256": "48960d64e88523088d4b3b67870a53b6b46d8ce7f5909fd2b059408cc8aedc7b",
+    "prior_patch_sha256": "41bc3e0bc5a175aaba24ceebbd56411ffc1882f7a650e5c949cc03abc0651c97",
+    "prior_binary_sha256": "2a6e9a436b59856c7932d0bdd73a477f26645afa70c698e3893cf8986657cc94",
     "scanned_translation_units": 205,
     "dependency_method": "Compiler-preprocessed header dependencies of all linked engine-source units; actual rebuilt dependencies recorded with -MMD.",
     "compile_flags": [
@@ -574,7 +575,7 @@
     "units": {
       "src/AI/jkBot.c": {
         "object": "CMakeFiles/sith_engine.dir/src/AI/jkBot.c.o",
-        "sha256": "8c8d77eeda45d48ea37eb774d91c64cfded15bfd29a1cabc36ee91312a4ef838",
+        "sha256": "7c7483273419ed53aeda25e9a3290010054f8ee90b28df07ddaa733fb483175c",
         "engine_dependencies": [
           "src/AI/jkBot.c",
           "src/AI/jkBot.h",
@@ -587,6 +588,7 @@
           "src/AI/jkBotLoadout.h",
           "src/AI/jkBotNavigate.inc",
           "src/AI/jkBotNavigation.inc",
+          "src/AI/jkBotWaterExit.inc",
           "src/Cog/sithCog.h",
           "src/Cog/sithCogExec.h",
           "src/Cog/sithCogParse.h",
@@ -644,16 +646,16 @@
     "verification": {
       "prior_global_symbols_removed": 0,
       "clean_pinned_source_accepts_patch": true,
-      "packaged_source_dependency_hashes_verified": 221,
+      "packaged_source_dependency_hashes_verified": 222,
       "all_packaged_link_input_hashes_verified": 218,
-      "relinked_executable_sha256": "2a6e9a436b59856c7932d0bdd73a477f26645afa70c698e3893cf8986657cc94",
+      "relinked_executable_sha256": "41ec1d8b0d228bfffb5147bba104011eec3df7e815f2be45176cc277ff99ddce",
       "headless_invalid_profile_exit": 6,
       "patched_source_regressions": [
         "hearing and elite pursuit",
         "companion transport and strategies",
-        "bot driver and combat",
+        "bot driver, combat and arming",
         "collision",
-        "portal geometry and water entry",
+        "portal geometry, water entry/exit and recessed pickup contact",
         "loadout"
       ],
       "live_multiplayer_match": false

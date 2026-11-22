@@ -108,7 +108,12 @@ static void test_competitive_force(SithThing *self, SithThing *peer, rdModel3 *g
         testInventoryTypes[grip].cog=&cog;
         bot.now+=1; test_force_frame();
         assert(Bot_RequestForce(self,grip,0.46f,1)); own->curPower=grip;
-        marker.val.data[0]=-1; bot.now+=0.2f; test_force_frame(); Bot_ForceTick(self,peer,0);
+        marker.val.data[0]=-1; bot.now+=0.2f; test_force_frame();
+        if (scenario==WRONG_MARKER) {
+            nav.waterExitUntil=bot.now+4;
+            Bot_ContinueWaterExit(self);
+            assert(nav.waterExitUntil==0 && bot.forceBin==grip);
+        } else Bot_ForceTick(self,peer,0);
         assert(bot.keys[Bot_PowerKey(grip)] && !bot.keys[INPUT_FUNC_NEXTSKILL]);
         marker.val.data[0]=peer->idx;
         switch (scenario) {
@@ -128,7 +133,12 @@ static void test_competitive_force(SithThing *self, SithThing *peer, rdModel3 *g
             case DISABLED_HOLD: bot.forceEnabled=0; break;
         }
         int originalMarker=marker.val.data[0];
-        bot.now+=0.3f; test_force_frame(); Bot_ForceTick(self,peer,0);
+        bot.now+=0.3f; test_force_frame();
+        if (scenario==WRONG_MARKER) {
+            nav.waterExitUntil=bot.now+4;
+            Bot_ContinueWaterExit(self);
+            assert(!nav.waterExitUntil && bot.forceCancel);
+        } else Bot_ForceTick(self,peer,0);
         assert((int)marker.val.data[0]==originalMarker);
         if (scenario<ACTIVE_PEACE) {
             assert(bot.keys[Bot_PowerKey(grip)] && bot.keys[INPUT_FUNC_NEXTSKILL]);

@@ -135,8 +135,49 @@ static void test_c1_portal_route(void)
     puts("PASS C1 boundary anchor fallback has a collision-checked lobby route and rejects disconnected entry");
 }
 
+static void test_bot_pickup_preferences(void)
+{
+    jkBot_Configure("Bot_Supply","ky.3do");
+    SithSector sector={0}; SithWorld world={0}; SithThing self={0}, racks[2]={{0}}; SithPlayer own={0};
+    self.type=SITH_THING_PLAYER; self.sector=&sector; self.actorParams.pPlayer=&own; self.actorParams.health=100;
+    world.aThings=racks; world.numThings=1; world.numThingsLoaded=2; bot.world=&world;
+    bot.now=20; bot.nNodes=3; bot.graphDone=1; bot.sabersOnly=0; bot.elite=0;
+    for (int i=0;i<2;i++) { racks[i].type=SITH_THING_ITEM; racks[i].sector=&sector; }
+    strcpy(racks[0].aName,"railgun"); strcpy(racks[1].aName,"concrifle");
+    assert(Bot_ItemValue(&self,0)==8 && Bot_ItemValue(&self,1)==8);
+    bot.elite=1;
+    assert(Bot_ItemValue(&self,0)==12 && Bot_ItemValue(&self,1)==18);
+    strcpy(racks[0].aName,"repeatergun"); assert(Bot_ItemValue(&self,0)==10);
+    strcpy(racks[0].aName,"strifle"); assert(Bot_ItemValue(&self,0)==8);
+    strcpy(racks[0].aName,"railgun");
+    bot.nodes[0]=(BotNode){.sector=&sector,.item=-1};
+    bot.nodes[1]=(BotNode){.pos={1,0,0},.sector=&sector,.item=0};
+    bot.nodes[2]=(BotNode){.pos={0,1,0},.sector=&sector,.item=1};
+    bot.nodes[0].edges[0]=(BotEdge){1,1,BOT_ROUTE_WALK};
+    bot.nodes[0].edges[1]=(BotEdge){2,5,BOT_ROUTE_WALK}; bot.nodes[0].nEdges=2;
+    unsigned char strategy[28]={0}; strategy[8]=CP_RESOURCE;
+    assert(Companion_SetPolicy(&self,strategy,100)==CP_OK); Bot_Plan(&self);
+    assert(bot.goal==1 && bot.routeCount==1 && bot.route[0]==1);
+    strategy[9]=SITHBIN_CONCUSSION_RIFLE;
+    assert(Companion_SetPolicy(&self,strategy,100)==CP_OK); Bot_Plan(&self);
+    assert(bot.goal==2 && bot.routeCount==1 && bot.route[0]==2 && !own.aItems[SITHBIN_CONCUSSION_RIFLE].amount);
+    bot.nodes[0].nEdges=1; bot.goal=-1; Bot_Plan(&self); assert(bot.goal==1);
+    self.actorParams.health=25; strcpy(racks[0].aName,"healthpack");
+    assert(Bot_ItemValue(&self,0)>Bot_ItemValue(&self,1)); self.actorParams.health=100;
+    bot.sabersOnly=1; assert(Bot_ItemValue(&self,1)==0); bot.sabersOnly=0;
+    own.aItems[SITHBIN_CONCUSSION_RIFLE].state=SITHINVENTORY_ITEM_AVAILABLE;
+    own.aItems[SITHBIN_CONCUSSION_RIFLE].amount=1; own.aItems[SITHBIN_POWER].amount=500;
+    assert(Bot_ItemValue(&self,1)==0); own.aItems[SITHBIN_CONCUSSION_RIFLE].amount=0;
+    racks[1].flags=SITH_TF_DISABLED; racks[1].itemParams.secRespawnInterval=30;
+    assert(Bot_ItemValue(&self,1)==0); bot.now+=28;
+    assert(Bot_ItemValue(&self,1)>0 && Bot_ItemValue(&self,1)<2);
+    racks[1].flags=SITH_TF_DESTROYED; assert(Bot_ItemValue(&self,1)==0);
+    puts("PASS elite supply priorities and legal companion preference alter reachable routes; health, saber, ammo and absence guards");
+}
+
 static void test_bot_navigation(void)
 {
+    test_bot_pickup_preferences();
     SithSector sectors[2]={{0}};
     SithWorld world={0}; SithThing self={0}, items[4]={{0}}, templates[4]={{0}};
     SithPlayer own={0}; rdModel3 model={0};

@@ -43,7 +43,7 @@ private harness output before qualification metadata was added to the
 checked-in JSON. The `trace_evidence.trace_sha256` value hashes the exact
 bytes of the published JSONL trace named in `trace_evidence.trace_file`.
 
-### Canyon Oasis water entry
+### Canyon Oasis water entry and pickups
 
 On `m10.jkl`, the old route planner clipped the rim of a water shaft when it
 tested a straight diagonal from the dry ledge. The bot now checks body
@@ -51,8 +51,29 @@ clearance across the opening and down into the water, then uses ordinary
 movement to enter. The source fixture uses the engine collision routines and
 privately supplied stock world surfaces. From sector 41, reachable nodes
 increased from 13 to 517 of 552, and reachable items from 1 to 19 of 42.
-Both versions anchored 38 items. The first browser match reported 555 nodes.
+Both versions anchored 38 items. A current JKWeb match subsequently reported
+516 of 554 nodes and 19 of 42 items reachable from sector 41.
 
-`native/tests/run_bot_portal_tests.py` exercises the same maneuver on synthetic
-geometry, including closed, hazardous, AI-only and undersized openings.
-Live execution of the revised route is pending.
+The next source revision lets the bot collect a recessed item from a reachable
+position where the player and item collision spheres overlap and the stock
+touch handler has line of sight. In the same offline fixture, this raised
+reachable items from 18 to 36 of 42 from sector 39 and from 19 to 38 of 42
+from sector 41. The revised graph has 558 nodes and anchors 40 items. Both
+starts have routes to both rail detonators, both repeaters, every rail charge
+and every power cell. Sector 41 also has a route to the sole concussion rifle.
+Live inventory changes provide a separate measure of actual collection.
+
+With the subsequent water-exit maneuver, both origins reach 523 of 558 nodes
+and 38 of 42 items, including the concussion rifle. A separate source replay
+tested the exit from a submerged waypoint to the sector 41 ledge at 30, 50,
+60 and 120 frames per second, with two stock airborne physics routines and
+five Force Speed settings (off and ranks 1–4). All 40 runs reached the
+supported ledge after one surface jump. The replay drove the bot's movement
+inputs through the stock swim, jump and airborne routines against world
+surfaces. It supplied the water-surface flag and checked the landing with a
+body sweep. This result covers the maneuver under those fixture conditions.
+
+`native/tests/run_bot_portal_tests.py` exercises water entry, water exit and
+recessed pickups on synthetic geometry. It checks closed, hazardous, AI-only
+and undersized openings, pickup overlap and visibility, and the player's
+final approach to the shelf.

@@ -78,3 +78,71 @@ static void test_bot_gunshots(void)
     testCombatArena=0; sithNet_MultiModeFlags=0; assert(queryDepth==0);
     puts("PASS predicted concussion floor/direct aim, legal selection, template splash, friendly/self and wall rejection");
 }
+
+static void test_bot_arming(void)
+{
+    SithThing self={0}, enemy={0}, rack={0}; SithSector sector={0}; SithWorld world={0};
+    jkBot_Configure("Bot_Arm","ky.3do");
+    memset(jkPlayer_playerInfos,0,sizeof(jkPlayer_playerInfos)); jkPlayer_maxPlayers=2;
+    sithNet_MultiModeFlags=0; testCombatArena=1; testCombatWall=0;
+    SithPlayer *p=&jkPlayer_playerInfos[0];
+    self.type=enemy.type=SITH_THING_PLAYER; self.sector=enemy.sector=&sector;
+    self.actorParams.pPlayer=p; self.actorParams.health=100; self.attach_flags=SITH_ATTACH_SURFACE;
+    self.position.z=enemy.position.z=BOT_FOOT_HEIGHT; self.moveSize=self.collideSize=.065f;
+    self.orient.lvec.y=1; self.orient.rvec.x=1; self.actorParams.maxRotVelocity=200;
+    enemy.position.y=3; jkPlayer_playerInfos[1].flags=1;
+    jkPlayer_playerInfos[1].pLocalPlayer=&enemy; jkPlayer_playerInfos[1].playerNetId=2;
+    for (int w=2;w<=10;w++) { p->aItems[w].state=SITHINVENTORY_ITEM_AVAILABLE; p->aItems[w].amount=1; }
+    p->aItems[SITHBIN_POWER].amount=8; p->aItems[SITHBIN_ENERGY].amount=10;
+    bot.now=1; bot.targetSlot=-1; p->curWeaponID=SITHBIN_CONCUSSION_RIFLE;
+    Bot_SelectWeapon(&self,2);
+    for (int w=1;w<=10;w++) assert(!bot.keys[INPUT_FUNC_SELECT1+w-1]);
+    bot.sabersOnly=1; bot.nextSelect=0; Bot_SelectWeapon(&self,2);
+    assert(bot.keys[INPUT_FUNC_SELECT1+SITHBIN_LIGHTSABER-1]); bot.sabersOnly=0;
+    p->aItems[SITHBIN_POWER].amount=0; bot.nextSelect=0; memset(bot.keys,0,sizeof(bot.keys));
+    Bot_SelectWeapon(&self,2); assert(bot.keys[INPUT_FUNC_SELECT1+SITHBIN_STORMTROOPER_RIFLE-1]);
+    memset(p->aItems,0,sizeof(p->aItems));
+    p->aItems[SITHBIN_BRYARPISTOL].state=SITHINVENTORY_ITEM_AVAILABLE;
+    p->aItems[SITHBIN_BRYARPISTOL].amount=1; p->aItems[SITHBIN_ENERGY].amount=10;
+    p->curWeaponID=SITHBIN_BRYARPISTOL;
+    bot.elite=1; bot.fistsPeace=0; bot.forceEnabled=0; bot.targetSlot=1; bot.now=5;
+    world.aThings=&rack; world.numThings=0; world.numThingsLoaded=1; bot.world=&world;
+    rack.type=SITH_THING_ITEM; rack.sector=&sector; strcpy(rack.aName,"railgun");
+    rack.position=(rdVector3){0.8f,0,BOT_FOOT_HEIGHT}; bot.nNodes=1;
+    bot.nodes[0]=(BotNode){.pos=rack.position,.sector=&sector,.item=0};
+    memset(bot.keys,0,sizeof(bot.keys)); Bot_Combat(&self,&enemy);
+    assert(bot.keys[INPUT_FUNC_FIRE1] && bot.axes[INPUT_FUNC_SLIDE]>.9f);
+    assert(bot.armNode && !p->aItems[SITHBIN_RAIL_DETONATOR].amount);
+    /* A near-side anchor can be inside pickup reach while the approaching
+       player falls inside the generic navigation stop distance first. */
+    rack.collide=SITH_COLLIDE_SPHERE; rack.collideSize=.10f;
+    bot.nodes[0].pos.x=.031f; rack.position.x=.17f;
+    bot.now+=1; memset(bot.keys,0,sizeof(bot.keys)); memset(bot.axes,0,sizeof(bot.axes)); Bot_Combat(&self,&enemy);
+    assert(bot.keys[INPUT_FUNC_FIRE1] && bot.axes[INPUT_FUNC_SLIDE]>.1f && bot.axes[INPUT_FUNC_SLIDE]<=.4f);
+    /* Acquire from rest inside the graph's .025 minimum edge as well. */
+    bot.armNode=0; bot.now+=3; rack.position.x=.168f; bot.nodes[0].pos.x=.012f;
+    memset(bot.axes,0,sizeof(bot.axes));
+    assert(Bot_ArmingMove(&self,3) && bot.axes[INPUT_FUNC_SLIDE]>.1f && bot.axes[INPUT_FUNC_SLIDE]<=.4f);
+    self.position.x=.007f; memset(bot.axes,0,sizeof(bot.axes));
+    assert(!Bot_ArmingMove(&self,3) && !bot.axes[INPUT_FUNC_SLIDE]);
+    /* A live obstruction still cancels an already-armed final nudge. */
+    self.position=(rdVector3){0,.425f,BOT_FOOT_HEIGHT};
+    bot.nodes[0].pos=(rdVector3){0,.456f,BOT_FOOT_HEIGHT};
+    rack.position=(rdVector3){0,.595f,BOT_FOOT_HEIGHT};
+    bot.now+=3; assert(Bot_ArmingMove(&self,3)); testCombatWall=1;
+    memset(bot.axes,0,sizeof(bot.axes)); assert(!Bot_ArmingMove(&self,3) && !bot.axes[INPUT_FUNC_FORWARD]);
+    testCombatWall=0; self.position=(rdVector3){0,0,BOT_FOOT_HEIGHT};
+    bot.nodes[0].pos=rack.position=(rdVector3){.8f,0,BOT_FOOT_HEIGHT};
+    nav.forceJumpPending=1; assert(!Bot_ArmingMove(&self,3)); nav.forceJumpPending=0;
+    assert(!Bot_ArmingMove(&self,.7f));
+    bot.hurtUntil=bot.now+1; assert(!Bot_ArmingMove(&self,3)); bot.hurtUntil=0;
+    bot.now+=4; bot.nodes[0].pos=(rdVector3){0,1,BOT_FOOT_HEIGHT}; testCombatWall=1;
+    assert(!Bot_ArmingMove(&self,3)); testCombatWall=0;
+    bot.now+=4; strcpy(rack.aName,"railcharges"); assert(!Bot_ArmingMove(&self,3));
+    p->aItems[SITHBIN_RAIL_DETONATOR].amount=1;
+    p->aItems[SITHBIN_RAIL_DETONATOR].state=SITHINVENTORY_ITEM_AVAILABLE;
+    bot.now+=4; assert(Bot_ArmingMove(&self,3));
+    p->aItems[SITHBIN_RAILCHARGES].amount=1; assert(!Bot_ArmingMove(&self,3));
+    testCombatArena=0; bot.world=NULL; assert(queryDepth==0);
+    puts("PASS quiet weapon retention, saber-only/empty fallback, safe pickup movement + normal fire and interruption");
+}

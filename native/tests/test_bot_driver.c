@@ -224,5 +224,6 @@ int main(void)
     test_bot_behavior();
     test_bot_navigation();
     test_bot_gunshots();
+    test_bot_arming();
     return 0;
 }

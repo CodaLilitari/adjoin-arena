@@ -262,22 +262,124 @@ static void test_water_entry(void)
     assert(Bot_EnterWater(&self,&wet,BOT_ROUTE_WATER_ENTRY));
     assert(bot.axes[INPUT_FUNC_FORWARD]>0.5f && !bot.keys[INPUT_FUNC_JUMP] && !bot.keys[INPUT_FUNC_DUCK]);
     assert(Bot_Distance(self.position,dry.pos)==0);
+    /* The reverse edge needs real momentum before a fresh surface jump. */
+    test_world.gravity=4; nav.jumpVelocity=1.5f; nav.maxRunSpeed=1;
+    self.actorParams.maxThrust=2; self.actorParams.jumpSpeed=1.5f; self.physicsParams.mass=150;
+    self.physicsParams.airDrag=0.5f; self.physicsParams.flags=SITH_PF_USETHRUST|SITH_PF_USEGRAVITY;
+    rdVector3 swimStart; flex_t flight=0;
+    assert(Bot_EdgeMode(1,0)==BOT_ROUTE_WATER_EXIT);
+    assert(Bot_WaterExitArc(&wet,&dry,&swimStart,&flight));
+    assert(flight>0.2f && flight<0.8f);
+    nav.waterExitFrom=1; nav.waterExitTo=0; nav.waterExitStart=swimStart;
+    nav.waterExitUntil=4; nav.waterExitPhase=0;
+    self.sector=wet.sector; self.attach_flags=0; self.position=swimStart;
+    self.position.z-=0.12f; self.orient.lvec.x=-1;
+    memset(bot.keys,0,sizeof(bot.keys)); Bot_ExitWaterMove(&self);
+    assert(bot.keys[INPUT_FUNC_JUMP] && nav.waterExitPhase==0);
+    self.position=swimStart; self.physicsParams.flags|=SITH_PF_ONWATERSURFACE; self.field_48=.025f;
+    bot.previous[INPUT_FUNC_JUMP]=1; memset(bot.keys,0,sizeof(bot.keys));
+    Bot_ExitWaterMove(&self);
+    assert(!bot.keys[INPUT_FUNC_JUMP] && nav.waterExitPhase==1);
+    bot.previous[INPUT_FUNC_JUMP]=0; Bot_ExitWaterMove(&self);
+    assert(!bot.keys[INPUT_FUNC_JUMP] && bot.axes[INPUT_FUNC_FORWARD]>.9f);
+    for (int tick=0;tick<45 && !bot.keys[INPUT_FUNC_JUMP];tick++) {
+        /* Advance the fixture swimmer using stock surface thrust and drag. */
+        self.physicsParams.vel.x=self.physicsParams.vel.x*(1-.02f*4*.5f)-.02f*.6f*2;
+        self.position.x+=self.physicsParams.vel.x*.02f;
+        Bot_ExitWaterMove(&self);
+    }
+    assert(bot.keys[INPUT_FUNC_JUMP] && nav.waterExitPhase==2 && nav.waterExitUntil>bot.now);
+    self.sector=dry.sector; self.position=dry.pos; self.attach_flags=SITH_ATTACH_SURFACE;
+    memset(bot.keys,0,sizeof(bot.keys)); Bot_ExitWaterMove(&self);
+    assert(nav.waterExitUntil==0 && !bot.keys[INPUT_FUNC_JUMP]);
+    self.sector=wet.sector; self.attach_flags=0;
+    nav.waterExitUntil=1; bot.now=2; Bot_ExitWaterMove(&self);
+    assert(!nav.waterExitUntil && bot.goal==-1 && bot.nodes[0].avoidUntil>bot.now);
+    self.sector=dry.sector; self.position=dry.pos; self.attach_flags=SITH_ATTACH_SURFACE;
+    bot.now=0; self.orient.lvec.x=1;
+    BotNode unsupported=dry; unsupported.pos.z+=0.08f;
+    assert(!Bot_WaterExitArc(&wet,&unsupported,&swimStart,&flight));
+    self.actorParams.extraSpeed=2.5f;
+    assert(Bot_StockWaterMotion(&self));
+    Bot_WaterSteer(&self,self.orient.lvec);
+    assert(fabsf(bot.axes[INPUT_FUNC_FORWARD]*(2+2.5f)-2)<.00001f);
+    self.actorParams.extraSpeed=0; self.physicsParams.flags|=SITH_PF_FLY;
+    assert(!Bot_StockWaterMotion(&self));
+    self.physicsParams.flags&=~SITH_PF_FLY;
+    self.actorParams.maxThrust=.02f;
+    assert(!Bot_WaterExitArc(&wet,&dry,&swimStart,&flight));
+    self.actorParams.maxThrust=2;
     BotNode tooClose=wet;tooClose.pos.x=.21f;
     assert(!Bot_WaterEntry(&dry,&tooClose));
     test_adjoins[2].flags&=~SITHSURF_ADJOIN_ALLOW_MOVEMENT;
+    test_adjoins[3].flags&=~SITHSURF_ADJOIN_ALLOW_MOVEMENT;
+    assert(Bot_EdgeMode(1,0)<0);
     memset(bot.axes,0,sizeof(bot.axes));
     assert(Bot_EdgeMode(0,1)<0);
     assert(Bot_EnterWater(&self,&wet,BOT_ROUTE_WATER_ENTRY) && bot.goal==-1 && !bot.axes[INPUT_FUNC_FORWARD]);
     test_adjoins[2].flags|=SITHSURF_ADJOIN_ALLOW_MOVEMENT|SITHSURF_ADJOIN_ALLOW_AI_ONLY;
+    test_adjoins[3].flags|=SITHSURF_ADJOIN_ALLOW_MOVEMENT|SITHSURF_ADJOIN_ALLOW_AI_ONLY;
     assert(!Bot_WaterEntry(&dry,&wet));
+    assert(!Bot_WaterExitArc(&wet,&dry,&swimStart,&flight));
     test_adjoins[2].flags&=~SITHSURF_ADJOIN_ALLOW_AI_ONLY;
+    test_adjoins[3].flags&=~SITHSURF_ADJOIN_ALLOW_AI_ONLY;
     test_sectors[1].flags|=SITH_SECTOR_FALLDEATH;
+    assert(!Bot_WaterExitArc(&wet,&dry,&swimStart,&flight));
     assert(!Bot_WaterEntry(&dry,&wet));
     test_sectors[1].flags=0;test_sectors[2].flags=0;
     assert(!Bot_WaterEntry(&dry,&wet));
     assert(sithCollision_searchStackIdx==-1);
     sithPlayer_g_pLocalPlayerThing=NULL;
+    puts("PASS full-body water exit, momentum gate, fresh jump, dry landing and bounded timeout");
     puts("PASS dry ledge enters verified water through a thin shaft with ordinary inputs; closed, hazardous and narrow openings rejected");
+}
+
+static void test_pickup_contact_approach(void)
+{
+    test_low_threshold(.10f,.25f);
+    SithThing player={.type=SITH_THING_PLAYER,.collide=SITH_COLLIDE_SPHERE,.moveSize=.065f,.collideSize=.065f,
+        .position={.70f,0,BOT_FOOT_HEIGHT},.sector=&test_sectors[0]};
+    SithThing item={.type=SITH_THING_ITEM,.collide=SITH_COLLIDE_SPHERE,.collideSize=.10f,
+        .position={1.022f,0,.115f},.sector=&test_sectors[1],.guid=123};
+    test_world.numThings=0; test_world.numThingsLoaded=1;test_world.aThings=&item;
+    player.actorParams.health=100;
+    sithPlayer_g_pLocalPlayerThing=&player;
+    int start=Bot_AddRawNode(player.position,player.sector,-1);
+    int exact=Bot_AddNode(item.position,item.sector,0,1.1f);
+    assert(exact>=0 && start>=0);
+    Bot_AddPickupContacts(&player,&item,0,exact);
+    while (!bot.graphDone) Bot_BuildGraphStep();
+    flex_t cost[BOT_NODES];int parent[BOT_NODES];Bot_PathDistances(&player,start,cost,parent);
+    assert(cost[exact]>=1e19f);
+    int contact=-1;
+    for (int i=0;i<bot.nNodes;i++) if (bot.nodes[i].item==0 && cost[i]<1e19f && bot.nodes[i].sector==player.sector) contact=i;
+    assert(contact>=0);
+    BotNode *n=&bot.nodes[contact];rdVector3 stop=n->pos;stop.x-=.075f;
+    assert(Bot_Distance(stop,n->pos)<.11f);
+    player.position=stop;bot.goal=contact;bot.routeCount=1;bot.routePos=0;
+    assert(Bot_PickupNeedsContact(&player,n));
+    player.position=n->pos;
+    assert(!Bot_PickupNeedsContact(&player,n) && sithCollision_HasLOS(&player,&item,0));
+    rdVector3 toward=Bot_Sub(n->pos,stop);flex_t travel=Bot_Len(toward),hit;
+    rdVector_InvScale3Acc(&toward,travel);
+    assert(sithIntersect_CheckSphereIntersection(&stop,&toward,travel,player.moveSize,&item.position,item.collideSize,&hit,0,0));
+    item.flags|=SITH_TF_DISABLED;player.position=stop;
+    assert(!Bot_PickupNeedsContact(&player,n));
+    item.flags=0;nav.itemGuid[0]=456;
+    assert(!Bot_PickupNeedsContact(&player,n));
+    test_adjoins[0].flags&=~SITHSURF_ADJOIN_VISIBLE;
+    nav.itemGuid[0]=item.guid;
+    assert(!sithCollision_HasLOS(&player,&item,0));
+    bot.nNodes=0;Bot_AddPickupContacts(&player,&item,0,-1);
+    for(int j=0;j<bot.nNodes;j++) assert(bot.nodes[j].sector!=&test_sectors[0]);
+    test_adjoins[0].flags|=SITHSURF_ADJOIN_VISIBLE;
+    test_adjoins[0].flags&=~SITHSURF_ADJOIN_ALLOW_MOVEMENT;
+    assert(sithCollision_HasLOS(&player,&item,0));
+    bot.nNodes=0;Bot_AddPickupContacts(&player,&item,0,-1);
+    for(int j=0;j<bot.nNodes;j++) assert(bot.nodes[j].sector!=&test_sectors[0]);
+    assert(sithCollision_searchStackIdx==-1);
+    sithPlayer_g_pLocalPlayerThing=NULL;
+    puts("PASS recessed pickup needs reachable stock sphere overlap and touch LOS; arrival, closed opening, expired identity and disabled pickup checked");
 }
 
 int main(void)
@@ -321,5 +423,6 @@ int main(void)
     puts("PASS closed/AI-only portals and unsupported landings remain rejected; query stack balanced");
     test_grounded_portal_clearance();
     test_water_entry();
+    test_pickup_contact_approach();
     return 0;
 }

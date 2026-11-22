@@ -14,19 +14,20 @@
     " 5a82f71ed1dfc0bec044d9702463dbdf84ea3b71 lib/zlib (5a82f71)"
   ],
   "changed_sources": {
-    "src/AI/jkBot.c": "674887f31ac61d268931380c338c0debb327d6861fa804b3c019bc8223f9d0ed",
+    "src/AI/jkBot.c": "63855a03de4b98948a59e821b3a13411d7561b2e5a8d417d47b1951f24932c13",
     "src/AI/jkBot.h": "d822c0f525b820307b9dde817677b81af8ccca5b3024d2a7859d0cb16314f70f",
     "src/AI/jkBotBehavior.h": "5cad5dc201e93c01d8dd5b72f6d3d9b425f29b528f83aeb4ec14c811da245e49",
     "src/AI/jkBotBehavior.inc": "ef13f015be070f0658fa2f08a6b63066228168ee129f04a79747e4e6bab63a16",
-    "src/AI/jkBotCombat.inc": "44af6b5f6b84fd5b6f86903156c64388b5e07b48123b530ac6e5ed5c33f03417",
+    "src/AI/jkBotCombat.inc": "496a42a6ff47906b6040c58e141bbec44ab6252a066db66a18d6a3e4c6a07ce2",
     "src/AI/jkBotCompanion.inc": "91e1e975bb34f46cf1553ba77bcfbd4f57db550c1e6d1981facc1d62c44eacdc",
-    "src/AI/jkBotForce.inc": "6952ac1b7cda850d2f696b68a046c84a84252d52e5204d0650908ae791e3d354",
+    "src/AI/jkBotForce.inc": "7213f74f692304e7eeced39d7258976b199efc9b64c7b4fd4868e69d88404519",
     "src/AI/jkBotHearing.inc": "30c08aeefde67acaab5bdc63cfd93be0941f5b4614e8eec1ea357841ba6aee8a",
     "src/AI/jkBotLoadout.h": "aab6d025bb9ec2c431beb2d6bd559992b664e9ce075fcaa9c1103ae9ed5dcdc1",
-    "src/AI/jkBotNavigate.inc": "2fc32a7d29d94d04cbebf88092b44b9da92b9657ae86f211298d64b4c80a4991",
-    "src/AI/jkBotNavigation.inc": "dbd5a098b9c9389acb19504bdbf76c337fe5ac3d1e2f0d9d3662f93cb2f3e651",
+    "src/AI/jkBotNavigate.inc": "ee88dec3d4e9abec0c7c83110b15e2f47e5ff5991dfe57d468c7298aec717543",
+    "src/AI/jkBotNavigation.inc": "7a0b913db9332ecff50cc76081630cc396b5ba78edd25a5601858887bd65614b",
     "src/AI/jkBotPersona.c": "618f31f58e45a13d89b5dc0493233d446d5eaeada681bd0de758a155a50d578d",
     "src/AI/jkBotPersona.h": "e193097d937ed22400fe84d86a1e9e7f18884cc2be876fb1540627bee96e0bfb",
+    "src/AI/jkBotWaterExit.inc": "26da1dd699350c6c29bd254b68798624c0bdc8a972177911437cfa2d96f1eebc",
     "src/Cog/sithCog.c": "1b6e11427af188d95868b2d652b14478d9859b74f58f2148ff95537b34343c21",
     "src/Devices/sithControl.c": "39002df35df8661cad1c2d17f7384c1161210fd565dfd3ebd4a1386945811c25",
     "src/Devices/sithSoundMixer.c": "8f2d16952f4a8f77b7459ee84f182a88fba75644d27499aa30f7a096ce8aff25",
@@ -47,16 +48,16 @@
       "bytes": 563022
     },
     "bin/bots-jkweb/openjkdf2.wasm": {
-      "sha256": "e3973a65d21fec4116a09ee9ef13e23e35898c40100cb4b08db13f73bbec8334",
-      "bytes": 3759204
+      "sha256": "ec1841b5070b2b67302bde5bc93c803566efe2c61e79e9baae69a49ad0eeac14",
+      "bytes": 3774772
     },
     "web_bots/engine.patch": {
-      "sha256": "3aed8078e07d6fe994f282f4c65f4956a7431174ea7fee21b59519603fbcf7e8",
-      "bytes": 207341
+      "sha256": "dee051ab458ba62b3de102c42c7cc926ae71c76a10a2ae2b8559887a10f82e6b",
+      "bytes": 230027
     },
     "web_bots/engine-relink.tar.gz": {
-      "sha256": "6d566bb7fd49646648f5af90556fad6e12c7134d990413b22b975dcb35424174",
-      "bytes": 1549844
+      "sha256": "29772d40b4546b9686cc5bb3fd370f2e69b8071fcf9173553ef83d3ef629a57c",
+      "bytes": 1555997
     }
   }
 }

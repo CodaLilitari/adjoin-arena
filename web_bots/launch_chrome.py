@@ -136,7 +136,10 @@ async def launch(args):
         raise RuntimeError(f"{what} timed out: {report.get('waiting')}")
 
     async def open_seat(browser, ident):
-        ctx = await browser.new_context(viewport={"width": 1100, "height": 780}, device_scale_factor=1)
+        # Keep the observed seat large; the three unrecorded players need much
+        # less raster work while they continue ordinary game simulation.
+        viewport = {"width": 1100, "height": 780} if ident == "lily" else {"width": 640, "height": 400}
+        ctx = await browser.new_context(viewport=viewport, device_scale_factor=1)
         page = await ctx.new_page()
         pages[ident] = page
         await page.add_init_script(
