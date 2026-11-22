@@ -116,6 +116,14 @@
       "mode": 420,
       "sha256": "eb514ebc9ebd34021be306ab97070177bcadc5f1c16c78f361a9c06f69bae3da"
     },
+    "bots/lily/models/water_contact_v2.json": {
+      "mode": 420,
+      "sha256": "ae90a49fa07bbbd56c86fb0315f3f3980902a2bf1d5497c9439e532c95a7554f"
+    },
+    "bots/lily/motor_contact.py": {
+      "mode": 420,
+      "sha256": "dc294acfab45ca007dd03eec054f4cd83b089a44210ef39cb0ff5b632f9ce667"
+    },
     "bots/lily/motor_model.py": {
       "mode": 420,
       "sha256": "631c18643b1ad77937e875d8e08c3eeea9b1cfd877fd1fe24e3574e07e97c97a"
@@ -128,6 +136,10 @@
       "mode": 420,
       "sha256": "3d2d94a66b011afee23049e2a701319a482a97d95e05c6eab05936e93bf138dc"
     },
+    "bots/lily/policies/water_contact_v2.py": {
+      "mode": 420,
+      "sha256": "fa470f017927057f7b9406219b2baba757b4ae01a60e1e9c1f76620f61ebc251"
+    },
     "bots/lily/protocol.py": {
       "mode": 420,
       "sha256": "8993370f8a659c9847ae70112836ab62c897849be1a4b3725f9d070d71853e9e"
@@ -136,9 +148,13 @@
       "mode": 420,
       "sha256": "c884dd421e4ff31f143a85b69990786231a77aa420fb968f820026c164a72a23"
     },
+    "bots/lily/train_contact_motor.py": {
+      "mode": 420,
+      "sha256": "c7663edb92a654e772bfa9afa3a42ce262ff8780bc185e71cbd985b65877ef58"
+    },
     "bots/lily/train_motor.py": {
       "mode": 420,
-      "sha256": "fa0d74d42eb4e7a1957c94b4799603661528be7adcd11fbc6afd868d29b3c568"
+      "sha256": "f1885b8ca9edc7887057471e2b7f6a4005a7557a251a68838d2921eb87bfe334"
     },
     "bots/lily/worker.py": {
       "mode": 420,
@@ -238,7 +254,7 @@
     },
     "docs/BOTS_CONTINUATION.md": {
       "mode": 420,
-      "sha256": "431a9298eda44d139a9c4985d5161451044fed9b199f88fd0c55f45c86e50de2"
+      "sha256": "b7be1e77b59b9396c128f57b08a46a576f90d9add70cabcac53aa4abd2067a7e"
     },
     "docs/BOTS_PROTOTYPE.md": {
       "mode": 420,
@@ -258,11 +274,11 @@
     },
     "docs/LILY_ADAPTIVE.md": {
       "mode": 420,
-      "sha256": "8d22cfc1f99db0903747f0371190b75cc512f5ecd541472e97b18de669a9bf08"
+      "sha256": "b5d78c884f44ed41aee4e6d558fedf70c1efddc1fbdf0404d1327943e3ff41b8"
     },
     "docs/LILY_MOTOR_LEARNING.md": {
       "mode": 420,
-      "sha256": "0e7c2876e3f49753ec0e0947aaaa4bb1c94731e1e12ecfb717418e8753c6af67"
+      "sha256": "2d648b2f02ca90a058f0a0dbc19b2361e90636ae2f73dc4ff416ea83ed9f185a"
     },
     "docs/LILY_PROTOCOL.md": {
       "mode": 420,
@@ -324,6 +340,10 @@
       "mode": 420,
       "sha256": "b6164c857b73076bf8edd335881c51a82073b4236bf6d98597a69dccc767d04e"
     },
+    "docs/reviews/2026-11-22-lily-independent-motor-checkpoint.md": {
+      "mode": 420,
+      "sha256": "64ca90748260205aeb27996e1cf68f4285d11cfc043f0f113db3d35a90d9b74d"
+    },
     "docs/superpowers/plans/2026-10-28-browser-spectator.md": {
       "mode": 420,
       "sha256": "8b424e08cfb8c2ed223665953f7c0c7083ccdd61e3b0995e27855ca3ab03aa9c"
@@ -356,6 +376,10 @@
       "mode": 420,
       "sha256": "04a5298c87f88e5119e2cf993eb4bb0dcd43342d9e771e5fe32c51a36c69806d"
     },
+    "docs/superpowers/plans/2026-11-22-lily-independent-motor.md": {
+      "mode": 420,
+      "sha256": "10ef7be80f2c5a975f2a041a051bd4d0cd3d4baf768510a9320773c457497854"
+    },
     "docs/superpowers/specs/2026-10-28-browser-spectator-design.md": {
       "mode": 420,
       "sha256": "2b344376d42cc9926b18715dd2c1afd55fbfcc934f075cd2c68ed60c60f558f5"
@@ -379,6 +403,10 @@
     "docs/superpowers/specs/2026-11-22-lily-bank-task-design.md": {
       "mode": 420,
       "sha256": "023a0e2531dfc33c71d3953e045768a092415df2528b6f6a73dff76dcc1a6ac1"
+    },
+    "docs/superpowers/specs/2026-11-22-lily-independent-motor-design.md": {
+      "mode": 420,
+      "sha256": "046f4948240b48fb876df86407fc4c211d327201bb05a1518f0491567868e604"
     },
     "examples/jk.json": {
       "mode": 420,
@@ -714,7 +742,7 @@
     },
     "native/tests/stock_water_replay/README.md": {
       "mode": 420,
-      "sha256": "37c6e7fe93d12b0b06a90bb7affb8fccc6d0954852c00c2fe6859f8e8af5573e"
+      "sha256": "5718fa30ee9534eefe853d3246ffa7997bb2bd824b50bda23aa035940db33e40"
     },
     "native/tests/stock_water_replay/bank_cases.tsv": {
       "mode": 420,
@@ -740,9 +768,17 @@
       "mode": 420,
       "sha256": "bfd164fe3d80f64808f36ecd9f37adde13bc78cf9248c0bc69f607ee03636f41"
     },
+    "native/tests/stock_water_replay/evaluate_motor.py": {
+      "mode": 420,
+      "sha256": "5ef9b8903c42e8ccc4883a92ced71c8c818044730eec85b5846e0afa9265682b"
+    },
     "native/tests/stock_water_replay/geometry.py": {
       "mode": 420,
       "sha256": "22757770f5347d5cfc29f4cc83361d711d391841cf02f34a8e6c4a394901b0d6"
+    },
+    "native/tests/stock_water_replay/independent_motor.inc": {
+      "mode": 420,
+      "sha256": "7e320a68de0ff4aad6a5813ba53410df92060d008b84d56698d27836fe7780ae"
     },
     "native/tests/stock_water_replay/live_policy.py": {
       "mode": 420,
@@ -754,7 +790,7 @@
     },
     "native/tests/stock_water_replay/replay_loop.inc": {
       "mode": 420,
-      "sha256": "b1e5b21b9c7fbb21502d119de65fb44ac588424198fc11e1da3dbcab7426dae5"
+      "sha256": "c660a55c0d51456cd15a640aa3a0cdca31bb64c5d2e2407707ab4e8b0740db8c"
     },
     "native/tests/stock_water_replay/replay_trace.inc": {
       "mode": 420,
@@ -762,7 +798,7 @@
     },
     "native/tests/stock_water_replay/run.py": {
       "mode": 420,
-      "sha256": "aded1ad3649edecc3b3405a26c7d41832db88883382c7ad474efd841f57bf020"
+      "sha256": "54ec53e4387e7b817eae6b98d10ed7b69486b7056ec173b14dcc7ba40b2619ee"
     },
     "native/tests/test_bot_altfire.inc": {
       "mode": 420,
@@ -1556,9 +1592,37 @@
       "mode": 420,
       "sha256": "631c76be833dbe5104dfe5fdfa3c6c9168fa5d6d9380c5dee062a1912ada1032"
     },
+    "qa/lily-contact-failures.json": {
+      "mode": 420,
+      "sha256": "22db4842115e118ff9919e6bfd566ec074d8d4f4d66cfcec106d7b38fd0c9dae"
+    },
+    "qa/lily-contact-freeze.json": {
+      "mode": 420,
+      "sha256": "3aeb575417342fd21ecc3ffd32ddb4cfc74b82e941f26e10289cbe53080dcfe5"
+    },
     "qa/lily-human-footage.json": {
       "mode": 420,
       "sha256": "394596c36938af1fc208ff1344e9a1e139923d5ee041df2a830333af328684c0"
+    },
+    "qa/lily-independent-motor.json": {
+      "mode": 420,
+      "sha256": "a0eb0352ed6c69e56242a114ef2d601b12852bcf2eaf61584f95093dc577f9cf"
+    },
+    "qa/lily-motor-gate-addendum.json": {
+      "mode": 420,
+      "sha256": "3c99c789c0ae2b6effea1abee8924fbcb1f0d84f43cc93cdafcbc65ab33d892b"
+    },
+    "qa/lily-motor-stress-cases.tsv": {
+      "mode": 420,
+      "sha256": "297a89c078dc5757c974dbb03ca9290a508f247cc13e6f24f2ae5bd0036925f7"
+    },
+    "qa/lily-motor-stress-plan.json": {
+      "mode": 420,
+      "sha256": "9f328af455171ee262d27f018e501dd49b31e016991e9ed2d2255f0a70bb98c1"
+    },
+    "qa/lily-optimizer-equivalence.json": {
+      "mode": 420,
+      "sha256": "4203cc19a0d381a361656f0889b97bf5da918b6872cb7da32e06dd768832bb2b"
     },
     "qa/native-client-handshake.log": {
       "mode": 420,
@@ -1750,7 +1814,7 @@
     },
     "scripts/bot_development/analysis/README.md": {
       "mode": 420,
-      "sha256": "ba294b40b722c96745750db888e54fba7d06552aa312c3d8d8968bf7408f267f"
+      "sha256": "9b3479b24363243b041db8cd3e330654476dd8359f1df7a86547465b9b57bcfe"
     },
     "scripts/bot_development/analysis/analyze_approach_windows.py": {
       "mode": 420,
@@ -1767,6 +1831,10 @@
     "scripts/bot_development/analysis/analyze_trial.py": {
       "mode": 420,
       "sha256": "51d962d0902d7c7d0a8c357b0170ad6c2de281828f88551f8248de24670ff72b"
+    },
+    "scripts/bot_development/analysis/audit_motor_failures.py": {
+      "mode": 420,
+      "sha256": "aa7ca11ca1d09a8444434c8aaaa1966bd0c7a689095d71d980d3c38904271547"
     },
     "scripts/bot_development/analysis/compare_gameplay.py": {
       "mode": 420,
@@ -1795,6 +1863,10 @@
     "scripts/bot_development/analysis/sample_public_match.py": {
       "mode": 420,
       "sha256": "d329ecad14611b49d87393cdbca1b39fc42f5a604bc767d1241f963f6d91f799"
+    },
+    "scripts/bot_development/analysis/validate_replay_poses.py": {
+      "mode": 420,
+      "sha256": "cb34ee277db47896879632fb745c42d03f7c134b799b6a4a61aa709ab8fc4525"
     },
     "scripts/bot_development/capture/README.md": {
       "mode": 420,
@@ -1928,6 +2000,14 @@
       "mode": 420,
       "sha256": "80a603ce51cd384461e1efdb67cc2839b79f89bb40d6fedfb63c0018a283980e"
     },
+    "tests/test_lily_contact_motor.py": {
+      "mode": 420,
+      "sha256": "5284c81c8bf8d6eaa2cddcf380362e9a088a7d36aab32bcc688a6b333ec9125c"
+    },
+    "tests/test_lily_independent_motor.py": {
+      "mode": 420,
+      "sha256": "85a2c2f208b4a8ade9b17d7ed1b415a73ac6819f04153692ad9ee6f781392a94"
+    },
     "tests/test_lily_memory.py": {
       "mode": 420,
       "sha256": "5a5cc740dbc82577a43d558c07cdc19f8cf2ed04694d59a9bc05be114a9f42ee"
@@ -1959,6 +2039,10 @@
     "tests/test_release_packaging.py": {
       "mode": 420,
       "sha256": "af9e3e4f17478a927bc63f18e47bc2befb0d127a04c118f76fffd752fee3c456"
+    },
+    "tests/test_replay_pose_validation.py": {
+      "mode": 420,
+      "sha256": "43db9a82fa92f9bd7d19e217e504bd83a73d7883799b07d0ecdd7b25f1f2795e"
     },
     "tests/test_runtime_display.py": {
       "mode": 420,

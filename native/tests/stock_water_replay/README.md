@@ -107,3 +107,63 @@ holdouts separately. A physical loss counts as a completed trial. The process
 returns nonzero if one or more trials lack a physical verdict. Publish the
 sanitized receipt after review. The per-case traces, databases and engine logs
 contain private fixture evidence.
+
+## Independent motor cadence
+
+The synchronous fixture measures a frozen movement model with exclusive control
+from the first input through the physical terminal. It bypasses the deployed
+Supervisor, live observations, handover checks and native baseline decisions.
+The baseline arm runs the existing driver. Both arms use the same stock look,
+movement, freecam, collision, damage and 150 Hz physics functions.
+
+```sh
+python3 -B native/tests/stock_water_replay/evaluate_motor.py \
+    --source /path/to/patched-engine --build /path/to/configured-build \
+    --map /path/to/m10.jkl --output /new/private/output
+```
+
+The default matrix runs the baseline and three independent schedules on all 27
+case/yaw assignments. At 41 ms per original control tick, the 550 ms, 100 ms
+and every-tick schedules hold one decision for 14, 3 and 1 ticks respectively.
+The original tick interval remains a model feature. A new decision starts a
+fresh hold. A wait applies zero input. The trial ends immediately on death,
+38 consecutive target-sector floor-supported dry physics steps, or the
+9,000-step budget. Use `--episode boba-190.017-yaw0` for a subset. An alternate
+fixture policy and its matching weights use `--policy` and `--model`. A separate
+perturbation TSV can use `--cases /path/to/cases.tsv --arms baseline,every_tick`.
+Workers default to four.
+
+Each private trial directory contains:
+
+- `start.json` identifies the selected wet node. The scorer uses its position
+  and the assigned dry endpoint to independently reconstruct the expected
+  starting heading at the requested yaw. It also checks the first actor pose,
+  time interval, health and physical flags against the TSV.
+- `motor.jsonl` alternates a pre-input `observation` with the actual `input`
+  for every original control tick. Both carry the tick and elapsed physics
+  step. The observation contains the fixed goal, sector, physics flags, health,
+  shields, mana, body orientation, motion, head pitch, medium, support and
+  breath used. `sense.on_water_surface` comes from the stock physics flag and
+  `sense.buttons` records the previous actual button mask, initially zero.
+  The input carries the owning controller, decision source tick, four applied
+  axes, buttons and rising presses. Button bits 0 and 1 are jump and duck.
+- `decisions.jsonl` on a model arm binds each worker decision to the digest
+  of its exact observation bytes. The worker sends one fixed-size tick-identified
+  packet through a local sequenced-packet socket. Axes pass through the production
+  signed-hundredths codec. Each exchange has one absolute one-second deadline.
+  Disconnection, timeout or invalid input censors the trial.
+- `native.jsonl` contains the established per-frame bank control trace and
+  physical terminal. For canonical baseline trials its complete bytes must match
+  the digest in `qa/lily-bank-task.json`. `engine.log` and, on model arms,
+  `worker.log` retain diagnostics.
+
+The root `receipt.json` includes assigned rows, observed owning ticks, per-arm
+hold lengths, raw evidence hashes and build provenance. A completed simulation
+timeout or death is a physical loss. Missing evidence and infrastructure
+failures retain their assignment and a null physical result. Trials run without
+wall pacing; elapsed performance is reported in simulated seconds. These
+measurements do not establish deployed wet handovers or multiplayer performance.
+
+For native boundary tests, set `LILY_TEST_SOURCE`, `LILY_TEST_BUILD` and
+`LILY_TEST_MAP` to the corresponding inputs above and run
+`python3 -m unittest discover -s tests -p test_lily_independent_motor.py -v`.

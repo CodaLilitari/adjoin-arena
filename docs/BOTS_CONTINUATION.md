@@ -24,8 +24,19 @@ physics, including an unsuccessful unrestricted movement probe.
 Read [the operator guide](LILY_ADAPTIVE.md), [wire contract](LILY_PROTOCOL.md), and
 [learning experiment](LILY_MOTOR_LEARNING.md). The first small neural movement
 candidate was trained from 27 successful physical replays and remains unpromoted.
-The [latest review checkpoint](reviews/2026-11-22-lily-bank-checkpoint.md) records
-verification, design choices and the remaining development scope.
+The [latest review checkpoint](reviews/2026-11-22-lily-independent-motor-checkpoint.md)
+records independent motor control, feedback cadence and one contact/history
+candidate. Frozen v1 landed in 22/27, 21/27 and 18/27 original starts at requested
+550 ms, 100 ms and every-tick schedules. The contact candidate reached 21/27
+at every tick, but regressed from v1's 10/16 to 7/16 on predeclared nearby starts.
+Both remain unpromoted. All 226 executions had complete ownership and physical
+outcomes; this count includes 43 repeated baseline checks. The native baseline
+landed in all 27 original and all 16 nearby trials. See the
+[independent receipt](../qa/lily-independent-motor.json) and
+[failure diagnosis](../qa/lily-contact-failures.json).
+
+The [preceding bank checkpoint](reviews/2026-11-22-lily-bank-checkpoint.md)
+records the deployed task and handover experiment.
 The bank-escape task now holds one target and policy revision across motor chunks,
 persists one task terminal, and separates live sampled stops from the exact stock
 landing oracle. The [matched comparison](../qa/lily-bank-task.json) found 27/27

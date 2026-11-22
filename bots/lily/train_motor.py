@@ -145,6 +145,42 @@ def split_episodes(rows, fraction=.25, seed=0):
             [row for row in rows if episode_groups[row["episode_id"]] in held])
 
 
+def fit_weights(x, y, hx, *, epochs, hidden, seed, learning_rate):
+    """Fit on x/y only. hx supplies optional predictions and never enters an update."""
+    import numpy as np
+    mean=x.mean(axis=0); scale=x.std(axis=0); scale[scale<1e-6]=1.
+    x=(x-mean)/scale; hx=(hx-mean)/scale
+    rng=np.random.default_rng(seed)
+    w1=rng.normal(0,1/math.sqrt(x.shape[1]),(hidden,x.shape[1])); b1=np.zeros(hidden)
+    w2=rng.normal(0,1/math.sqrt(hidden),(len(OUTPUTS),hidden)); b2=np.zeros(len(OUTPUTS))
+    params=[w1,b1,w2,b2]; moment=[np.zeros_like(p) for p in params]; variance=[np.zeros_like(p) for p in params]
+    def forward(xx):
+        activation=np.tanh(xx@w1.T+b1)
+        z=activation@w2.T+b2
+        out=np.concatenate((np.tanh(z[:,:4]),1/(1+np.exp(-np.clip(z[:,4:],-40,40)))),axis=1)
+        return activation,out
+    initial_predictions=forward(hx)[1]; update=0
+    for epoch in range(epochs):
+        indices=rng.permutation(len(x))
+        for offset in range(0,len(indices),128):
+            chosen=indices[offset:offset+128]; xx,yy=x[chosen],y[chosen]
+            activation,out=forward(xx)
+            derivative=np.empty_like(out)
+            derivative[:,:4]=2*(out[:,:4]-yy[:,:4])*(1-out[:,:4]**2)/(len(chosen)*4)
+            derivative[:,4:]=(out[:,4:]-yy[:,4:])/(len(chosen)*2)
+            dw2=derivative.T@activation; db2=derivative.sum(axis=0)
+            hidden_derivative=(derivative@w2)*(1-activation**2)
+            grads=[hidden_derivative.T@xx,hidden_derivative.sum(axis=0),dw2,db2]
+            update+=1
+            for index,(param,gradient) in enumerate(zip(params,grads)):
+                moment[index]=.9*moment[index]+.1*gradient
+                variance[index]=.999*variance[index]+.001*gradient*gradient
+                param-=learning_rate*(moment[index]/(1-.9**update))/(np.sqrt(variance[index]/(1-.999**update))+1e-8)
+    weights={"normalization":{"mean":mean.tolist(),"scale":scale.tolist()},
+             "w1":w1.tolist(),"b1":b1.tolist(),"w2":w2.tolist(),"b2":b2.tolist()}
+    return weights,initial_predictions,forward(hx)[1]
+
+
 def fit(rows, *, epochs=200, hidden=32, seed=0, holdout=.25, learning_rate=.01):
     if type(epochs) is not int or not 1 <= epochs <= 5000 or type(hidden) is not int or not 1 <= hidden <= 128:
         raise ValueError("Epochs must be 1..5000 and hidden units 1..128.")
@@ -162,35 +198,8 @@ def fit(rows, *, epochs=200, hidden=32, seed=0, holdout=.25, learning_rate=.01):
     for targets in (y,hy):
         if np.any(np.abs(targets[:,:4])>1) or np.any((targets[:,4:]<0)|(targets[:,4:]>1)):
             raise ValueError("Demonstration controls are outside the motor action contract.")
-    mean=x.mean(axis=0); scale=x.std(axis=0); scale[scale<1e-6]=1.
-    x=(x-mean)/scale; hx=(hx-mean)/scale
-    rng=np.random.default_rng(seed)
-    w1=rng.normal(0,1/math.sqrt(len(FEATURES)),(hidden,len(FEATURES))); b1=np.zeros(hidden)
-    w2=rng.normal(0,1/math.sqrt(hidden),(len(OUTPUTS),hidden)); b2=np.zeros(len(OUTPUTS))
-    params=[w1,b1,w2,b2]; moment=[np.zeros_like(p) for p in params]; variance=[np.zeros_like(p) for p in params]
-    def forward(xx):
-        activation=np.tanh(xx@w1.T+b1)
-        z=activation@w2.T+b2
-        out=np.concatenate((np.tanh(z[:,:4]),1/(1+np.exp(-np.clip(z[:,4:],-40,40)))),axis=1)
-        return activation,out
-    initial=float(np.mean((forward(hx)[1][:,:4]-hy[:,:4])**2)); update=0
-    for epoch in range(epochs):
-        indices=rng.permutation(len(x))
-        for offset in range(0,len(indices),128):
-            chosen=indices[offset:offset+128]; xx,yy=x[chosen],y[chosen]
-            activation,out=forward(xx)
-            derivative=np.empty_like(out)
-            derivative[:,:4]=2*(out[:,:4]-yy[:,:4])*(1-out[:,:4]**2)/(len(chosen)*4)
-            derivative[:,4:]=(out[:,4:]-yy[:,4:])/(len(chosen)*2)
-            dw2=derivative.T@activation; db2=derivative.sum(axis=0)
-            hidden_derivative=(derivative@w2)*(1-activation**2)
-            grads=[hidden_derivative.T@xx,hidden_derivative.sum(axis=0),dw2,db2]
-            update+=1
-            for index,(param,gradient) in enumerate(zip(params,grads)):
-                moment[index]=.9*moment[index]+.1*gradient
-                variance[index]=.999*variance[index]+.001*gradient*gradient
-                param-=learning_rate*(moment[index]/(1-.9**update))/(np.sqrt(variance[index]/(1-.999**update))+1e-8)
-    predicted=forward(hx)[1]
+    weights,initial_predictions,predicted=fit_weights(x,y,hx,epochs=epochs,hidden=hidden,seed=seed,learning_rate=learning_rate)
+    initial=float(np.mean((initial_predictions[:,:4]-hy[:,:4])**2))
     metrics={"method":"behavior_cloning", "seed":seed,"epochs":epochs,
         "train_samples":len(train),"heldout_samples":len(held),
         "train_episode_ids":sorted({r["episode_id"] for r in train}),
@@ -202,8 +211,7 @@ def fit(rows, *, epochs=200, hidden=32, seed=0, holdout=.25, learning_rate=.01):
         "heldout_button_accuracy":float(np.mean((predicted[:,4:]>=.5)==(hy[:,4:]>=.5))),
         "limitation":"Held-out action fit does not establish successful traversal or stronger gameplay."}
     model={"schema":1,"feature_names":list(FEATURES),"output_names":list(OUTPUTS),
-        "normalization":{"mean":mean.tolist(),"scale":scale.tolist()},
-        "w1":w1.tolist(),"b1":b1.tolist(),"w2":w2.tolist(),"b2":b2.tolist(),
+        **weights,
         "provenance":metrics}
     canonical(model)
     return model,metrics

@@ -51,6 +51,9 @@ static void sithControl_PlayerMovementMots(SithThing *me){abort();}
 #ifdef BANK_EVALUATION
 #include "bank_trace.inc"
 #endif
+#ifdef INDEPENDENT_MOTOR
+#include "independent_motor.inc"
+#endif
 static int play_exit(SithThing *me,int from,int to,SithSector *startSector,float dt) {
     BotNode *wet=&bot.nodes[from], *dry=&bot.nodes[to];rdVector3 surface;flex_t duration;
     assert(Bot_WaterExitArc(wet,dry,&nav.waterExitStart,&duration));
@@ -102,6 +105,9 @@ static int play_exit(SithThing *me,int from,int to,SithSector *startSector,float
 #ifdef BANK_EVALUATION
     assert(getenv("LILY_BANK_TRACE") && !keepPlaying && maxSeconds==60.0f);
     bank_begin(dry);
+#ifdef INDEPENDENT_MOTOR
+    independent_begin(wet);
+#endif
     for(;stepIndex<9000;tick++) {
 #else
     for(;tick*dt<maxSeconds;tick++) {
@@ -119,13 +125,21 @@ static int play_exit(SithThing *me,int from,int to,SithSector *startSector,float
         bankActionSeq=bankRevision=bankSample=0;
         sithTime_g_secGameTime=stepIndex/150.0f;
 #endif
+#ifdef INDEPENDENT_MOTOR
+        independent_tick(me,dry,tick,stepIndex,dt);
+#else
         jkBot_Tick(dt);
+#endif
 #ifdef BANK_EVALUATION
         bank_frame(me,tick,stepIndex);
 #endif
         motor_trace_frame(me,dry,tick*dt,dt);
         if(tick%10==0)fprintf(stderr,"TICK %d ph%d from%d to%d pos%f,%f,%f goal%d key%d axes %.2f %.2f heading %.2f\n",tick,nav.waterExitPhase,nav.waterExitFrom,nav.waterExitTo,me->position.x,me->position.y,me->position.z,bot.goal,bot.keys[INPUT_FUNC_JUMP],bot.axes[INPUT_FUNC_FORWARD],bot.axes[INPUT_FUNC_SLIDE],bot.axes[INPUT_FUNC_TURN]);
-        if(getenv("TRACE_X") && tick%10==0){
+        if(getenv("TRACE_X") && tick%10==0
+#ifdef INDEPENDENT_MOTOR
+           && independent.fd < 0
+#endif
+        ){
             int n=bot.routePos<bot.routeCount?bot.route[bot.routePos]:-1;
             fprintf(stderr,"STEP t %.2f sector %d start %d next %d xyz(%.3f,%.3f,%.3f) avoid %.2f stalled %.2f jump %d duck %d vz%.3f\n",
              bot.now,me->sector->id,Bot_Nearest(me),n,n<0?0:bot.nodes[n].pos.x,n<0?0:bot.nodes[n].pos.y,n<0?0:bot.nodes[n].pos.z,

@@ -39,7 +39,7 @@ def stock_functions(source):
     return "\n\n".join(functions) + "\n"
 
 
-def build_replay(source, build, map_path, work, *, bank_evaluation=False):
+def build_replay(source, build, map_path, work, *, bank_evaluation=False, independent_motor=False):
     source, build, work = Path(source).resolve(), Path(build).resolve(), Path(work)
     flags_file = build / "CMakeFiles/sith_engine.dir/flags.make"
     flags = dict(line.split(" = ", 1) for line in flags_file.read_text().splitlines() if " = " in line)
@@ -47,7 +47,9 @@ def build_replay(source, build, map_path, work, *, bank_evaluation=False):
     geometry = work / "map.numeric"
     write_geometry(map_path, geometry)
     compile_args = [os.environ.get("CC", "cc"), f"-I{source}/src", f"-I{work}"]
-    if bank_evaluation:
+    if independent_motor:
+        compile_args.append("-DINDEPENDENT_MOTOR")
+    if bank_evaluation or independent_motor:
         # Only the evaluator's translation unit observes control arbitration.
         # Keep the original native driver and its single call unchanged.
         shadow = work / "AI/jkBotLily.inc"

@@ -27,8 +27,9 @@ code in a single ABI-1 policy, so the live loader hashes the whole candidate.
 | Held-out axis mean squared error before fitting | 0.38896 |
 | Held-out axis mean squared error after fitting | 0.18565 |
 | Held-out jump/duck binary accuracy | 85.89% |
-| Closed-loop candidate-assigned bank escapes | 22/27; 18 assisted landings and 4 without wet candidate takeover |
-| Independently attributable neural bank escapes | Not established; zero eligible independent trials |
+| Deployed candidate-assigned bank escapes | 22/27; 18 assisted landings and 4 without wet candidate takeover |
+| Independent v1 bank escapes, 550 ms / 100 ms / every original tick | 22/27 / 21/27 / 18/27 |
+| Contact/history candidate, every original tick | 21/27 original starts; 7/16 predeclared nearby starts |
 | Multiplayer or human-opponent score of the learned network | Not measured |
 
 Every yaw variant of a captured pose stays in the same split. This prevents
@@ -154,6 +155,139 @@ receipt rather than substituted for the final 22/27 result. Neither run proves
 multiplayer strength or isolates what the neural policy would do without any
 baseline contribution.
 
+## Independent control and feedback cadence
+
+The [independent motor receipt](../qa/lily-independent-motor.json) records a
+separate, synchronous stock-physics experiment. The model supplies every input
+from control tick zero. No baseline decision, rescue or debug navigation query
+runs during model-controlled ticks. Four axes still pass through the production
+hundredth-unit codec, and held jump/duck inputs preserve ordinary rising edges.
+The original player input, movement, collision, damage and 150 Hz physics
+functions consume those inputs.
+
+The predeclared timing comparison retained all 27 original starts and their
+26–87 ms control intervals. A decision is held for a whole number of original
+ticks: `ceil(requested_hold_ms / tick_ms)`. At a 41 ms interval, the three model
+schedules therefore hold for 574 ms, 123 ms or 41 ms. The interval supplied as a
+model feature stays unchanged.
+
+| Original 27 starts | Landings | Timeouts | Deaths | Censored |
+| --- | ---: | ---: | ---: | ---: |
+| Native baseline | 27 | 0 | 0 | 0 |
+| Frozen v1, requested 550 ms | 22 | 3 | 2 | 0 |
+| Frozen v1, requested 100 ms | 21 | 3 | 3 | 0 |
+| Frozen v1, every original tick | 18 | 7 | 2 | 0 |
+
+Faster reconsideration reduced successful traversal for this frozen model on
+these starts. That finding does not establish that faster feedback is generally
+worse. It rules out treating the original timing mismatch as a sufficient fix.
+All 27 baseline native traces remained byte-identical to the prior checkpoint.
+The same physical initial state and first model action were verified across the
+cadence arms, including the assigned heading.
+
+This fixture pauses simulation while the worker decides. It measures independent
+control with ideal synchronous observations. It does not qualify the deployed
+supervisor's observation delays, handover behavior or multiplayer performance.
+An invalid packet, worker failure or one-second exchange timeout censors the
+assigned trial without baseline rescue. A completed simulated timeout or death
+is a physical loss.
+
+## One fixed contact/history candidate
+
+Teacher-forced diagnostics found 9 correctly timed jump onsets and 13 missed
+onsets in the 875 original excluded-group frames, despite substantially better
+accuracy on whether jump was held. That observation motivated one conditional
+candidate after the every-tick v1 arm had actual physical losses.
+
+The candidate adds the genuine water-surface contact flag and the preceding
+actually applied jump state to the existing 15 feature definitions. It keeps
+32 hidden units, the six outputs, 200 epochs, seed 23, learning rate 0.01 and
+0.5 button thresholds. The shared optimizer was extracted without changing v1's
+result: a paired fit on all 4,306 original frames returned byte-identical model
+and metric JSON before archive provenance was added. See the
+[optimizer equivalence receipt](../qa/lily-optimizer-equivalence.json).
+
+Exactly one contact candidate was fitted on 3,431 frames from the original seven
+training poses and 22 yaw episodes. The loader verifies native controls against
+the original baseline hashes, verifies real contact and preceding applied input,
+and opens no excluded-group or perturbation trace. Recomputed relative goals
+change the shared feature values at floating-point precision, by at most
+7.12e-8 versus the archived training vectors. The action labels match exactly.
+The wider input also adds 64 weights and changes seeded initialization, so this
+is a combined candidate comparison rather than attribution to either sensor.
+
+The [declaration](../qa/lily-motor-stress-plan.json) and
+[pre-matrix addendum](../qa/lily-motor-gate-addendum.json) fixed eight nearby
+synthetic poses, each at two headings, before fitting or opening stress outcomes.
+The [freeze receipt](../qa/lily-contact-freeze.json) predates all stress trials.
+Every starting sphere passed conservative geometry validation. These are nearby
+perturbations on the known map. The two original excluded groups have informed
+diagnostics and are development evidence for this candidate.
+
+| Same every-tick controller schedule | Original starts | Predeclared nearby starts |
+| --- | ---: | ---: |
+| Native baseline | 27/27 | 16/16 |
+| Frozen v1 | 18/27 | 10/16 |
+| Contact/history v2 | 21/27 | 7/16 |
+
+Contact v2 rescued five original failures and introduced two original failures.
+On the nearby starts it rescued none and introduced three failures. All six
+original and nine perturbation losses were simulation timeouts. The candidate
+remains **unpromoted**. Its files are `bots/lily/models/water_contact_v2.json` and
+`bots/lily/policies/water_contact_v2.py`. The latter is a fixture policy: the live
+observation contract does not yet supply the required water-contact field, and
+the export rejects missing physical observations instead of inventing defaults.
+
+All 226 trial executions had complete ownership and physical outcomes. That
+count includes 43 repeated baseline executions used for pairing, leaving 183
+distinct controller/case/yaw configurations. The stress set has eight underlying
+pose groups; its 16 headings are not 16 independent pose samples. Independent
+review checked all 86,265 applied ticks and recomputed all 55,326 policy decisions.
+
+Reproduce the cadence matrix and, only after its stated gate opens, the one
+fixed fit and contact comparison:
+
+```sh
+python native/tests/stock_water_replay/evaluate_motor.py \
+  --source "$PATCHED_NATIVE_SOURCE" --build "$NATIVE_BUILD" \
+  --map "$OWNED_JKL" --output "$NEW_PRIVATE_CADENCE_DIRECTORY"
+
+python -m bots.lily.train_contact_motor "$NEW_PRIVATE_CADENCE_DIRECTORY" \
+  --output "$NEW_CONTACT_MODEL"
+python -m bots.lily.motor_contact "$NEW_CONTACT_MODEL" \
+  --output "$NEW_CONTACT_POLICY"
+
+python native/tests/stock_water_replay/evaluate_motor.py \
+  --source "$PATCHED_NATIVE_SOURCE" --build "$NATIVE_BUILD" --map "$OWNED_JKL" \
+  --policy "$NEW_CONTACT_POLICY" --model "$NEW_CONTACT_MODEL" \
+  --arms baseline,every_tick --output "$NEW_PRIVATE_CONTACT_DIRECTORY"
+```
+
+For the separately declared stress comparison, add
+`--cases qa/lily-motor-stress-cases.tsv` and use another new directory. Compare
+the frozen v1 at the same every-tick schedule. Neither training nor export
+overwrites an existing candidate path.
+
+## What the failed trajectories show
+
+The [failure audit](../qa/lily-contact-failures.json) examines all nine contact
+stress timeouts. All eight pool failures got a breath, reached surface contact
+and generated 3–44 fresh surface-jump presses. No recorded 150 Hz physics step
+placed those actors in exit sector 44; every matched baseline was recorded there. During
+the final five seconds, the contact trajectories' median distance to the two
+original pool training paths was 1.21–2.12 game units, versus 0.019–0.040 for
+baseline. The remaining shaft failure entered the target sector, returned to
+water, and made only 0.0018 units of net horizontal progress in its final five
+seconds. Merely counting jump presses cannot distinguish a completed landing.
+
+These traces support a problem with the approach and recovery, beyond a missing
+jump edge alone. They do not isolate whether missing observations, insufficient
+demonstration coverage or both caused the failures. A concrete next experiment
+is corrective demonstration collection from off-route states reached on the
+original training pool poses, preserving actual input history and evaluating
+the resulting policy unaided on newly sealed starts. The current stress set has
+now been examined and becomes diagnostic evidence for that next candidate.
+
 ## Development target
 
 The bank task now supplies commitment across motor actions and a separate exact
@@ -162,14 +296,10 @@ Acquisition, combat disengagement and engagement outcomes still need their own
 oracles. A short physical displacement remains supporting evidence and cannot
 stand in for those outcomes.
 
-One concrete next experiment is the timing mismatch: the demonstrations label
-26–87 ms control ticks, while the exported policy holds each prediction for
-550 ms. Shorter feedback intervals, recurrent state and additional terrain
-observations can be compared with this same physical score. Their benefit must
-be measured. The failed clone is not a reason to promote a larger untested model.
-
-The first candidate's limitations motivate recurrent physical context, terrain
-features, diverse successful demonstrations and direct closed-loop evaluation.
+The independent experiment now separates model control from baseline assistance
+and makes corrective collection and outcome-based optimization measurable.
+The failed nearby trials motivate recovery coverage, recurrent physical context,
+terrain observations and further direct closed-loop evaluation.
 Cloning the existing controller can initialize a skill. Improvement beyond that
 controller needs outcome-based optimization and comparisons against the same
 starting conditions. Opponent-conditioned tactics and self-play need recorded

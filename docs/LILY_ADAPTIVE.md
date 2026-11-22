@@ -87,6 +87,12 @@ stage.replace("directive.json")
 
 The initial policy recognizes `explore`, `resource`, `route` with an optional current `parameters.node`, `motor` with optional `parameters.skill` and `parameters.distance`, and `baseline`. A custom policy may implement other goals. Give a changed order a new ID. Renewing an active ID updates its expiry and keeps its original parameters. Reusing an ID after its previous expiry starts a new order with its new parameters. The runtime rereads the directive and checks the original sample age after any blocking lease or persistence operation, immediately before posting the action. Existing maneuvers finish before any tactical change. Life/world/run mismatches and expired directives are ignored. A directive can be present at initial launch or replaced while running. Astra uses this same lease through the supervisor. There is no hosted-model connection.
 
+The separate `water_contact_v2.py` policy is a synchronous stock-fixture
+experiment. Its water-surface contact input is absent from the deployed
+observation contract, and it rejects that missing field. Its original-start
+improvement did not extend to the predeclared nearby cases, so it remains
+unpromoted. See the [independent movement comparison](LILY_MOTOR_LEARNING.md#independent-control-and-feedback-cadence).
+
 ## Commit to a bank across motor commands
 
 The opt-in `escape-bank` directive gives the movement policy one task above its

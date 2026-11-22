@@ -1,6 +1,6 @@
 # Bot trial analysis helpers
 
-These tools preserve the analysis used for the Canyon Oasis bot refinements. They take explicit input paths instead of depending on the original development machine. They use Python 3.11 or newer and the standard library; `export_numeric_map.py` also imports the existing repository map parser. The optional public-footage extractor additionally needs `yt-dlp` and FFmpeg.
+These tools preserve the analysis used for the Canyon Oasis bot refinements. They take explicit input paths instead of depending on the original development machine. They use Python 3.11 or newer. Most use the standard library; the independent motor failure audit needs NumPy and SciPy, and the optional public-footage extractor needs `yt-dlp` and FFmpeg. The geometry tools also import the existing repository map parser.
 
 Keep your map exports, telemetry and generated reports outside the checkout. The source tools contain no retail map, model, recording or companion credentials. Run the commands below from the repository root, with the quoted variables set to your own files.
 
@@ -18,6 +18,23 @@ python scripts/bot_development/analysis/export_numeric_map.py \
 ```
 
 The numeric export contains map geometry and entity data; it is a local input, not a distributable tool artifact.
+
+Validate predeclared stock-replay starts without running a controller:
+
+```sh
+python scripts/bot_development/analysis/validate_replay_poses.py \
+  --source "$PATCHED_NATIVE_SOURCE" --map "$OWNED_JKL" \
+  --cases qa/lily-motor-stress-cases.tsv --output "$POSE_GEOMETRY_RECEIPT"
+```
+
+This helper reads the engine's collision and movement-adjoin flags and requires
+the entire 0.065-radius actor sphere to clear every relevant sector plane, with
+a conservative rounding allowance. It records map, source and case hashes and
+per-case clearance, without copying geometry to the receipt. It establishes a
+sufficient geometry check for a declared starting sphere; it does not measure
+bank reachability or controller performance. The
+[perturbation declaration](../../../qa/lily-motor-stress-plan.json) freezes eight
+nearby poses and both headings before contact-model fitting or stress outcomes.
 
 ## Current refinement reports
 
@@ -61,6 +78,33 @@ python scripts/bot_development/analysis/inspect_pool_context.py \
 ```
 
 Sector and bank numbers are map-specific. Change them for another map; their defaults describe the checked Canyon Oasis route.
+
+## Independent motor failure audit
+
+Compare the frozen contact candidate's nine stress timeouts and all three
+original pool starts against the corresponding v1 and baseline trajectories:
+
+```sh
+python scripts/bot_development/analysis/audit_motor_failures.py \
+  --original-v1 "$PRIVATE_V1_CADENCE" \
+  --original-contact "$PRIVATE_CONTACT_ORIGINAL" \
+  --stress-v1 "$PRIVATE_V1_STRESS" \
+  --stress-contact "$PRIVATE_CONTACT_STRESS" \
+  --output "$MOTOR_FAILURE_AUDIT"
+```
+
+This helper verifies the pinned case/model identities and motor trace hashes.
+It records actual surface jump presses, visited sectors, nonzero inputs,
+horizontal progress and distance to the training trajectories. It also checks
+the engine's 150 Hz transition log for sectors visited between control samples.
+The [published audit](../../../qa/lily-contact-failures.json) includes all twelve
+selected cases and all three controller arms, plus definitions and input hashes.
+
+The first and final five-second windows belong to each arm's own trajectory;
+successful and failed runs can be in different task phases. Distance to training
+is descriptive, not a calibrated confidence threshold. A fresh surface jump
+press does not establish an impulse or successful landing. This is post-result
+diagnosis; it does not change a model or produce new held-out evidence.
 
 ## Earlier diagnostic methods retained
 
