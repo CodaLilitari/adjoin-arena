@@ -8,6 +8,7 @@ connected gameplay. The engine builds collision-checked routes at runtime.
 from __future__ import annotations
 import argparse
 from collections import Counter
+from ctypes import c_float
 import hashlib
 import json
 import math
@@ -33,6 +34,8 @@ def pickup_catalog(source: str) -> dict[str, str]:
 
 
 _PROPERTY = re.compile(r"(\w+)=(\([^()=]*\)|[^\s=()]+)(?:\s+|$)")
+_POSE_DECIMAL = re.compile(r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?")
+_SECTOR_INTEGER = re.compile(r"[+-]?[0-9]+")
 
 
 def _property_fields(fields: str) -> dict[str, str]:
@@ -49,6 +52,16 @@ def _property_fields(fields: str) -> dict[str, str]:
         props[match[1].casefold()] = match[2].casefold()
         cursor = match.end()
     return props
+
+
+def _pose_component(token: str) -> float:
+    if not _POSE_DECIMAL.fullmatch(token):
+        raise ValueError(f"Invalid pose decimal {token!r}")
+    value = float(token)
+    # The engine stores its parsed double in a float. Keep the source precision in the atlas.
+    if not math.isfinite(c_float(value).value):
+        raise ValueError(f"Pose component {token!r} exceeds finite binary32 range")
+    return value
 
 
 def parse_jkl(text: str) -> dict:
@@ -76,6 +89,9 @@ def parse_jkl(text: str) -> dict:
             if len(row) < 2 or row[0].lower() in {"world", "end"}:
                 continue
             name, base = (v.casefold() for v in row[:2])
+            if name in templates:
+                errors.append(f"Line {line_number}: Duplicate template {name}")
+                continue
             if base != "none" and base not in templates:
                 errors.append(f"Template {name} has unknown earlier base {base}")
             props = templates.get(base, {}).copy()
@@ -107,10 +123,10 @@ def parse_jkl(text: str) -> dict:
                 props = templates[name].copy()
                 if len(row) == 11:
                     props.update(_property_fields(row[10]))
-                position = tuple(float(x) for x in row[3:6])
-                orientation = tuple(float(x) for x in row[6:9])
-                if not all(math.isfinite(x) for x in position + orientation):
-                    raise ValueError(f"Thing {index} has nonfinite pose")
+                position = tuple(_pose_component(x) for x in row[3:6])
+                orientation = tuple(_pose_component(x) for x in row[6:9])
+                if not _SECTOR_INTEGER.fullmatch(row[9]):
+                    raise ValueError(f"Thing {index} has invalid sector integer {row[9]!r}")
                 things[index] = {"template": name, "position": position, "orientation": orientation,
                                  "authored_order": order, "sector": int(row[9]), "properties": props}
             except ValueError as exc:

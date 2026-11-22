@@ -58,6 +58,51 @@ class SpawnAtlasTests(unittest.TestCase):
             self.assertEqual(start["source_kind"], "authored_player_thing")
             self.assertEqual(start["engine_eligibility"], "not_checked")
 
+    def test_duplicate_templates_fail_and_retain_first_definition(self):
+        from bots.spawn_atlas import build_map_atlas
+        for duplicate in (b"child", b"ChIlD"):
+            with self.subTest(duplicate=duplicate):
+                level = LEVEL.replace(b"World templates 3", b"World templates 4")
+                level = level.replace(b"child spawn\n", b"child spawn\n" + duplicate + b" base\n")
+                report = build_map_atlas("arena.jkl", level)
+                self.assertEqual(report["status"], "incomplete")
+                self.assertTrue(any("Duplicate template child" in e for e in report["errors"]))
+                self.assertEqual([s["thing_index"] for s in report["starts"]], [8, 5])
+
+    def test_pose_requires_complete_decimal_and_finite_engine_float(self):
+        from bots.spawn_atlas import build_map_atlas
+        fields = b"1.25 3 -4 -10 91.5 0".split()
+        for component in range(len(fields)):
+            for token in (b"1_000", b"1.5x", b"0x1p1", b"1e", b"nan", b"-inf", b"1e100", b"-1e999"):
+                with self.subTest(component=component, token=token):
+                    changed = fields.copy()
+                    changed[component] = token
+                    level = LEVEL.replace(b" ".join(fields), b" ".join(changed))
+                    report = build_map_atlas("arena.jkl", level)
+                    self.assertEqual(report["status"], "incomplete")
+                    self.assertIn(token.decode(), " ".join(report["errors"]))
+                    self.assertEqual([s["thing_index"] for s in report["starts"]], [5])
+
+    def test_sector_requires_complete_signed_decimal_integer(self):
+        from bots.spawn_atlas import build_map_atlas
+        for token in (b"0_2", b"2.0", b"2e0", b"0x2", b"2x"):
+            with self.subTest(token=token):
+                level = LEVEL.replace(b"91.5 0 2\n", b"91.5 0 " + token + b"\n")
+                report = build_map_atlas("arena.jkl", level)
+                self.assertEqual(report["status"], "incomplete")
+                self.assertIn("invalid sector integer", " ".join(report["errors"]))
+                self.assertEqual([s["thing_index"] for s in report["starts"]], [5])
+
+    def test_decimal_pose_preserves_authored_precision(self):
+        from bots.spawn_atlas import build_map_atlas
+        level = LEVEL.replace(b"1.25 3 -4 -10 91.5 0 2", b"+1.00000001 3. -.4e1 -1E+1 +.915e2 -0. +02")
+        report = build_map_atlas("arena.jkl", level)
+        self.assertEqual(report["status"], "pass", report["errors"])
+        start = report["starts"][0]
+        self.assertEqual(start["position"], (1.00000001, 3, -4))
+        self.assertEqual(start["orientation"], (-10, 91.5, 0))
+        self.assertEqual(start["sector"], 2)
+
     def test_empty_placed_property_fails_validation(self):
         from bots.spawn_atlas import build_map_atlas
         for override in (b"type=", b"type= thingflags=0x20"):

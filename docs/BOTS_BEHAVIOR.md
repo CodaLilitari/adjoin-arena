@@ -254,8 +254,9 @@ in for connected gameplay.
 ## Connected gameplay qualification
 
 Each receipt identifies the executable actually observed. Later navigation fixes do not retroactively
-qualify an earlier binary as the current package. The packaged source and relink verification are in
-[the current build receipt](../qa/bots-feature-build.json).
+qualify an earlier binary as the current package. The [competitive Force build receipt](../qa/bots-competitive-force-build.json)
+records the current package and its relink verification. The [historical build receipt](../qa/bots-feature-build.json)
+covers bot `50924ed7`.
 
 ### Mixed clients, combat, Force and live rules
 
