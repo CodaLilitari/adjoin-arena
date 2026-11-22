@@ -189,26 +189,9 @@ class EvaluationTests(unittest.TestCase):
             self.result("improve")
 
     def test_partial_block_keeps_censor_and_unrun_but_refuses_a_contradiction(self):
-        root = self.roots["flat"]
-        block = root/"train/g01"
-        with tempfile.TemporaryDirectory() as tmp:
-            partial = Path(tmp)
-            for name in ("build","models","train"):
-                (partial/name).mkdir()
-            shutil.copyfile(root/"run.json", partial/"run.json")
-            for a in ("v3", *(f"g01-c{n:02d}" for n in range(13))):
-                shutil.copytree(root/"models"/a, partial/"models"/a)
-            dest = partial/"train/g01"
-            dest.mkdir()
-            shutil.copyfile(block/"assignments.json",dest/"assignments.json")
-            first, second = runner.read(dest/"assignments.json")[:2]
-            for a in (first,second):
-                shutil.copytree(block/a["work_dir"], dest/a["work_dir"])
+        with self.first_block_snapshot(2) as (dest,ledger,read_partial):
+            first, second = ledger[:2]
             (dest/first["work_dir"]/"signal").write_text("censor")
-            def read_partial():
-                with patch.object(runner.trial,"audit_attempt",physical):
-                    return audit.reconstruct(partial,self.decl,"d"*64,self.banks,
-                                             runner.read(partial/"run.json"),self.edges,self.winners)
             report = read_partial()
             self.assertEqual(report["status"], "inconclusive")
             self.assertIsNone(report["criterion"])
@@ -217,6 +200,97 @@ class EvaluationTests(unittest.TestCase):
             (dest/second["work_dir"]/"signal").write_text("contradiction")
             with self.assertRaisesRegex(ValueError,"contradiction"):
                 read_partial()
+
+    @contextmanager
+    def first_block_snapshot(self, claimed):
+        source = self.roots["flat"]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root/"build").mkdir()
+            (root/"models").mkdir()
+            block = root/"train/g01"
+            block.mkdir(parents=True)
+            shutil.copyfile(source/"run.json",root/"run.json")
+            for name in ("v3",*(f"g01-c{n:02d}" for n in range(13))):
+                shutil.copytree(source/"models"/name,root/"models"/name)
+            ledger_path = block/"assignments.json"
+            shutil.copyfile(source/"train/g01/assignments.json",ledger_path)
+            ledger = runner.read(ledger_path)
+            for a in ledger[:claimed]:
+                shutil.copytree(source/"train/g01"/a["work_dir"],block/a["work_dir"])
+            def result():
+                with patch.object(runner.trial,"audit_attempt",physical):
+                    return audit.reconstruct(root,self.decl,"d"*64,self.banks,runner.read(root/"run.json"),self.edges,self.winners)
+            yield block,ledger,result
+
+    def test_process_sidecar_is_unscored_and_dispatched_sibling_survives(self):
+        with self.first_block_snapshot(2) as (block,ledger,result):
+            first = block/ledger[0]["work_dir"]
+            status = dict(schema=1, engine_returncode=1,worker_returncode=0,timed_out=None,error=None,
+                          started_at_utc="2020-01-01T00:00:00Z",ended_at_utc="2020-01-01T00:00:01Z",elapsed_seconds=1)
+            runner.write(first/"process.json",status)
+            shutil.copyfile(first/"process.json",first/"process.json.partial")
+            report = result()
+            self.assertEqual(report["status"],"inconclusive")
+            self.assertEqual([report["counts"][k] for k in ("attempted","completed","censored","unrun")],[2,1,1,102])
+            attempts = report["blocks"]["train/g01"]["attempts"]
+            self.assertEqual(attempts[0]["reason"],"unpublished_process_witness")
+            self.assertEqual(attempts[0]["observed_native_terminal"],"died")
+            self.assertEqual(attempts[1]["status"],"complete")
+            self.assertIsNone(report["criterion"])
+
+    def test_process_sidecar_cannot_be_credited_in_self_consistent_complete_block(self):
+        with self.first_block_snapshot(104) as (block,ledger,result):
+            first = block/ledger[0]["work_dir"]
+            status = dict(schema=1,engine_returncode=1,worker_returncode=0,timed_out=None,error=None,
+                          started_at_utc="2020-01-01T00:00:00Z",ended_at_utc="2020-01-01T00:00:01Z",elapsed_seconds=1)
+            for name in ("process.json","process.json.partial"):
+                runner.write(first/name,status)
+            record = runner.read(self.roots["flat"]/"train/g01/block.json")
+            record["attempts"][0] = physical(ledger[0],first,{},None,None)
+            runner.write(block/"block.json",record)
+            with self.assertRaisesRegex(ValueError,"publication"):
+                result()
+
+    def test_process_sidecar_alone_checks_its_reported_exit_against_real_trace(self):
+        from test_lily_outcome_rollouts import RolloutTests
+        with tempfile.TemporaryDirectory() as tmp:
+            assignment,work,case,policy,model,proc = RolloutTests().fixture(Path(tmp))
+            partial = work/"process.json.partial"
+            (work/"process.json").rename(partial)
+            result = runner.trial.audit_attempt(assignment,work,case,policy,model)
+            self.assertIsNone(result["process"])
+            def check_sidecar():
+                return audit.unpublished_process(result,work,assignment["job"],case,False)
+            observed = check_sidecar()
+            self.assertEqual(observed["reason"],"unpublished_process_witness")
+            self.assertEqual(observed["observed_native_terminal"]["terminal"],"died")
+            self.assertEqual(observed["process"],proc)
+            self.assertIsNone(observed["row"])
+            partial.write_text(json.dumps(dict(proc,engine_returncode=0)))
+            with self.assertRaisesRegex(ValueError,"marker|terminal"):
+                check_sidecar()
+
+    def test_unfinished_assignment_must_be_last_slot_and_block_must_be_unpublished(self):
+        for slot in (0,1):
+            with self.subTest(slot=slot), self.first_block_snapshot(2) as (block,ledger,result):
+                work = block/ledger[slot]["work_dir"]
+                (work/"signal").unlink()
+                (work/"assignment.json").unlink()
+                if slot == 0:
+                    with self.assertRaisesRegex(ValueError,"claim"):
+                        result()
+                else:
+                    report = result()
+                    self.assertEqual(report["counts"]["completed"],1)
+                    attempts = [physical(ledger[0],block/ledger[0]["work_dir"],{},None,None),
+                                dict(status="censored",row=None,reason="unpublished_attempt_claim",process=None,
+                                     raw={},reinferred_decisions=0,observed_native_terminal=None)]
+                    attempts.extend(dict(status="unrun") for _ in ledger[2:])
+                    runner.write(block/"block.json",dict(assignments_sha256=runner.motor.digest(block/"assignments.json"),
+                                                        counts=runner.counts_for(attempts),attempts=attempts,free_bytes_after=5))
+                    with self.assertRaisesRegex(ValueError,"publication"):
+                        result()
 
     def test_transfer_thresholds_use_net_position_and_actual_historical_ids(self):
         pairs = {}
@@ -278,6 +352,53 @@ class EvaluationTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,"action|actuation"):
                 builder.attempt(root,assignment,case,(policy,model))
 
+    def test_interrupted_medium_and_journal_are_independently_checkable(self):
+        from test_lily_outcome_rollouts import RolloutTests
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            a,work,case,policy,model,status = RolloutTests().fixture(root)
+            assigned,control,_ = (json.loads(line) for line in (work/"native.jsonl").read_bytes().splitlines())
+            edge = [assigned["seed"],runner.motor.digest(work/"start.json"),assigned["position"]]
+            def controls():
+                return audit.interrupted_controls(a,work,case,(policy,model),edge,False)
+            def native(wet):
+                (work/"native.jsonl").write_text(json.dumps(assigned)+"\n"+json.dumps(dict(control,wet=wet))+"\n")
+            journal = work/"decisions.jsonl"
+            valid = runner.read(journal)
+            native(False)
+            with self.assertRaisesRegex(ValueError,"medium"):
+                controls()
+            native(True)
+            # At a later tick each stream is independently plausible, but their media disagree.
+            motor = work/"motor.jsonl"
+            initial = motor.read_bytes()
+            obs,input_ = (json.loads(line) for line in initial.splitlines())
+            obs.update(tick=1,step=6,sense=dict(obs["sense"],medium="air"))
+            input_.update(tick=1,step=6,source_tick=1)
+            motor.write_bytes(initial+(json.dumps(obs)+"\n"+json.dumps(input_)+"\n").encode())
+            with (work/"native.jsonl").open("a") as stream:
+                stream.write(json.dumps(dict(control,tick=1,step=6,wet=True))+"\n")
+            with self.assertRaisesRegex(ValueError,"medium"):
+                controls()
+            native(True)
+            motor.write_bytes(initial)
+            journal.write_bytes((json.dumps(valid)+"\nbad later journal line\n").encode())
+            with self.assertRaises(ValueError):
+                controls()
+            journal.write_text(json.dumps(valid)+"\n")
+            (work/"motor.jsonl").unlink()
+            self.assertEqual(controls(),(0,1))
+            for bad in (b"bad json\n",b'{}\n',json.dumps(dict(valid,tick=1)).encode(),
+                        json.dumps(dict(valid,observation_sha256="wrong")).encode(),
+                        json.dumps(dict(valid,quantized=[101,0,0,0,0])).encode(),
+                        json.dumps(dict(valid,quantized=[1,0,0,0,0])).encode()):
+                with self.subTest(bad=bad):
+                    journal.write_bytes(bad)
+                    with self.assertRaises(ValueError):
+                        controls()
+            journal.write_bytes(b'{"tick"')
+            self.assertEqual(controls(),(0,1))
+
     def test_header_portability_and_generated_includes(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -285,7 +406,7 @@ class EvaluationTests(unittest.TestCase):
             (build/"AI").mkdir(parents=True)
             (build/"source/src").mkdir(parents=True)
             for name,content in (("replay",b"exe"),("flags.make",b"flags"),("map.numeric",b"geometry"),
-                                 ("source/src/phys.c",b"physics"),("stock_functions.inc",b"verified example"),
+                                 ("source/src/phys.c",b"physics"),("stock_functions.inc",b"verified example\n"),
                                  ("AI/jkBotLily.inc",b'#include_next "AI/jkBotLily.inc"\n#include "bank_drive.inc"\n')):
                 (build/name).write_bytes(content)
             files = runner.tree_files(build)
@@ -301,9 +422,9 @@ class EvaluationTests(unittest.TestCase):
             runner.write(root/"run.json",hdr)
             decl = dict(implementation_commit="c", created_at_utc="2025-10-31T00:00:00Z", fixture_reference=provenance)
             with (patch.object(runner,"fixture_sources",return_value={}),
-                  patch.object(audit,"stock_functions",return_value="verified example")):
+                  patch.object(audit,"stock_functions",return_value="verified example\n")):
                 self.assertEqual(audit.portable_header(root,decl,"d")["python"],python)
-                (build/"stock_functions.inc").write_text("changed")
+                (build/"stock_functions.inc").write_bytes(b"verified example\r\n")
                 hdr["build"]["files"] = runner.tree_files(build)
                 (root/"run.json").write_text(json.dumps(hdr))
                 with self.assertRaisesRegex(ValueError,"stock functions"):

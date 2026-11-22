@@ -101,7 +101,8 @@ def portable_header(root, decl, digest):
     for name, sha in expected.items():
         equal(files[name]["sha256"], sha, "build input "+name)
     # These includes are emitted deterministically by the pinned stock builder.
-    equal((root/"build/stock_functions.inc").read_text(), stock_functions(root/"build/source"), "stock functions include")
+    check((root/"build/stock_functions.inc").read_bytes() == stock_functions(root/"build/source").encode(),
+          "stock functions include")
     check((root/"build/AI/jkBotLily.inc").read_bytes() ==
           b'#include_next "AI/jkBotLily.inc"\n#include "bank_drive.inc"\n', "fixture control include")
     return hdr
@@ -199,10 +200,24 @@ def public_attempt(assignment, result):
     return entry
 
 
+def interrupted_journal(work):
+    """A missing observation cannot excuse a malformed, fully written worker record."""
+    records = trial.available_stream(work/"decisions.jsonl")
+    for tick, row in enumerate(records):
+        check(set(row) == {"tick","observation_sha256","quantized"}, "interrupted journal fields")
+        equal(row["tick"], tick, "interrupted journal tick")
+        q = row["quantized"]
+        check(isinstance(row["observation_sha256"],str) and re.fullmatch("[0-9a-f]{64}",row["observation_sha256"])
+              and isinstance(q,list) and len(q) == 5 and all(type(n) is int and -100 <= n <= 100 for n in q[:4])
+              and type(q[4]) is int and 0 <= q[4] <= 3, "invalid interrupted journal decision")
+    return records
+
+
 def interrupted_controls(assignment, work, case, paths, edge, has_terminal):
     """Verify observable physical actions beyond the last buffered decision on interruption."""
     native = trial.available_stream(work/"native.jsonl")
     frames = trial.available_stream(work/"motor.jsonl")
+    journal = interrupted_journal(work)
     origin = None
     if (work/"start.json").is_file():
         origin = trial.prior.available_record((work/"start.json").read_bytes())
@@ -214,11 +229,8 @@ def interrupted_controls(assignment, work, case, paths, edge, has_terminal):
         equal([assigned["event"],assigned["sector"],assigned["seed"],assigned["position"]],
               ["assigned",job["target_sector"],edge[0],edge[2]], "interrupted assigned stock edge")
     if has_terminal:
-        # audit_attempt's censored_engine has already verified every available
-        # observation/control join at a witnessed terminal, independently of the journal.
-        count = len(native)-1
-        return (min((len(frames)+1)//2,count), max(count-(len(frames)+1)//2,0)) if paths[0] else (0,0)
-    if not frames and not native:
+        native.pop()  # audit_attempt already checked the actual native terminal.
+    if not frames and not native and not journal:
         return 0, 0
     decide = None
     if paths[0]:
@@ -232,22 +244,36 @@ def interrupted_controls(assignment, work, case, paths, edge, has_terminal):
     residual = 0.
     dt = run.motor.f32(job["control_dt"])
     duration = job["requested_hold_ms"]
-    for tick in range(max((len(frames)+1)//2,len(native))):
+    for tick in range(max((len(frames)+1)//2,len(native),len(journal))):
+        check(step < run.motor.MAX_STEPS, "interrupted control exceeds physics budget")
+        decision = journal[tick]["quantized"] if tick < len(journal) else None
         actual = native[tick] if tick < len(native) else None
         obs = frames[2*tick] if 2*tick < len(frames) else None
         applied = frames[2*tick+1] if 2*tick+1 < len(frames) else None
         expected = None
+        if actual is not None:
+            check(type(actual["wet"]) is bool and (tick or actual["wet"]), "invalid interrupted native medium")
         if obs is not None:
             run.motor.physical_record(obs)
+            sense = obs["sense"]
+            wet = sense["medium"] == "water"
+            check(type(sense["on_water_surface"]) is bool and type(sense["supported"]) is bool
+                  and sense["medium"] in ("water","air") and (tick or wet)
+                  and sense["on_water_surface"] == bool(obs["physics_flags"] & 0x100000)
+                  and math.isclose(sense["tick_ms"], dt*1000, abs_tol=.0001), "invalid interrupted physical observation")
+            if actual is not None:
+                equal(actual["wet"],wet,"interrupted native/observation medium")
             equal([obs["event"],obs["tick"],obs["step"],obs["sense"]["buttons"],obs["goal"]],
                   ["observation",tick,step,previous,{"sector":job["target_sector"],"position":edge[2]}],
                   "interrupted observation identity")
             if tick == 0 and origin is not None:
                 run.motor.verify_start(obs,case,job["yaw_deg"],origin)
-            if decide and (actual is not None or applied is not None):
+            if decide and (actual is not None or applied is not None or decision is not None):
                 observation = {"state":obs["state"], "lily":{"sense":obs["sense"]}}
                 context = {"directive":{"goal":"learned-motor","parameters":{"position":edge[2],"duration_ms":duration}}}
                 expected = run.motor.quantized(decide(observation,context),duration)
+                if decision is not None:
+                    equal(decision, expected, "interrupted frozen decision")
         for event, record in (("input",applied),("control",actual)):
             if record is None:
                 continue
@@ -255,10 +281,14 @@ def interrupted_controls(assignment, work, case, paths, edge, has_terminal):
             check(type(record["buttons"]) is int and 0 <= record["buttons"] <= (3 if decide else 31)
                   and len(record["axes"]) == 4 and all(type(a) in (float,int) and math.isfinite(a) for a in record["axes"]),
                   "invalid interrupted action")
+            if decide:
+                check(all(-1.0000001 <= a <= 1.0000001 and abs(a-round(100*a)/100) < 1e-7 for a in record["axes"]),
+                      "invalid interrupted quantized action")
             if event == "input":
                 equal([record["source_tick"],record["presses"]], [tick,record["buttons"] & ~previous], "interrupted button edges")
-            if expected is not None:
-                trial.prior.check_censored_control(record,event,tick,step,expected,previous)
+            comparable = expected if expected is not None else decision
+            if comparable is not None:
+                trial.prior.check_censored_control(record,event,tick,step,comparable,previous)
         if actual is not None and applied is not None:
             equal([actual["axes"],actual["buttons"]], [applied["axes"],applied["buttons"]], "interrupted actuation mismatch")
         action = actual if actual is not None else applied
@@ -271,6 +301,39 @@ def interrupted_controls(assignment, work, case, paths, edge, has_terminal):
         residual = span-ticks/run.motor.HZ
         step += ticks
     return verified, unavailable
+
+
+def unpublished_process(result, work, job, case, native):
+    """Retain checked physical and process witnesses without crediting unfinished publication."""
+    partial = (work/"process.json.partial").read_bytes()
+    status = trial.prior.available_record(partial.rstrip())
+    final = work/"process.json"
+    if final.exists():
+        check(partial == final.read_bytes(), "conflicting process publications")
+    end = result.get("observed_native_terminal")
+    if result["status"] == "complete":
+        # The raw oracle already checked both waits, marker, every input and terminal.
+        end = {"terminal":result["row"]["terminal"]}
+    if status is not None:
+        clean = trial.clean_process(status, native)
+        if not final.exists():
+            # audit_attempt could not use this witness, which exists only in the sidecar.
+            code = status["engine_returncode"]
+            log = work/"engine.log"
+            if code in (0,1) and log.exists() and any(
+                    line.startswith(b"STOCK FULL TICK") for line in log.read_bytes().splitlines()):
+                equal(trial.prior.engine_code(log),code,"unpublished engine marker/wait disagreement")
+            if code in (0,1) and end is not None:
+                check(run.motor.valid_terminal(end,job,code),"unpublished engine wait/terminal disagreement")
+            if clean:
+                allowed = trial.BASE_RAW if native else trial.BASE_RAW | trial.MODEL_RAW
+                check(set(result["raw"]) == (allowed-{"process.json"}) | {"process.json.partial"},
+                      "unpublished clean process inventory")
+                equal(trial.prior.engine_code(log),code,"unpublished engine marker")
+                row = run.motor.assess(job,work,code,case)
+                equal(result["reinferred_decisions"],row["decisions"],"unpublished clean decision count")
+    return dict(result, status="censored", row=None, reason="unpublished_process_witness",
+                process=status, observed_native_terminal=end)
 
 
 class Reconstruction:
@@ -319,6 +382,10 @@ class Reconstruction:
                                                             result.get("observed_native_terminal") is not None)
                 self.verified_censored_controls += verified
                 self.unverifiable_censored_controls += unavailable
+            if "process.json.partial" in result["raw"]:
+                if result["status"] == "complete":
+                    self.verified_censored_controls += result["reinferred_decisions"]
+                result = unpublished_process(result,work,assignment["job"],case,paths[0] is None)
         for name in result["raw"]:
             self.inv.entry(work/name)
         if result["process"]:
@@ -356,10 +423,17 @@ class Reconstruction:
             attempts.append(result)
         counts = run.counts_for(attempts)
         check(all(a["status"] == "unrun" for a in attempts[counts["attempted"]:]), "gap in ordered attempt inventory")
+        for i, result in enumerate(attempts):
+            if result.get("reason") == "unpublished_attempt_claim":
+                check(i == counts["attempted"]-1, "later attempt after an unfinished assignment claim")
         info = dict(role=role, models=refs, assignments=run.link(self.root, str(assignment_path.relative_to(self.root))),
                     counts=counts, attempts=[public_attempt(a,r) for a,r in zip(ledger,attempts,strict=True)])
         self.report["blocks"][f"{stage}/{label}"] = info
         path = directory/"block.json"
+        unfinished = {"unpublished_attempt_claim","unpublished_process_witness","missing_process_witness"}
+        if any(r.get("reason") in unfinished for r in attempts):
+            check(not path.exists() and not path.with_suffix(".json.partial").exists(),
+                  "block publication after an unfinished attempt publication")
         block = self.inv.publication(path)
         free = block["free_bytes_after"]
         check(type(free) is int and free >= 0, "invalid free space witness")
