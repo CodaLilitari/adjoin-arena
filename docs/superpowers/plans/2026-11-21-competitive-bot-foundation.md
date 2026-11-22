@@ -57,8 +57,8 @@
 
 - [x] Independently review the code against the five review-focus risks and the complete spec; fix substantive findings.
 - [x] Record the new code commit, tests actually executed, original-data evidence and remaining native/companion work.
-- [x] Commit the code on the local feature branch, preserving `main` and existing packaged binaries. Remote publication requires explicit destination approval after automatic approval review blocked the attempted GitHub push.
-- [ ] Present current findings, the actual atlas result and the next native integration work without claiming completed competitive behavior.
+- [x] Commit the atlas checkpoint on the feature branch, preserving `main` and the packaged binaries at that checkpoint. The user subsequently approved GitHub publication, and the branch was pushed successfully.
+- [x] Present current findings, the actual atlas result and the next native integration work without claiming completed competitive behavior.
 
 ## Execution ledger
 
@@ -72,4 +72,6 @@
 - Full Python suite at the parser checkpoint: 203 tests, two platform skips, no failures or errors. The two skips require PowerShell on the test host.
 - Final review fixed an output-path alias hazard: the CLI now refuses to overwrite either stock input archive, including a symlink or hardlink alias. Eight atlas and four existing map-audit tests passed on `1bd8604`, including all six source-preservation cases on the test host.
 - Exact source at `1bd860456db42b76bfe98f36087ad74d29a91b6c` passed a repeat original-data CLI qualification and all 193 raw-row checks. The receipt and private atlas identify that revision. Final scoped review found no remaining issues.
-- Next authorization action: publish `feature/competitive-bot-foundation` to `https://github.com/CodaLilitari/jk-cross-server`. Nothing was pushed or merged by this checkpoint.
+- Publication was initially blocked pending authorization. The user's continuation explicitly approved it; `feature/competitive-bot-foundation` was then published to `https://github.com/CodaLilitari/jk-cross-server`. No merge was performed.
+- Subsequent whole-branch review added strict ASCII decimal/binary32 pose validation and rejected duplicate template names at `fd78d3b`. Sixteen targeted tests passed; a new installed-data CLI run produced the identical canonical atlas previously checked against all 193 raw rows, with both original archive hashes unchanged. See the appended validation in `qa/bots-stock-spawn-atlas-receipt.json`.
+- The separate competitive Force increment updates native client packaging and is tracked in `2026-11-21-competitive-force.md`.

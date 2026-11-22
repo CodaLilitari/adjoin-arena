@@ -36,13 +36,13 @@
 
 `JK_BOT_FORCE_STYLE=competitive` is accepted by Python and `jkGuiMultiplayer_BotCharacter`; diagnostics report the actual style. Built-in persona profiles use it; omitted custom-profile styles retain balanced. Runtime `jkBot` records whether the style is competitive, without changing legacy sequencing except a corrected Protection minimum-mana eligibility check.
 
-- [ ] Add failing native loadout cases covering all 54 rank/side/style combinations, exact rank-eight competitive bins, invalid style 3, rank zero and original master behaviour. Add Python validation/transport coverage for the new style and rejection of unknown values.
-- [ ] Implement the planner, engine style parser/log and Python profile transport; select competitive in shipped profiles and document the build dependency.
-- [ ] Add native controller regression cases proving proactive Seeing while engaged/unblinded, no attempt to cure existing Blind, preemptive Absorb from observed engagement/threat, unchanged actor/mana/availability gates, and legitimate cross-power activation before the old 2.4-second gap while an actual future binWait still blocks it.
-- [ ] Implement competitive Seeing/Absorb priorities after urgent healing. Use a 0.15-second cross-power input guard, preserving the active held-input lifecycle; legacy styles retain 2.4 seconds. Protection has no generic minimum-mana gate in the original COG, but its normal availability/activation gates still apply.
-- [ ] Add Grip tests for intended marker match, wrong/missing/unknown marker, reused player identity, successful normal key release, active effect plus continued weapon keys, and peace/Force-disable cancellation. Confirm through the local inventory COG victim value; do not set it. Capture stable target identity when requesting the hold. Cancel with the normal deselect path if marker or identity is invalid. Avoid automatic Force switching while a valid released Grip remains active.
-- [ ] Run native loadout and driver suites using `--source ../engine-force-work --build ../engine-build-probe` (loadout has no build argument), relevant Python bot tests, patch-application checks and whitespace checks. Record effects not tested by these fixtures.
-- [ ] Commit only this task's owned files. Write report to `.superpowers/sdd/2026-11-21-competitive-force/task-1-report.md` with source path, commits, test commands/results, deliberately unimplemented behaviours and any build risk.
+- [x] Add failing native loadout cases covering all 54 rank/side/style combinations, exact rank-eight competitive bins, invalid style 3, rank zero and original master behaviour. Add Python validation/transport coverage for the new style and rejection of unknown values.
+- [x] Implement the planner, engine style parser/log and Python profile transport; select competitive in shipped profiles and document the build dependency.
+- [x] Add native controller regression cases proving proactive Seeing while engaged/unblinded, no attempt to cure existing Blind, preemptive Absorb from observed engagement/threat, unchanged actor/mana/availability gates, and legitimate cross-power activation before the old 2.4-second gap while an actual future binWait still blocks it.
+- [x] Implement competitive Seeing/Absorb priorities after urgent healing. Use a 0.15-second cross-power input guard, preserving the active held-input lifecycle; legacy styles retain 2.4 seconds. Protection has no generic minimum-mana gate in the original COG, but its normal availability/activation gates still apply.
+- [x] Add Grip tests for intended marker match, wrong/missing/unknown marker, reused player identity, successful normal key release, active effect plus continued weapon keys, and peace/Force-disable cancellation. Confirm through the local inventory COG victim value; do not set it. Capture stable target identity when requesting the hold. Cancel with the normal deselect path if marker or identity is invalid. Avoid automatic Force switching while a valid released Grip remains active.
+- [x] Run native loadout and driver suites using `--source ../engine-force-work --build ../engine-build-probe` (loadout has no build argument), relevant Python bot tests, patch-application checks and whitespace checks. Record effects not tested by these fixtures.
+- [x] Commit only this task's owned files. Write report to `.superpowers/sdd/2026-11-21-competitive-force/task-1-report.md` with source path, commits, test commands/results, deliberately unimplemented behaviours and any build risk.
 
 ## Task 2: Build, qualify and publish the reviewed candidate
 
@@ -50,8 +50,8 @@
 
 **Interfaces:** Task 1 source and complete patch feed `engine-build-probe/rebuild_pair.py --source PATH --repo PATH --output NEW_DIR`; this recompiles both changed native translation units against the pinned SDL/native multiplayer configuration. Its `recovery-build.json` is consumed by the existing `native/package_bots.py`.
 
-- [ ] Independently review Task 1 and fix substantive findings before packaging.
-- [ ] Build both affected translation units; verify ordinary native join symbols and exact source/patch hashes.
-- [ ] Package a candidate with matching patch, binary, build receipt and relink archive; keep claims limited to tests actually run.
+- [x] Independently review Task 1 and fix substantive findings before packaging.
+- [x] Build both affected translation units; verify ordinary native join symbols and exact source/patch hashes.
+- [x] Package a candidate with matching patch, binary, build receipt and relink archive; keep claims limited to tests actually run.
 - [ ] Establish a private original-data or self-contained fixture path for connected cloud testing; use the existing player-bot hooks because the fork's agent controller is single-player only. Verify actual join/loadout and effects where possible; report an exact blocker for any missing test.
 - [ ] Update source audit and qualification receipt, review the final diff, push the authorized feature branch and report its URL and remaining competitive work.
