@@ -1,3 +1,4 @@
+import errno
 import hashlib
 import json
 import os
@@ -127,10 +128,20 @@ class SpawnAtlasTests(unittest.TestCase):
             for archive in episode.iterdir():
                 original = archive.read_bytes()
                 symlink = root / (archive.stem + "-sym.json")
-                symlink.symlink_to(archive)
                 hardlink = root / (archive.stem + "-hard.json")
                 os.link(archive, hardlink)
-                for output in (archive, symlink, hardlink):
+                outputs = [archive, hardlink]
+                try:
+                    symlink.symlink_to(archive)
+                except NotImplementedError:
+                    pass
+                except OSError as exc:
+                    unsupported = exc.errno in (errno.ENOSYS, errno.ENOTSUP, errno.EPERM)
+                    if not unsupported and getattr(exc, "winerror", None) != 1314:
+                        raise
+                else:
+                    outputs.append(symlink)
+                for output in outputs:
                     with self.subTest(output=output):
                         result = subprocess.run([sys.executable, "-m", "bots.spawn_atlas",
                                                  "--game-data", tmp, "--output", str(output)],
