@@ -78,6 +78,12 @@ needed for a jump, and penalizes only a route it actually drove unsuccessfully.
 The new regression exercises the normal bot tick; the earlier aligned water-exit
 replay had started after route selection and missed this arbitration failure.
 
+A subsequent live trial exposed a deeper shaft failure. Recovery now credits
+vertical movement toward the commanded submerged waypoint, and ordinary dive
+input brakes the ascent before the surface jump. The same 48 controlled deep
+approaches failed on the intermediate build and landed on dry ground with the
+revised controller; live match qualification remains a separate check.
+
 Stock multiplayer permits pulling the Bryar. Active Absorb prevents the
 disarm, and repeated requests against an unchanged weapon were wasting Lily's
 mana. The bot now checks the intended target again at release and backs off

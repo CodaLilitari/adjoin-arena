@@ -3,7 +3,7 @@
   "title": "Canyon Oasis recording review: movement ownership and repeated Force Pull",
   "baseline_runtime": "42154174ec8421e642bfcb56308b2959c2db22e2",
   "reviewed_video_sha256": "fd6c8f7fc25cea86019cebdc08a967caec35962600f095e763155f3415cbad3e",
-  "revised_wasm_sha256": "be8bb4b15124e3524518243d84e864c2ceda668a6a98c76b5f4bf2a34ece24d5",
+  "revised_wasm_sha256": "02b30f01336cf169e688cb32fb1b6dfa5eff77612b9d42142a507b234db116e4",
   "review_method": "Rendered video samples across the full two minutes, synchronized own-state traces and retained engine console events, followed by source tracing and normal-tick regressions.",
   "observed_stalls": [
     {
@@ -46,11 +46,13 @@
     "Advance underwater time on every living tick and treat the need for air as an urgent navigation objective.",
     "After sustained lack of horizontal progress, route movement receives a bounded recovery interval during combat and hearing.",
     "Attribute a failed route only after continuous ownership on the same node and goal; evaluate the expiry frame before returning control.",
-    "Preserve route heading and pitch for jump approach, committed flight and water exit while still checking physical aim for gunfire and servicing Force hold/cancellation."
+    "Preserve route heading and pitch for jump approach, committed flight and water exit while still checking physical aim for gunfire and servicing Force hold/cancellation.",
+    "Count vertical progress toward the commanded submerged waypoint, while retaining stall penalties for stationary or receding swimmers.",
+    "Use ordinary dive input to brake a fast ascent before the surface run-up, so the engine can capture the water-surface state before a legal jump."
   ],
   "normal_tick_tests": {
     "source": "native/tests/test_bot_movement_tick.inc",
-    "sha256": "015532f6382e49bd0821b8a99cc83524f327deeb931e7121b4f0c36cb24e4456",
+    "sha256": "e10009c7ea7c28dedfcb54a96973581e25e1dd432963b20a5292a4fa15451d10",
     "covers": [
       "underwater visible opponent",
       "underwater recurring sound",
@@ -61,7 +63,9 @@
       "brief ownership does not blame an unused route",
       "failed full recovery interval penalizes the driven route",
       "off-axis opponent cannot steal ordinary/Force jump approach or flight heading",
-      "aligned gunfire and ordinary Force Jump hold remain available"
+      "aligned gunfire and ordinary Force Jump hold remain available",
+      "slow vertical ascent and descent toward the commanded submerged waypoint",
+      "stationary and wrong-direction swimming still trigger recovery"
     ]
   },
   "private_stock_geometry_replay": {
@@ -78,10 +82,10 @@
     "limits": "One shoreline, controlled starts facing the bank. Off-axis cases rotate the visible opponent 39.5 degrees from the required exit heading. This is not a live multiplayer qualification or coverage of every shoreline."
   },
   "native_verification": {
-    "build_metadata_sha256": "cd179bad436e2979662a34fa4ebe07a24a00f066081651856dcb9e35b1dddea0",
+    "build_metadata_sha256": "5466fe7f6e422644d688ec4f17f743d9bf1a7450dc785452ec5a7f9e785cc022",
     "files": {
       "bin/bots-linux-x86_64/jk-bot-client": {
-        "sha256": "aeaef94fbe4b2bd0bce487d25eb93593209c64d6f20cbe2d06a103087f5bd8c1",
+        "sha256": "172f1b949eb1eef49215f0eb1a4c0091c9d1dc642b706198e1c642e88cc58606",
         "bytes": 8652256
       },
       "bin/bots-linux-x86_64/libGameNetworkingSockets.so": {
@@ -89,12 +93,12 @@
         "bytes": 3644744
       },
       "native/bot-client.patch": {
-        "sha256": "a1eefdb97b673572e6900a99a3240e1fa3ae52569892bddc116aef60649c15a0",
-        "bytes": 242904
+        "sha256": "254580e59e9859e7a984856b22376af553925d23ca6f90bbe5506bab8bcb0085",
+        "bytes": 244850
       },
       "native/bot-relink-linux-x86_64.tar.gz": {
-        "sha256": "999d59517c7d8844b611c54b1443e1cae4d63b3033975afb5e425c9496da4a20",
-        "bytes": 6020764
+        "sha256": "00bf9d0804af9480253cb546b8028647a2f0c23bce11335efbab41df17302d32",
+        "bytes": 6021638
       }
     },
     "scanned_units": 205,
@@ -106,7 +110,7 @@
       "clean_pinned_source_accepts_patch": true,
       "packaged_source_dependency_hashes_verified": 222,
       "all_packaged_link_input_hashes_verified": 218,
-      "relinked_executable_sha256": "aeaef94fbe4b2bd0bce487d25eb93593209c64d6f20cbe2d06a103087f5bd8c1",
+      "relinked_executable_sha256": "172f1b949eb1eef49215f0eb1a4c0091c9d1dc642b706198e1c642e88cc58606",
       "headless_invalid_profile_exit": 6,
       "patched_source_regressions": [
         "hearing and elite pursuit",
@@ -119,17 +123,80 @@
       "live_multiplayer_match": false
     },
     "pass_groups": {
-      "collision": 3,
       "companion": 1,
+      "portal": 8,
       "driver": 38,
       "hearing": 7,
-      "portal": 8
+      "collision": 3
     },
-    "loadout": "54 legal combinations plus invalid inputs",
+    "loadout": "Bot loadout: 54 legal rank/side/style combinations and invalid inputs passed.",
     "six_suites_exit_zero": true
   },
   "live_comparison": {
-    "status": "pending",
-    "claim": "No live improvement is claimed by this receipt until a result is added."
+    "status": "pending revised deep-water build",
+    "claim": "The intermediate live failure is retained above. The controlled 48-case exit replay does not itself qualify general multiplayer navigation."
+  },
+  "intermediate_live_failure": {
+    "build": "a00f2acc7e6616955c4c3d6bc5db39c8d0fb821b",
+    "wasm_sha256": "be8bb4b15124e3524518243d84e864c2ceda668a6a98c76b5f4bf2a34ece24d5",
+    "trace_sha256": "b7f1507dc68a9726ccd5acf3838c355268447bf14706a55b60554c8533afdda7",
+    "four_hardware_browser_clients": true,
+    "conclusion": "Did not qualify water robustness. The first fix still oscillated in the sector 54 shaft, producing a 45.132-second horizontal stall for Lily and a 30.334-second one for Boba. The earlier six aligned shoreline fixtures did not cover the deeper live approaches.",
+    "causes": [
+      "Horizontal-only recovery charged successful vertical swimming as a failed route.",
+      "Momentum from a deep ascent crossed into air before the water-surface run-up captured a legal jump state."
+    ]
+  },
+  "deep_water_pose_replay": {
+    "map": "JK1MP/m10.jkl",
+    "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+    "method": "Normal bot tick with stock PlayerLook/FreeCam controls, stock water/air physics and real map sphere collision. Exact prior and revised source use identical initial poses and a dry-floor contact success condition.",
+    "initial_positions": [
+      [
+        2.9567,
+        -0.0994,
+        0.322
+      ],
+      [
+        2.9567,
+        -0.0994,
+        -0.326
+      ],
+      [
+        2.9819,
+        -0.1218,
+        -0.451
+      ],
+      [
+        2.9819,
+        -0.1218,
+        0.56
+      ]
+    ],
+    "yaw_pitch_degrees": [
+      [
+        0,
+        0
+      ],
+      [
+        130,
+        45
+      ],
+      [
+        -110,
+        -55
+      ]
+    ],
+    "physics_hz": [
+      15,
+      20,
+      30,
+      60
+    ],
+    "matched_cases": 48,
+    "intermediate_build_landings": 0,
+    "revised_build_landings": 48,
+    "controls": "Ordinary movement, swim, dive and jump; no position/velocity writes in the bot controller.",
+    "limits": "Controlled starts at the observed Canyon Oasis shaft; separate from unscripted multiplayer qualification."
   }
 }

@@ -129,6 +129,39 @@ static void test_bot_movement_tick(int underwater,int opponent,int sound,int mak
     corridorMode=0;
 }
 
+/* In a narrow shaft the stock swimmer can travel for several seconds with
+ * no horizontal displacement. Only progress toward the commanded depth counts. */
+static void test_vertical_swim_progress(int direction,int targetDepth)
+{
+    static SithWorld world;
+    static SithSector wet;
+    static SithThing self;
+    static SithPlayer own;
+    memset(&self,0,sizeof(self)); memset(&nav,0,sizeof(nav));
+    jkBot_Configure("Swim_Test","ky.3do");
+    Bot_ResetHearing();
+    self.type=SITH_THING_PLAYER; self.actorParams.health=100;
+    self.actorParams.pPlayer=&own; self.sector=&wet;
+    self.orient.lvec.y=self.orient.rvec.x=1;
+    wet.flags=SITH_SECTOR_UNDERWATER;
+    bot.world=sithWorld_g_pCurrentWorld=&world;
+    sithPlayer_g_pLocalPlayer=&own; sithPlayer_g_pLocalPlayerThing=&self;
+    bot.enabled=bot.joined=bot.graphDone=sithNet_isMulti=1;
+    bot.nNodes=2; bot.goal=1; bot.nextPlan=bot.nextBehavior=bot.nextLog=100;
+    bot.nodes[0]=(BotNode){.sector=&wet,.item=-1,.nEdges=1};
+    bot.nodes[0].edges[0]=(BotEdge){1,1,BOT_ROUTE_SWIM};
+    bot.nodes[1]=(BotNode){.sector=&wet,.item=-1,.pos={0,0,targetDepth}};
+    bot.route[0]=0; bot.route[1]=1; bot.routePos=1; bot.routeCount=2;
+    jkPlayer_maxPlayers=0; corridorMode=0; corridorSector=&wet;
+    for (int tick=0;tick<52;tick++) {
+        self.position.z+=direction*0.0055f;
+        jkBot_Tick(0.05f);
+    }
+    if (direction==targetDepth)
+        assert(bot.nodes[1].avoidUntil<=bot.now && bot.keys[targetDepth>0 ? INPUT_FUNC_JUMP : INPUT_FUNC_DUCK]);
+    else assert(bot.nodes[1].avoidUntil>bot.now);
+}
+
 static void test_bot_movement_ownership(void)
 {
     test_bot_movement_tick(1,1,0,0);
@@ -137,5 +170,9 @@ static void test_bot_movement_ownership(void)
     test_bot_movement_tick(0,1,0,0);
     test_bot_movement_tick(0,0,1,0);
     test_bot_movement_tick(0,1,0,1);
+    test_vertical_swim_progress(1,1);
+    test_vertical_swim_progress(-1,-1);
+    test_vertical_swim_progress(0,1);
+    test_vertical_swim_progress(-1,1);
     puts("PASS air and wall recovery retain route movement during combat and hearing");
 }

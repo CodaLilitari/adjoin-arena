@@ -1,9 +1,9 @@
 diff --git a/src/AI/jkBot.c b/src/AI/jkBot.c
 new file mode 100644
-index 0000000..7b3bbb1
+index 0000000..09c3c4a
 --- /dev/null
 +++ b/src/AI/jkBot.c
-@@ -0,0 +1,741 @@
+@@ -0,0 +1,757 @@
 +/*
 + * Ordinary-client multiplayer bot input driver, reconstructed October 2026.
 + * Copyright (C) OpenJKDF2 contributors.
@@ -82,7 +82,7 @@ index 0000000..7b3bbb1
 +    int nNodes, buildNode, graphDone, graphEdges;
 +    uint32_t targetNetId, targetSignature;
 +    int targetSlot, targetGuid, goal, route[BOT_PATH], routeCount, routePos;
-+    int wasDead, recoverySide, followingRoute, routeAim;
++    int wasDead, recoverySide, followingRoute, routeAim, routeMode;
 +    int stalledNode, stalledGoal;
 +    flex_t routeStallTime;
 +    rdVector3 seenPos, progressPos;
@@ -567,12 +567,23 @@ index 0000000..7b3bbb1
 +{
 +    int recovering=bot.nextRecovery>0;
 +    if (recovering && bot.now>=bot.nextRecovery) bot.nextRecovery=0;
-+    if (Bot_NavigationWaiting(self) ||
++    int node=bot.followingRoute && bot.routePos<bot.routeCount ? bot.route[bot.routePos] : -1;
++    /* Vertical jumps against a wall are not progress. A swimmer closing the
++       vertical distance to its current submerged waypoint is making progress. */
++    if (node!=bot.stalledNode) bot.progressPos.z=self->position.z;
++    int swimProgress=0;
++    if (node>=0 && (self->sector->flags&SITH_SECTOR_UNDERWATER) &&
++        bot.nodes[node].sector && (bot.nodes[node].sector->flags&SITH_SECTOR_UNDERWATER) &&
++        (bot.keys[INPUT_FUNC_JUMP] || bot.keys[INPUT_FUNC_DUCK])) {
++        flex_t z=bot.nodes[node].pos.z;
++        swimProgress=fabsf(z-bot.progressPos.z)-fabsf(z-self->position.z)>0.13f;
++    }
++    if (Bot_NavigationWaiting(self) || swimProgress ||
 +        Bot_Horizontal(Bot_Sub(self->position,bot.progressPos))>0.13f) {
 +        bot.progressPos=self->position; bot.stuckAt=bot.now; bot.routeStallTime=0;
++        bot.stalledNode=node; bot.stalledGoal=bot.goal;
 +        return;
 +    }
-+    int node=bot.followingRoute && bot.routePos<bot.routeCount ? bot.route[bot.routePos] : -1;
 +    if (node<0 || node!=bot.stalledNode || bot.goal!=bot.stalledGoal) bot.routeStallTime=0;
 +    bot.stalledNode=node; bot.stalledGoal=bot.goal;
 +    if (node>=0) bot.routeStallTime+=bot.frameDt;
@@ -705,7 +716,7 @@ index 0000000..7b3bbb1
 +        if (self->sector->flags&SITH_SECTOR_UNDERWATER) {
 +            if (!nav.waterSince || bot.wasDead) nav.waterSince=bot.now;
 +        } else nav.waterSince=0;
-+        bot.followingRoute=bot.routeAim=0;
++        bot.followingRoute=bot.routeAim=0; bot.routeMode=-1;
 +        Bot_CheckPursuit(self);
 +        Bot_UpdateAudioLoops(self);
 +        SithThing *target=Bot_UpdateTarget(self);
@@ -724,11 +735,16 @@ index 0000000..7b3bbb1
 +    for (int i=0;i<INPUT_FUNC_MAX;i++) bot.presses[i]=bot.keys[i] && !bot.previous[i];
 +    if (bot.now>=bot.nextLog) {
 +        bot.nextLog=bot.now+10.0f;
-+        fprintf(stderr,"BOT_STATUS name=%s t=%.1f sector=%u pos=%.3f,%.3f,%.3f health=%.1f weapon=%d target=%d goal=%d path=%d/%d kills=%d deaths=%d\n",
++        int next=bot.routePos<bot.routeCount ? bot.route[bot.routePos] : -1;
++        fprintf(stderr,"BOT_STATUS name=%s t=%.1f sector=%u pos=%.3f,%.3f,%.3f health=%.1f weapon=%d target=%d goal=%d path=%d/%d kills=%d deaths=%d vz=%.3f pitch=%.1f next=%d edge=%d following=%d recover=%.2f exit=%d,%d,%d keys=%d,%d pf=%x\n",
 +            bot.name,(double)bot.now,self->sector->id,(double)self->position.x,(double)self->position.y,
 +            (double)self->position.z,(double)self->actorParams.health,sithInventory_GetCurrentWeapon(self),
 +            bot.targetSlot,bot.goal,bot.routePos,bot.routeCount,sithPlayer_g_pLocalPlayer->numKills,
-+            sithPlayer_g_pLocalPlayer->numKilled);
++            sithPlayer_g_pLocalPlayer->numKilled,(double)self->physicsParams.vel.z,
++            (double)self->actorParams.headPYR.x,next,bot.routeMode,bot.followingRoute,
++            (double)Bot_Max(0,bot.nextRecovery-bot.now),nav.waterExitUntil>0 ? nav.waterExitPhase : -1,
++            nav.waterExitFrom,nav.waterExitTo,bot.keys[INPUT_FUNC_JUMP],bot.keys[INPUT_FUNC_DUCK],
++            (unsigned)self->physicsParams.flags);
 +        fflush(stderr);
 +    }
 +}
@@ -2287,10 +2303,10 @@ index 0000000..d167eb8
 +#endif
 diff --git a/src/AI/jkBotNavigate.inc b/src/AI/jkBotNavigate.inc
 new file mode 100644
-index 0000000..9b6a055
+index 0000000..302d4be
 --- /dev/null
 +++ b/src/AI/jkBotNavigate.inc
-@@ -0,0 +1,320 @@
+@@ -0,0 +1,331 @@
 +/* Movement execution for jkBotNavigation.inc; ordinary inputs only. */
 +static int Bot_NavDirectMove(SithThing *self, rdVector3 target, int swim)
 +{
@@ -2383,7 +2399,17 @@ index 0000000..9b6a055
 +        adjust.x=5.0f*(3.0f*adjust.x-self->physicsParams.vel.x);
 +        adjust.y=5.0f*(3.0f*adjust.y-self->physicsParams.vel.y); adjust.z=0;
 +        Bot_WaterSteer(self,adjust);
-+        if (!surface) bot.keys[INPUT_FUNC_JUMP]=1;
++        if (!surface) {
++            /* The surface controller captures rise below 0.2 units/s. A
++               long swim can arrive faster, coast into air and lose its run-up.
++               Brake with the ordinary dive input over its stopping distance. */
++            flex_t vz=self->physicsParams.vel.z;
++            flex_t remaining=nav.waterExitStart.z-self->position.z;
++            flex_t braking=(vz*vz-0.15f*0.15f)/(0.6f*self->actorParams.maxThrust);
++            if (vz>0.15f && remaining<=0.05f+vz*bot.frameDt+braking)
++                bot.keys[INPUT_FUNC_DUCK]=1;
++            else bot.keys[INPUT_FUNC_JUMP]=1;
++        }
 +        if (!surface || self->position.z<nav.waterExitStart.z || error>0.025f ||
 +            Bot_Horizontal(self->physicsParams.vel)>0.085f || fabsf(self->actorParams.headPYR.x)>5 ||
 +            Bot_Dot(toward,self->orient.lvec)<0.97f) return;
@@ -2482,10 +2508,10 @@ index 0000000..9b6a055
 +static void Bot_Navigate(SithThing *self)
 +{
 +    bot.followingRoute=1;
-+    if (nav.waterExitUntil>0) { bot.routeAim=1; Bot_ExitWaterMove(self); return; }
++    if (nav.waterExitUntil>0) { bot.routeMode=BOT_ROUTE_WATER_EXIT; bot.routeAim=1; Bot_ExitWaterMove(self); return; }
 +    if (Bot_JoinMove(self)) return;
 +    if (nav.forceJumpPending) {
-+        bot.routeAim=1;
++        bot.routeMode=BOT_ROUTE_FORCEJUMP; bot.routeAim=1;
 +        if (!self->attach_flags && bot.now>=nav.forceChargeUntil) {
 +            nav.forceJumpPending=0; nav.jumpStarted=bot.now;
 +            nav.jumpUntil=bot.now+nav.forceFlight+0.4f;
@@ -2557,6 +2583,7 @@ index 0000000..9b6a055
 +        if (Bot_Walkable(&actual,node,&drop)) mode=drop ? BOT_ROUTE_DROP : BOT_ROUTE_WALK;
 +        else if (Bot_Jumpable(&actual,node,&duration)) mode=BOT_ROUTE_JUMP;
 +    }
++    bot.routeMode=mode;
 +    bot.routeAim=mode==BOT_ROUTE_JUMP || mode==BOT_ROUTE_FORCEJUMP || mode==BOT_ROUTE_WATER_EXIT;
 +    rdVector3 aim=node->pos;
 +    if (mode!=BOT_ROUTE_SWIM) aim.z=self->position.z;

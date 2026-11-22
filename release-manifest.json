@@ -46,15 +46,15 @@
     },
     "bin/bots-jkweb/openjkdf2.js": {
       "mode": 420,
-      "sha256": "7617e26cd8e8008c5d1a47d59aa05731cd8ed3aff5f8984571e508ca92324ef8"
+      "sha256": "ebda179d919397f8745a83823eb1df3d637c8fcf747f59ca833addd0d05ae4fa"
     },
     "bin/bots-jkweb/openjkdf2.wasm": {
       "mode": 493,
-      "sha256": "be8bb4b15124e3524518243d84e864c2ceda668a6a98c76b5f4bf2a34ece24d5"
+      "sha256": "02b30f01336cf169e688cb32fb1b6dfa5eff77612b9d42142a507b234db116e4"
     },
     "bin/bots-linux-x86_64/jk-bot-client": {
       "mode": 493,
-      "sha256": "aeaef94fbe4b2bd0bce487d25eb93593209c64d6f20cbe2d06a103087f5bd8c1"
+      "sha256": "172f1b949eb1eef49215f0eb1a4c0091c9d1dc642b706198e1c642e88cc58606"
     },
     "bin/bots-linux-x86_64/libGameNetworkingSockets.so": {
       "mode": 493,
@@ -510,7 +510,7 @@
     },
     "native/BOT_BUILD.json": {
       "mode": 420,
-      "sha256": "cd179bad436e2979662a34fa4ebe07a24a00f066081651856dcb9e35b1dddea0"
+      "sha256": "5466fe7f6e422644d688ec4f17f743d9bf1a7450dc785452ec5a7f9e785cc022"
     },
     "native/BUILD.json": {
       "mode": 420,
@@ -522,11 +522,11 @@
     },
     "native/bot-client.patch": {
       "mode": 420,
-      "sha256": "a1eefdb97b673572e6900a99a3240e1fa3ae52569892bddc116aef60649c15a0"
+      "sha256": "254580e59e9859e7a984856b22376af553925d23ca6f90bbe5506bab8bcb0085"
     },
     "native/bot-relink-linux-x86_64.tar.gz": {
       "mode": 420,
-      "sha256": "999d59517c7d8844b611c54b1443e1cae4d63b3033975afb5e425c9496da4a20"
+      "sha256": "00bf9d0804af9480253cb546b8028647a2f0c23bce11335efbab41df17302d32"
     },
     "native/build.sh": {
       "mode": 493,
@@ -642,7 +642,7 @@
     },
     "native/tests/test_bot_movement_tick.inc": {
       "mode": 420,
-      "sha256": "015532f6382e49bd0821b8a99cc83524f327deeb931e7121b4f0c36cb24e4456"
+      "sha256": "e10009c7ea7c28dedfcb54a96973581e25e1dd432963b20a5292a4fa15451d10"
     },
     "native/tests/test_bot_navigation.inc": {
       "mode": 420,
@@ -842,7 +842,7 @@
     },
     "qa/bots-movement-force-followup.json": {
       "mode": 420,
-      "sha256": "ebe936c8c5b71ff39b625a958202f568a395eabfe0deb23a2171a0595da5a783"
+      "sha256": "743a02013cd92f2376f54ecd5d67b1528d68aebd54c89ed9085a2fd66ff9b75e"
     },
     "qa/bots-recovery-assets.json": {
       "mode": 420,
@@ -1634,11 +1634,11 @@
     },
     "web_bots/BUILD.json": {
       "mode": 420,
-      "sha256": "69abb9d8093e5b2b105a7fc7804bbc0515c9ed1ca06fdc1ec7d4cbefe7e3913b"
+      "sha256": "ef65ae4cdc7771491b6aa9105ceb05c64ef0c26ad46de9593aca64e0a53843f1"
     },
     "web_bots/README.md": {
       "mode": 420,
-      "sha256": "d8f7a6f0d22a2e611713f164baf9a20b26fd78e7c1e3a7cb3c3042b71b21f141"
+      "sha256": "c95d7fb5cef6378bb8f870279e8315e5e6e0cd41f66299857eae939392f8d309"
     },
     "web_bots/build.sh": {
       "mode": 493,
@@ -1650,11 +1650,11 @@
     },
     "web_bots/engine-relink.tar.gz": {
       "mode": 420,
-      "sha256": "89acc1d3e27564a50a92f9ffe8fb11d5ac06d406a1eae373577d3b3688b6fac0"
+      "sha256": "c2eed856531d032234dbc9833b9f102c89d2aa5474d2269600a6bf6efa3a3be5"
     },
     "web_bots/engine.patch": {
       "mode": 420,
-      "sha256": "2020002dc4296d79f55e44e7b0531508f0b5d83df89516a78ff09f757747b6dd"
+      "sha256": "77afef1b88e8980ea3e0f73901a518aae4985e09789c28d8e2226427336dfc99"
     },
     "web_bots/fetch_relay.py": {
       "mode": 420,
