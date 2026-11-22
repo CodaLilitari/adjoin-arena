@@ -44,3 +44,19 @@ The coordinating agent owns packaging and publication.
 - [ ] Inspect full telemetry and representative video frames. Report water behavior, equipment selection and fire-mode evidence with their sampling and attribution limits; preserve any failure observed.
 - [ ] Refresh release metadata, verify the package, commit and push the authorized existing draft PR branch. Preserve draft status and record unfinished strategy work.
 - [ ] Save and deliver the validated gameplay recording, with a concise continuation checkpoint in the repository.
+
+## Task 4: Stop the reproduced cycle through failed water supply routes
+
+The candidate-3 live trial established a policy failure after the physical exit fixes: a loaded, healthy bot repeatedly left the pool, selected another supply goal, and returned through the same water lane. Different identities became eligible after their independent 45-second cooldowns. Preserve the accepted contact, identity and physical landing fixes.
+
+- [x] Reproduce the choice with ordinary dispatcher/route fixtures: at least two different supply identities reached through the same failed water entry, a stocked ranged weapon, and a viable dry route or pursuit. Show the failed-before-fix decision instead of weakening the pickup cooldown assertions.
+- [x] Add a bounded cost or retry deterrent for the actually failed water approach, or a comparably narrow evidence-backed equipment opportunity-cost correction. Different item identities must not immediately erase an expensive failed approach. Prefer a viable dry alternative while retaining emergency supply acquisition, ordinary underwater escape and eventual reconsideration.
+- [x] Apply the decision consistently to dedicated equipment routing and ordinary route planning so the fallback cannot reintroduce the same loop. Do not globally disable water, fake pickups, change physics, or hardcode Canyon Oasis sectors.
+- [x] Verify reset/expiry and unrelated pools or routes, preserve useful dry pickups while fighting, preserve disarmed/empty-weapon recovery, and test all affected native/browser driver and navigation configurations. Retain meaningful failure evidence.
+- [x] Provide a focused before/after diff, exact regression results and scoped implementation report for independent review. Root owns packaging, private PC installation and a new full recording after review.
+
+## Task 5: Rebuild and qualify the route-policy correction
+
+- [x] Resolve Task 4 review and rebuild/hash-verify both runtime packages and release metadata.
+- [ ] Install privately, record another autonomous four-seat 240-second trial, verify red saber and game audio, and compare equipment progress and prolonged confinement with both earlier candidates.
+- [ ] Preserve failed live evidence, save the final video, and record an accurate continuation checkpoint. Publishing the new payload remains blocked by automatic approval review until the user approves that concrete public push.

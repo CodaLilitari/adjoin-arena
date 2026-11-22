@@ -132,6 +132,17 @@ Each entry matches the item slot, GUID and signature. A respawn or world change 
 After its breathing counter resets, the bot can continue toward a checked bank for six seconds.
 See the [supply recovery tests](../qa/bots-supply-recovery.json).
 
+The source revision tested after the third trial also remembers the last supported bank and the
+first wet sector of a failed supply dive. After at least four seconds on that attempt, a return for
+air can defer optional underwater pickups and exploration through that entry for 45 seconds.
+This applies in autonomous elite gun play at 40 HP or more with four heavy primary shots in reserve
+(32 power cells and an available concussion rifle, or four charges and an available rail detonator).
+A dry pickup, pursuit or an air route can still cross the water there. A different bank can still
+reach the same submerged item. Underwater equipment rescans keep the destination of a transit trip,
+and cached optional descents are checked again before entry. During the retry a projectile sound
+that only turns the bot can yield movement to navigation while on dry ground or traversing the
+known crossing. [Supply approach regression](../qa/bots-supply-approach-retry.json)
+
 Shoreline routes use a checked water entry or bank jump. A short swim to a
 nearly level bank requires full-body clearance to supported floor in the dry sector directly above
 the swimmer. In Canyon Oasis, all seven retained shallow exits reached their destination floor in
@@ -346,6 +357,22 @@ Current control, catalog, and server-source receipts each state their own limits
 in for connected gameplay.
 
 ## Connected gameplay qualification
+
+### Third refinement trial on Canyon Oasis
+
+**The build failed the sustained-movement check.** Four hardware-accelerated clients ran for
+240.002 seconds without directed commands or observed chat. Lily’s third-person model rendered
+with side material `saberred1.mat` and tip material `saberred0.mat`. She reached dry sector 41
+on multiple occasions, chose other underwater supplies and dived again. Her trace contained 659
+wet states among 840 living observations, with 189.055 seconds across 17 intervals confined
+within a horizontal radius of 0.13 units. Those intervals allow vertical motion.
+
+Across all 19 returns for air, the trace showed no same-life replan for the identical failed item
+within its 45-second retry interval. Lily nevertheless spent much of the clip already armed with
+concussion and rarely had a target during the long final life. Yun requested concussion and repeater
+secondary during the clip. Lily’s retained trigger changes in the clip showed Bryar and fists
+primary. These changes measure requested inputs. They cannot establish hit or kill attribution.
+[Full match comparison and capture verification](../qa/bots-refinement3-live.json)
 
 ### Four-minute Canyon Oasis equipment trial
 

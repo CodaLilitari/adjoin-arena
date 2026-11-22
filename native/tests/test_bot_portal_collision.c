@@ -49,6 +49,9 @@ flex_t sithInventory_GetInventory(SithThing *thing,int bin)
 
 static SithWorld test_world;
 #ifndef BOT_PORTAL_COLLISION_FIXTURE_ONLY
+int sithInventory_IsInventoryAvailable(SithThing *thing,int bin)
+{ return thing->actorParams.pPlayer && (thing->actorParams.pPlayer->aItems[bin].state&SITHINVENTORY_ITEM_AVAILABLE); }
+
 static SithSector test_sectors[3];
 static SithSurface test_surfaces[24];
 static SithSurfaceAdjoin test_adjoins[4];

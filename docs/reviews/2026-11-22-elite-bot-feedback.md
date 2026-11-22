@@ -42,6 +42,17 @@ previously successful cases still reached their intended sector. At 79 ms, one c
 4.367 seconds longer with the same final health. The [normal-dispatch bank replays](../../qa/bots-bank-landing.json)
 measure the source correction with a single swimmer and a constant control interval.
 
+## Repeated dives for different supplies
+
+The third recording showed an armed swimmer cycling among different racks after the individual
+item cooldowns worked. A stock graph check from the sampled bank found that all three rack routes
+used the same first water crossing. A design that blocked the crossing for every goal reduced
+reachable anchors from 483 to 13 and was rejected before packaging. The revised source restricts
+only optional submerged destinations for a healthy, well-armed bot after a verified failed dive.
+A far-bank pickup or an opponent can still justify that crossing through successive equipment
+rescans. The 27 bank replay outcomes stayed identical. The recorded multiplayer failure belongs
+to the preceding build. [Source checks and limits](../../qa/bots-supply-approach-retry.json)
+
 ## Stock mechanics that change the recommendations
 
 The owned stock pickup handlers distinguish touch denial from positioning or item Pull:

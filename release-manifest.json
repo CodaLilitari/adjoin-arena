@@ -46,15 +46,15 @@
     },
     "bin/bots-jkweb/openjkdf2.js": {
       "mode": 420,
-      "sha256": "8eee651e0804ca97b07113541b7ab613eab81fe6c59eba39adfc8da858f04331"
+      "sha256": "dd348b7f5dace28a4cd387eca7942eb30e25ef78b091e87217937a39cf2a2cd7"
     },
     "bin/bots-jkweb/openjkdf2.wasm": {
       "mode": 493,
-      "sha256": "607c58429d62f7be53e0b82922e146e8055127ef3d054cf8f71a4e61ce383f4a"
+      "sha256": "7f5ab43857e84f0c3e905e28db07a23fc4575095174813c29459db48ad8f0adf"
     },
     "bin/bots-linux-x86_64/jk-bot-client": {
       "mode": 493,
-      "sha256": "900a7bbc87f696f13b22ed2887838129587640d86af3e099d91f868ec91bb7ab"
+      "sha256": "d2ad6f4527ee00de93e13d709ed9502ca6dadf4fef8ed8a3d95a8df6f4704808"
     },
     "bin/bots-linux-x86_64/libGameNetworkingSockets.so": {
       "mode": 493,
@@ -182,11 +182,11 @@
     },
     "docs/BOTS_BEHAVIOR.md": {
       "mode": 420,
-      "sha256": "5f2b012b4ffe9ba66703219d69b29bd1887224494d90724b0f9418382bf6718a"
+      "sha256": "2560b768d29375bcc7af0701cf5fd4f95c1beb3386a3bab8a177be34bed3a8d4"
     },
     "docs/BOTS_CONTINUATION.md": {
       "mode": 420,
-      "sha256": "829c2b95c16976985bc7f8c7dc2043bc69a07b28df8ee4f5508d87980855621a"
+      "sha256": "43cd02d5cde6623eb4e603e86275e18fd9ac341acb5ce9b351f5af719206a686"
     },
     "docs/BOTS_PROTOTYPE.md": {
       "mode": 420,
@@ -246,7 +246,7 @@
     },
     "docs/reviews/2026-11-22-elite-bot-feedback.md": {
       "mode": 420,
-      "sha256": "20ee9a4ce37f409cffda57c7b5072c1e95e07b68211eac4a885a7917079eb13d"
+      "sha256": "3414ef0e107a69029995a898a954727e1d762a35b4438badace0bfe523640396"
     },
     "docs/superpowers/plans/2026-10-28-browser-spectator.md": {
       "mode": 420,
@@ -270,7 +270,7 @@
     },
     "docs/superpowers/plans/2026-11-22-bot-supply-recovery.md": {
       "mode": 420,
-      "sha256": "c93840f33446c584b6f6774c70332ff3c1861917d4fd1c84be7b3e2445e6d1db"
+      "sha256": "ffbd39ca506d0a3986cc0273abe929d603e1cc5d3c043fc874ec9f408f7a2a02"
     },
     "docs/superpowers/specs/2026-10-28-browser-spectator-design.md": {
       "mode": 420,
@@ -522,7 +522,7 @@
     },
     "native/BOT_BUILD.json": {
       "mode": 420,
-      "sha256": "d9e02c42a482409a65cebd82bc9abbc7df0e5760968f446437e1336f1f6f81cb"
+      "sha256": "1952f10c310d43246887ed16897c138534ac02a299c9ed68b939f2b83890fdb6"
     },
     "native/BUILD.json": {
       "mode": 420,
@@ -534,11 +534,11 @@
     },
     "native/bot-client.patch": {
       "mode": 420,
-      "sha256": "e21eb3f2b71c428b199ed19489a77c224e104044440d299415bcb903509b6fe7"
+      "sha256": "964ebedb05177d46a3a972da51aa08c8d56578c4a5d3c6e4d9f81540910b26d1"
     },
     "native/bot-relink-linux-x86_64.tar.gz": {
       "mode": 420,
-      "sha256": "ed413a47baf01274576c04696689bd914064cdc2c16e3c12ad2f07c0afb92797"
+      "sha256": "1b0063672d322b30c44599706d2b005694d416d18fa2cd367918cb609459a558"
     },
     "native/build.sh": {
       "mode": 493,
@@ -678,7 +678,7 @@
     },
     "native/tests/test_bot_equipment.inc": {
       "mode": 420,
-      "sha256": "90248138c7b2ae49ca25ab3dc7365bd998b4bb2aa2928b95ae8bc4f6ffd97d88"
+      "sha256": "2eb5f114ed2f4c122ce8273a76a4d5f3a2cc55437b893666d5932bbcefe7a310"
     },
     "native/tests/test_bot_hearing.c": {
       "mode": 420,
@@ -698,7 +698,7 @@
     },
     "native/tests/test_bot_portal_collision.c": {
       "mode": 420,
-      "sha256": "98bd263ab7816254c6fd7e6b512b492a5d4a78cff5b173b31d2064f595c3a800"
+      "sha256": "fe4770ef20bbca9ee1bb5306e5fff13d5881714e81118e4e60a5f8c30f03bba1"
     },
     "native/tests/test_bot_slope_geometry.inc": {
       "mode": 420,
@@ -958,11 +958,15 @@
     },
     "qa/bots-refinement-native-build.json": {
       "mode": 420,
-      "sha256": "bf1c0b9357479f28fd5a4607ac1a154888b328bec4a44e84d6e0724b706b5f88"
+      "sha256": "82bc22cb58d4148b4d76c7229bb3913ba0bf4ea787488e252ad815dfaf0266a3"
     },
     "qa/bots-refinement-web-build.json": {
       "mode": 420,
-      "sha256": "c61b8e4b4425cda6d8345a472d049b245367d26e46d43c6fbd66ad6a36dc8851"
+      "sha256": "2b394126da499d1633a9f4531c5b002e5339e78208944575762762d73701ac79"
+    },
+    "qa/bots-refinement3-live.json": {
+      "mode": 420,
+      "sha256": "567be93b547d9dceafc9c51ae493b19d2ae6b0c2cc7c09c9aaaaddbe38cbec0b"
     },
     "qa/bots-server-controls.json": {
       "mode": 420,
@@ -979,6 +983,10 @@
     "qa/bots-stock-spawn-atlas-receipt.json": {
       "mode": 420,
       "sha256": "001c94edf51eb89ab079cf92ecaf3af30acf221662445c21b34c9203827b931f"
+    },
+    "qa/bots-supply-approach-retry.json": {
+      "mode": 420,
+      "sha256": "1ed8d89886b280d8cdc92421dc2590a7ec2a3b54275955b189bf4fd6e8f6cfd5"
     },
     "qa/bots-supply-recovery.json": {
       "mode": 420,
@@ -1734,7 +1742,7 @@
     },
     "web_bots/BUILD.json": {
       "mode": 420,
-      "sha256": "898ccf3e19aadaf5dcd4f16822697abb48cb17ffa73c1261728097401da83cc6"
+      "sha256": "35afa0655dac68a6788b10049794933c0b7db170ad5809cba3b39dd03af565fc"
     },
     "web_bots/README.md": {
       "mode": 420,
@@ -1750,11 +1758,11 @@
     },
     "web_bots/engine-relink.tar.gz": {
       "mode": 420,
-      "sha256": "6839d4dbf0976861edfc01c135cc546118e2928bba60c21cba512083f6600336"
+      "sha256": "f72078e64b3f6075578eb7252975afc846d5c2eb9b2bdff6e7179c351d95c9b8"
     },
     "web_bots/engine.patch": {
       "mode": 420,
-      "sha256": "7641d983ff5b784dbab7882c187208fdfb6f7b18d14929a1b4b21228b37aad22"
+      "sha256": "c9f958c461214467a9287a08d7fab6cc6d2af3a06849195240e2ba15035536eb"
     },
     "web_bots/fetch_relay.py": {
       "mode": 420,

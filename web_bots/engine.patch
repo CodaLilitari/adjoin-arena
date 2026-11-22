@@ -1,9 +1,9 @@
 diff --git a/src/AI/jkBot.c b/src/AI/jkBot.c
 new file mode 100644
-index 0000000..3dca3d4
+index 0000000..d1c4774
 --- /dev/null
 +++ b/src/AI/jkBot.c
-@@ -0,0 +1,1000 @@
+@@ -0,0 +1,1040 @@
 +/*
 + * Ordinary-client multiplayer bot input driver, reconstructed October 2026.
 + * Copyright (C) OpenJKDF2 contributors.
@@ -465,9 +465,6 @@ index 0000000..3dca3d4
 +        if (ranks[i].score && ranks[i].index==extra->index) { extra->score=0; break; }
 +}
 +
-+static int Bot_EquipmentMode(void)
-+{ return bot.elite && !bot.sabersOnly && !nav.ctf && !companion.policy.mode; }
-+
 +static int Bot_SupplyOrder(void)
 +{ return companion.policy.mode==CP_RESOURCE || companion.policy.mode==CP_RECOVER; }
 +
@@ -539,6 +536,7 @@ index 0000000..3dca3d4
 +
 +static void Bot_ReturnFromDive(const char *reason)
 +{
++    nav.supplyApproach.enteredForGear=0;
 +    nav.diveEscape=BOT_DIVE_AIR;
 +    Bot_ClearEquipment(reason);
 +    bot.goal=-1; bot.routeCount=bot.routePos=0; bot.nextPlan=0;
@@ -556,6 +554,25 @@ index 0000000..3dca3d4
 +    Bot_ReturnFromDive("return-after-contact");
 +}
 +
++static void Bot_RememberFailedApproach(void)
++{
++    if (!nav.supplyApproach.enteredForGear || bot.now-nav.supplyApproach.enteredAt<BOT_COSTLY_DIVE_SECONDS) return;
++    BotFailedApproach *freeEntry=NULL;
++    for (int i=0;i<BOT_FAILED_APPROACHES;i++) {
++        BotFailedApproach *entry=&nav.supplyApproach.failed[i];
++        if (entry->bank==nav.supplyApproach.bank && entry->water==nav.supplyApproach.water) {
++            freeEntry=entry; break;
++        }
++        if (entry->until<=bot.now) freeEntry=entry;
++    }
++    if (!freeEntry) return;
++    nav.supplyApproach.latestRetry=bot.now+BOT_DIVE_RETRY_SECONDS;
++    *freeEntry=(BotFailedApproach){nav.supplyApproach.bank,nav.supplyApproach.water,nav.supplyApproach.latestRetry};
++    if (bot.traceForce)
++        fprintf(stderr,"BOT_GEAR name=%s t=%.2f event=failed-approach bank=%u water=%u retry=%.2f\n",
++            bot.name,(double)bot.now,freeEntry->bank->id,freeEntry->water->id,(double)freeEntry->until);
++}
++
 +static void Bot_CheckGearDive(SithThing *self)
 +{
 +    int wet=(self->sector->flags&SITH_SECTOR_UNDERWATER)!=0;
@@ -570,8 +587,18 @@ index 0000000..3dca3d4
 +        nav.diveEscape=0; bot.armNext=bot.nextPlan=0;
 +    }
 +    SithThing *item=Bot_NavThing(bot.armItem-1);
-+    if (!Bot_WetSupply(self,item) || item->guid!=bot.armGuid || item->signature!=bot.armSignature ||
-+        !Bot_NeedsAir(self)) return;
++    int wetSupply=Bot_WetSupply(self,item) && item->guid==bot.armGuid && item->signature==bot.armSignature;
++    if (!wet && (self->attach_flags&(SITH_ATTACH_SURFACE|SITH_ATTACH_THINGFACE))) {
++        nav.supplyApproach.bank=self->sector;
++        nav.supplyApproach.water=NULL; nav.supplyApproach.enteredForGear=0;
++    } else if (wet && nav.supplyApproach.bank && !nav.supplyApproach.water) {
++        /* Remember the physical crossing even on a dry transit so an
++           underwater gear rescan cannot divert the bot into its failed dive. */
++        nav.supplyApproach.water=self->sector; nav.supplyApproach.enteredAt=bot.now;
++        nav.supplyApproach.enteredForGear=wetSupply;
++    }
++    if (!wetSupply || !Bot_NeedsAir(self)) return;
++    Bot_RememberFailedApproach();
 +    Bot_RememberFailedDive();
 +    Bot_ReturnFromDive("air-return");
 +}
@@ -579,17 +606,22 @@ index 0000000..3dca3d4
 +static void Bot_FindEquipment(SithThing *self)
 +{
 +    BotEquipmentRank racks[BOT_EQUIP_PROBES]={0},packs[BOT_EQUIP_PROBES+1]={0};
-+    flex_t distance[BOT_NODES]; int parent[BOT_NODES],start=Bot_Nearest(self);
++    BotGoalPaths all,restricted;
++    const BotGoalPaths *wet=Bot_SearchGoalPaths(self,&all,&restricted);
++    int deferDirect=wet!=&all && Bot_OnDeferredCrossing();
 +    BotNode here={.pos=self->position,.sector=self->sector}, contact={0};
 +    int anchor=-1, index=-1, direct=0;
 +    flex_t best=0;
 +    bot.armNext=bot.now+0.75f;
-+    if (start>=0) Bot_PathDistances(self,start,distance,parent);
 +    for (int i=0;i<bot.nNodes;i++) {
 +        BotNode *node=&bot.nodes[i]; SithThing *item=Bot_NavThing(node->item);
-+        if (!item || Bot_LivePack(item) || node->avoidUntil>bot.now || Bot_AtEquipment(self,item)) continue;
++        if (!item || !Bot_SectorSafe(item->sector) || Bot_LivePack(item) || node->avoidUntil>bot.now || Bot_AtEquipment(self,item)) continue;
 +        if (item->collide==SITH_COLLIDE_SPHERE &&
 +            Bot_Distance(node->pos,item->position)>=self->moveSize+item->collideSize) continue;
++        int submerged=(item->sector->flags&SITH_SECTOR_UNDERWATER)!=0;
++        if (submerged && deferDirect) continue;
++        const BotGoalPaths *paths=submerged ? wet : &all;
++        int start=paths->start; const flex_t *distance=paths->distance;
 +        flex_t value=Bot_EquipmentValue(self,node->item);
 +        if (value<=0) continue;
 +        flex_t range=Bot_Distance(here.pos,node->pos);
@@ -608,6 +640,7 @@ index 0000000..3dca3d4
 +    for (int i=0;i<Bot_ThingCount();i++) {
 +        SithThing *item=&bot.world->aThings[i];
 +        if (!Bot_LivePack(item) || !Bot_SectorSafe(item->sector)) continue;
++        if (deferDirect && (item->sector->flags&SITH_SECTOR_UNDERWATER)) continue;
 +        flex_t value=Bot_PackValue(self,item);
 +        if (value<=0 || Bot_AtEquipment(self,item)) continue;
 +        if (bot.armItem==i+1) value*=1.15f;
@@ -617,6 +650,8 @@ index 0000000..3dca3d4
 +    for (int rank=0;rank<BOT_EQUIP_PROBES && racks[rank].score>0;rank++) {
 +        int i=racks[rank].index;
 +        BotNode *node=&bot.nodes[i];
++        const BotGoalPaths *paths=Bot_WetDestination(node) ? wet : &all;
++        int start=paths->start; const flex_t *distance=paths->distance;
 +        int walk=Bot_EquipmentSpan(self,&here,node);
 +        if (!walk && (start<0 || start==i || distance[i]>=1e19f)) continue;
 +        flex_t cost=walk ? Bot_Distance(here.pos,node->pos) : distance[i]+Bot_Distance(here.pos,bot.nodes[start].pos);
@@ -627,6 +662,8 @@ index 0000000..3dca3d4
 +    for (int rank=0;rank<=BOT_EQUIP_PROBES && packs[rank].score>0;rank++) {
 +        int i=packs[rank].index; SithThing *pack=Bot_NavThing(i); BotNode end={0};
 +        if (!Bot_PackContact(self,pack,&end)) continue;
++        const BotGoalPaths *paths=(pack->sector->flags&SITH_SECTOR_UNDERWATER) ? wet : &all;
++        int start=paths->start; const flex_t *distance=paths->distance;
 +        int walk=Bot_EquipmentSpan(self,&here,&end), approach=-1;
 +        flex_t cost=Bot_Distance(here.pos,end.pos);
 +        if (!walk) {
@@ -654,9 +691,10 @@ index 0000000..3dca3d4
 +    }
 +    if (index<0) { Bot_ClearEquipment("no-route"); return; }
 +    SithThing *item=Bot_NavThing(index);
-+    if (!direct && !(bot.armItem==index+1 && !bot.armDirect && bot.goal==anchor &&
++    const BotGoalPaths *chosen=(item->sector->flags&SITH_SECTOR_UNDERWATER) ? wet : &all;
++    if (!direct && !(chosen==&all && bot.armItem==index+1 && !bot.armDirect && bot.goal==anchor &&
 +                     bot.routePos<bot.routeCount)) {
-+        if (!Bot_SetRoute(start,anchor,parent)) { Bot_ClearEquipment("path-limit"); return; }
++        if (!Bot_SetRoute(chosen->start,anchor,chosen->parent)) { Bot_ClearEquipment("path-limit"); return; }
 +    } else if (direct && bot.armItem && !bot.armDirect) Bot_ClearEquipment("final-leg");
 +    if (bot.traceForce && (bot.armItem!=index+1 || bot.armNode!=anchor+1 || bot.armDirect!=direct))
 +        fprintf(stderr,"BOT_GEAR name=%s t=%.2f event=plan item=%d guid=%u signature=%u pack=%d anchor=%d direct=%d\n",
@@ -675,7 +713,8 @@ index 0000000..3dca3d4
 +        (!self->attach_flags && !(self->sector->flags&SITH_SECTOR_UNDERWATER))) return 0;
 +    SithThing *item=Bot_NavThing(bot.armItem-1);
 +    if (bot.armItem && (!item || item->guid!=bot.armGuid || item->signature!=bot.armSignature ||
-+        Bot_Distance(item->position,bot.armPosition)>0.035f || Bot_EquipmentValue(self,bot.armItem-1)<=0))
++        Bot_Distance(item->position,bot.armPosition)>0.035f || Bot_EquipmentValue(self,bot.armItem-1)<=0 ||
++        (Bot_WetSupply(self,item) && Bot_DeferSupplyApproaches(self) && Bot_OnDeferredCrossing())))
 +        Bot_ClearEquipment("state-or-contact");
 +    else if (item && Bot_AtEquipment(self,item)) {
 +        /* Physics can dispatch TOUCHED after this control frame. */
@@ -944,6 +983,7 @@ index 0000000..3dca3d4
 +            nav.combatJumpUntil=nav.nextCombatJump=0; nav.combatJumpAirborne=0;
 +            nav.hadBreathDebt=nav.diveEscape=0; nav.diveOverflowUntil=0;
 +            memset(nav.failedDives,0,sizeof(nav.failedDives));
++            memset(&nav.supplyApproach,0,sizeof(nav.supplyApproach));
 +            bot.goal=-1; bot.routeCount=0; bot.nextPlan=0; bot.targetSlot=-1;
 +            bot.progressPos=self->position; bot.stuckAt=bot.now;
 +            fprintf(stderr,"BOT_RESPAWN name=%s health=%.1f\n",bot.name,(double)self->actorParams.health);
@@ -2507,10 +2547,10 @@ index 0000000..4369ec7
 +}
 diff --git a/src/AI/jkBotHearing.inc b/src/AI/jkBotHearing.inc
 new file mode 100644
-index 0000000..3af581b
+index 0000000..3761a38
 --- /dev/null
 +++ b/src/AI/jkBotHearing.inc
-@@ -0,0 +1,330 @@
+@@ -0,0 +1,337 @@
 +/* Perception of spatial playback requests. Anchors are estimates in world units.
 +   Only an active, attached weapon loop may sample a moving source again. */
 +enum { BOT_HEARD_MOVE=1, BOT_HEARD_WEAPON, BOT_HEARD_PROJECTILE, BOT_HEARD_ARRIVAL };
@@ -2835,6 +2875,13 @@ index 0000000..3af581b
 +    if (Bot_ObjectiveUrgent(self) || Bot_NavigationWaiting(self)) return 0;
 +    BotHeard *r=Bot_Attention();
 +    if (!r || bot.now-r->first<(r->cue.strength>=0.35f ? 0.05f : 0.12f)) return 0;
++    /* A projectile cue has no movement of its own. Keep making route
++       progress after a costly supply dive while still attending to the cue. */
++    if (r->cue.kind==BOT_HEARD_PROJECTILE && Bot_DeferSupplyApproaches(self) &&
++        (!(self->sector->flags&SITH_SECTOR_UNDERWATER) || Bot_OnDeferredCrossing())) {
++        Bot_Navigate(self);
++        if (bot.routeMode==BOT_ROUTE_SWIM || bot.routeMode==BOT_ROUTE_WATER_ENTRY) bot.routeAim=1;
++    }
 +    rdVector3 d=Bot_Sub(r->cue.position,self->position);
 +    flex_t error=Bot_Aim(self,r->cue.position,1);
 +    if (error<45 && Bot_Horizontal(d)>0.28f && r->cue.kind!=BOT_HEARD_PROJECTILE)
@@ -2908,10 +2955,10 @@ index 0000000..d167eb8
 +#endif
 diff --git a/src/AI/jkBotNavigate.inc b/src/AI/jkBotNavigate.inc
 new file mode 100644
-index 0000000..d5517f1
+index 0000000..f73ca20
 --- /dev/null
 +++ b/src/AI/jkBotNavigate.inc
-@@ -0,0 +1,577 @@
+@@ -0,0 +1,586 @@
 +/* Movement execution for jkBotNavigation.inc; ordinary inputs only. */
 +/* Stock FreeCam tilts forward thrust with head pitch. Keep the extra
 +   upward stroke inside checked water clearance, including its lateral drift. */
@@ -2985,6 +3032,15 @@ index 0000000..d5517f1
 +static int Bot_EnterWater(SithThing *self, const BotNode *node, int mode, int from)
 +{
 +    if ((self->sector->flags&SITH_SECTOR_UNDERWATER) || !(node->sector->flags&SITH_SECTOR_UNDERWATER)) return 0;
++    const SithThing *gear=Bot_NavThing(bot.armItem-1);
++    int wetGoal=gear && gear->sector ? (gear->sector->flags&SITH_SECTOR_UNDERWATER)!=0 :
++        !nav.pursuitNet && nav.objective==BOT_OBJECTIVE_NONE && bot.goal>=0 && bot.goal<bot.nNodes &&
++        Bot_WetDestination(&bot.nodes[bot.goal]);
++    if (wetGoal && Bot_DeferSupplyApproaches(self) && Bot_ApproachDeferred(Bot_ApproachBank(self),node->sector)) {
++        /* A low-health or disarmed route may still be cached after recovery. */
++        bot.goal=-1; bot.routeCount=bot.routePos=0; bot.armNext=bot.nextPlan=0;
++        return 1;
++    }
 +    BotNode actual={.pos=self->position,.sector=self->sector};
 +    if (Bot_WaterEntry(&actual,node)) {
 +        rdVector3 opening=node->pos; opening.z=self->position.z;
@@ -3491,10 +3547,10 @@ index 0000000..d5517f1
 +}
 diff --git a/src/AI/jkBotNavigation.inc b/src/AI/jkBotNavigation.inc
 new file mode 100644
-index 0000000..e71db98
+index 0000000..041f1c9
 --- /dev/null
 +++ b/src/AI/jkBotNavigation.inc
-@@ -0,0 +1,1382 @@
+@@ -0,0 +1,1466 @@
 +/* Ordinary-input navigation; see jkBot.c for license.
 + * The graph is made from the loaded map, not a map-name waypoint lookup.
 + * CTF observes stock CTF_MAIN bindings and synchronized flag attachment state;
@@ -3515,7 +3571,14 @@ index 0000000..e71db98
 +
 +enum { BOT_DIVE_NONE, BOT_DIVE_AIR, BOT_DIVE_BANK };
 +
-+enum { BOT_FAILED_DIVES = 8 };
++enum { BOT_FAILED_DIVES = 8, BOT_DIVE_RETRY_SECONDS = 45, BOT_COSTLY_DIVE_SECONDS = 4 };
++/* Each recorded approach consumes a distinct supported-bank excursion lasting
++   at least four seconds. This holds every approach in one retry window. */
++enum { BOT_FAILED_APPROACHES = 1 + BOT_DIVE_RETRY_SECONDS / BOT_COSTLY_DIVE_SECONDS };
++typedef struct BotFailedApproach {
++    SithSector *bank, *water;
++    flex_t until;
++} BotFailedApproach;
 +typedef struct BotDiveFailure {
 +    int item; /* one-based thing slot */
 +    uint32_t guid, signature;
@@ -3546,6 +3609,12 @@ index 0000000..e71db98
 +    int hadBreathDebt, diveEscape, diveBank;
 +    flex_t diveBankUntil, diveOverflowUntil;
 +    BotDiveFailure failedDives[BOT_FAILED_DIVES];
++    struct {
++        SithSector *bank, *water;
++        flex_t enteredAt, latestRetry;
++        int enteredForGear;
++        BotFailedApproach failed[BOT_FAILED_APPROACHES];
++    } supplyApproach;
 +    int waterExitFrom, waterExitTo, waterExitPhase, seekingSurface;
 +    rdVector3 waterExitStart;
 +    flex_t waterExitUntil;
@@ -3820,7 +3889,7 @@ index 0000000..e71db98
 +        if (failure->item==bot.armItem) { entry=failure; break; }
 +        if (failure->until<=bot.now) entry=failure;
 +    }
-+    flex_t until=bot.now+45.0f;
++    flex_t until=bot.now+BOT_DIVE_RETRY_SECONDS;
 +    if (entry) *entry=(BotDiveFailure){bot.armItem,bot.armGuid,bot.armSignature,until};
 +    /* Preserve all live entries. When a new failure cannot fit, defer
 +       underwater supplies until that untracked failure has expired. */
@@ -4562,13 +4631,55 @@ index 0000000..e71db98
 +    return value*availability;
 +}
 +
-+static int Bot_Nearest(SithThing *self)
++static int Bot_EquipmentMode(void)
++{ return bot.elite && !bot.sabersOnly && !nav.ctf && !companion.policy.mode; }
++
++static int Bot_HasWeapon(SithThing *self,int weapon);
++
++static int Bot_DeferSupplyApproaches(SithThing *self)
++{
++    if (bot.now>=nav.supplyApproach.latestRetry || !Bot_EquipmentMode() ||
++        self->actorParams.health<40 || nav.diveEscape || Bot_NeedsAir(self)) return 0;
++    return (Bot_HasWeapon(self,SITHBIN_CONCUSSION_RIFLE) && sithInventory_GetInventory(self,SITHBIN_POWER)>=32) ||
++        (Bot_HasWeapon(self,SITHBIN_RAIL_DETONATOR) && sithInventory_GetInventory(self,SITHBIN_RAILCHARGES)>=4);
++}
++
++static SithSector *Bot_ApproachBank(SithThing *self)
++{
++    return nav.supplyApproach.bank && !(self->attach_flags&(SITH_ATTACH_SURFACE|SITH_ATTACH_THINGFACE)) ?
++        nav.supplyApproach.bank : self->sector;
++}
++
++static int Bot_ApproachDeferred(SithSector *bank,SithSector *water)
++{
++    for (int i=0;i<BOT_FAILED_APPROACHES;i++) {
++        const BotFailedApproach *entry=&nav.supplyApproach.failed[i];
++        if (entry->bank==bank && entry->water==water && bot.now<entry->until) return 1;
++    }
++    return 0;
++}
++
++static int Bot_OnDeferredCrossing(void)
++{
++    return nav.supplyApproach.water && Bot_ApproachDeferred(nav.supplyApproach.bank,nav.supplyApproach.water);
++}
++
++static int Bot_WetDestination(const BotNode *node)
++{
++    const SithThing *item=Bot_NavThing(node->item);
++    const SithSector *sector=item && item->type==SITH_THING_ITEM && item->sector ? item->sector : node->sector;
++    return (sector->flags&SITH_SECTOR_UNDERWATER)!=0;
++}
++
++static int Bot_NearestApproach(SithThing *self,int defer)
 +{
 +    int best=-1;
 +    flex_t distance=1e20f;
 +    for (int pass=0;pass<2 && best<0;pass++) for (int i=0;i<bot.nNodes;i++) {
 +        BotNode *n=&bot.nodes[i];
 +        if (!pass && n->sector!=self->sector) continue;
++        if (pass && defer && (n->sector->flags&SITH_SECTOR_UNDERWATER) &&
++            Bot_ApproachDeferred(Bot_ApproachBank(self),n->sector)) continue;
 +        flex_t d=Bot_Distance(n->pos,self->position);
 +        int water=((n->sector->flags|self->sector->flags)&SITH_SECTOR_UNDERWATER)!=0;
 +        if (d>=distance || d>2.0f || (!water && fabsf(n->pos.z-self->position.z)>0.3f)) continue;
@@ -4577,6 +4688,9 @@ index 0000000..e71db98
 +    }
 +    return best;
 +}
++
++static int Bot_Nearest(SithThing *self)
++{ return Bot_NearestApproach(self,0); }
 +
 +static void Bot_ObjectiveSet(int mode, SithThing *thing, rdVector3 position, SithSector *sector)
 +{
@@ -4650,12 +4764,13 @@ index 0000000..e71db98
 +    heap[at]=node; positions[node]=at;
 +}
 +
-+static void Bot_PathDistances(SithThing *self, int start, flex_t *distance, int *parent)
++static void Bot_SearchPaths(SithThing *self,int start,flex_t *distance,int *parent,int defer)
 +{
 +    int heap[BOT_NODES], positions[BOT_NODES], count=1;
 +    int forceJump=bot.forceEnabled && sithInventory_GetInventory(self,SITHBIN_F_JUMP)>0 &&
 +        sithInventory_GetInventory(self,SITHBIN_FORCEMANA)>=20;
 +    for (int i=0;i<bot.nNodes;i++) { distance[i]=1e20f; parent[i]=-1; positions[i]=-1; }
++    if (start<0) return;
 +    heap[0]=start; positions[start]=0; distance[start]=0;
 +    while (count) {
 +        int v=heap[0], last=heap[--count]; positions[v]=-2;
@@ -4673,6 +4788,7 @@ index 0000000..e71db98
 +        for (int k=0;k<n->nEdges;k++) {
 +            BotEdge *e=&n->edges[k];
 +            if (e->to<0 || e->to>=bot.nNodes || positions[e->to]==-2) continue;
++            if (defer && e->drop==BOT_ROUTE_WATER_ENTRY && Bot_ApproachDeferred(n->sector,bot.nodes[e->to].sector)) continue;
 +            if (e->drop==BOT_ROUTE_DROP && self->actorParams.health<30) continue;
 +            if (e->drop==BOT_ROUTE_FORCEJUMP && !forceJump) continue;
 +            flex_t d=distance[v]+e->cost;
@@ -4685,6 +4801,26 @@ index 0000000..e71db98
 +            }
 +        }
 +    }
++}
++
++static void Bot_PathDistances(SithThing *self,int start,flex_t *distance,int *parent)
++{ Bot_SearchPaths(self,start,distance,parent,0); }
++
++typedef struct BotGoalPaths {
++    int start, parent[BOT_NODES];
++    flex_t distance[BOT_NODES];
++} BotGoalPaths;
++
++/* Dry destinations, opponents and air always use the complete graph. Only
++   optional submerged destinations get this second search during a retry. */
++static const BotGoalPaths *Bot_SearchGoalPaths(SithThing *self,BotGoalPaths *all,BotGoalPaths *wet)
++{
++    all->start=Bot_Nearest(self);
++    Bot_PathDistances(self,all->start,all->distance,all->parent);
++    if (!Bot_DeferSupplyApproaches(self)) return all;
++    wet->start=Bot_OnDeferredCrossing() ? -1 : Bot_NearestApproach(self,1);
++    Bot_SearchPaths(self,wet->start,wet->distance,wet->parent,1);
++    return wet;
 +}
 +
 +static void Bot_NavCoverage(SithThing *self)
@@ -4812,12 +4948,13 @@ index 0000000..e71db98
 +
 +static void Bot_Plan(SithThing *self)
 +{
-+    flex_t distance[BOT_NODES]; int parent[BOT_NODES];
-+    int start=Bot_Nearest(self), goal=-1;
++    BotGoalPaths all,restricted;
++    const BotGoalPaths *wet=Bot_SearchGoalPaths(self,&all,&restricted), *chosen=&all;
++    const flex_t *distance=all.distance;
++    int start=all.start,goal=-1;
 +    if (start<0) { bot.nextPlan=bot.now+0.4f; return; }
 +    bot.nextPlan=bot.now+1.0f;
 +    if (Bot_Distance(bot.nodes[start].pos,self->position)<0.22f) bot.nodes[start].visited=bot.now;
-+    Bot_PathDistances(self,start,distance,parent);
 +    Bot_UpdateObjective(self);
 +    if (nav.ctf && bot.graphDone && self->actorParams.pPlayer &&
 +        nav.coverageTeam!=(int)self->actorParams.pPlayer->teamNum)
@@ -4835,7 +4972,8 @@ index 0000000..e71db98
 +    nav.pursuitNet=0;
 +    int pursuit=goal<0 ? Bot_ElitePursuit(self,start,distance,&pursuitSlot) : -1;
 +    /* Keep an unreached goal even after it becomes the nearest start node. */
-+    if (goal<0 && pursuit<0 && !oldPursuit && bot.goal>=0 && bot.goal<bot.nNodes && distance[bot.goal]<1e19f &&
++    if (goal<0 && pursuit<0 && !oldPursuit && bot.goal>=0 && bot.goal<bot.nNodes &&
++        (Bot_WetDestination(&bot.nodes[bot.goal]) ? wet : &all)->distance[bot.goal]<1e19f &&
 +        bot.nodes[bot.goal].avoidUntil<=bot.now && bot.now-bot.goalSetAt<14.0f &&
 +        (Bot_Distance(self->position,bot.nodes[bot.goal].pos)>0.11f || Bot_PickupNeedsContact(self,&bot.nodes[bot.goal])) &&
 +        (bot.nodes[bot.goal].item<0 || Bot_ItemValue(self,bot.nodes[bot.goal].item)>0.05f)) goal=bot.goal;
@@ -4848,7 +4986,8 @@ index 0000000..e71db98
 +        }
 +        for (int i=0;i<bot.nNodes;i++) {
 +            BotNode *n=&bot.nodes[i];
-+            if (distance[i]>=1e19f || n->avoidUntil>bot.now || nav.liftForNode[i] ||
++            const BotGoalPaths *paths=Bot_WetDestination(n) ? wet : &all;
++            if (paths->distance[i]>=1e19f || n->avoidUntil>bot.now || nav.liftForNode[i] ||
 +                (Bot_Distance(self->position,n->pos)<0.20f &&
 +                 (!Bot_PickupNeedsContact(self,n) || Bot_ItemValue(self,n->item)<=0.05f))) continue;
 +            flex_t unseen=Bot_Clamp((bot.now-n->visited)/30.0f,0.0f,1.0f);
@@ -4859,7 +4998,7 @@ index 0000000..e71db98
 +                value+=(4.0f+3.0f*companion.policy.risk)/(0.5f+separation);
 +            }
 +            flex_t travelCost=companion.policy.mode ? 0.56f-0.28f*companion.policy.risk : 0.42f;
-+            flex_t score=value/(0.8f+distance[i]*travelCost);
++            flex_t score=value/(0.8f+paths->distance[i]*travelCost);
 +            if (score>best) { best=score; goal=i; }
 +        }
 +    }
@@ -4868,8 +5007,9 @@ index 0000000..e71db98
 +        nav.pursuitSlot=pursuitSlot; nav.pursuitNet=player->playerNetId;
 +        nav.pursuitGuid=player->pLocalPlayer->guid; nav.pursuitSignature=player->pLocalPlayer->signature;
 +        bot.nextPlan=bot.now+0.4f;
-+    }
-+    if (!Bot_SetRoute(start,goal,parent)) return;
++    } else if (goal>=0 && nav.objective==BOT_OBJECTIVE_NONE && Bot_WetDestination(&bot.nodes[goal]))
++        chosen=wet;
++    if (!Bot_SetRoute(chosen->start,goal,chosen->parent)) return;
 +    if (nav.objective!=nav.loggedObjective || (nav.ctf && bot.now>=nav.nextObjectiveLog)) {
 +        nav.loggedObjective=nav.objective; nav.nextObjectiveLog=bot.now+10;
 +        fprintf(stderr,"BOT_OBJECTIVE name=%s mode=%d team=%d goal=%d distance=%.2f\n",

@@ -13,6 +13,208 @@ void sithCog_ThingSendMessage(SithThing *item,SithThing *player,int32_t message)
     if (testDestroyTouched) item->flags|=SITH_TF_DESTROYED;
 }
 
+/* Controlled sector/attachment samples model a bank, intervening dry air,
+   first water, an unsuccessful gear attempt and a subsequent supported landing. */
+static void test_supply_air_return(SithThing *self,SithSector *water,SithSector *air)
+{
+    self->attach_flags=0; self->sector=air; jkBot_Tick(.05f);
+    self->sector=water; self->position=bot.nodes[1].pos;
+    self->actorParams.endurance=100; jkBot_Tick(.05f);
+    /* Advance the supplied game-clock sample with this same underwater pose. */
+    bot.now+=7.9f; bot.stuckAt=bot.now;
+    self->actorParams.endurance=8000; jkBot_Tick(.05f);
+    assert(!bot.armItem && nav.diveEscape==BOT_DIVE_AIR);
+    self->actorParams.endurance=0; self->sector=air; jkBot_Tick(.05f);
+    assert(nav.diveEscape==BOT_DIVE_BANK);
+}
+
+static void test_failed_supply_approach(void)
+{
+    SithWorld world={0}; SithSector bank={0},air={0},water={.flags=SITH_SECTOR_UNDERWATER};
+    SithThing self={0},items[3]={0}; SithPlayer own={0};
+    jkBot_Configure("Supply_Approach","ky.3do"); Bot_ResetHearing();
+    bot.world=sithWorld_g_pCurrentWorld=&world;
+    world.aThings=items; world.numThings=2; world.numThingsLoaded=3;
+    sithPlayer_g_pLocalPlayer=&own; sithPlayer_g_pLocalPlayerThing=&self;
+    jkPlayer_maxPlayers=0; testCombatArena=1; testCombatWall=0; corridorMode=0;
+    bot.elite=bot.graphDone=bot.joined=sithNet_isMulti=1;
+    bot.forceEnabled=0; bot.nextBehavior=bot.nextLog=100; bot.now=bot.stuckAt=1;
+    self.type=SITH_THING_PLAYER; self.actorParams.health=100; self.actorParams.pPlayer=&own;
+    self.actorParams.maxRotVelocity=200; self.moveSize=self.collideSize=.065f;
+    self.sector=&bank; self.attach_flags=SITH_ATTACH_SURFACE;
+    self.orient.lvec.y=self.orient.rvec.x=1;
+    own.curWeaponID=SITHBIN_CONCUSSION_RIFLE;
+    own.aItems[SITHBIN_CONCUSSION_RIFLE].state=SITHINVENTORY_ITEM_AVAILABLE;
+    own.aItems[SITHBIN_CONCUSSION_RIFLE].amount=1; own.aItems[SITHBIN_POWER].amount=32;
+    own.aItems[SITHBIN_SHIELDS].amount=120;
+    bot.nNodes=5;
+    bot.nodes[0]=(BotNode){.pos={0,0,.30f},.sector=&bank,.item=-1,.nEdges=2,
+        .edges={{1,1,BOT_ROUTE_WATER_ENTRY},{4,1,BOT_ROUTE_WALK}}};
+    bot.nodes[1]=(BotNode){.pos={.32f,0,.17f},.sector=&water,.item=-1,.nEdges=3,
+        .edges={{0,1,BOT_ROUTE_SWIM},{2,1,BOT_ROUTE_SWIM},{3,1,BOT_ROUTE_SWIM}}};
+    bot.nodes[2]=(BotNode){.pos={.9f,0,.17f},.sector=&water,.item=0};
+    bot.nodes[3]=(BotNode){.pos={1.2f,0,.17f},.sector=&water,.item=1};
+    bot.nodes[4]=(BotNode){.pos={-1,0,.30f},.sector=&bank,.item=2};
+    for (int i=0;i<3;i++) {
+        items[i]=(SithThing){.idx=i,.type=SITH_THING_ITEM,.sector=bot.nodes[i+2].sector,
+            .position=bot.nodes[i+2].pos,.guid=100+i,.signature=400+i,
+            .collide=SITH_COLLIDE_SPHERE,.collideSize=.075f};
+    }
+    strcpy(items[0].aName,"railgun"); strcpy(items[1].aName,"repeatergun");
+    strcpy(items[2].aName,"shieldrecharge");
+    self.position=bot.nodes[0].pos;
+    jkBot_Tick(.05f);
+    assert(bot.armItem==1 && bot.goal==2 && bot.route[0]==1);
+    test_supply_air_return(&self,&water,&air);
+    assert(Bot_FailedDive(&items[0]) && !Bot_FailedDive(&items[1]) && nav.diveBank==0);
+    self.sector=&bank; self.attach_flags=SITH_ATTACH_SURFACE; self.position=bot.nodes[0].pos;
+    jkBot_Tick(.05f);
+    int gear=bot.armItem;
+    flex_t slide=bot.axes[INPUT_FUNC_SLIDE];
+    /* Check the ordinary planner independently even when a dedicated gear
+       route currently owns movement. Item B remains live throughout. */
+    bot.goal=-1; Bot_Plan(&self);
+    fprintf(stderr,"SUPPLY_APPROACH first=0 second_gear=%d ordinary_goal=%d dry_goal=4\n",gear-1,bot.goal);
+    assert(gear==3 && bot.goal==4 && slide<-.2f);
+    flex_t retry=nav.supplyApproach.latestRetry;
+    /* Dry equipment still drives real movement under recurring noise. */
+    BotHeard *heard=&ears.records[0]; heard->cue.kind=BOT_HEARD_PROJECTILE;
+    heard->cue.strength=1; heard->slot=-1; heard->first=bot.now-.4f;
+    for (int i=0;i<4;i++) {
+        heard->last=bot.now; jkBot_Tick(.05f);
+        assert(bot.armItem==3 && bot.axes[INPUT_FUNC_SLIDE]<-.2f);
+    }
+    items[2].flags=SITH_TF_DISABLED; Bot_ResetHearing();
+    jkBot_Tick(.05f); /* No remaining dry equipment; ordinary exploration owns movement. */
+    assert(!bot.armItem && bot.goal==4 && bot.axes[INPUT_FUNC_SLIDE]<-.2f);
+    /* An anonymous projectile can steer attention while the bot keeps
+       pursuing a living opponent on dry ground, with no visible fire target. */
+    SithThing enemy={.type=SITH_THING_PLAYER,.sector=&bank,.position=bot.nodes[4].pos};
+    enemy.actorParams.health=100;
+    jkPlayer_playerInfos[1]=(SithPlayer){.flags=1,.playerNetId=42,.pLocalPlayer=&enemy};
+    jkPlayer_maxPlayers=2; testLOS=0; bot.nextPlan=0;
+    heard->cue.kind=BOT_HEARD_PROJECTILE; heard->cue.position=(rdVector3){.4f,1,.30f};
+    heard->cue.strength=1; heard->slot=-1; heard->first=bot.now-.4f;
+    for (int i=0;i<4;i++) {
+        heard->last=bot.now; jkBot_Tick(.05f);
+        if (!i) fprintf(stderr,"SUPPLY_HEARING pursuit=%u slide=%.3f turn=%.3f\n",
+            nav.pursuitNet,(double)bot.axes[INPUT_FUNC_SLIDE],(double)bot.axes[INPUT_FUNC_TURN]);
+        assert(!bot.armItem && nav.pursuitNet==42 && bot.goal==4 && bot.axes[INPUT_FUNC_SLIDE]<-.2f);
+        assert(bot.axes[INPUT_FUNC_TURN]<0 && !bot.keys[INPUT_FUNC_FIRE1] && !bot.keys[INPUT_FUNC_FIRE2]);
+    }
+    jkPlayer_maxPlayers=0; testLOS=1; Bot_ResetHearing();
+    /* The failed entrance is also the sole transit to the far bank. A dry
+       supply and then a pursuit must be able to cross, even with wet B live. */
+    SithSector farBank={0};
+    bot.nNodes=7; bot.nodes[1].edges[bot.nodes[1].nEdges++]=(BotEdge){5,1,BOT_ROUTE_SWIM};
+    bot.nodes[5]=(BotNode){.pos={1.4f,.2f,.17f},.sector=&water,.item=-1,.nEdges=1,
+        .edges={{6,1,BOT_ROUTE_SWIM}}};
+    bot.nodes[6]=(BotNode){.pos={2.9f,.2f,.30f},.sector=&farBank,.item=2};
+    bot.nodes[4].item=-1; items[2].position=bot.nodes[6].pos; items[2].sector=&farBank;
+    items[2].flags=0; bot.armNext=0; bot.goal=-1;
+    jkBot_Tick(.05f);
+    fprintf(stderr,"SUPPLY_TRANSIT gear=%d goal=%d slide=%.3f\n",bot.armItem,bot.goal,(double)bot.axes[INPUT_FUNC_SLIDE]);
+    assert(bot.armItem==3 && bot.goal==6 && bot.route[0]==1 && bot.axes[INPUT_FUNC_SLIDE]>.2f);
+    self.attach_flags=0; self.sector=&air; jkBot_Tick(.05f);
+    self.sector=&water; self.position=bot.nodes[1].pos;
+    for (int i=0;i<5;i++) {
+        self.actorParams.endurance=150+200*i;
+        jkBot_Tick(.2f);
+        assert(bot.armItem==3 && bot.goal==6 && bot.axes[INPUT_FUNC_SLIDE]>.2f);
+    }
+    items[2].flags=SITH_TF_DISABLED; enemy.sector=&farBank; enemy.position=bot.nodes[6].pos;
+    jkPlayer_maxPlayers=2; testLOS=0; bot.armNext=bot.nextPlan=0;
+    /* Even a pursuit proxy sharing a submerged rack's slot has a combat
+       destination. Its crossing is allowed on the bank and after a rescan. */
+    bot.nodes[6].item=1;
+    self.attach_flags=SITH_ATTACH_SURFACE; self.sector=&bank; self.position=bot.nodes[0].pos;
+    self.actorParams.endurance=0; jkBot_Tick(.05f);
+    assert(!bot.armItem && nav.pursuitNet==42 && bot.goal==6 && bot.axes[INPUT_FUNC_SLIDE]>.2f);
+    self.attach_flags=0; self.sector=&air; jkBot_Tick(.05f);
+    self.sector=&water; self.position=bot.nodes[1].pos; self.actorParams.endurance=200;
+    heard->cue.kind=BOT_HEARD_PROJECTILE; heard->cue.position=(rdVector3){.8f,1,.17f};
+    heard->cue.strength=1; heard->slot=-1; heard->first=bot.now-.4f;
+    for (int i=0;i<5;i++) {
+        heard->last=bot.now; jkBot_Tick(.2f);
+        assert(!bot.armItem && nav.pursuitNet==42 && bot.goal==6 && bot.axes[INPUT_FUNC_SLIDE]>.2f);
+    }
+    jkPlayer_maxPlayers=0; testLOS=1; Bot_ResetHearing(); self.actorParams.endurance=0;
+    self.position=bot.nodes[0].pos; self.sector=&bank; self.attach_flags=SITH_ATTACH_SURFACE;
+    /* The final approach node to a moving dry pack can itself carry a wet
+       item reference. Its slot and actual pack sector determine the purpose. */
+    items[2].flags=0; items[2].itemParams.flags=SITH_ITEM_BACKPACK; items[2].itemParams.numBins=1;
+    items[2].itemParams.contents[0].binIdx=SITHBIN_POWER; items[2].itemParams.contents[0].value=32;
+    items[2].position.z=bot.nodes[6].pos.z=BOT_FOOT_HEIGHT; bot.armNext=bot.nextPlan=0;
+    jkBot_Tick(.05f);
+    assert(bot.armItem==3 && bot.goal==6 && !bot.armDirect && bot.axes[INPUT_FUNC_SLIDE]>.2f);
+    items[2].flags=SITH_TF_DISABLED; items[2].itemParams.flags=0; items[2].itemParams.numBins=0;
+    bot.nNodes=5; bot.nodes[1].nEdges=3; bot.nodes[4].item=2;
+    items[2].position=bot.nodes[4].pos; items[2].sector=&bank; jkBot_Tick(.05f);
+    /* Target B is still valuable, including through a different bank into
+       the same water or the same bank into different water. */
+    SithSector otherBank={0},otherWater={.flags=SITH_SECTOR_UNDERWATER};
+    /* The shortest path still uses the failed pair. An alternate dry-bank
+       detour reaches the same live rack; both planners must install it. */
+    bot.nNodes=6;
+    bot.nodes[5]=(BotNode){.sector=&otherBank,.pos={-.5f,.3f,.30f},.item=-1,.nEdges=1,
+        .edges={{1,2,BOT_ROUTE_WATER_ENTRY}}};
+    bot.nodes[0].edges[bot.nodes[0].nEdges++]=(BotEdge){5,2,BOT_ROUTE_WALK};
+    Bot_FindEquipment(&self); assert(bot.armItem==2 && bot.routeCount==3 && bot.route[0]==5 && bot.route[1]==1);
+    bot.goal=-1; Bot_Plan(&self); assert(bot.goal==3 && bot.routeCount==3 && bot.route[0]==5 && bot.route[1]==1);
+    bot.nNodes=5; bot.nodes[0].nEdges=2;
+    bot.nodes[0].sector=self.sector=&otherBank; Bot_FindEquipment(&self); assert(bot.armItem==2);
+    bot.nodes[0].sector=self.sector=&bank;
+    bot.nodes[1].sector=&otherWater; Bot_FindEquipment(&self); assert(bot.armItem==2);
+    bot.nodes[1].sector=&water; Bot_FindEquipment(&self); assert(!bot.armItem);
+    /* One shot short of the existing four-shot reserve, an empty heavy,
+       a disarm and urgent health all allow necessary restocking. */
+    own.aItems[SITHBIN_POWER].amount=31; Bot_FindEquipment(&self); assert(bot.armItem==2);
+    own.aItems[SITHBIN_POWER].amount=0; Bot_FindEquipment(&self); assert(bot.armItem==2);
+    own.aItems[SITHBIN_POWER].amount=32; own.aItems[SITHBIN_CONCUSSION_RIFLE].amount=0;
+    Bot_FindEquipment(&self); assert(bot.armItem==2);
+    own.aItems[SITHBIN_CONCUSSION_RIFLE].amount=1; self.actorParams.health=39;
+    Bot_FindEquipment(&self); assert(bot.armItem==2);
+    /* A previously legal cached route cannot carry a newly healthy,
+       stocked player back into the failed opening before the next scan. */
+    self.actorParams.health=100; bot.nextPlan=bot.armNext=bot.now+1;
+    jkBot_Tick(.05f);
+    fprintf(stderr,"SUPPLY_CACHED goal=%d slide=%.3f\n",bot.goal,(double)bot.axes[INPUT_FUNC_SLIDE]);
+    assert(bot.goal!=3 && bot.axes[INPUT_FUNC_SLIDE]<=0);
+    bot.nodes[0].sector=&otherBank; bot.nodes[4].sector=&otherBank;
+    self.attach_flags=0; self.sector=&air; self.position=bot.nodes[1].pos;
+    assert(Bot_Nearest(&self)==1 && Bot_NearestApproach(&self,1)!=1);
+    /* Transit may take the nearest wet anchor; optional wet supply may not. */
+    bot.nodes[0].sector=bot.nodes[4].sector=self.sector=&bank;
+    self.attach_flags=SITH_ATTACH_SURFACE; self.position=bot.nodes[0].pos;
+    /* A second failed excursion retains the original bank's deadline.
+       No identity replacement or route write should evict an active entry. */
+    bot.nodes[0].sector=self.sector=&otherBank;
+    bot.nodes[1].sector=bot.nodes[3].sector=items[1].sector=&otherWater;
+    bot.armNext=0; jkBot_Tick(.05f); assert(bot.armItem==2);
+    test_supply_air_return(&self,&otherWater,&air);
+    assert(Bot_ApproachDeferred(&bank,&water) && Bot_ApproachDeferred(&otherBank,&otherWater));
+    bot.nodes[0].sector=self.sector=&bank; self.attach_flags=SITH_ATTACH_SURFACE;
+    bot.nodes[1].sector=bot.nodes[3].sector=items[1].sector=&water; self.position=bot.nodes[0].pos;
+    jkBot_Tick(.05f);
+    /* A legitimately expired route can be tried again. */
+    bot.now=retry; bot.stuckAt=bot.now;
+    Bot_FindEquipment(&self); assert(bot.armItem==1);
+    assert(!Bot_ApproachDeferred(&bank,&water) && Bot_ApproachDeferred(&otherBank,&otherWater));
+    /* Both reset paths clear live failures, including accumulated bank/entry
+       evidence. Reusing the same sector addresses must not revive them. */
+    self.actorParams.health=0; jkBot_Tick(.05f);
+    self.actorParams.health=100; jkBot_Tick(.05f);
+    assert(!Bot_ApproachDeferred(&otherBank,&otherWater) && bot.armItem==1);
+    test_supply_air_return(&self,&water,&air); assert(Bot_ApproachDeferred(&bank,&water));
+    SithWorld nextWorld={0};
+    self.sector=&bank; self.attach_flags=SITH_ATTACH_SURFACE; self.position=bot.nodes[0].pos;
+    sithWorld_g_pCurrentWorld=&nextWorld; jkBot_Tick(.05f);
+    assert(bot.world==&nextWorld && !Bot_ApproachDeferred(&bank,&water) && !nav.supplyApproach.water);
+    puts("PASS independent failed approach expiries and ordinary life/world reset; reverse air route, dry pursuit and projectile attention");
+    puts("PASS loaded heavy defers a failed water approach across item identities in both planners; dry movement, other banks/pools, rearming, cached routes and expiry");
+    assert(queryDepth==0); testCombatArena=0; Bot_ResetHearing();
+}
+
 static void test_bot_equipment(void)
 {
     SithWorld world={0}; SithSector dry={0}; SithThing self={0},enemy={0},items[8]={0};
@@ -270,6 +472,7 @@ static void test_bot_equipment(void)
         for (int i=0;i<count-1;i++) assert(!Bot_FailedDive(&crowded[i]));
     }
     assert(queryDepth==0); testCombatArena=0; Bot_ResetHearing();
+    test_failed_supply_approach();
     puts("PASS stock underwater touch before delayed ACK or destroyed drop, independent bounded dive cooldowns, and two-leg single-anchor packs");
     puts("PASS underwater gear yields to air, honors an actual stock breath plus bank approach, and retries by item identity");
     puts("PASS full-frame ranged fire plus multi-edge supply movement through hurt, noise and Force threat; one-shot reserves and fresh pack approach");

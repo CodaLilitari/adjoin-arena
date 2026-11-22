@@ -5,38 +5,22 @@
   "engine_base_commit": "74e4657c4f1751d09af9ad9e056acb8f41997acb",
   "clean_patch_applied": true,
   "sha256": {
-    "bin/bots-linux-x86_64/jk-bot-client": "900a7bbc87f696f13b22ed2887838129587640d86af3e099d91f868ec91bb7ab",
+    "bin/bots-linux-x86_64/jk-bot-client": "d2ad6f4527ee00de93e13d709ed9502ca6dadf4fef8ed8a3d95a8df6f4704808",
     "bin/bots-linux-x86_64/libGameNetworkingSockets.so": "8246a869b1d72115ecc849309629aa1abbce0bf1a0f23cc70deaded98d82d8e9",
-    "native/bot-client.patch": "e21eb3f2b71c428b199ed19489a77c224e104044440d299415bcb903509b6fe7",
-    "native/bot-relink-linux-x86_64.tar.gz": "ed413a47baf01274576c04696689bd914064cdc2c16e3c12ad2f07c0afb92797",
-    "native/BOT_BUILD.json": "d9e02c42a482409a65cebd82bc9abbc7df0e5760968f446437e1336f1f6f81cb"
+    "native/bot-client.patch": "964ebedb05177d46a3a972da51aa08c8d56578c4a5d3c6e4d9f81540910b26d1",
+    "native/bot-relink-linux-x86_64.tar.gz": "1b0063672d322b30c44599706d2b005694d416d18fa2cd367918cb609459a558",
+    "native/BOT_BUILD.json": "1952f10c310d43246887ed16897c138534ac02a299c9ed68b939f2b83890fdb6"
   },
   "source_and_link_verification": {
     "translation_units_scanned": 205,
     "rebuilt_translation_units": [
-      "src/AI/jkBot.c",
-      "src/AI/jkBotPersona.c",
-      "src/Cog/sithCog.c",
-      "src/Devices/sithControl.c",
-      "src/Devices/sithSoundMixer.c",
-      "src/Dss/jkDSS.c",
-      "src/Dss/sithMulti.c",
-      "src/Gui/jkGUIDialog.c",
-      "src/Gui/jkGUIMultiplayer.c",
-      "src/Main/Main.c",
-      "src/Win95/Window.c",
-      "src/Win95/Windows.c",
-      "src/Win95/stdSound.c",
-      "src/World/sithItem.c",
-      "src/World/sithSoundClass.c",
-      "src/World/sithThing.c",
-      "src/World/sithWeapon.c"
+      "src/AI/jkBot.c"
     ],
-    "changed_engine_source_files": 5,
+    "changed_engine_source_files": 4,
     "source_hashes_checked": 223,
     "link_input_hashes_checked": 218,
     "removed_public_symbols": 0,
-    "relinked_executable_sha256": "900a7bbc87f696f13b22ed2887838129587640d86af3e099d91f868ec91bb7ab",
+    "relinked_executable_sha256": "d2ad6f4527ee00de93e13d709ed9502ca6dadf4fef8ed8a3d95a8df6f4704808",
     "relinked_executable_byte_identical": true,
     "upstream_external_headers_verified_against_pinned_git_trees": 112
   },
@@ -45,11 +29,11 @@
     "named_groups_by_suite": {
       "hearing": 8,
       "companion": 1,
-      "driver": 53,
+      "driver": 55,
       "portal": 11,
       "collision": 3
     },
-    "total_named_groups": 76,
+    "total_named_groups": 78,
     "loadout_suite": {
       "legal_combinations_passed": 54,
       "invalid_inputs_passed": true

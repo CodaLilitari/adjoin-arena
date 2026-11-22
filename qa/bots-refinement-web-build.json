@@ -8,20 +8,20 @@
   "changed_source_hashes_verified": 28,
   "files": {
     "bin/bots-jkweb/openjkdf2.js": {
-      "sha256": "8eee651e0804ca97b07113541b7ab613eab81fe6c59eba39adfc8da858f04331",
+      "sha256": "dd348b7f5dace28a4cd387eca7942eb30e25ef78b091e87217937a39cf2a2cd7",
       "bytes": 563119
     },
     "bin/bots-jkweb/openjkdf2.wasm": {
-      "sha256": "607c58429d62f7be53e0b82922e146e8055127ef3d054cf8f71a4e61ce383f4a",
-      "bytes": 3818637
+      "sha256": "7f5ab43857e84f0c3e905e28db07a23fc4575095174813c29459db48ad8f0adf",
+      "bytes": 3823446
     },
     "web_bots/engine.patch": {
-      "sha256": "7641d983ff5b784dbab7882c187208fdfb6f7b18d14929a1b4b21228b37aad22",
-      "bytes": 301298
+      "sha256": "c9f958c461214467a9287a08d7fab6cc6d2af3a06849195240e2ba15035536eb",
+      "bytes": 308720
     },
     "web_bots/engine-relink.tar.gz": {
-      "sha256": "6839d4dbf0976861edfc01c135cc546118e2928bba60c21cba512083f6600336",
-      "bytes": 1573261
+      "sha256": "f72078e64b3f6075578eb7252975afc846d5c2eb9b2bdff6e7179c351d95c9b8",
+      "bytes": 1575192
     }
   },
   "independent_direct_relink": {
@@ -29,5 +29,5 @@
     "wasm_byte_identical": true,
     "recompiled_libsmacker": false
   },
-  "live_multiplayer_qualification": "Recorded separately after installing the exact release."
+  "live_multiplayer_qualification": "Recorded separately after installing the exact runtime files."
 }
