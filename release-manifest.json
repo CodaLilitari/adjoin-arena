@@ -820,6 +820,10 @@
       "mode": 420,
       "sha256": "7bbfb33fbd00df366a3780671ff5736e130fa8a8e5a6d04c3248ec01b8293fbc"
     },
+    "qa/bots-jkweb-companion-live.json": {
+      "mode": 420,
+      "sha256": "9572de95d7691357164d9f82cd18f5c939db582641788b489808ddaf54b56313"
+    },
     "qa/bots-jkweb-formats-live.json": {
       "mode": 420,
       "sha256": "0a5c71ef292cb927672ce80a21c0729a4ca5b79fdc5e7ed4e8e0edd11a6af6c2"
@@ -1626,7 +1630,7 @@
     },
     "web_bots/README.md": {
       "mode": 420,
-      "sha256": "4af04f25379f8a8ec8682c7d565baeb868ffcb59aed4c35dccadab612395fdca"
+      "sha256": "8c2305290ad5cc44db7b39c9eb71a399b2b5cc689b09e5e40394fcf519d166df"
     },
     "web_bots/build.sh": {
       "mode": 493,

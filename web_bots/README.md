@@ -43,6 +43,33 @@ The local frame bridge transfers bounded datagrams outside the engine tick. For 
 
 The separate Cross Server adapter for unchanged classic browser clients continues to target its pinned historical build. This browser-hosted arena uses the current upstream relay protocol. Results for either setup belong with the exact engine build, relay revision and client combination tested.
 
+### Verified private sessions
+
+The [final live receipt](../qa/bots-jkweb-companion-live.json) records two
+separate four-player runs of runtime `42154174`. The first produced a
+120.0155-second third-person recording with the supplied cosmetic model,
+hardware WebGL and game audio. During the full session, Lily equipped the
+stormtrooper rifle, bowcaster and repeater; Boba and Jan equipped concussion
+rifles. The live navigation graphs reported 39 of 42 pickups reachable.
+These observations include warmup and the hold after capture, so they do not
+describe only the two-minute clip. Reachability is a planned route, not proof
+that every route was traversed successfully.
+
+In the second run, the engine acknowledged a companion strategy and one chat
+message as applied in Lily's current world and life. All three other players
+independently received the message. The recording itself is autonomous and
+does not contain this separate companion test.
+
+The [additional format receipt](../qa/bots-jkweb-formats-live.json) covers
+four-player FF Sabers, NF Guns and NF Sabers sessions on runtime `91a1265`.
+No-Force observations had zero active Force masks. The source regression
+suite separately checks the saber-only attack guard; a selected weapon sample
+alone cannot identify every weapon attack between observations.
+
+These are private Canyon Oasis integration checks. They do not establish
+strength against skilled humans, public-lobby interoperability, reliable
+navigation from every spawn, or mastery of every stock map.
+
 ## Build and relink
 
 The engine pin is `tristamus/OpenJKDF2` `web-mp` commit
