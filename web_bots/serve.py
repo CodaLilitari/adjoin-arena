@@ -6,7 +6,6 @@ import asyncio
 import base64
 import binascii
 import contextlib
-import csv
 import hmac
 import http.server
 import json
@@ -18,13 +17,12 @@ import secrets
 import signal
 import socket
 import struct
-import subprocess
 import sys
 import threading
 import time
 
-from aiohttp import ClientSession, WSMsgType, web
-from bots.companion import ACK, HEADER, Hub
+from aiohttp import ClientSession, ClientTimeout, WSMsgType, web
+from bots.companion import ACK, HEADER, Hub, create_private_directory
 
 HERE = Path(__file__).resolve().parent
 ASSETS = ("resource/Res1hi.gob", "resource/Res2.gob", "resource/jk_.cd", "episode/JK1MP.gob")
@@ -36,22 +34,12 @@ SEATS = {
     "yun": ("Bot_Yun", "kya18.3do", "kyyun.snd", "light"),
 }
 MAX_CHUNK, MAX_CAPTURE = 8*1024*1024, 512*1024*1024
+CAPTURE_IDLE_SECONDS = 10.
 
 
 def private_json(path, data):
     with os.fdopen(os.open(path, os.O_WRONLY|os.O_CREAT|os.O_EXCL, 0o600), "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
-
-
-def protect_windows_run(directory):
-    # Windows Python before 3.13 ignores mkdir's mode. Apply an owner-only
-    # inheritable DACL to this newly created run before writing credentials.
-    who = subprocess.run(["whoami.exe","/user","/fo","csv","/nh"],check=True,capture_output=True,text=True)
-    sid = next(csv.reader(who.stdout.splitlines()))[-1]
-    if not re.fullmatch(r"S-1-[0-9-]+",sid):
-        raise ValueError("Could not identify the current Windows account for private permissions.")
-    subprocess.run(["icacls.exe",str(directory),"/inheritance:r","/grant:r",
-                    "*"+sid+":(OI)(CI)F"],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
 
 
 def game_file(root, relative):
@@ -141,11 +129,9 @@ class Host:
         for name in ("openjkdf2.js","openjkdf2.wasm"):
             if not (self.engine/name).is_file():
                 raise ValueError("Supply the current bot-enabled JS/WASM engine directory.")
-        self.runtime.mkdir(mode=0o700, parents=True, exist_ok=False)
-        if os.name == "nt":
-            protect_windows_run(self.runtime)
+        create_private_directory(self.runtime, parents=True)
         self.secrets_dir = self.runtime/"engines"
-        self.secrets_dir.mkdir(mode=0o700)
+        create_private_directory(self.secrets_dir)
         self.hub = Hub(self.runtime, SEATS, 0, allow_chat=chat, channel_factory=browser_pair)
         self.tokens = {ident: secrets.token_urlsafe(32) for ident in SEATS}
         self.channels = {ident:self.hub.open_browser_channel(ident) for ident in SEATS}
@@ -173,6 +159,18 @@ class Host:
         if self.capture and self.capture["file"]:
             self.capture["file"].close()
             self.capture["file"] = None
+
+    def abort_capture(self, reason):
+        if self.capture and self.capture["file"] is not None:
+            self.capture["file"].close()
+            self.capture.update(file=None, status="aborted", reason=reason)
+
+    def expire_capture(self):
+        if (self.capture and self.capture["file"] is not None and
+                time.monotonic()-self.capture["last_chunk_mono"] >= CAPTURE_IDLE_SECONDS):
+            # Keep the incomplete file for inspection, but release the handle
+            # and capture slot after a crashed or disconnected recorder.
+            self.abort_capture("Recording stopped sending chunks.")
 
     def app(self):
         @web.middleware
@@ -244,6 +242,8 @@ class Host:
         if seat["instance"] != body["instance"]:
             if seat["instance"] and time.monotonic()-seat["poll"] < 8:
                 raise web.HTTPConflict(text="This seat already has a live browser engine.")
+            if ident == "lily" and seat["instance"]:
+                self.abort_capture("Recording browser restarted.")
             # Make frames from a restarted WASM instance advance monotonically
             # across its reset. The hub's first new state invalidates old leases.
             self.hub.pump()
@@ -259,6 +259,8 @@ class Host:
         response = web.json_response({"id":ident,"assets":[{"path":path,"url":f"/engine/{ident}/assets/{n}"} for n,(path,_) in enumerate(self.assets)],
             "mod":self.model,"env":{"JK_BOT_WEB_ROLE":"host" if ident=="lily" else "join","JK_BOT_WEB_ROOM":self.room,"JK_BOT_WEB_MODE":self.mode,
                 "JK_BOT_WEB_NAME":name,"JK_BOT_WEB_MODEL":model,"JK_BOT_WEB_SOUND":sound,
+                "JK_BOT_WEB_SABER_COLOR":"red" if ident=="lily" else "green",
+                "JK_BOT_TRACE_FORCE":"1" if os.environ.get("JK_BOT_TRACE_FORCE")=="1" else "0",
                 "JK_BOT_FORCE_SIDE":side,"JK_BOT_FORCE_STYLE":"competitive","JK_BOT_WEB_THIRD_PERSON":"1" if ident=="lily" else "0"}})
         response.set_cookie("jkrelay_"+ident,seat["cookie"],httponly=True,samesite="Strict",path="/relay")
         return response
@@ -334,6 +336,7 @@ class Host:
         return web.json_response({"frames":result,"server_mono":self.hub.clock()})
 
     async def status(self, request):
+        self.expire_capture()
         self.hub.pump()
         seats={}
         now=time.monotonic()
@@ -354,20 +357,25 @@ class Host:
             raise web.HTTPForbidden()
         instance=request.headers.get("X-Engine-Instance","")
         self.session(ident,instance)
+        self.expire_capture()
         step=request.match_info["step"]
         if step=="start":
-            if self.capture and self.capture["file"] is not None:
-                raise web.HTTPConflict(text="A recording is in progress.")
             meta=await self.body(request)
             if (set(meta)!={"mime","audio_tracks","width","height"} or type(meta["mime"]) is not str or
                 not meta["mime"].startswith("video/webm") or len(meta["mime"])>128 or
                 any(type(meta[k]) is not int for k in ("audio_tracks","width","height")) or
                 not 0<=meta["audio_tracks"]<=2 or not all(1<=meta[k]<=8192 for k in ("width","height"))):
                 raise web.HTTPBadRequest()
+            self.session(ident,instance)
+            self.expire_capture()
+            if self.capture and self.capture["file"] is not None:
+                raise web.HTTPConflict(text="A recording is in progress.")
             key=secrets.token_hex(12)
             path=self.runtime/("canyon-"+key+".webm.part")
+            now=time.monotonic()
             self.capture={**meta,"capture_id":key,"instance":instance,"bytes":0,"chunks":0,"status":"recording",
-                          "started_mono":time.monotonic(),"file":os.fdopen(os.open(path,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600),"wb")}
+                          "started_mono":now,"last_chunk_mono":now,
+                          "file":os.fdopen(os.open(path,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600),"wb")}
             return web.json_response({"capture_id":key})
         cap=self.capture
         if not cap or not cap["file"] or request.headers.get("X-Capture-ID")!=cap["capture_id"] or instance!=cap["instance"]:
@@ -387,8 +395,11 @@ class Host:
             cap["file"].write(data)
             cap["chunks"]+=1
             cap["bytes"]+=len(data)
+            cap["last_chunk_mono"]=time.monotonic()
         elif step=="finish":
             meta=await self.body(request)
+            if cap is not self.capture or not cap["file"]:
+                raise web.HTTPConflict(text="Recording changed while finishing.")
             if (set(meta)!={"chunks","duration_seconds"} or type(meta["chunks"]) is not int or
                     meta["chunks"]!=cap["chunks"] or not cap["bytes"] or
                     type(meta["duration_seconds"]) not in (float,int) or not 0<meta["duration_seconds"]<=360):
@@ -399,8 +410,7 @@ class Host:
             (self.runtime/(path.name+".part")).rename(path)
             cap.update(status="saved",filename=path.name,duration_seconds=meta["duration_seconds"])
         elif step=="abort":
-            cap["file"].close()
-            cap.update(file=None,status="aborted")
+            self.abort_capture("Recording browser aborted.")
         else:
             raise web.HTTPNotFound()
         return web.json_response({"chunks":cap["chunks"],"bytes":cap["bytes"],"status":cap["status"]})
@@ -472,7 +482,9 @@ async def serve(args):
             while await proc.stdout.read(8192):
                 pass
         drain=asyncio.create_task(discard())
-        async with ClientSession() as session:
+        # Bound the local relay's TCP/HTTP upgrade. A live WebSocket's receive
+        # lifetime remains unlimited; this is not a match-duration timeout.
+        async with ClientSession(timeout=ClientTimeout(total=None,connect=5,sock_connect=5,sock_read=5)) as session:
             host.http=session
             await runner.setup()
             site=web.TCPSite(runner,"127.0.0.1",args.port)
@@ -481,6 +493,7 @@ async def serve(args):
             print(json.dumps({"runtime":str(run.resolve()),"url":host.url,"pages":list(SEATS),"room":host.room,"mode":host.mode}),flush=True)
             while proc.returncode is None:
                 host.hub.pump()
+                host.expire_capture()
                 await asyncio.sleep(.05)
             raise RuntimeError(f"Private relay exited with {proc.returncode}.")
     finally:

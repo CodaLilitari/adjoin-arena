@@ -239,12 +239,12 @@ def main():
     parser.add_argument("--chrome", required=True, type=Path, help="Installed Google Chrome or Chromium executable.")
     parser.add_argument("--run-json", required=True, type=Path, help="Private arena run.json from web_bots.serve.")
     parser.add_argument("--timeout", type=int, default=150, help="Seconds allowed for host creation and for joins.")
-    parser.add_argument("--record-seconds", type=int, default=0, help="Record 1..120 seconds after qualification.")
+    parser.add_argument("--record-seconds", type=int, default=0, help="Record 1..240 seconds after qualification.")
     parser.add_argument("--warmup-seconds", type=int, default=20, help="Sample live gameplay for this many seconds before recording (default 20).")
     parser.add_argument("--hold-seconds", type=int, default=None, help="Keep the browsers open after qualification or capture. Without capture, the default is until interrupted.")
     args = parser.parse_args()
-    if not args.chrome.is_file() or not args.run_json.is_file() or not 0 <= args.record_seconds <= 120 or args.timeout <= 0 or args.warmup_seconds < 0 or (args.hold_seconds is not None and args.hold_seconds < 0):
-        parser.error("Supply existing files, positive timeout, 0..120 recording seconds and nonnegative warmup and hold times.")
+    if not args.chrome.is_file() or not args.run_json.is_file() or not 0 <= args.record_seconds <= 240 or args.timeout <= 0 or args.warmup_seconds < 0 or (args.hold_seconds is not None and args.hold_seconds < 0):
+        parser.error("Supply existing files, positive timeout, 0..240 recording seconds and nonnegative warmup and hold times.")
     try:
         asyncio.run(launch(args))
     except KeyboardInterrupt:

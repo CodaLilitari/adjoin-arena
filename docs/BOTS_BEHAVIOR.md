@@ -78,18 +78,77 @@ fixtures](../native/tests/test_bot_behavior.inc).
 
 ## Gun decisions and attack restraint
 
-Weapon choice considers actual availability, ammunition, range, sight lines, and nearby protected
-players, with selection hysteresis to avoid constant switching. Aim uses bounded projectile-speed
-prediction. The stormtrooper rifle uses longer-range bursts, and close repeater alternate fire requires
-enough ammunition and a wider clear firing corridor. Splash weapons require separation from the bot and
-from protected players near the target.
+Weapon choice considers the bot's inventory, ammunition, range, line of sight and nearby protected
+players. The stormtrooper rifle fires in bursts at longer range. Elite bots use the repeater's
+three-bolt secondary at close range when they have three cells, the spread fits the target at the
+current aim angle and the wider firing corridor is clear. Otherwise they use its single-bolt primary.
 
-The bowcaster uses its immediate alternate shot. Its stock charged primary fires on release, so simply
-releasing attack when a target becomes peaceful would otherwise fire the pending bolt at that player.
-Hand-thrown thermals and planted sequencer charges are omitted until trajectory and trap planning are
-adequate. Ordinary sight, corridor, and blast checks reduce accidental hits; ricochets, player movement,
-network delay, and already-fired projectiles remain limits. Live checkbox changes cannot remove
-projectiles already in flight.
+The concussion primary leads moving targets and can aim at the floor for splash. Elite bots keep a
+clear, predictable floor shot when they have at least 16 cells and enough separation from the blast.
+For a crossing target, unsafe splash, or a tighter cell reserve, they can take a direct secondary shot.
+The stock beam reaches five world units, requires eight cells to activate and spends four per shot.
+The bot checks that both the planned line and its current barrel would reach the intended opponent
+first. A wall, moving lift or intervening player can block the shot. Rail uses its impact primary.
+
+Against a nearby, facing Bryar or stormtrooper rifle, an elite gun bot can draw its saber and keep
+both attack buttons up so stock bolt defense stays available. At contact it uses a primary swing.
+It reserves the slower heavy secondary for a grounded, dry attack on an immobilized opponent,
+with a clear area around the bot.
+
+The bowcaster uses its immediate secondary. Its charged primary fires on key release, including when
+a target becomes peaceful. The bot also leaves thermal throws, sequencer placement and delayed rail
+traps to strategies that can account for their eventual detonation. Movement, ricochets and network
+delay still affect projectiles after they leave the weapon. The optional `BOT_FIRE_INPUT` trace
+records changes in requested firing mode at most twice per second. See the
+[weapon mechanics and alternate-fire checks](../qa/bots-alt-fire.json).
+
+### Competitive guns: equipment and movement
+
+In elite gun modes, acquiring useful supplies remains a movement goal during an engagement. The bot
+can follow graph routes toward weapons, ammunition, health and other useful pickups while aiming and
+firing at an eligible opponent. An existing E11 or a single rail charge no longer ends equipment
+seeking. A disarm leaves the actual stock inventory unchanged and can trigger a route to a replacement.
+Close contact, breathing, committed traversal, recovery and CTF objectives retain their own priorities.
+Companion resource and recover directives keep the ordinary mode-aware route planner active in combat;
+pressure retains its requested engagement behavior.
+
+Dropped backpacks are evaluated from their replicated contents, available weapons, ammunition and
+remaining capacity. A destination is bound to its thing index, GUID, signature and position, and is
+discarded when the drop moves, changes identity, expires, becomes useless or reaches contact. Existing
+graph nodes supply approach routes, including the closest node when it is the only approach. Both
+the leg to that node and the final span to the pack must be traversable. Temporary drops do not
+become permanent graph nodes. The controller cannot award a pickup. The stock contact and multiplayer
+acknowledgment paths perform that action. See the [equipment routing receipt](../qa/bots-equipment-routing.json).
+
+An underwater supply attempt yields to the air threshold. After at least 4,000 ms on the stock
+endurance counter, touching the planned item also starts a return to air. The bot observes the stock
+collision handler immediately before it sends `TOUCHED`. At that point the item has passed the
+handler’s contact checks, and the host may still be deciding whether to award it. The bot can
+therefore leave for air even if the acknowledgment arrives later or the drop disappears on touch.
+
+The bot remembers up to eight abandoned supply identities, each for 45 seconds. A ninth outstanding
+failure defers further underwater supply selection for 45 seconds while dry supplies remain eligible.
+Each entry matches the item slot, GUID and signature. A respawn or world change clears the history.
+After its breathing counter resets, the bot can continue toward a checked bank for six seconds.
+See the [supply recovery tests](../qa/bots-supply-recovery.json).
+
+Shoreline routes use a checked water entry or bank jump. A short swim to a
+nearly level bank requires full-body clearance to supported floor in the dry sector directly above
+the swimmer. In Canyon Oasis, all seven retained shallow exits reached their destination floor in
+15 and 30 Hz replays. One 12 Hz gear run recovered air but did not reach sustained dry support within
+70 seconds. See the [underwater gear replay](../qa/bots-underwater-gear.json).
+
+For a bank jump, the predicted touchdown must have a dry floor or supported rim. The remaining
+walk to the anchor may span up to 0.16 world units and must have continuous support. This recovered
+two approaches whose final walk exceeded the previous 0.14-unit limit. The host replay of each
+engine source reached sustained dry support in all 27 cases. One older approach took an additional
+4.367 seconds and reached the bank with the same 60 HP. See the [bank landing matrix](../qa/bots-bank-landing.json).
+
+The Bryar yields to loaded ranged upgrades, and an available heavy gun is readied between contacts.
+Against a recognized concussion or rail user, the bot keeps a usable gun instead of voluntarily drawing
+a saber. A saber remains an equipment fallback or a close, same-height opportunity. These decisions do
+not make the bot immune to disarms or remove ordinary movement and turning costs. In particular,
+simultaneous aiming and pickup travel is implemented; an instantaneous turn-and-fire maneuver is not.
 
 ## Legal Force builds and power strategy
 
@@ -137,10 +196,13 @@ its stock script deducts mana without a minimum-mana gate. A requested hotkey is
 successful effect; `BOT_FORCE_INPUT` records the request only.
 
 Competitive bots consider Speed after selecting their movement, weapon fire and other Force input.
-A cast needs 0.60 world units of dry, supported ground ahead and a clear sweep for the player's
+A ground cast needs 0.60 world units of dry, supported ground ahead and a clear sweep for the player's
 whole body. A selected walking waypoint or pickup must also be at least that far away. A bot can
 keep firing while it presses the Speed hotkey. It defers Speed during Grip, jump preparation or
-flight, swimming, water exits, lift waits and obstacle recovery.
+flight, water exits, lift waits and obstacle recovery. On a direct underwater supply leg, the bot may
+use Speed when the pickup is ahead in the same sector, the full body can reach it, and the first
+0.40 units have extra clearance. It also requires good health, breathing time and a control interval
+of at most 70 milliseconds.
 
 Stock Speed costs 20 mana. A competitive bot normally waits until it has at least 60, leaving at least 40
 for Jump and Pull. Either stock Force surge waives the debit while retaining the 20-mana minimum.
@@ -190,6 +252,15 @@ stationary mesh floors and blockers, low ceilings, ordinary jumps, bounded drops
 Force-jump routes prefer a short charge; higher allocations can use longer charges after checking both
 the nominal arc and a slightly higher clearance envelope. Actual rank, mana, takeoff position, and
 collision are checked again before the ordinary jump input.
+
+An elite competitive guns bot already moving toward a pickup can also tap Force Jump when a visible
+opponent points a concussion rifle toward it. The bot checks its momentum, body clearance and landing
+on the same dry floor. It can turn and fire a Bryar, stormtrooper rifle, bowcaster or repeater while
+coasting, then resume the pickup route after landing. Rail and concussion shots push the shooter, so
+the bot defers this hop with either heavy mounted and defers drawing or firing them during the hop.
+In paired synthetic floor-shot replays, raw splash fell from 78.34 to 20 at 13 Hz and to zero at 15,
+20, 30 and 60 Hz. The jump also reduced progress toward the pickup over the three-second comparison.
+The [combat jump receipt](../qa/bots-combat-jump.json) records the shot, timing, landing and input results.
 
 Mover support is limited to recognized nonrotating lifts with two path frames. The bot checks platform
 presence and attachment, uses ordinary activation, and waits or replans. This does not solve arbitrary
@@ -275,6 +346,23 @@ Current control, catalog, and server-source receipts each state their own limits
 in for connected gameplay.
 
 ## Connected gameplay qualification
+
+### Four-minute Canyon Oasis equipment trial
+
+In a four-bot, full-Force guns match on Canyon Oasis (`m10.jkl`), the second refinement candidate
+ran autonomously. Lily’s sampled score went from 0 kills and 0 deaths to 6 kills and 2 deaths.
+Across 810 distinct fresh living states, she had a target in 298 and used eight weapon bins.
+The trace recorded six backpack plans, 20 same-life samples with increased ammunition, and
+secondary-fire input for bowcaster, repeater, concussion rifle and saber. The sampling cannot tie
+each ammunition gain to a particular pack or each attack request to a shot, hit or kill.
+
+The same recording exposed prolonged confinement near the pool. Boba stayed within 0.13 horizontal
+world units of one point for the final 54.087 seconds of his sampled interval. Lily had a similar
+10.072-second interval at the end. Both moved vertically. Brief crossings into an air sector were
+insufficient evidence of a supported bank landing. In stock-physics replays on the recorded build,
+two Boba poses timed out at 74 and 87 ms control intervals. At both poses the landing predictor
+rejected a supported final walk longer than its 0.14-unit limit. The recording preceded the
+[supply recovery changes](../qa/bots-supply-recovery.json).
 
 ### Competitive Force candidate (`fc533197`)
 

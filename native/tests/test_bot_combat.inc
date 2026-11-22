@@ -1,6 +1,6 @@
 /* Controlled flat floor, optional cross-wall, and ordinary template inheritance. */
 static int testCombatArena, testCombatWall;
-static SithThing testConcProjectile, testRailProjectile, testConcBlast, testRailBlast;
+static SithThing testConcProjectile, testRailProjectile, testConcBlast, testRailBlast, testConcBeam;
 
 static int TestCombatCollision(SithSector *sector,const rdVector3 *from,const rdVector3 *dir,
                               flex_t length,flex_t radius,SithCollision *hit)
@@ -19,6 +19,88 @@ static int TestCombatCollision(SithSector *sector,const rdVector3 *from,const rd
     hit->surface=&corridorFloor; hit->hitNorm.z=1;
     return 1;
 }
+
+/* Inspect the ordinary SELECT key for every slot. The caller's inventory
+   stays untouched until the stock engine consumes the request. */
+static void test_selection_pulse(SithThing *self,SithThing *target,int expected)
+{
+    int current=self->actorParams.pPlayer->curWeaponID;
+    bot.now+=1; bot.nextSelect=0; bot.targetSlot=target ? 1 : -1;
+    memset(bot.keys,0,sizeof(bot.keys));
+    assert(Bot_SelectWeapon(self,target ? Bot_Distance(self->position,target->position) : 2)==current);
+    for (int w=SITHBIN_FISTS;w<=SITHBIN_LIGHTSABER;w++)
+        assert(bot.keys[INPUT_FUNC_SELECT1+w-1]==(w==expected && expected!=current));
+    assert(!bot.keys[INPUT_FUNC_FIRE1] && !bot.keys[INPUT_FUNC_FIRE2]);
+}
+
+static void test_ranged_choices(SithThing *self,SithThing *enemy,SithThing *ally)
+{
+    SithPlayer *p=self->actorParams.pPlayer; jkPlayerInfo remote={0}; rdModel3 gun={0};
+    SithSector *dry=enemy->sector,wet={.flags=SITH_SECTOR_UNDERWATER};
+    memset(p->aItems,0,sizeof(p->aItems));
+    int weapons[]={SITHBIN_FISTS,SITHBIN_LIGHTSABER,SITHBIN_BRYARPISTOL};
+    for (unsigned i=0;i<sizeof(weapons)/sizeof(weapons[0]);i++) {
+        p->aItems[weapons[i]].state=SITHINVENTORY_ITEM_AVAILABLE; p->aItems[weapons[i]].amount=1;
+    }
+    p->aItems[SITHBIN_ENERGY].amount=12; p->curWeaponID=SITHBIN_LIGHTSABER;
+    self->orient.lvec.y=1; enemy->orient.lvec.y=-1;
+    enemy->playerInfo=&remote; remote.rd_thing.model3=&gun; strcpy(gun.filename,"rptg.3do");
+    enemy->position=(rdVector3){0,0.8f,BOT_FOOT_HEIGHT};
+    enemy->physicsParams.vel=(rdVector3){0}; ally->position.x=10;
+    test_selection_pulse(self,enemy,SITHBIN_BRYARPISTOL);
+    enemy->position.y=0.40f; test_selection_pulse(self,enemy,SITHBIN_BRYARPISTOL);
+    p->curWeaponID=SITHBIN_BRYARPISTOL;
+    enemy->position.y=0.20f; test_selection_pulse(self,enemy,SITHBIN_LIGHTSABER);
+    enemy->physicsParams.vel.y=1; test_selection_pulse(self,enemy,SITHBIN_BRYARPISTOL);
+    self->physicsParams.vel.y=1; test_selection_pulse(self,enemy,SITHBIN_LIGHTSABER);
+    self->physicsParams.vel.y=enemy->physicsParams.vel.y=0;
+    enemy->physicsParams.vel.z=2; test_selection_pulse(self,enemy,SITHBIN_BRYARPISTOL); enemy->physicsParams.vel.z=0;
+    enemy->sector=&wet; test_selection_pulse(self,enemy,SITHBIN_BRYARPISTOL); enemy->sector=dry;
+    enemy->position.y=0.10f; enemy->position.z+=0.16f;
+    test_selection_pulse(self,enemy,SITHBIN_BRYARPISTOL); enemy->position.z=BOT_FOOT_HEIGHT;
+    /* A nearby blaster facing the bot gives the blade a defensive use. */
+    enemy->position.y=0.32f; strcpy(gun.filename,"bryg.3do"); test_selection_pulse(self,enemy,SITHBIN_LIGHTSABER);
+    enemy->orient.lvec.y=1; test_selection_pulse(self,enemy,SITHBIN_BRYARPISTOL);
+    enemy->orient.lvec.y=-1; strcpy(gun.filename,"cong.3do"); test_selection_pulse(self,enemy,SITHBIN_BRYARPISTOL);
+    enemy->position.y=.19f; test_selection_pulse(self,enemy,SITHBIN_BRYARPISTOL);
+    strcpy(gun.filename,"rldg.3do"); test_selection_pulse(self,enemy,SITHBIN_BRYARPISTOL);
+    /* Ammo without a weapon (for example after Pull) cannot select its slot. */
+    p->aItems[SITHBIN_BRYARPISTOL].amount=0; enemy->position.y=2;
+    test_selection_pulse(self,enemy,SITHBIN_LIGHTSABER); p->aItems[SITHBIN_BRYARPISTOL].amount=1;
+
+    testRailProjectile.weaponParams.pExplosionTemplate=&testRailBlast; testRailBlast.explosionParams.range=.5f;
+    p->aItems[SITHBIN_RAIL_DETONATOR].state=p->aItems[SITHBIN_CONCUSSION_RIFLE].state=SITHINVENTORY_ITEM_AVAILABLE;
+    p->aItems[SITHBIN_RAIL_DETONATOR].amount=p->aItems[SITHBIN_CONCUSSION_RIFLE].amount=1;
+    p->aItems[SITHBIN_RAILCHARGES].amount=1; p->aItems[SITHBIN_POWER].amount=7;
+    test_selection_pulse(self,NULL,SITHBIN_RAIL_DETONATOR);
+    p->aItems[SITHBIN_POWER].amount=8; test_selection_pulse(self,NULL,SITHBIN_CONCUSSION_RIFLE);
+    p->curWeaponID=SITHBIN_RAIL_DETONATOR; test_selection_pulse(self,NULL,SITHBIN_RAIL_DETONATOR);
+    p->curWeaponID=SITHBIN_BRYARPISTOL; test_selection_pulse(self,enemy,SITHBIN_CONCUSSION_RIFLE);
+    ally->position=enemy->position; ally->position.x=.70f; test_selection_pulse(self,enemy,SITHBIN_RAIL_DETONATOR);
+    ally->position.x=.30f; test_selection_pulse(self,enemy,SITHBIN_BRYARPISTOL);
+    ally->position.x=10; enemy->position.y=.45f; test_selection_pulse(self,enemy,SITHBIN_BRYARPISTOL);
+    p->aItems[SITHBIN_POWER].amount=0; p->aItems[SITHBIN_RAILCHARGES].amount=0;
+    test_selection_pulse(self,NULL,SITHBIN_BRYARPISTOL);
+    /* At long range or between contacts, each loaded upgrade should replace
+       the Bryar. A mounted rail can still yield to the faster concussion. */
+    p->aItems[SITHBIN_CONCUSSION_RIFLE].amount=p->aItems[SITHBIN_RAIL_DETONATOR].amount=0;
+    p->aItems[SITHBIN_POWER].amount=8; p->aItems[SITHBIN_RAILCHARGES].amount=1; enemy->position.y=11;
+    int upgrades[]={SITHBIN_STORMTROOPER_RIFLE,SITHBIN_TUSKEN_PROD,SITHBIN_REPEATER,
+                    SITHBIN_RAIL_DETONATOR,SITHBIN_CONCUSSION_RIFLE};
+    for (unsigned i=0;i<sizeof(upgrades)/sizeof(upgrades[0]);i++) {
+        int w=upgrades[i];
+        p->aItems[w].state=SITHINVENTORY_ITEM_AVAILABLE; p->aItems[w].amount=1;
+        test_selection_pulse(self,enemy,w); test_selection_pulse(self,NULL,w);
+        p->aItems[w].amount=0;
+    }
+    p->aItems[SITHBIN_CONCUSSION_RIFLE].amount=p->aItems[SITHBIN_RAIL_DETONATOR].amount=1;
+    p->curWeaponID=SITHBIN_RAIL_DETONATOR; test_selection_pulse(self,enemy,SITHBIN_CONCUSSION_RIFLE);
+    bot.sabersOnly=1; test_selection_pulse(self,enemy,SITHBIN_LIGHTSABER); bot.sabersOnly=0;
+    enemy->playerInfo=NULL;
+    puts("PASS elite gun selection retains blade contact/bolt defense, respects separating targets, elevation, water, blast clearance, reserves and quiet heavy readiness");
+}
+
+#include "test_bot_altfire.inc"
 
 static void test_bot_gunshots(void)
 {
@@ -75,6 +157,8 @@ static void test_bot_gunshots(void)
     shot=Bot_PlanGunShot(&self,&enemy,SITHBIN_RAIL_DETONATOR); assert(!Bot_GunSafe(&self,&enemy,&shot,0));
     testRailProjectile.weaponParams.pExplosionTemplate=NULL;
     shot=Bot_PlanGunShot(&self,&enemy,SITHBIN_RAIL_DETONATOR); assert(!Bot_GunSafe(&self,&enemy,&shot,0));
+    test_ranged_choices(&self,&enemy,&ally);
+    test_alternate_fire(&self,&enemy,&ally);
     testCombatArena=0; sithNet_MultiModeFlags=0; assert(queryDepth==0);
     puts("PASS predicted concussion floor/direct aim, legal selection, template splash, friendly/self and wall rejection");
 }
@@ -120,7 +204,7 @@ static void test_bot_arming(void)
     bot.now+=1; memset(bot.keys,0,sizeof(bot.keys)); memset(bot.axes,0,sizeof(bot.axes)); Bot_Combat(&self,&enemy);
     assert(bot.keys[INPUT_FUNC_FIRE1] && bot.axes[INPUT_FUNC_SLIDE]>.1f && bot.axes[INPUT_FUNC_SLIDE]<=.4f);
     /* Acquire from rest inside the graph's .025 minimum edge as well. */
-    bot.armNode=0; bot.now+=3; rack.position.x=.168f; bot.nodes[0].pos.x=.012f;
+    Bot_ClearEquipment("fixture"); bot.now+=3; rack.position.x=.168f; bot.nodes[0].pos.x=.012f;
     memset(bot.axes,0,sizeof(bot.axes));
     assert(Bot_ArmingMove(&self,3) && bot.axes[INPUT_FUNC_SLIDE]>.1f && bot.axes[INPUT_FUNC_SLIDE]<=.4f);
     self.position.x=.007f; memset(bot.axes,0,sizeof(bot.axes));
@@ -134,15 +218,17 @@ static void test_bot_arming(void)
     testCombatWall=0; self.position=(rdVector3){0,0,BOT_FOOT_HEIGHT};
     bot.nodes[0].pos=rack.position=(rdVector3){.8f,0,BOT_FOOT_HEIGHT};
     nav.forceJumpPending=1; assert(!Bot_ArmingMove(&self,3)); nav.forceJumpPending=0;
-    assert(!Bot_ArmingMove(&self,.7f));
-    bot.hurtUntil=bot.now+1; assert(!Bot_ArmingMove(&self,3)); bot.hurtUntil=0;
+    assert(!Bot_ArmingMove(&self,.3f));
+    bot.now+=1; bot.hurtUntil=bot.now+1; assert(Bot_ArmingMove(&self,3)); bot.hurtUntil=0;
     bot.now+=4; bot.nodes[0].pos=(rdVector3){0,1,BOT_FOOT_HEIGHT}; testCombatWall=1;
     assert(!Bot_ArmingMove(&self,3)); testCombatWall=0;
+    bot.nodes[0].pos=rack.position;
     bot.now+=4; strcpy(rack.aName,"railcharges"); assert(!Bot_ArmingMove(&self,3));
     p->aItems[SITHBIN_RAIL_DETONATOR].amount=1;
     p->aItems[SITHBIN_RAIL_DETONATOR].state=SITHINVENTORY_ITEM_AVAILABLE;
     bot.now+=4; assert(Bot_ArmingMove(&self,3));
-    p->aItems[SITHBIN_RAILCHARGES].amount=1; assert(!Bot_ArmingMove(&self,3));
+    p->aItems[SITHBIN_RAILCHARGES].amount=1; assert(Bot_ArmingMove(&self,3));
+    p->aItems[SITHBIN_RAILCHARGES].amount=30; assert(!Bot_ArmingMove(&self,3));
     testCombatArena=0; bot.world=NULL; assert(queryDepth==0);
     puts("PASS quiet weapon retention, saber-only/empty fallback, safe pickup movement + normal fire and interruption");
 }

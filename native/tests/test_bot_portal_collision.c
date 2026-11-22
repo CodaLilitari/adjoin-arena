@@ -242,13 +242,60 @@ static int test_horizontal_face(int sector,flex_t left,flex_t right,flex_t z,int
         (rdVector3){left,y,z},(rdVector3){right,y,z},(rdVector3){right,-y,z},(rdVector3){left,-y,z});
 }
 
+/* A repeatable launch in this synthetic pool touches down at x ~= .1957.
+   Moving only the graph anchor along the same heading keeps the flight fixed. */
+static void test_supported_bank_walk(SithThing self,BotNode wet,BotNode dry,
+                                     int anchorFloor,int landingFloor,int ceiling)
+{
+    self.position=(rdVector3){.4694f,0,-.075f};
+    self.field_48=.025f;
+    self.physicsParams.vel.z=0;
+    self.physicsParams.flags|=SITH_PF_ONWATERSURFACE;
+    flex_t speed=.3654f,flight;
+    dry.pos.x=.057f; /* .139 units, within the previous allowance */
+    assert(Bot_WaterLanding(&self,&wet,&dry,speed,0,&flight));
+    dry.pos.x=.035f; /* .161 units on the same uninterrupted floor */
+    assert(!Bot_WaterLanding(&self,&wet,&dry,speed,0,&flight));
+    dry.pos.x=.037f; /* .159 units */
+    assert(Bot_WaterLanding(&self,&wet,&dry,speed,0,&flight));
+
+    BotNode touchdown=dry;
+    touchdown.pos.x=.1957f;
+    int drop=-1;
+    assert(Bot_WalkableSpan(&touchdown,&dry,&drop,.001f) && !drop);
+    test_surfaces[anchorFloor].flags|=SITH_SURFACE_WATER;
+    assert(!Bot_WalkableSpan(&touchdown,&dry,&drop,.001f));
+    assert(!Bot_WaterLanding(&self,&wet,&dry,speed,0,&flight));
+    test_surfaces[anchorFloor].flags&=~SITH_SURFACE_WATER;
+
+    /* The second half of the walk now drops .30 units to the floor. */
+    int32_t *anchorVertex=test_surfaces[anchorFloor].surfaceInfo.face.vertexPosIdx;
+    for (int i=0;i<4;i++) test_vertices[anchorVertex[i]].z=-.30f;
+    assert(!Bot_WalkableSpan(&touchdown,&dry,&drop,.001f));
+    assert(!Bot_WaterLanding(&self,&wet,&dry,speed,0,&flight));
+    for (int i=0;i<4;i++) test_vertices[anchorVertex[i]].z=0;
+
+    test_surfaces[landingFloor].flags|=SITH_SURFACE_WATER;
+    assert(!Bot_WaterLanding(&self,&wet,&dry,speed,0,&flight));
+    test_surfaces[landingFloor].flags&=~SITH_SURFACE_WATER;
+
+    /* The apex is below .22, but the player's swept body clips the roof. */
+    int32_t *roofVertex=test_surfaces[ceiling].surfaceInfo.face.vertexPosIdx;
+    for (int i=0;i<4;i++) test_vertices[roofVertex[i]].z=.22f;
+    assert(!Bot_WaterLanding(&self,&wet,&dry,speed,0,&flight));
+    for (int i=0;i<4;i++) test_vertices[roofVertex[i]].z=.60f;
+    assert(Bot_WaterLanding(&self,&wet,&dry,speed,0,&flight));
+    assert(sithCollision_searchStackIdx==-1);
+    puts("PASS bank walk accepts .159, rejects .161, unsafe touchdown or walk, lower floor and obstructed flight");
+}
+
 static void test_water_entry(void)
 {
     test_low_threshold(0,0.5f);
     memset(test_surfaces,0,sizeof(test_surfaces)); memset(test_adjoins,0,sizeof(test_adjoins));
     memset(test_sectors,0,sizeof(test_sectors));
     test_world.numSurfaces=test_world.numVertices=0;
-    int bottom[3],top[3];
+    int bottom[3],top[3],anchorFloor=-1,landingFloor=-1;
     for (int i=0;i<3;i++) {
         flex_t left=i ? .20f : -.40f,right=.65f,low=i==0 ? 0 : i==1 ? -.05f : -.65f;
         flex_t high=i==0 ? .6f : i==1 ? 0 : -.05f;
@@ -262,7 +309,10 @@ static void test_water_entry(void)
         test_box_face(i,(rdVector3){0,-1,0},(rdVector3){right,.3f,low},(rdVector3){right,.3f,high},
             (rdVector3){left,.3f,high},(rdVector3){left,.3f,low});
         top[i]=test_horizontal_face(i,left,right,high,0);
-        if (!i) test_horizontal_face(i,left,.20f,low,1);
+        if (!i) {
+            anchorFloor=test_horizontal_face(i,left,.10f,low,1);
+            landingFloor=test_horizontal_face(i,.10f,.20f,low,1);
+        }
         bottom[i]=test_horizontal_face(i,.20f,right,low,1);
     }
     test_sectors[2].flags=SITH_SECTOR_UNDERWATER;
@@ -343,10 +393,24 @@ static void test_water_entry(void)
     self.actorParams.maxThrust=2; self.actorParams.jumpSpeed=1.5f; self.physicsParams.mass=150;
     self.physicsParams.airDrag=0.5f; self.physicsParams.flags=SITH_PF_USETHRUST|SITH_PF_USEGRAVITY;
     rdVector3 swimStart; flex_t flight=0;
+    /* In this opening the old 0.045-wide diagonal fits. A 0.065-radius
+       player clips the rim. One direction has a physical jump; returning
+       through this outside-corner approach has no verified entry. */
+    bot.nodes[0].pos.x=.09f;
+    bot.nodes[1].pos.x=.56f; bot.nodes[1].pos.z=-.10f;
+    assert(Bot_Clear(NULL,dry.sector,bot.nodes[0].pos,bot.nodes[1].pos,.045f,1));
+    assert(!Bot_WaterClear(dry.sector,bot.nodes[0].pos,bot.nodes[1].pos,self.moveSize));
+    assert(Bot_EdgeMode(0,1)<0 && Bot_EdgeMode(1,0)==BOT_ROUTE_WATER_EXIT);
+    bot.nodes[0].pos.x=.11f; bot.nodes[1].pos.z=-.12f;
+    assert(Bot_Clear(NULL,dry.sector,bot.nodes[0].pos,bot.nodes[1].pos,.045f,1));
+    assert(!Bot_WaterClear(dry.sector,bot.nodes[0].pos,bot.nodes[1].pos,self.moveSize));
+    assert(Bot_EdgeMode(0,1)==BOT_ROUTE_WATER_ENTRY);
+    bot.nodes[0]=dry; bot.nodes[1]=wet;
     assert(Bot_EdgeMode(1,0)==BOT_ROUTE_WATER_EXIT);
     assert(Bot_WaterExitArc(&wet,&dry,&swimStart,&flight));
     assert(flight>0.2f && flight<0.8f);
     bot.physicsStep=bot.frameDt=0.02f;
+    test_supported_bank_walk(self,wet,dry,anchorFloor,landingFloor,top[0]);
     nav.waterExitFrom=1; nav.waterExitTo=0; nav.waterExitStart=swimStart;
     nav.waterExitUntil=4; nav.waterExitPhase=0;
     self.sector=wet.sector; self.attach_flags=0; self.position=swimStart;
@@ -481,6 +545,27 @@ static void test_pickup_contact_approach(void)
     puts("PASS recessed pickup needs reachable stock sphere overlap and touch LOS; arrival, closed opening, expired identity and disabled pickup checked");
 }
 
+static void test_dynamic_pack_contacts(void)
+{
+    test_low_threshold(.10f,.25f);
+    SithThing self={.type=SITH_THING_PLAYER,.moveSize=.065f,.collideSize=.065f,
+        .position={.4f,0,BOT_FOOT_HEIGHT},.sector=&test_sectors[0]};
+    SithThing pack={.type=SITH_THING_ITEM,.collide=SITH_COLLIDE_SPHERE,.collideSize=.10f,
+        .position={.65f,0,.036337f},.sector=self.sector,.idx=42};
+    pack.itemParams.flags=SITH_ITEM_BACKPACK;
+    BotNode contact={0}; assert(Bot_PackContact(&self,&pack,&contact));
+    assert(contact.item==42 && contact.sector==self.sector && fabsf(contact.pos.z-BOT_FOOT_HEIGHT)<.001f);
+    assert(Bot_Distance(contact.pos,pack.position)<self.moveSize+pack.collideSize);
+    pack.position.z=.47f; assert(!Bot_PackContact(&self,&pack,&contact));
+    pack.position.z=.20f; pack.sector->flags|=SITH_SECTOR_UNDERWATER;
+    assert(Bot_PackContact(&self,&pack,&contact) && contact.sector==pack.sector);
+    assert(contact.pos.z>pack.position.z && Bot_Distance(contact.pos,pack.position)<self.moveSize+pack.collideSize);
+    pack.flags=SITH_TF_DESTROYED; assert(!Bot_PackContact(&self,&pack,&contact));
+    pack.flags=0; pack.sector->flags|=SITH_SECTOR_FALLDEATH; assert(!Bot_PackContact(&self,&pack,&contact));
+    assert(bot.nNodes==0 && sithCollision_searchStackIdx==-1);
+    puts("PASS transient dry and submerged backpack contacts require a live item, legal body clearance and touch overlap without graph nodes");
+}
+
 int main(void)
 {
     test_geometry();
@@ -524,6 +609,7 @@ int main(void)
     test_swim_clearance();
     test_water_entry();
     test_pickup_contact_approach();
+    test_dynamic_pack_contacts();
     return 0;
 }
 #endif

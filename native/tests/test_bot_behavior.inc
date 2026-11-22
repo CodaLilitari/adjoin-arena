@@ -133,25 +133,78 @@ static void test_competitive_force(SithThing *self, SithThing *peer, rdModel3 *g
     assert(!Bot_RequestForce(self,pull,0.46f,1));
     peer->playerInfo->rd_thing.model3=NULL;
     assert(!Bot_RequestForce(self,pull,0.46f,1));
-    enum { PULL_WRONG_MARKER, PULL_NO_MARKER, PULL_DISARMED, PULL_OUT_OF_RANGE, PULL_MATCH };
+    enum { PULL_WRONG_MARKER, PULL_NO_MARKER, PULL_DISARMED, PULL_SWAPPED_GUN, PULL_REARMED_DURING_LOCK,
+           PULL_REUSED_INDEX, PULL_OUT_OF_RANGE, PULL_MATCH };
     for (int scenario=PULL_WRONG_MARKER;scenario<=PULL_MATCH;scenario++) {
         peer->playerInfo->rd_thing.model3=&bryar;
         peer->position.y=0.7f;
-        bot.now+=1; test_force_frame();
+        if (scenario==PULL_MATCH) {
+            jkBot_ObserveWeapon(peer,fists);
+            jkBot_ObserveWeapon(peer,&bryar);
+        }
+        bot.now+=3; test_force_frame();
         assert(Bot_RequestForce(self,pull,0.46f,1)); own->curPower=pull;
         marker.val.data[0]=(int)peer->idx;
         if (scenario==PULL_WRONG_MARKER) marker.val.data[0]++;
         if (scenario==PULL_NO_MARKER) marker.val.data[0]=-1;
         if (scenario==PULL_DISARMED) peer->playerInfo->rd_thing.model3=fists;
+        if (scenario==PULL_SWAPPED_GUN) peer->playerInfo->rd_thing.model3=gun;
+        if (scenario==PULL_REARMED_DURING_LOCK) {
+            jkBot_ObserveWeapon(peer,gun);
+            jkBot_ObserveWeapon(peer,&bryar);
+        }
+        if (scenario==PULL_REUSED_INDEX) marker.val.data[0]=++peer->idx;
         if (scenario==PULL_OUT_OF_RANGE) peer->position.y=3;
         bot.now+=0.5f; test_force_frame(); Bot_ForceTick(self,peer,0);
         if (scenario!=PULL_MATCH) {
             assert(bot.forceCancel && bot.keys[INPUT_FUNC_NEXTSKILL]);
             own->curPower=SITHBIN_F_JUMP;
             test_force_frame(); Bot_ForceTick(self,peer,0);
+            if (scenario==PULL_WRONG_MARKER || scenario==PULL_NO_MARKER) {
+                assert(!Bot_RequestForce(self,pull,0.46f,1));
+                assert(!bot.keys[Bot_PowerKey(pull)]);
+            }
+            if (scenario==PULL_WRONG_MARKER) {
+                SithThing other=*peer;
+                other.idx++; other.guid++;
+                jkPlayer_maxPlayers=3; jkPlayer_playerInfos[2]=jkPlayer_playerInfos[1];
+                jkPlayer_playerInfos[2].playerNetId++; jkPlayer_playerInfos[2].pLocalPlayer=&other;
+                assert(Bot_RequestForce(self,pull,0.46f,2)); own->curPower=pull;
+                bot.now+=0.5f; marker.val.data[0]=-1;
+                test_force_frame(); Bot_ForceTick(self,&other,0);
+                assert(bot.forceCancel);
+                own->curPower=SITHBIN_F_JUMP;
+                test_force_frame(); Bot_ForceTick(self,&other,0);
+                jkPlayer_maxPlayers=2;
+                memset(&jkPlayer_playerInfos[2],0,sizeof(jkPlayer_playerInfos[2]));
+                bot.now+=0.49f;
+                assert(!Bot_RequestForce(self,pull,0.46f,1)); /* 0.99 s after deselection */
+                bot.now+=0.02f;
+                assert(Bot_RequestForce(self,pull,0.46f,1));
+                own->curPower=pull;
+                bot.now+=0.5f; test_force_frame(); Bot_ForceTick(self,peer,0);
+                assert(bot.forceCancel);
+                own->curPower=SITHBIN_F_JUMP;
+                test_force_frame(); Bot_ForceTick(self,peer,0);
+            }
+            if (scenario==PULL_NO_MARKER) {
+                peer->flags|=SITH_TF_DEAD; Bot_ObservePeers(self);
+                peer->flags&=~SITH_TF_DEAD;
+                assert(Bot_RequestForce(self,pull,0.46f,1)); /* same thing, new life */
+                own->curPower=pull;
+                bot.now+=0.5f; test_force_frame(); Bot_ForceTick(self,peer,0);
+                own->curPower=SITHBIN_F_JUMP;
+                test_force_frame(); Bot_ForceTick(self,peer,0);
+            }
+            if (scenario==PULL_SWAPPED_GUN || scenario==PULL_REARMED_DURING_LOCK || scenario==PULL_REUSED_INDEX) {
+                assert(Bot_RequestForce(self,pull,0.46f,1)); /* changed equipment or identity has no debt */
+                own->curPower=pull;
+                bot.now+=0.5f; test_force_frame(); Bot_ForceTick(self,peer,0);
+            }
         }
         assert(bot.forceBin<0 && !bot.keys[Bot_PowerKey(pull)]);
     }
+    puts("PASS cancelled Pull retries wait per gun and opponent, allow a changed gun and fresh life");
     /* The matching release above is still awaiting a visible weapon change. */
     bot.now+=0.5f; test_force_frame();
     assert(!Bot_RequestForce(self,pull,0.46f,1));

@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "title": "Reviewed browser refinement source and independent relink",
+  "engine_repository": "https://github.com/tristamus/OpenJKDF2",
+  "engine_base_commit": "7a6f95c9a3399e59acbf019dc6b25f9981d29dff",
+  "emscripten": "6.0.12",
+  "clean_pinned_source_accepts_patch": true,
+  "changed_source_hashes_verified": 28,
+  "files": {
+    "bin/bots-jkweb/openjkdf2.js": {
+      "sha256": "8eee651e0804ca97b07113541b7ab613eab81fe6c59eba39adfc8da858f04331",
+      "bytes": 563119
+    },
+    "bin/bots-jkweb/openjkdf2.wasm": {
+      "sha256": "607c58429d62f7be53e0b82922e146e8055127ef3d054cf8f71a4e61ce383f4a",
+      "bytes": 3818637
+    },
+    "web_bots/engine.patch": {
+      "sha256": "7641d983ff5b784dbab7882c187208fdfb6f7b18d14929a1b4b21228b37aad22",
+      "bytes": 301298
+    },
+    "web_bots/engine-relink.tar.gz": {
+      "sha256": "6839d4dbf0976861edfc01c135cc546118e2928bba60c21cba512083f6600336",
+      "bytes": 1573261
+    }
+  },
+  "independent_direct_relink": {
+    "js_byte_identical": true,
+    "wasm_byte_identical": true,
+    "recompiled_libsmacker": false
+  },
+  "live_multiplayer_qualification": "Recorded separately after installing the exact release."
+}

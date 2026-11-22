@@ -198,9 +198,49 @@ static void test_bot_pickup_preferences(void)
     puts("PASS elite supply priorities and legal companion preference alter reachable routes; health, saber, ammo and absence guards");
 }
 
+static void test_dropped_pack_contents(void)
+{
+    jkBot_Configure("Bot_Pack","ky.3do");
+    SithSector sector={0}; SithPlayer own={0};
+    SithThing self={.type=SITH_THING_PLAYER,.sector=&sector};
+    self.actorParams.pPlayer=&own;
+    SithThing pack={.type=SITH_THING_ITEM,.guid=421,.signature=17,.sector=&sector};
+    strcpy(pack.aName,"+backpack"); pack.itemParams.flags=SITH_ITEM_BACKPACK;
+    SithWorld world={.aThings=&pack,.numThings=0,.numThingsLoaded=1};
+    bot.world=&world;
+    own.aItems[SITHBIN_CONCUSSION_RIFLE].state=SITHINVENTORY_ITEM_AVAILABLE;
+    own.aItems[SITHBIN_RAIL_DETONATOR].state=SITHINVENTORY_ITEM_AVAILABLE;
+    int cap=(int)(sizeof(pack.itemParams.contents)/sizeof(pack.itemParams.contents[0]));
+    pack.itemParams.numBins=cap;
+    pack.itemParams.contents[0]=(SithBackpackItem){.binIdx=SITHBIN_CONCUSSION_RIFLE,.value=1};
+    pack.itemParams.contents[cap-1]=(SithBackpackItem){.binIdx=SITHBIN_POWER,.value=8};
+    assert(Bot_ItemValue(&self,0)==18 && own.aItems[SITHBIN_CONCUSSION_RIFLE].amount==0);
+    pack.itemParams.contents[cap-1].value=7; assert(!Bot_PackValue(&self,&pack));
+    own.aItems[SITHBIN_POWER].amount=1; assert(Bot_PackValue(&self,&pack)==18);
+    pack.itemParams.numBins=cap+1; assert(!Bot_PackValue(&self,&pack));
+    pack.itemParams.numBins=-1; assert(!Bot_PackValue(&self,&pack));
+    pack.itemParams.numBins=1;pack.itemParams.contents[0]=(SithBackpackItem){.binIdx=SITHBIN_RAILCHARGES,.value=1};
+    assert(!Bot_PackValue(&self,&pack)); own.aItems[SITHBIN_RAIL_DETONATOR].amount=1;
+    assert(Bot_PackValue(&self,&pack)==12); own.aItems[SITHBIN_RAILCHARGES].amount=30;
+    assert(!Bot_PackValue(&self,&pack)); own.aItems[SITHBIN_RAILCHARGES].amount=0;
+    pack.itemParams.contents[0].value=NAN; assert(!Bot_PackValue(&self,&pack));
+    pack.itemParams.contents[0].binIdx=SITHBIN_THERMAL_DETONATOR;
+    pack.itemParams.contents[0].value=4; assert(!Bot_PackValue(&self,&pack));
+    pack.itemParams.contents[0].binIdx=-1; assert(!Bot_PackValue(&self,&pack));
+    pack.itemParams.contents[0].binIdx=SITHBIN_RAILCHARGES;
+    BotNode contact={0}; pack.flags=SITH_TF_DESTROYED;
+    assert(!Bot_PackValue(&self,&pack) && !Bot_PackContact(&self,&pack,&contact)); pack.flags=SITH_TF_DISABLED;
+    assert(!Bot_PackValue(&self,&pack)); pack.flags=0;
+    nav.itemGuid[0]=pack.guid; pack.guid++; pack.signature++;
+    assert(!Bot_ItemValue(&self,0) && Bot_PackValue(&self,&pack)==12);
+    bot.sabersOnly=1; assert(!Bot_PackValue(&self,&pack));
+    puts("PASS dropped pack valuation uses bounded synced entries, ownership and combined ammo; expired, empty, reused and unusable contents");
+}
+
 static void test_bot_navigation(void)
 {
     test_bot_pickup_preferences();
+    test_dropped_pack_contents();
     SithSector sectors[2]={{0}};
     SithWorld world={0}; SithThing self={0}, items[4]={{0}}, templates[4]={{0}};
     SithPlayer own={0}; rdModel3 model={0};

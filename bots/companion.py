@@ -14,6 +14,7 @@ import re
 import secrets
 import socket
 import struct
+import subprocess
 from socketserver import ThreadingMixIn
 import threading
 import time
@@ -31,6 +32,35 @@ MAX_PENDING, EVENT_HISTORY, COMMAND_HISTORY = 16, 128, 256
 UINT_MAX = 0xffffffff
 IDENTIFIER = re.compile(r"[A-Za-z0-9_-]{1,64}\Z")
 FENCE = {"run_id", "world_epoch", "life_epoch"}
+
+
+def create_private_directory(directory, *, parents=False):
+    """Create a fresh directory whose credential and lease files inherit privacy."""
+    directory.mkdir(mode=0o700, parents=parents, exist_ok=False)
+    if os.name != "nt":
+        return
+    # Windows mkdir(0700) can install explicit administrator and system ACEs.
+    # Replace the DACL on this newly created, empty directory before any secret
+    # is written. Use the token's user SID even when the owner is a group.
+    script = (
+        "$ErrorActionPreference='Stop'; "
+        "$path=$env:JK_COMPANION_PRIVATE_DIR; "
+        "$user=[System.Security.Principal.WindowsIdentity]::GetCurrent().User; "
+        "$acl=[System.Security.AccessControl.DirectorySecurity]::new(); "
+        "$acl.SetSecurityDescriptorSddlForm(('D:P(A;OICI;FA;;;'+$user.Value+')'), "
+        "[System.Security.AccessControl.AccessControlSections]::Access); "
+        "[System.IO.Directory]::SetAccessControl($path,$acl); "
+        "$actual=Get-Acl -LiteralPath $path; "
+        "$rules=@($actual.GetAccessRules($true,$true,[System.Security.Principal.SecurityIdentifier])); "
+        "if (!$actual.AreAccessRulesProtected -or $rules.Count -ne 1 -or "
+        "$rules[0].IdentityReference.Value -ne $user.Value -or "
+        "$rules[0].AccessControlType -ne 'Allow' -or $rules[0].FileSystemRights -ne 'FullControl' -or "
+        "[int]$rules[0].InheritanceFlags -ne 3 -or [int]$rules[0].PropagationFlags -ne 0) "
+        "{ throw 'Could not establish private directory permissions.' }"
+    )
+    subprocess.run(["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", script],
+                   env={**os.environ, "JK_COMPANION_PRIVATE_DIR": str(directory.resolve())},
+                   check=True, capture_output=True)
 
 
 def frame(kind, world, life, seq, payload):
@@ -316,7 +346,7 @@ class Hub:
         self.clock, self.allow_chat = clock, allow_chat
         self.run_id = secrets.token_hex(16)
         self.directory = Path(run_directory) / "companion"
-        self.directory.mkdir(mode=0o700)
+        create_private_directory(self.directory)
         self.lock = threading.RLock()
         self.bots = {}
         self.server = self.thread = None

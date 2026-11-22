@@ -216,6 +216,72 @@ static void test_elite_route(void)
     puts("PASS elite silently pursues around a wall through reachable anchors, with no firing target");
 }
 
+/* The v1 hub establishes an epoch only from STATE. Inspect the emitted
+   records in transport order, without the fixture's kind-filtered receive. */
+static struct {
+    uint32_t world,life,seq;
+    int kind;
+} epochFrames[16];
+static unsigned epochCount;
+
+static int capture_epoch_frame(const uint8_t *frame,size_t size)
+{
+    assert(size>=20 && epochCount<16);
+    epochFrames[epochCount].kind=frame[5];
+    epochFrames[epochCount].world=Companion_Word(frame+8);
+    epochFrames[epochCount].life=Companion_Word(frame+12);
+    epochFrames[epochCount].seq=Companion_Word(frame+16);
+    epochCount++;
+    return 1;
+}
+
+static void test_companion_epoch_events(void)
+{
+    reset_scene();
+    sithNet_isMulti=1; playerThingIdx=0; bot.graphDone=1;
+    sithPlayer_g_pLocalPlayer=&jkPlayer_playerInfos[0];
+    epochCount=0;
+    jkBotCompanion_SetTransport(capture_epoch_frame);
+    cue(things+1,JKBOT_SOUND_MUZZLE,SITHSOUNDFLAG_FOLLOWSTHING);
+    jkBot_Tick(.02f);
+    if (epochCount!=2 || epochFrames[0].kind!=CP_STATE || epochFrames[1].kind!=CP_SOUND)
+        fprintf(stderr,"epoch fixture received %u records, first kinds %d then %d\n",epochCount,epochFrames[0].kind,epochFrames[1].kind);
+    assert(epochCount==2 && epochFrames[0].kind==CP_STATE && epochFrames[1].kind==CP_SOUND &&
+           "a world with an immediately audible cue must establish its epoch before SOUND");
+    uint32_t world=epochFrames[0].world, life=epochFrames[0].life;
+    assert(world && life && epochFrames[1].world==world && epochFrames[1].life==life);
+    companion.nextState=1e30; /* Keep the regular publication deadline pending. */
+    jkBot_Tick(.02f);
+    assert(epochCount==2 && "ordinary frames retain the 5 Hz publication budget");
+
+    things[0].actorParams.health=0;
+    jkBot_Tick(.02f);
+    jkBot_ObserveChat(-1,1,11,"between ticks");
+    assert(epochCount==4 && epochFrames[2].kind==CP_STATE && epochFrames[3].kind==CP_CHAT);
+    life=Companion_Next(life);
+    assert(epochFrames[2].life==life && epochFrames[3].life==life);
+
+    things[0].actorParams.health=100;
+    cue(things+1,JKBOT_SOUND_MUZZLE,SITHSOUNDFLAG_FOLLOWSTHING);
+    jkBot_Tick(.02f);
+    assert(epochCount==6 && epochFrames[4].kind==CP_STATE && epochFrames[5].kind==CP_SOUND);
+    life=Companion_Next(life);
+    assert(epochFrames[4].life==life && epochFrames[5].life==life && epochFrames[5].world==world);
+
+    SithWorld nextLevel=level;
+    sithWorld_g_pCurrentWorld=&nextLevel;
+    jkBot_Tick(.02f);
+    jkBot_ObserveChat(-1,1,11,"new world");
+    assert(epochCount==8 && epochFrames[6].kind==CP_STATE && epochFrames[7].kind==CP_CHAT);
+    for (unsigned i=6;i<8;i++)
+        assert(epochFrames[i].world==Companion_Next(world) && epochFrames[i].life==1);
+    for (unsigned i=1;i<epochCount;i++)
+        assert(epochFrames[i].seq==Companion_Next(epochFrames[i-1].seq));
+    jkBotCompanion_SetTransport(NULL);
+    bot.world=sithWorld_g_pCurrentWorld=NULL;
+    puts("PASS companion publishes new world, death and respawn states before hearing/chat while preserving continuous event sequence and ordinary state rate");
+}
+
 int main(void)
 {
     reset_scene();
@@ -236,6 +302,6 @@ int main(void)
     assert(Bot_InvestigateSound(things) && bot.axes[INPUT_FUNC_TURN]!=0);
     assert(!bot.keys[INPUT_FUNC_FIRE1] && !bot.keys[INPUT_FUNC_FIRE2]);
     puts("PASS audible rear footstep turns the bot within 70ms without firing");
-    test_portals(); test_identification_lifetime(); test_projectiles(); test_elite_acquisition(); test_elite_route();
+    test_portals(); test_identification_lifetime(); test_projectiles(); test_elite_acquisition(); test_elite_route(); test_companion_epoch_events();
     return 0;
 }

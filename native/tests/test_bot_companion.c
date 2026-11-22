@@ -29,10 +29,12 @@ static SithSector sector;
 static int channel[2];
 static unsigned char frame[513];
 static uint32_t epoch, life;
-static unsigned callbackFrames;
+static unsigned callbackAcks, callbackStates;
 static int countFrame(const uint8_t *data,size_t size)
 {
-    assert(size>=20 && size<=512 && !memcmp(data,"JKCP",4)); callbackFrames++;
+    assert(size>=20 && size<=512 && !memcmp(data,"JKCP",4));
+    if (data[5]==CP_ACK) callbackAcks++;
+    else { assert(data[5]==CP_STATE); callbackStates++; }
     return 0; /* a saturated consumer discards its copies */
 }
 static uint32_t word(const unsigned char *p)
@@ -149,8 +151,8 @@ int main(void)
     assert(!jkBotCompanion_Receive(frame,513));
     for (int i=0;i<16;i++) assert(jkBotCompanion_Receive(frame,28));
     assert(!jkBotCompanion_Receive(frame,28));
-    tick(); assert(callbackFrames==8);
-    tick(); assert(callbackFrames==16);
+    tick(); assert(callbackAcks==8 && callbackStates==1);
+    tick(); assert(callbackAcks==16);
     assert(jkBotCompanion_Receive(frame,28));
     /* Saturate native egress entirely without draining; gameplay advances. */
     jkBotCompanion_SetTransport(NULL); tick();

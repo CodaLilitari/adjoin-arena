@@ -1,16 +1,21 @@
 import asyncio
 import base64
+from contextlib import asynccontextmanager
 import sys
 import json
+import os
+import subprocess
 import struct
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from aiohttp import ClientSession
 from aiohttp.test_utils import TestClient, TestServer
 from web_bots import serve
 from bots import companion as cp
+from bots import companion_cli as cli
 
 
 class RelayReadyTests(unittest.TestCase):
@@ -45,6 +50,37 @@ class HostTests(unittest.IsolatedAsyncioTestCase):
         self.addAsyncCleanup(self.client.close)
         self.addCleanup(self.host.close)
         self.auth = {"Authorization":"Bearer "+self.host.tokens["lily"]}
+
+    @unittest.skipUnless(os.name == "nt", "Windows token SID and filesystem DACL")
+    async def test_generated_windows_credentials_and_lease(self):
+        # Each depth receives a file through its ordinary production path.
+        self.assertEqual(cli.load_private(self.host.runtime / "run.json")["room"], "My_Room")
+        self.assertEqual(cli.load_private(self.host.secrets_dir / "lily.json")["id"], "lily")
+        credential = self.host.hub.directory / "lily.json"
+        self.assertEqual(cli.load_private(credential)["bot_id"], "lily")
+        await self.boot()
+        state = bytearray(144)
+        struct.pack_into("<4I", state, 0, 1, 42, 88, 13)
+        struct.pack_into("<iII", state, 60, -1, 4, 0xffffffff)
+        self.assertEqual((await self.exchange([cp.frame(cp.STATE,1,1,1,state)])).status, 200)
+
+        def command(*args):
+            return cli.execute(cli.parser().parse_args(["--credentials", str(credential), *args]))
+
+        self.assertEqual(command("observe")["state"]["net_id"], 42)
+        lease = Path(command("attach", "test")["lease_file"])
+        self.assertEqual(cli.load_private(lease)["run_id"], self.host.hub.run_id)
+        self.assertEqual(command("renew")["expires_in"], 30)
+        command("release", "--wait", "0")
+        self.assertFalse(lease.exists())
+
+        # A separate synthetic marker contains no credential or lease.
+        marker = self.host.hub.directory / "test-acl.json"
+        marker.write_text("{}", encoding="utf-8")
+        subprocess.run(["icacls.exe", str(marker), "/grant", "*S-1-5-32-545:R"],
+                       check=True, capture_output=True)
+        with self.assertRaisesRegex(ValueError, "restricted to your account"):
+            cli.load_private(marker)
 
     async def test_scoped_asset_and_boot(self):
         url = "/engine/lily/boot"
@@ -152,6 +188,110 @@ class HostTests(unittest.IsolatedAsyncioTestCase):
         status=await (await self.client.get("/status")).json()
         self.assertNotIn("capture_id",status["capture"])
         self.assertEqual((self.host.runtime/status["capture"]["filename"]).read_bytes(),raw)
+
+    async def test_crashed_recorder_releases_handle_and_rejects_late_chunks(self):
+        await self.boot()
+        prefix="/engine/lily/capture/"
+        hdr={**self.auth,"X-Engine-Instance":"a"*32}
+        meta={"mime":"video/webm","audio_tracks":1,"width":640,"height":360}
+        first=await (await self.client.post(prefix+"start",json=meta,headers=hdr)).json()
+        old={**hdr,"X-Capture-ID":first["capture_id"],"X-Chunk-Index":"0"}
+        handle=self.host.capture["file"]
+        self.host.capture["last_chunk_mono"]-=serve.CAPTURE_IDLE_SECONDS+1
+        status=await (await self.client.get("/status")).json()
+        self.assertEqual(status["capture"]["status"],"aborted")
+        self.assertTrue(handle.closed)
+        self.assertTrue((self.host.runtime/("canyon-"+first["capture_id"]+".webm.part")).exists())
+        second=await (await self.client.post(prefix+"start",json=meta,headers=hdr)).json()
+        raw=bytes.fromhex("1a45dfa3")+b"new recording"
+        self.assertEqual((await self.client.post(prefix+"chunk",data=raw,headers=old)).status,409)
+        current={**hdr,"X-Capture-ID":second["capture_id"],"X-Chunk-Index":"0"}
+        self.assertEqual((await self.client.post(prefix+"chunk",data=raw,headers=current)).status,200)
+        self.assertEqual((await self.client.post(prefix+"finish",json={"chunks":1,"duration_seconds":2},headers=current)).status,200)
+        self.assertEqual((self.host.runtime/self.host.capture["filename"]).read_bytes(),raw)
+
+    async def test_restarted_browser_aborts_previous_capture(self):
+        await self.boot()
+        hdr={**self.auth,"X-Engine-Instance":"a"*32}
+        response=await self.client.post("/engine/lily/capture/start",headers=hdr,
+            json={"mime":"video/webm","audio_tracks":1,"width":640,"height":360})
+        self.assertEqual(response.status,200)
+        handle=self.host.capture["file"]
+        self.host.seats["lily"]["poll"]-=9
+        response=await self.client.post("/engine/lily/boot",json={"instance":"b"*32},headers=self.auth)
+        self.assertEqual(response.status,200)
+        self.assertTrue(handle.closed)
+        self.assertEqual(self.host.capture["status"],"aborted")
+
+    @asynccontextmanager
+    async def paused_capture_request(self, step, headers, metadata):
+        """Stop one real handler inside its awaited JSON read."""
+        entered, resume = asyncio.Event(), asyncio.Event()
+        read = self.host.body
+
+        async def controlled_read(request):
+            if request.headers.get("X-Test-Pause") == "1":
+                entered.set()
+                await resume.wait()
+            return await read(request)
+
+        with patch.object(self.host, "body", controlled_read):
+            task = asyncio.create_task(self.client.post("/engine/lily/capture/" + step,
+                headers={**headers, "X-Test-Pause":"1"}, json=metadata))
+            try:
+                await asyncio.wait_for(entered.wait(), timeout=3)
+                yield
+            finally:
+                resume.set()
+                response = await asyncio.wait_for(task, timeout=3)
+                try:
+                    self.assertEqual(response.status, 409)
+                finally:
+                    response.release()
+
+    async def test_paused_start_cannot_displace_live_capture_or_claim_restarted_seat(self):
+        await self.boot()
+        headers = {**self.auth, "X-Engine-Instance":"a"*32}
+        metadata = {"mime":"video/webm", "audio_tracks":1, "width":640, "height":360}
+        prefix = "/engine/lily/capture/"
+        async with self.paused_capture_request("start", headers, metadata):
+            current = await self.client.post(prefix+"start", headers=headers, json=metadata)
+            self.assertEqual(current.status, 200)
+            ident = (await current.json())["capture_id"]
+        self.assertEqual(self.host.capture["capture_id"], ident)
+        self.assertEqual(len(list(self.host.runtime.glob("*.webm.part"))), 1)
+        abort = await self.client.post(prefix+"abort", headers={**headers,"X-Capture-ID":ident})
+        self.assertEqual(abort.status, 200)
+
+        async with self.paused_capture_request("start", headers, metadata):
+            self.host.seats["lily"]["poll"] -= 9
+            reboot = await self.client.post("/engine/lily/boot", headers=self.auth, json={"instance":"b"*32})
+            self.assertEqual(reboot.status, 200)
+        self.assertEqual(self.host.capture["status"], "aborted")
+        self.assertEqual(len(list(self.host.runtime.glob("*.webm.part"))), 1)
+
+    async def test_paused_finish_cannot_finalize_expired_or_replaced_capture(self):
+        await self.boot()
+        headers = {**self.auth, "X-Engine-Instance":"a"*32}
+        metadata = {"mime":"video/webm", "audio_tracks":1, "width":640, "height":360}
+        prefix = "/engine/lily/capture/"
+        initial = await self.client.post(prefix+"start", headers=headers, json=metadata)
+        self.assertEqual(initial.status, 200)
+        old_id = (await initial.json())["capture_id"]
+        old_headers = {**headers, "X-Capture-ID":old_id}
+        raw = bytes.fromhex("1a45dfa3")+b"first capture"
+        uploaded = await self.client.post(prefix+"chunk", headers={**old_headers,"X-Chunk-Index":"0"}, data=raw)
+        self.assertEqual(uploaded.status, 200)
+        async with self.paused_capture_request("finish", old_headers, {"chunks":1,"duration_seconds":1}):
+            self.host.capture["last_chunk_mono"] -= serve.CAPTURE_IDLE_SECONDS+1
+            await self.client.get("/status")
+            replacement = await self.client.post(prefix+"start", headers=headers, json=metadata)
+            self.assertEqual(replacement.status, 200)
+            new_id = (await replacement.json())["capture_id"]
+        self.assertEqual((self.host.runtime/("canyon-"+old_id+".webm.part")).read_bytes(), raw)
+        self.assertFalse((self.host.runtime/("canyon-"+old_id+".webm")).exists())
+        self.assertEqual(self.host.capture["capture_id"], new_id)
+        self.assertEqual(self.host.capture["status"], "recording")
 
     async def test_internal_relay_accepts_only_the_proxy_proof(self):
         # The upstream handler doubles as an observable upgrade marker. This

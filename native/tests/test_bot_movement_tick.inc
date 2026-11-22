@@ -221,7 +221,11 @@ static void test_competitive_speed(void)
     memset(bot.keys,0,sizeof(bot.keys)); nav.forceJumpPending=1;
     Bot_TryMovementSpeed(&self); assert(bot.forceBin<0); nav.forceJumpPending=0;
     nav.waterExitUntil=bot.now+2; Bot_TryMovementSpeed(&self); assert(bot.forceBin<0); nav.waterExitUntil=0;
-    sector.flags=SITH_SECTOR_UNDERWATER; Bot_TryMovementSpeed(&self); assert(bot.forceBin<0); sector.flags=0;
+    /* Both a thing attachment and an unattached swimmer can carry non-surface
+       data in the stock attachment union. Inspect only genuine surfaces. */
+    self.attach_flags=0; self.attachedSurface=(SithSurface *)(uintptr_t)1;
+    sector.flags=SITH_SECTOR_UNDERWATER; Bot_TryMovementSpeed(&self); assert(bot.forceBin<0);
+    self.attach_flags=SITH_ATTACH_SURFACE; self.attachedSurface=&corridorFloor; sector.flags=0;
     own.aItems[SITHBIN_F_GRIP].state=SITHINVENTORY_ITEM_ACTIVATED;
     Bot_TryMovementSpeed(&self); assert(bot.forceBin<0); own.aItems[SITHBIN_F_GRIP].state=0;
     own.aItems[SITHBIN_FORCEMANA].amount=19; own.aItems[SITHBIN_S_LIGHT].amount=1;

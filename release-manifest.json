@@ -46,15 +46,15 @@
     },
     "bin/bots-jkweb/openjkdf2.js": {
       "mode": 420,
-      "sha256": "cea0a334571f31eea397f4b5693f2f1c366723d19b1a69afad507ce8581e6db9"
+      "sha256": "8eee651e0804ca97b07113541b7ab613eab81fe6c59eba39adfc8da858f04331"
     },
     "bin/bots-jkweb/openjkdf2.wasm": {
       "mode": 493,
-      "sha256": "d0c5521497c7841d04e0a97184c362199c1e88ac46425aee0b3fdacb196ebae6"
+      "sha256": "607c58429d62f7be53e0b82922e146e8055127ef3d054cf8f71a4e61ce383f4a"
     },
     "bin/bots-linux-x86_64/jk-bot-client": {
       "mode": 493,
-      "sha256": "dcd4143957ab90002c3335e83e0b427003681b5f2a29c9abdb9265a3d1828c17"
+      "sha256": "900a7bbc87f696f13b22ed2887838129587640d86af3e099d91f868ec91bb7ab"
     },
     "bin/bots-linux-x86_64/libGameNetworkingSockets.so": {
       "mode": 493,
@@ -86,7 +86,7 @@
     },
     "bots/companion.py": {
       "mode": 420,
-      "sha256": "c480d997865b81be76bdf91293df9e1e3df33ff73db64d3f7d0d072ca04eab0e"
+      "sha256": "f8231e9b664a436a2b3a027b89daf599021b724c56e71aabdc7d4a330c552548"
     },
     "bots/companion_cli.py": {
       "mode": 420,
@@ -182,7 +182,11 @@
     },
     "docs/BOTS_BEHAVIOR.md": {
       "mode": 420,
-      "sha256": "a3cbd993fa4c6a13e4e346ab74a26d0e63c9aa495e3dac278fe205dd7860cf1e"
+      "sha256": "5f2b012b4ffe9ba66703219d69b29bd1887224494d90724b0f9418382bf6718a"
+    },
+    "docs/BOTS_CONTINUATION.md": {
+      "mode": 420,
+      "sha256": "829c2b95c16976985bc7f8c7dc2043bc69a07b28df8ee4f5508d87980855621a"
     },
     "docs/BOTS_PROTOTYPE.md": {
       "mode": 420,
@@ -198,7 +202,7 @@
     },
     "docs/COMPANION.md": {
       "mode": 420,
-      "sha256": "cc4d363679d34314c63b3bb3311e7ae441e03259baac273d3259de7a1fdf6fca"
+      "sha256": "98f5cdf2b762fea85d7b97bc21521c7901522dc81fe5ecd49f5b40e94d907267"
     },
     "docs/NETWORKING.md": {
       "mode": 420,
@@ -240,6 +244,10 @@
       "mode": 420,
       "sha256": "41ebed83ae07f42521654bb54b3df23862b6c0b89d9b5ab84f9986ebeaa296be"
     },
+    "docs/reviews/2026-11-22-elite-bot-feedback.md": {
+      "mode": 420,
+      "sha256": "20ee9a4ce37f409cffda57c7b5072c1e95e07b68211eac4a885a7917079eb13d"
+    },
     "docs/superpowers/plans/2026-10-28-browser-spectator.md": {
       "mode": 420,
       "sha256": "8b424e08cfb8c2ed223665953f7c0c7083ccdd61e3b0995e27855ca3ab03aa9c"
@@ -259,6 +267,10 @@
     "docs/superpowers/plans/2026-11-21-competitive-force.md": {
       "mode": 420,
       "sha256": "dbcfb24109195629687fb401c12edde028714121ff6391f8195f8111bc9ea8e0"
+    },
+    "docs/superpowers/plans/2026-11-22-bot-supply-recovery.md": {
+      "mode": 420,
+      "sha256": "c93840f33446c584b6f6774c70332ff3c1861917d4fd1c84be7b3e2445e6d1db"
     },
     "docs/superpowers/specs/2026-10-28-browser-spectator-design.md": {
       "mode": 420,
@@ -510,7 +522,7 @@
     },
     "native/BOT_BUILD.json": {
       "mode": 420,
-      "sha256": "bd7fc18beac78d2c0acd7537c94a9681636cb6cc148a2bb7e98b9dc25a01913e"
+      "sha256": "d9e02c42a482409a65cebd82bc9abbc7df0e5760968f446437e1336f1f6f81cb"
     },
     "native/BUILD.json": {
       "mode": 420,
@@ -522,11 +534,11 @@
     },
     "native/bot-client.patch": {
       "mode": 420,
-      "sha256": "2d8a61f900aae8222dd9a66449b493453addda57abc17d2bb207c768bc412c1e"
+      "sha256": "e21eb3f2b71c428b199ed19489a77c224e104044440d299415bcb903509b6fe7"
     },
     "native/bot-relink-linux-x86_64.tar.gz": {
       "mode": 420,
-      "sha256": "78f34f21d65c662352161b3b9c35d782c87adae460e75740b50504fe75673abe"
+      "sha256": "ed413a47baf01274576c04696689bd914064cdc2c16e3c12ad2f07c0afb92797"
     },
     "native/build.sh": {
       "mode": 493,
@@ -574,7 +586,7 @@
     },
     "native/tests/run_bot_driver_tests.py": {
       "mode": 420,
-      "sha256": "bdac9790732dd061dc6ae6e7b635bbf60ebe19a9b53ba586d97e10ef02982095"
+      "sha256": "4406e668c223bcefd6d8b07298d1306a74f9246f0be81807ad90671f69a72e13"
     },
     "native/tests/run_bot_hearing_tests.py": {
       "mode": 420,
@@ -610,7 +622,11 @@
     },
     "native/tests/stock_water_replay/README.md": {
       "mode": 420,
-      "sha256": "eabae523ef15578cca32a736c6472d4d9ff0ca89babfd456ee0bf7e712c8ae6a"
+      "sha256": "7f8126d6cf922e5139544f204779e25c1af74ac31e3387b11d429e16223d509d"
+    },
+    "native/tests/stock_water_replay/bank_cases.tsv": {
+      "mode": 420,
+      "sha256": "2ae401185bdeb36944ea15fcebc72d42098920c779e424b4778dd7f9a5c0a67e"
     },
     "native/tests/stock_water_replay/geometry.py": {
       "mode": 420,
@@ -628,9 +644,13 @@
       "mode": 420,
       "sha256": "0f15f7b2f3beb776654f85405931f14bee918e725af9d1268ef283d6565bad02"
     },
+    "native/tests/test_bot_altfire.inc": {
+      "mode": 420,
+      "sha256": "b7d155d1ff8befe77e256440b35bb070ef3902ca70383c0ac76ee0133e3832fa"
+    },
     "native/tests/test_bot_behavior.inc": {
       "mode": 420,
-      "sha256": "280d56f4d24721cc7ed0abbe91fad7107f667b91c96537b3280acb40355f0ee9"
+      "sha256": "aa8dc76e8169a759086d8a83b975c2a19bf08a6f0a45435711c03fc74ed31134"
     },
     "native/tests/test_bot_c1_geometry.inc": {
       "mode": 420,
@@ -642,19 +662,27 @@
     },
     "native/tests/test_bot_combat.inc": {
       "mode": 420,
-      "sha256": "bdcfe62af0b0b18c574e52d6089ffb3c78dc1a85832fcf96f004aed01d8a5c57"
+      "sha256": "7dd5d5d5f1a669506048f22683d0bad0530f702dedfbf4f94b07aff998a0abcc"
+    },
+    "native/tests/test_bot_combat_jump.inc": {
+      "mode": 420,
+      "sha256": "11b25b15b803771300a166b5bf7fd2f7cb24de7411ad3d422e397c73c7ce2307"
     },
     "native/tests/test_bot_companion.c": {
       "mode": 420,
-      "sha256": "972a398a9f805e4dbe104358bd201a96ea03ade830d1b0c3886feec4fb66548e"
+      "sha256": "949a3ed4fe775780f3f43d97c7e7cea4fcfd86de2da22a95acc1de5c93ed18ed"
     },
     "native/tests/test_bot_driver.c": {
       "mode": 420,
-      "sha256": "ea3d0b5166fdcba3f2bd0a5892605f62b93da0351d931af53ab57f149640ac08"
+      "sha256": "0fd21d6347a520136f4103f786c5e3c718d1cf666bed30e26a70bc0094f46464"
+    },
+    "native/tests/test_bot_equipment.inc": {
+      "mode": 420,
+      "sha256": "90248138c7b2ae49ca25ab3dc7365bd998b4bb2aa2928b95ae8bc4f6ffd97d88"
     },
     "native/tests/test_bot_hearing.c": {
       "mode": 420,
-      "sha256": "e7246dd51e0ec43cf2fdfc0d7021464f907be44f829d56d937aa0dc11ead1d92"
+      "sha256": "47098867f75c667c332f02267b4c0a95eb9264eb0d73a60e9220d438f363d0ee"
     },
     "native/tests/test_bot_loadout.c": {
       "mode": 420,
@@ -662,15 +690,15 @@
     },
     "native/tests/test_bot_movement_tick.inc": {
       "mode": 420,
-      "sha256": "ac87d05bf31b653fef8087cfc77e0dab2c7fe3de586057035f472d3543e214e9"
+      "sha256": "a242a07245b08e268bf68eef1805b1d36a32c08b3ce66c04eadcff9686e7241b"
     },
     "native/tests/test_bot_navigation.inc": {
       "mode": 420,
-      "sha256": "cd4ef6c495178c96699ed1da11840e2349a34de759ab6c250c68c0575d271033"
+      "sha256": "373a020370db91e4020ad30938d444e67872023962fabeaa8b0c2aadd9ae4f8b"
     },
     "native/tests/test_bot_portal_collision.c": {
       "mode": 420,
-      "sha256": "bdae8278eb2c747fb08c3d0080deed229a5dc7a248143e250b49267ff450fba6"
+      "sha256": "98bd263ab7816254c6fd7e6b512b492a5d4a78cff5b173b31d2064f595c3a800"
     },
     "native/tests/test_bot_slope_geometry.inc": {
       "mode": 420,
@@ -740,6 +768,14 @@
       "mode": 420,
       "sha256": "d57e98e12452fdcb6b66c02c8c64868dccab4d155c02e28631ce7dff65e61ce4"
     },
+    "qa/bots-alt-fire.json": {
+      "mode": 420,
+      "sha256": "de547c76da62496a8469715c59b0e5edfb21a25a2a29675ee9b8626454227722"
+    },
+    "qa/bots-bank-landing.json": {
+      "mode": 420,
+      "sha256": "2824f9a4d612335d4536ca68fc38bb0135b57f0984fdff3f73753bb24d5039c6"
+    },
     "qa/bots-boss15-floor-regression.json": {
       "mode": 420,
       "sha256": "c00246e67f1403e3aa359a43cd655427da704db6d1def6a3651640ad20af6933"
@@ -755,6 +791,18 @@
     "qa/bots-c3-portal-regression.json": {
       "mode": 420,
       "sha256": "0943ec76d1ead791072db2ca456694274c9f2d26ba08aa3fa9fee9faf9789998"
+    },
+    "qa/bots-combat-jump.json": {
+      "mode": 420,
+      "sha256": "6b9c6faa58255d16a0748764aac1476cd35227bd91615c48551e3f6209009ca9"
+    },
+    "qa/bots-companion-event-order.json": {
+      "mode": 420,
+      "sha256": "0207670fb672f0c519d1a87036684345355680e01fc8794729cffdb7caf58219"
+    },
+    "qa/bots-companion-windows-credentials.json": {
+      "mode": 420,
+      "sha256": "78423da1c95800a41ae3a8b40ddead1a196b9d85387571c04d36dd55bbc81579"
     },
     "qa/bots-competitive-force-build.json": {
       "mode": 420,
@@ -775,6 +823,10 @@
     "qa/bots-ctf-cd64.json": {
       "mode": 420,
       "sha256": "2bf4c4ed43d4700f11dd8af78b443d13014b0ec269f7b3b076c447592ad672fe"
+    },
+    "qa/bots-equipment-routing.json": {
+      "mode": 420,
+      "sha256": "3aca4cf39651f9ebff2bd07340cd042abfdd1521c84ccc75a4d682618ea109ce"
     },
     "qa/bots-feature-build-acf7.json": {
       "mode": 420,
@@ -868,6 +920,10 @@
       "mode": 420,
       "sha256": "2e2fcd10ba4d495afde15bcbda42d0b10d696fdf19d5f0c6d072b9afb8ea9ed5"
     },
+    "qa/bots-pull-cancellation.json": {
+      "mode": 420,
+      "sha256": "d31bd36a7e42234faf1ab0dfab88a066164eb7bb34bb63f17ce6265ce9f16166"
+    },
     "qa/bots-recovery-assets.json": {
       "mode": 420,
       "sha256": "f069f5d7a8635f69231c630d36e20ab4f9cc33e01bd349ac74f72aa80f554cc5"
@@ -900,6 +956,14 @@
       "mode": 420,
       "sha256": "c263e1f73888ef336ddc95470431a86323f427b553d312d4934bd10081e916c1"
     },
+    "qa/bots-refinement-native-build.json": {
+      "mode": 420,
+      "sha256": "bf1c0b9357479f28fd5a4607ac1a154888b328bec4a44e84d6e0724b706b5f88"
+    },
+    "qa/bots-refinement-web-build.json": {
+      "mode": 420,
+      "sha256": "c61b8e4b4425cda6d8345a472d049b245367d26e46d43c6fbd66ad6a36dc8851"
+    },
     "qa/bots-server-controls.json": {
       "mode": 420,
       "sha256": "b5d1856c47364553821e79c90aec807ffc6794306491d4a2cdaabdf181ce0c52"
@@ -915,6 +979,18 @@
     "qa/bots-stock-spawn-atlas-receipt.json": {
       "mode": 420,
       "sha256": "001c94edf51eb89ab079cf92ecaf3af30acf221662445c21b34c9203827b931f"
+    },
+    "qa/bots-supply-recovery.json": {
+      "mode": 420,
+      "sha256": "4f68f328441f9bafcb21de50b2aed373bfbaf07b945588737c70e38086d2e3e7"
+    },
+    "qa/bots-underwater-gear.json": {
+      "mode": 420,
+      "sha256": "39308c043fd5d35caa3170bbc6072c224934826936af7d0e6ae56217c0eee1ac"
+    },
+    "qa/bots-web-host-recovery.json": {
+      "mode": 420,
+      "sha256": "26686cd884b758db8c6f290489ee45dc41cf8f06830cc70af356c8be8351c9f8"
     },
     "qa/browser-asset-admin-layout.json": {
       "mode": 420,
@@ -1638,7 +1714,7 @@
     },
     "tests/test_web_bot_host.py": {
       "mode": 420,
-      "sha256": "53e7caa09739836cb31d6d269becd120e0e116bd6d369906b1f3ed160f413d19"
+      "sha256": "0d4058b17d242df08d89b541842bc34765882844c1ff8c64fb56b49d81105488"
     },
     "tools/admin-helper.css": {
       "mode": 420,
@@ -1658,11 +1734,11 @@
     },
     "web_bots/BUILD.json": {
       "mode": 420,
-      "sha256": "54a7f9cfd150b481e742548274533bb43c6074e97b80692703dd02373ef7df6e"
+      "sha256": "898ccf3e19aadaf5dcd4f16822697abb48cb17ffa73c1261728097401da83cc6"
     },
     "web_bots/README.md": {
       "mode": 420,
-      "sha256": "4303158fb161ea030cf2fa110e326e274b4763d0e02aa8615bd3f2be2adda886"
+      "sha256": "398757d9721916523d45cbf42243af1b0d8a046b471c2f7f9b8dfa95ffa62ef4"
     },
     "web_bots/build.sh": {
       "mode": 493,
@@ -1670,15 +1746,15 @@
     },
     "web_bots/client.js": {
       "mode": 420,
-      "sha256": "8f7b78e697d5d53b5e737dc4982a224ef36ac87f0aa9ee903c63e43f0bec0a42"
+      "sha256": "99603a8c3aa67ae16460cf91f1860d9dc58a95b4bb1bef36d2e8039ee46a791e"
     },
     "web_bots/engine-relink.tar.gz": {
       "mode": 420,
-      "sha256": "3d76dc170c94f73d83375995789b6642176e1fb6e10bf1c49d0966d7029d5cdd"
+      "sha256": "6839d4dbf0976861edfc01c135cc546118e2928bba60c21cba512083f6600336"
     },
     "web_bots/engine.patch": {
       "mode": 420,
-      "sha256": "0a1c81b9663b0610e9b8b10b281e63e4b92496b4cf97ebd91993b49f7f61e7da"
+      "sha256": "7641d983ff5b784dbab7882c187208fdfb6f7b18d14929a1b4b21228b37aad22"
     },
     "web_bots/fetch_relay.py": {
       "mode": 420,
@@ -1690,7 +1766,7 @@
     },
     "web_bots/launch_chrome.py": {
       "mode": 420,
-      "sha256": "42e5925d4d423b9b4c68afa9dc5f39c94f9a7448a1f6bf523e5eaca451414761"
+      "sha256": "2a372cca1d3c1d0cd62dc707afed66c0c2bf5b4e43ce2e75f4b1c5142d657236"
     },
     "web_bots/package_engine.py": {
       "mode": 420,
@@ -1698,7 +1774,7 @@
     },
     "web_bots/serve.py": {
       "mode": 420,
-      "sha256": "e785cfc38face9082fb657e30cc1f064943ddf6cba43dcc32dbf0d3227e2c221"
+      "sha256": "6a0f182960e61ec845e4ae29e92c7024d641688c4acea15220735d578d2b9619"
     },
     "web_gateway/README.md": {
       "mode": 420,

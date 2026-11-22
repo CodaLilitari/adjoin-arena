@@ -131,6 +131,7 @@
         arguments: boot.mod ? ["-path","jkmods/companion"] : [],
         jkBotConfig:{mode:env.JK_BOT_WEB_MODE,role:env.JK_BOT_WEB_ROLE,room:env.JK_BOT_WEB_ROOM,name:env.JK_BOT_WEB_NAME,
                      model:env.JK_BOT_WEB_MODEL,sound:env.JK_BOT_WEB_SOUND,side:env.JK_BOT_FORCE_SIDE,
+                     saberColor:env.JK_BOT_WEB_SABER_COLOR,trace:env.JK_BOT_TRACE_FORCE==="1",
                      style:env.JK_BOT_FORCE_STYLE,thirdPerson:env.JK_BOT_WEB_THIRD_PERSON==="1",elite:true},
         jkRelayUrl:"ws://"+location.host+"/relay",
         locateFile:name => "/wasm/"+name,
@@ -171,7 +172,7 @@
 
   async function startRecording(seconds=120) {
     if (id!=="lily" || stage!=="running" || captured) throw new Error("Lily's running view is required.");
-    if (!(Number.isFinite(seconds) && seconds>0 && seconds<=120)) throw new Error("Duration must be 0..120 seconds.");
+    if (!(Number.isFinite(seconds) && seconds>0 && seconds<=240)) throw new Error("Duration must be more than 0 and at most 240 seconds.");
     if (!canvas.captureStream || typeof MediaRecorder==="undefined") throw new Error("Canvas recording is unavailable.");
     graphics();
     const stream=canvas.captureStream(30);

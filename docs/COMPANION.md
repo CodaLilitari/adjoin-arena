@@ -68,8 +68,20 @@ Autonomous restores the native default policy. A weapon preference also increase
 
 The v1 state object reports slot, net_id, guid, signature, game_time, position, health, shields, mana, weapon, kills, deaths, mode, goal, flags, target, hearing, ammo and force_mask. The target and hearing can be null. A visible target includes its slot, net_id, guid, signature, position and age. Hearing provides category, position, age and strength. Ammo reports energy, power, explosives (thermal detonators) and rail. State age is in seconds. Chat events include player slot, net_id and text. Sound events include category, position, strength and uncertainty. Each event also includes its cursor and world/life epochs. The four sound categories are movement, weapon, projectile/explosion, and ambiguous Force/arrival.
 
+In a supply trial, use successive live observations from the same life to check for an increase in
+ammunition. The bot can touch an item and turn toward air before the stock host confirms a grant.
+A route selection, item contact and inventory change answer different questions. JKCP v1 reports
+ammunition counts and the current goal. Attributing a gain to a specific backpack also requires
+evidence of its identity and the stock grant. See the [supply recovery receipt](../qa/bots-supply-recovery.json).
+
 ## Engine boundary
 
 The launcher gives the ordinary native player a single inherited nonblocking Unix datagram socket via `JK_BOT_COMPANION_FD`. The companion pump is bounded per bot. A separate same-origin WASM host adapter can forward the same binary records over its own scoped channel. A local browser adapter can take exclusive ownership with `hub.open_browser_channel(bot_id)`, relay incoming bytes through `channel.enqueue_native_frame(data)`, and drain commands with `channel.outgoing_frames()`. The owner closes the channel at teardown. Its browser-facing transport must authenticate independently of the companion controller. The player credential never goes into a game packet or chat. The v1 snapshot above describes precisely what this API exports. Additional privileged match observations for competitive use require explicit fields and engine support.
+
+Binary command deadlines are absolute monotonic seconds, not game time or a duration. The native same-host adapter uses the host monotonic clock. WASM has a different clock origin: the browser translates the hub deadline using the hub's sampled `server_mono` and the WASM timestamp taken before that HTTP exchange. Time spent in the exchange therefore consumes the command's remaining lifetime. The engine rejects nonfinite, expired, or more-than-30-second deadlines. Never send a hub clock value directly to WASM, and never turn a delayed delivery into a fresh full-length command.
+
+On a new world, death or respawn, the engine publishes a state snapshot on the transition tick. It sends that snapshot before a sound detected on the same tick so the hub can accept events under the new world and life. Event sequence numbers continue across the transition. [Event-order regression](../qa/bots-companion-event-order.json)
+
+Snapshots are normally emitted at 5 Hz. This API directs strategy; it does not replace frame-by-frame gameplay. A future diagnostic extension should explicitly identify water, attachment, breath, recovery and Force outcomes before external policies depend on them. The v1 fields cannot reliably infer all of those facts from position alone. Absence of an observed damage change is not proof that an opponent used Absorb.
 
 The self-hosted unchanged JKWeb classic client can share a Cross Server session with native players. That transport relationship alone does not establish that the browser runs these hooks, that every current upstream netcode supports Cross Server, or that a public lobby accepts these bots. See the build-specific qualification notes and the [binary protocol specification](superpowers/specs/2026-11-21-companion-hearing-design.md).

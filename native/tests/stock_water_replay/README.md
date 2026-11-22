@@ -29,3 +29,22 @@ The fixture uses the stock player size, standing height, air drag, and thrust. T
 The runner extracts the required stock control, movement, sector transition and endurance functions from the supplied source checkout. Physics and world collision code come from that checkout as well. The map conversion, generated C include and executable live in a temporary directory. Rendering, sound, inventory powers, multiplayer transport and other players are outside this fixture. The actor begins with the specified health, and the damage callback deducts the stock actor timer's damage directly.
 
 Look for `BREATH` (endurance reset), `TRANSITION` (a sector or surface flag change) and `SUPPORTED_DRY` (sustained floor attachment). The process exit code reports the final result.
+
+## Bank landing regression cases
+
+`bank_cases.tsv` supplies the six later swimmer poses at four initial yaw offsets and the three earlier sector-42 controls at their recorded test heading. Every row must establish 38 consecutive supported dry steps in its requested sector before the deadline. To run the full matrix from the repository root in Bash, set the three paths as above and run the following.
+
+```bash
+set -eu
+fixture=native/tests/stock_water_replay
+while IFS=$'\t' read -r id origin wet dry start x y z dt flags hp endurance pitch vz yaws; do
+    for yaw in ${yaws//,/ }; do
+        echo "$id yaw=$yaw"
+        python3 -B "$fixture/run.py" --source "$PATCHED_WEB_SOURCE" \
+            --build "$NATIVE_BUILD" --map "$OWNED_JKL" --origin "$origin" \
+            --wet "$wet" --dry "$dry" --start-sector "$start" --position "$x" "$y" "$z" \
+            --control-dt "$dt" --flags "$flags" --health "$hp" --endurance-ms "$endurance" \
+            --pitch "$pitch" --yaw "$yaw" --vertical-speed "$vz"
+    done
+done < <(tail -n +2 "$fixture/bank_cases.tsv")
+```

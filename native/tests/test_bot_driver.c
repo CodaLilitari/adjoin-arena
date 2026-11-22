@@ -47,10 +47,11 @@ flex_t sithCollision_SearchForCollisions(SithSector *sector, SithThing *thing,
     const rdVector3 *from, const rdVector3 *direction, flex_t distance,
     flex_t radius, int flags)
 {
-    (void)thing;
     queryDepth++; pendingHit=0;
     if (testCombatArena) {
         pendingHit=TestCombatCollision(sector,from,direction,distance,radius,&corridorHit);
+        if (thing && thing->type==SITH_THING_WEAPON && flags==0)
+            TestBeamCollision(thing,from,direction,distance,radius,&corridorHit,&pendingHit);
         return distance;
     }
     if (testC1Active) {
@@ -104,6 +105,7 @@ int sithCollision_HasLOS(SithThing *from, SithThing *to, int flags)
 { (void)from; (void)to; (void)flags; return testLOS; }
 SithThing *sithTemplate_GetTemplate(const char *name)
 {
+    if (testCombatArena && !strcmp(name,"+concblast2")) return &testConcBeam;
     if (testCombatArena && !strcmp(name,"+concbullet")) return &testConcProjectile;
     if (testCombatArena && !strcmp(name,"+raildet")) return &testRailProjectile;
     return NULL;
@@ -111,6 +113,8 @@ SithThing *sithTemplate_GetTemplate(const char *name)
 #include "test_bot_behavior.inc"
 #include "test_bot_navigation.inc"
 #include "test_bot_movement_tick.inc"
+#include "test_bot_combat_jump.inc"
+#include "test_bot_equipment.inc"
 
 int main(void)
 {
@@ -231,6 +235,8 @@ int main(void)
     test_bot_navigation();
     test_bot_gunshots();
     test_bot_arming();
+    test_bot_equipment();
     test_bot_movement_ownership();
+    test_combat_supply_jump();
     return 0;
 }
