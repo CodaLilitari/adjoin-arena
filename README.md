@@ -98,6 +98,13 @@ speak through ordinary game chat. The arena guide includes the pinned build,
 private setup, optional cosmetic model, and hardware capture instructions.
 Competitive strength remains experimental and requires human match evaluation.
 
+The [development tools](scripts/bot_development/README.md) preserve the recording,
+trace analysis, source verification and native observation helpers used during
+the bot refinements. The custom JKWeb JavaScript/WebAssembly runtime, complete
+engine patch and reproducible build inputs are included in this branch.
+See the [continuation checkpoint](docs/BOTS_CONTINUATION.md) for the latest trial
+and remaining navigation work.
+
 ## Optional native player bots
 
 The Linux server panel can start one to four ordinary player bots, chosen from

@@ -26,7 +26,7 @@
     },
     "README.md": {
       "mode": 420,
-      "sha256": "3d92bd7269b29cba70c9aee2bdc19abb7112d05539c4efba02da5727b6deb486"
+      "sha256": "6e40c6c68859e6f3c771e698aeaf434661f17608b945205dfcdaddf2ce3d8066"
     },
     "Start-Server.command": {
       "mode": 493,
@@ -186,7 +186,7 @@
     },
     "docs/BOTS_CONTINUATION.md": {
       "mode": 420,
-      "sha256": "f2306cfdabcc87398a370b3c25a5df0b8a2b5d026994d0350c94c6f9b0053d49"
+      "sha256": "18d603e2ac6beaf13cb5b20f95be5320c59b6328fb14123441c4b3a84b3c9bb5"
     },
     "docs/BOTS_PROTOTYPE.md": {
       "mode": 420,
@@ -823,6 +823,10 @@
     "qa/bots-ctf-cd64.json": {
       "mode": 420,
       "sha256": "2bf4c4ed43d4700f11dd8af78b443d13014b0ec269f7b3b076c447592ad672fe"
+    },
+    "qa/bots-development-tools.json": {
+      "mode": 420,
+      "sha256": "bbfbe8508250924199f4f36ce89199344455fb7509fd472947da2b2c91851890"
     },
     "qa/bots-dry-supply-detour.json": {
       "mode": 420,
@@ -1599,6 +1603,98 @@
     "qa/wine-setup-headless-lifecycle.json": {
       "mode": 420,
       "sha256": "33749b794ae6f518356ebae8f388a6b84b46cb1c8a996a6ff2e69f5cd0fb24a5"
+    },
+    "scripts/bot_development/README.md": {
+      "mode": 420,
+      "sha256": "afd5e9863af9273c0180ede1f372227f53d7fc218805117410f4e9025f987eac"
+    },
+    "scripts/bot_development/analysis/README.md": {
+      "mode": 420,
+      "sha256": "b2fb473da428821d35144cb4e540b507569882d7d30b44d46eba65d8d4d69550"
+    },
+    "scripts/bot_development/analysis/analyze_approach_windows.py": {
+      "mode": 420,
+      "sha256": "94869a39b8093f6082387b2a0362e2f7754b1c3438a2d3e8e8b1eb849961ce6d"
+    },
+    "scripts/bot_development/analysis/analyze_gameplay.py": {
+      "mode": 420,
+      "sha256": "c594d6257d0fa892364d1ec0428f7b88cfcafac826ea15b02f63c69151aaf8cf"
+    },
+    "scripts/bot_development/analysis/analyze_speedvideo.py": {
+      "mode": 420,
+      "sha256": "021fdcf3be664b4d05f59bd7b70c331ae976ee7378424bd11515d50eb8a8eb00"
+    },
+    "scripts/bot_development/analysis/analyze_trial.py": {
+      "mode": 420,
+      "sha256": "51d962d0902d7c7d0a8c357b0170ad6c2de281828f88551f8248de24670ff72b"
+    },
+    "scripts/bot_development/analysis/compare_gameplay.py": {
+      "mode": 420,
+      "sha256": "e809368f72ec2fe3aa0bffede72078dd6ca40f6b96d5e440e69f70094411ae4b"
+    },
+    "scripts/bot_development/analysis/compare_legacy_runs.py": {
+      "mode": 420,
+      "sha256": "8adfaac30f7ab236fa6e1eb458ef9f7d52360e0914b9d45542ff69e4b73e7825"
+    },
+    "scripts/bot_development/analysis/export_numeric_map.py": {
+      "mode": 420,
+      "sha256": "e6429d296fd1d4871e30eecb1afb1783d1cb24c4490786a83e4c7ec3bc97ef8c"
+    },
+    "scripts/bot_development/analysis/inspect_pool_context.py": {
+      "mode": 420,
+      "sha256": "fcc1f9b978196478442eb491b39031d7dab6a26db0efc49ed3841785cab696b4"
+    },
+    "scripts/bot_development/analysis/review_column.py": {
+      "mode": 420,
+      "sha256": "0b4f00a906972f4d3e326bf2d999ba61c9d49f5b7217ec71d0f0b84fd7ab6a11"
+    },
+    "scripts/bot_development/capture/README.md": {
+      "mode": 420,
+      "sha256": "20adab15e2e385b7cc9dcc8178ebf748649e8a6b6b5953419226a866ee7f93f9"
+    },
+    "scripts/bot_development/capture/install_overlay.py": {
+      "mode": 420,
+      "sha256": "f68bc87bdb1284d3679209e729b63fa549477505c9d56b45c9f0acede2a559c5"
+    },
+    "scripts/bot_development/capture/launcher_adapter.py": {
+      "mode": 420,
+      "sha256": "b82fd7d4ffdb14f26c4d8bb5a0167c1b7d8809a5f2a51147c8b808fa10fedfda"
+    },
+    "scripts/bot_development/capture/record_trial.py": {
+      "mode": 420,
+      "sha256": "5841e8d807af497e7f6ef6bb510238ac4fe131c847ae35e667b162058445cb6f"
+    },
+    "scripts/bot_development/capture/transcode_trial.py": {
+      "mode": 420,
+      "sha256": "171ff1112b153ec3bdfefba49935aa7e1110c613e105fad5b9204db5a8b7a0b7"
+    },
+    "scripts/bot_development/capture/transfer_packets.py": {
+      "mode": 420,
+      "sha256": "8369e8207b4e74375c9aa544254d8c26f81f12aff89fa4645ede520f380026dd"
+    },
+    "scripts/bot_development/legacy/README.md": {
+      "mode": 420,
+      "sha256": "3a1db69025ef7c23bf014b5ce964746df6dfca5f1e8e6e931dd6a55c948e531e"
+    },
+    "scripts/bot_development/legacy/native_force_observation.py": {
+      "mode": 420,
+      "sha256": "ea33d4f449e52af241f6d169ed0d3ab70ecf9a7b5a270a6a589a874be977b3cd"
+    },
+    "scripts/bot_development/legacy/rebuild_native_pair.py": {
+      "mode": 420,
+      "sha256": "9bf017473577126e0267a37b8c8e665ec93bb55357bea956cd9d3898cd49e2a9"
+    },
+    "scripts/bot_development/legacy/windows_force_bridge.py": {
+      "mode": 420,
+      "sha256": "0f6417e52dda599370a8fd3f262f282d571004e1f0ee5478da125a84b4860855"
+    },
+    "scripts/bot_development/verify/README.md": {
+      "mode": 420,
+      "sha256": "dbe46ceac2cb57cdf1a2e76d004bddf391848ad839934eeff6af3ce1db8275dc"
+    },
+    "scripts/bot_development/verify/web_candidate.py": {
+      "mode": 420,
+      "sha256": "cbdb13a612fbac51266292d949b8b98ce412fafd58d7e9dca6e9cbe0a9748022"
     },
     "scripts/build_platform_releases.py": {
       "mode": 420,

@@ -1,5 +1,10 @@
 # Competitive bot continuation
 
+The [development tools](../scripts/bot_development/README.md) preserve the capture,
+analysis, source verification and native observation helpers used for this work.
+The packaged custom JKWeb runtime includes its complete source patch and build
+inputs; the tool guide maps each artifact to its repository location.
+
 ## Packaged fifth refinement candidate
 
 The Linux and JKWeb packages include the reviewed correction for optional dry upgrades through a
