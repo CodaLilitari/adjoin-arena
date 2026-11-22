@@ -32,6 +32,25 @@ def pickup_catalog(source: str) -> dict[str, str]:
     return result
 
 
+_PROPERTY = re.compile(r"(\w+)=(\([^()=]*\)|[^\s=()]+)(?:\s+|$)")
+
+
+def _property_fields(fields: str) -> dict[str, str]:
+    """Read contiguous assignments; a parenthesized value may contain spaces."""
+    props = {}
+    cursor = 0
+    while cursor < len(fields):
+        match = _PROPERTY.match(fields, cursor)
+        if match is None:
+            token = fields[cursor:].split(None, 1)[0]
+            if re.fullmatch(r"\w+=", token):
+                raise ValueError(f"Property {token[:-1]} has an empty value")
+            raise ValueError(f"Malformed property assignment at {token!r}")
+        props[match[1].casefold()] = match[2].casefold()
+        cursor = match.end()
+    return props
+
+
 def parse_jkl(text: str) -> dict:
     """Parse only metadata needed by the audit, preserving inherited templates."""
     section = ""
@@ -53,17 +72,22 @@ def parse_jkl(text: str) -> dict:
         if match:
             counts[match[1].lower()] = int(match[2])
         if section == "templates":
-            row = line.split()
+            row = line.split(maxsplit=2)
             if len(row) < 2 or row[0].lower() in {"world", "end"}:
                 continue
             name, base = (v.casefold() for v in row[:2])
             if base != "none" and base not in templates:
                 errors.append(f"Template {name} has unknown earlier base {base}")
             props = templates.get(base, {}).copy()
-            props.update({k.casefold(): v.casefold() for k, v in re.findall(r"(\w+)=([^\s]+)", line)})
+            try:
+                if len(row) == 3:
+                    props.update(_property_fields(row[2]))
+            except ValueError as exc:
+                errors.append(f"Line {line_number}, template {name}: {exc}")
+                continue
             templates[name] = props
         elif section == "things":
-            row = line.split()
+            row = line.split(maxsplit=10)
             if line.casefold() == "end" or re.fullmatch(r"(?i)world\s+things\s+\d+", line):
                 continue
             order = authored_order
@@ -81,10 +105,8 @@ def parse_jkl(text: str) -> dict:
                 if index in things:
                     raise ValueError(f"Duplicate thing {index}")
                 props = templates[name].copy()
-                for key, value in re.findall(r"(\w+)=([^\s]*)", " ".join(row[10:])):
-                    if not value:
-                        raise ValueError(f"Thing {index} has empty override {key}")
-                    props[key.casefold()] = value.casefold()
+                if len(row) == 11:
+                    props.update(_property_fields(row[10]))
                 position = tuple(float(x) for x in row[3:6])
                 orientation = tuple(float(x) for x in row[6:9])
                 if not all(math.isfinite(x) for x in position + orientation):

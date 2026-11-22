@@ -69,6 +69,22 @@ class SpawnAtlasTests(unittest.TestCase):
         self.assertEqual(report["errors"], [])
         self.assertEqual(report["starts"][-1]["properties"]["orient"], "(0/90/0)")
 
+    def test_property_fields_must_be_complete_assignments(self):
+        from bots.spawn_atlas import build_map_atlas
+        for field in (b"=actor", b"type =actor", b"type==actor", b"type=actor=bad",
+                      b"orient=(0/90/0)junk", b"orient=(0 / 90 / 0", b"unassigned"):
+            for original in (b"type=actor\n5:", b"type=player thingflags=0x20"):
+                with self.subTest(field=field, original=original):
+                    replacement = field + (b"\n5:" if original.endswith(b"5:") else b"")
+                    report = build_map_atlas("arena.jkl", LEVEL.replace(original, replacement))
+                    self.assertEqual(report["status"], "incomplete")
+                    self.assertTrue(report["errors"])
+        fields = b"type=player  orient=(0 /  90 / 0)\tthingflags=0x20"
+        report = build_map_atlas("arena.jkl", LEVEL.replace(b"type=player thingflags=0x20", fields))
+        self.assertEqual(report["errors"], [])
+        self.assertEqual(report["starts"][0]["properties"]["orient"], "(0 /  90 / 0)")
+        self.assertEqual(report["starts"][0]["properties"]["thingflags"], "0x20")
+
     def test_invalid_records(self):
         from bots.spawn_atlas import build_map_atlas
         for before, after in [(b"5:", b"8:"), (b"5:", b"5"), (b"5:", b"-1:"),
