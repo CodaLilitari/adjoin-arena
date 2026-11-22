@@ -53,5 +53,14 @@
 - [x] Independently review Task 1 and fix substantive findings before packaging.
 - [x] Build both affected translation units; verify ordinary native join symbols and exact source/patch hashes.
 - [x] Package a candidate with matching patch, binary, build receipt and relink archive; keep claims limited to tests actually run.
-- [ ] Establish a private original-data or self-contained fixture path for connected cloud testing; use the existing player-bot hooks because the fork's agent controller is single-player only. Verify actual join/loadout and effects where possible; report an exact blocker for any missing test.
-- [ ] Update source audit and qualification receipt, review the final diff, push the authorized feature branch and report its URL and remaining competitive work.
+- [x] Establish a private original-data or self-contained fixture path for connected cloud testing; use the existing player-bot hooks because the fork's agent controller is single-player only. Verify actual join/loadout and effects where possible; report an exact blocker for any missing test.
+- [x] Update source audit and qualification receipt, review the final diff, push the authorized feature branch and report its URL and remaining competitive work.
+
+## Qualification checkpoint
+
+- Implementation: `5ac2c16`; matching native package: `ba6a3ca`; reviewed parser/documentation corrections: `fd78d3b`. The dedicated server was not modified.
+- Native planner: 54 legal rank/side/style combinations. Native controller: 32 result groups. Full Python suite: 204 tests, two PowerShell skips, no failures; subsequent map/parser correction: all 16 targeted tests passed.
+- Both changed native translation units were rebuilt. Independent review verified every one of the 218 relink inputs and the package/source hashes.
+- Original-data parser validation reproduced all nine maps and 193 authored starts exactly, with both original archive hashes unchanged.
+- Two private native sessions used the exact packaged client: 105 seconds on m2 and 75 seconds on m_boss17 after both joins. All 736 sampled live star vectors matched their selected builds. The second session observed both players targeting one another, Seeing, Absorb, dark Grip activity and independent light-client immobility/health changes. Exact damage attribution and modern browser/human competition remain unqualified.
+- The fork agent controller at `766d6def4b275499c1941fc97b5dd487cae7725d` explicitly restricts itself to single-player operation; these tests used ordinary bot-client multiplayer hooks.

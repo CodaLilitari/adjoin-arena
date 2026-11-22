@@ -282,5 +282,15 @@
     "No player target appeared in the periodic status samples and only Jump appeared in the requested-power trace.",
     "Sampled active flags and mana changes do not establish a particular remote player's damage source or a completed combat combo.",
     "Original game assets were local read-only inputs and are excluded from this repository."
-  ]
+  ],
+  "trace_evidence": {
+    "trace_file": "qa/competitive-force/trace-m2.jsonl",
+    "trace_sha256": "6e443d0cf48d37759f48c18b5242500cd6412e745830035ca0cb48568c71eec1",
+    "trace_rows": 431,
+    "receipt_sha256": "244435e073f436d2cd2353a8e3cca10c838227e330af6702d1c5f15408c3c50f"
+  },
+  "cleanup_observation": {
+    "owned_native_processes_remaining": 0,
+    "staged_input_directories_remaining": 0
+  }
 }

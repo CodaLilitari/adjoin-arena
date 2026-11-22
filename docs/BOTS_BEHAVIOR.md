@@ -253,6 +253,36 @@ in for connected gameplay.
 
 ## Connected gameplay qualification
 
+### Competitive Force candidate (`fc533197`)
+
+The candidate was run against the unchanged packaged dedicated server in two
+isolated native sessions using the original stock data. Both sessions loaded
+the intended rank-eight builds through the ordinary character path: all 736
+post-join state samples matched the selected six four-star powers. The tests
+used normal weapons, enabled Force, disabled fists peace and disabled chat.
+
+On `m2.jkl`, the clients remained joined for 105 seconds after the second join.
+Both requested Jump and showed stock mana changes and sampled active Jump
+state. No other Force input or player target appeared in those records. This
+run verifies native join and loadout integration, not combat proficiency.
+
+The additional 75-second `m_boss17.jkl` run sampled mutual player targets.
+Both clients showed active Seeing. The light client showed active Absorb and
+requested Pull and Healing; the dark client requested three Destructions, one
+Pull and one Grip. The dark client's Grip bin was sampled active ten times;
+the separate light-client trace sampled immobility nine times and recorded
+health changes. These are paired observations from ordinary play. They do not
+isolate exact damage attribution or prove every requested offensive effect hit.
+
+The receipts are [m2](../qa/bots-competitive-force-native-m2.json) and
+[m_boss17](../qa/bots-competitive-force-native-m_boss17.json). The
+[bounded harness](../qa/competitive-force/README.md) records the packaged and
+stock-map hashes, uses private copies of the required inputs, and stops its
+owned process groups. Neither run used current upstream JKWeb, a human player,
+simulated network latency, or every supported mode/map. Elite player strength,
+reliable encounter routes, predictive splash and the external companion remain
+unqualified by this evidence.
+
 Each receipt identifies the executable actually observed. Later navigation fixes do not retroactively
 qualify an earlier binary as the current package. The [competitive Force build receipt](../qa/bots-competitive-force-build.json)
 records the current package and its relink verification. The [historical build receipt](../qa/bots-feature-build.json)

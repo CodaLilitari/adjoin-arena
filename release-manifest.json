@@ -166,7 +166,7 @@
     },
     "docs/BOTS_BEHAVIOR.md": {
       "mode": 420,
-      "sha256": "5be814f2669b0f64592f2a3e0925c8a85eb0ad2ca1954164186241bfc94a12da"
+      "sha256": "33217365c441a114407f20f2c92fb75204382488e7ba7c0bd25ca07de2ecc5aa"
     },
     "docs/BOTS_PROTOTYPE.md": {
       "mode": 420,
@@ -234,7 +234,7 @@
     },
     "docs/superpowers/plans/2026-11-21-competitive-force.md": {
       "mode": 420,
-      "sha256": "88391a4ffdc15447e0c26739ff74b0c861f29bc303f567f415f5c73cfc98cbb2"
+      "sha256": "dbcfb24109195629687fb401c12edde028714121ff6391f8195f8111bc9ea8e0"
     },
     "docs/superpowers/specs/2026-10-28-browser-spectator-design.md": {
       "mode": 420,
@@ -686,11 +686,15 @@
     },
     "qa/bots-competitive-force-build.json": {
       "mode": 420,
-      "sha256": "47522acb04a95f2f2278a584acd9ce8011962fc13c6ee6434aed228af4dfc0f4"
+      "sha256": "bc62676af93e59ccd87fa590eb84024f9cbf3651835f3899caab604e09091e19"
     },
     "qa/bots-competitive-force-native-m2.json": {
       "mode": 420,
-      "sha256": "9f489c6937c47a340ddc5f7c2035e3454499a2737bb9e7e16f5978ba1e800bcc"
+      "sha256": "6f3458a389cbe03ef88cbf9686ce254aa1a167932638fe277e6ea29eaa2ee3e0"
+    },
+    "qa/bots-competitive-force-native-m_boss17.json": {
+      "mode": 420,
+      "sha256": "9d5f823eacc9e095d94de08f8b946da7ba7db7df8ece43701729ba36b6c07b42"
     },
     "qa/bots-ctf-acf7.json": {
       "mode": 420,
@@ -1126,11 +1130,23 @@
     },
     "qa/competitive-force/README.md": {
       "mode": 420,
-      "sha256": "df7bf73ab36f2231b5658db2f15b87b474e86c942dcea95a771992be744a1fd6"
+      "sha256": "17eecff34aa1ba64a6c8d010147b8f3eea401370862c299db7effaeb533a5cd0"
     },
     "qa/competitive-force/harness.py": {
       "mode": 420,
-      "sha256": "97d09d524a99e3e82137477c92cd2ef9c2c15b4623aed09a49dda631ed63f433"
+      "sha256": "99af029eca3084482f9842086606aef7019e98c9b1b855d01d929ff39a28df9d"
+    },
+    "qa/competitive-force/observations.json": {
+      "mode": 420,
+      "sha256": "78837162575de87772ae5ab3f7adc40c137b32b4f7e60401b7e06798ee9cab2e"
+    },
+    "qa/competitive-force/trace-m2.jsonl": {
+      "mode": 420,
+      "sha256": "6e443d0cf48d37759f48c18b5242500cd6412e745830035ca0cb48568c71eec1"
+    },
+    "qa/competitive-force/trace-m_boss17.jsonl": {
+      "mode": 420,
+      "sha256": "7e9f24a8837a8f041de99d78d81663b3c69ee6fe097d007b2176fcbc2095e29b"
     },
     "qa/controller_smoke.json": {
       "mode": 420,

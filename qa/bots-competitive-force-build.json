@@ -66,7 +66,15 @@
     }
   },
   "qualification": {
-    "connected_candidate_session": "pending; recorded separately",
+    "connected_candidate_session": {
+      "receipts": [
+        "qa/bots-competitive-force-native-m2.json",
+        "qa/bots-competitive-force-native-m_boss17.json"
+      ],
+      "native_join_and_live_loadouts": true,
+      "paired_combat_state_observed": true,
+      "isolated_effect_caster_attribution": false
+    },
     "full_dependency_rebuild": false,
     "elite_human_matches": false,
     "game_assets_included": false,
