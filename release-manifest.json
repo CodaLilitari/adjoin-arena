@@ -182,7 +182,7 @@
     },
     "docs/BOTS_BEHAVIOR.md": {
       "mode": 420,
-      "sha256": "84e0192289e5425ca707f6f98059f2ba1b0194e99a5e39c1743772937cad0f42"
+      "sha256": "a3cbd993fa4c6a13e4e346ab74a26d0e63c9aa495e3dac278fe205dd7860cf1e"
     },
     "docs/BOTS_PROTOTYPE.md": {
       "mode": 420,
@@ -842,7 +842,7 @@
     },
     "qa/bots-force-speed-followup.json": {
       "mode": 420,
-      "sha256": "3e68647de2cfcf780d41946c802356df533a92c33fa8671bc90bc6bab2ec2218"
+      "sha256": "70c6f86548ba0bad39da2c6c7d0571bb6f69001309bab858927a8895885ff7ad"
     },
     "qa/bots-initial-anchor-regression.json": {
       "mode": 420,

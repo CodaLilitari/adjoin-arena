@@ -142,7 +142,7 @@ whole body. A selected walking waypoint or pickup must also be at least that far
 keep firing while it presses the Speed hotkey. It defers Speed during Grip, jump preparation or
 flight, swimming, water exits, lift waits and obstacle recovery.
 
-Stock Speed costs 20 mana. A competitive bot normally waits until it has at least 60, leaving 40
+Stock Speed costs 20 mana. A competitive bot normally waits until it has at least 60, leaving at least 40
 for Jump and Pull. Either stock Force surge waives the debit while retaining the 20-mana minimum.
 At four stars the stock script adds 2.5 thrust and sets a 15-second timer, then fades the sound for
 0.75 seconds before clearing the effect. During a committed precision jump the bot eases its
