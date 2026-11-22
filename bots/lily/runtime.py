@@ -17,6 +17,7 @@ import time
 
 from . import protocol
 from .memory import route_key, skill_key
+from .motor_model import remaining_goal
 from .worker import MAX_DECISION, MAX_SOURCE, encode, read
 
 IDENT = re.compile(r"[A-Za-z0-9_-]{1,64}\Z")
@@ -449,6 +450,8 @@ class Supervisor:
                   "distance": length, "sector": choice["sector"], "item_bin": choice["item_bin"]}
         else:
             direction = goal["direction"] if goal else sense["facing"]
+            if goal:
+                goal = dict(goal, position=[v+d*goal["distance"] for v,d in zip(sense["position"],direction)])
             key = skill_key(self.environment, result["skill"], sense, direction)
         intent = dict(self.fence, request_id=request_id, policy_hash=self.active.digest,
                       sample_id=command["sample_id"], skill=result["skill"], kind=result["action"],
@@ -512,7 +515,8 @@ class Supervisor:
             self.emit("observation", sense=sense, state={k: v for k, v in obs["state"].items() if k in STATE_FIELDS},
                       policy_hash=u["policy_hash"] if attributed else None,
                       episode_id=u["episode_id"] if attributed else None,
-                      skill=u["skill"] if attributed else None, goal=u["goal"] if attributed else None)
+                      skill=u["skill"] if attributed else None,
+                      goal=remaining_goal(sense["position"], u["goal"]["position"]) if attributed and u["goal"] else None)
             if attributed and u["kind"] == "motor" and u["goal"]:
                 if u["motor_origin"] is None:
                     u["motor_origin"] = list(sense["position"])

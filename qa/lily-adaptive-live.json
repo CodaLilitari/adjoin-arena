@@ -722,6 +722,378 @@
         "completed_displacement_goals": 29,
         "censored_or_unscored": 2
       }
+    },
+    {
+      "schema": 1,
+      "probe": "stock-physics live JKCP motor control and executable replacement",
+      "provenance": {
+        "source_hashes": {
+          "src/AI/jkBot.c": "6913e05c649a625da9f15352ad62eca21f42d65158ba3501b64162c5e0774425",
+          "src/AI/jkBot.h": "47652fc419857c8c24bc0d4913b43dfe5f1a58ce5062c06f3b719400d02456b2",
+          "src/AI/jkBotBehavior.h": "59ff972747fb3aa9514fae11c003e803da8b40f1e42b68801db969414a2416df",
+          "src/AI/jkBotBehavior.inc": "f28ddaf54328b1ea8a6242902e268648b089fbf6b655f9657a006460a0cce559",
+          "src/AI/jkBotCombat.inc": "4800acb98786f311b10433f9f2893a688012714a26a0f71ecd908f9933c70cca",
+          "src/AI/jkBotCompanion.inc": "d4f43db307bbf4df2cd9669daff5d2a4f5a56660a83e236b2e070252cb082d7f",
+          "src/AI/jkBotForce.inc": "02a2625e4a9386ef8d20d976e14113e2cf47ba82047ee99a935f6db0d432b2e7",
+          "src/AI/jkBotHearing.inc": "fe85aa4d9c940086e504d39e981550130acaae397479f09bcce6ef1bad087d1c",
+          "src/AI/jkBotLily.inc": "6180fa6af33530350ca86934f0b4ae9acca8036b115175d38a2cf3d43210c85c",
+          "src/AI/jkBotLoadout.h": "aab6d025bb9ec2c431beb2d6bd559992b664e9ce075fcaa9c1103ae9ed5dcdc1",
+          "src/AI/jkBotNavigate.inc": "34f621368b9626ca7c771f58c0b4c381bb9afd0f9298fc5ca27fdca8018487fa",
+          "src/AI/jkBotNavigation.inc": "7fffa3f3e1afa5cf051372f960707c5b057d7cae4763061bb27693690079051e",
+          "src/AI/jkBotPersona.c": "618f31f58e45a13d89b5dc0493233d446d5eaeada681bd0de758a155a50d578d",
+          "src/AI/jkBotPersona.h": "e193097d937ed22400fe84d86a1e9e7f18884cc2be876fb1540627bee96e0bfb",
+          "src/AI/jkBotWaterExit.inc": "2d1b36d679222c48936b8d4e920991da87fda6e536010e783ea54232dc241383",
+          "src/Devices/sithControl.c": "cef5ce7f5a952b42c9726b51709aa2c9e2a2ca2cbdb0e01497675a6ed26d1df1",
+          "src/Engine/sithCollision.c": "ac54301bdf0da274af87ff6c8d20e6905c5688f92984f0f5d7321ea0235d4c63",
+          "src/Engine/sithIntersect.c": "963f1ad3fbe80da6afcbabec939a2a5e720ac06885a5eda9dc58ac0bcd5a6d96",
+          "src/Engine/sithPhysics.c": "bfd0e3e70ad7e88162805617744f1536d7bae0a4ee08b18c58bc673755d4796b",
+          "src/Gameplay/sithPlayerActions.c": "f8f8e156acdbaa251f1a10cafe06437b204db20034add746decaa5ab805d717c",
+          "src/General/stdMath.c": "ed3f12a57d4454ad8731ba94a68f42c5f983631e5540da7649cd4488a7c75995",
+          "src/Primitives/rdMath.c": "b3587b90480a02df9178779f424441f6111d87da470a8e17bb72fd5ad026539a",
+          "src/Primitives/rdMatrix.c": "0f0889fd0c9ce05fb768062061d4435b1df455fd6e16d629ea84e435581d1658",
+          "src/Primitives/rdVector.c": "097638a3da4264865ed16e95a486f85a69c415c12c17781e3bcf2a0802a9edca",
+          "src/World/sithActor.c": "8ff7b7025d7318c9e53a797c95d125274b5da707aa4b939aac8a65cbdb532e71",
+          "src/World/sithSector.c": "0a6e9cb0113e2d602a5550ceb7c2ffd203e81d6b385099729cede2edbb3e3e17",
+          "src/World/sithThing.c": "f3f6716e9e59f18b2be7278304522ca27aac01ca4288fcff5d92a8f64e7054ec"
+        },
+        "policy_hash": "16c43f6cd74950261bea092553ae72707588d3175befefd49c218d8b8339ba91",
+        "executable_sha256": "c96d844cbcdf7f6828bf920b5f1d591a5b90b49baae7451964fa5e9c3c45fcc6",
+        "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc"
+      },
+      "restart_readback": {
+        "matched": true,
+        "method": "After the live CLI exited, independent supervisors and workers used the identical captured pose and policy bytes. Validated decisions were captured before transport.",
+        "comparison_policy_sha256": "db60dd528ed8ef34ff76c5ad32d64bfc1a878d423ec4d2af6ea667a4f102d92e",
+        "fresh_database_decision": {
+          "skill": "sidestep",
+          "steps": [
+            {
+              "duration_ms": 250,
+              "strafe": 0.6
+            }
+          ],
+          "estimate": {
+            "attempts": 0,
+            "trials": 0,
+            "wins": 0,
+            "probability": 0.5,
+            "mean_seconds": null
+          }
+        },
+        "reopened_database_decision": {
+          "skill": "forward-probe",
+          "steps": [
+            {
+              "duration_ms": 250,
+              "forward": 0.6
+            }
+          ],
+          "estimate": {
+            "attempts": 3,
+            "trials": 3,
+            "wins": 3,
+            "probability": 0.8,
+            "mean_seconds": 0.5744281039951602
+          }
+        },
+        "skill": "forward-probe",
+        "source_sample_id": 86,
+        "action_seq": 1,
+        "key_sha256": "33fff3acf0b83634ee5c05d932360665af2a8570bf1cba1933e4343603f7363e",
+        "trace_wins": 3,
+        "trace_trials": 3,
+        "worker_context_estimate": {
+          "attempts": 3,
+          "trials": 3,
+          "wins": 3,
+          "probability": 0.8,
+          "mean_seconds": 0.5744281039951602
+        }
+      },
+      "policy_hashes": [
+        "47f4a0cd7f2f419cbbc0eb7fef03bdf6a2238b436f530afced423032b7fd1ff8",
+        "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8"
+      ],
+      "checks": {
+        "engine_landed": true,
+        "controller_exited_cleanly": true,
+        "both_policies_activated": true,
+        "both_policies_applied_inputs": true,
+        "invalid_candidate_rejected": true,
+        "baseline_resumed_after_controller_stop": true,
+        "real_outcomes_in_restarted_worker_context": true
+      },
+      "activated": [
+        {
+          "policy_hash": "47f4a0cd7f2f419cbbc0eb7fef03bdf6a2238b436f530afced423032b7fd1ff8",
+          "previous_hash": null,
+          "monotonic_seconds": 82374.506472424
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "previous_hash": "47f4a0cd7f2f419cbbc0eb7fef03bdf6a2238b436f530afced423032b7fd1ff8",
+          "monotonic_seconds": 82382.238191114
+        }
+      ],
+      "observed_motor_samples": {
+        "47f4a0cd7f2f419cbbc0eb7fef03bdf6a2238b436f530afced423032b7fd1ff8": 25,
+        "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8": 224
+      },
+      "outcomes": [
+        {
+          "policy_hash": "47f4a0cd7f2f419cbbc0eb7fef03bdf6a2238b436f530afced423032b7fd1ff8",
+          "action_seq": 1,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5579921689932235,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "47f4a0cd7f2f419cbbc0eb7fef03bdf6a2238b436f530afced423032b7fd1ff8",
+          "action_seq": 2,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5808502489962848,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "47f4a0cd7f2f419cbbc0eb7fef03bdf6a2238b436f530afced423032b7fd1ff8",
+          "action_seq": 3,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5546833039988996,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 4,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.720873580998159,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 5,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5964184119948186,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 6,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5554978529980872,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 7,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5945807669922942,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 8,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5572483860014472,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 9,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5871106649865396,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 10,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5610618959908606,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 11,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5620186390005983,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 12,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5627473250060575,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 13,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5644627660076367,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 14,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5933062419935595,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 15,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5955310319986893,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 16,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5628756340011023,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 17,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5953738820098806,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 18,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5844418939959724,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 19,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5563956940022763,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 20,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5838882370007923,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 21,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5907374590024119,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 22,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5976546910096658,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 23,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.590123168003629,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 24,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5990064130019164,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 25,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5898318709951127,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 26,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5956968009995762,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 27,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5908609220059589,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 28,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5906291550054448,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 29,
+          "status": "motor_goal_reached",
+          "physical_success": true,
+          "duration_seconds": 0.5723050399974454,
+          "applied_ms": 574
+        },
+        {
+          "policy_hash": "289f97130909f6db5fd34e0d82edd40afc89d0e97d937c0692f84583f6de63b8",
+          "action_seq": 30,
+          "status": "supervisor_exit",
+          "physical_success": null,
+          "duration_seconds": 0.561048565999954,
+          "applied_ms": null
+        }
+      ],
+      "limitations": [
+        "No rendering, multiplayer opponents, inventory COG execution or Force effects in this fixture.",
+        "The two probe policies deliberately test control authority; they are not competitive candidates.",
+        "A short observed displacement is distinct from successful water escape or improved game performance."
+      ],
+      "trial": "lily-live-physics-03",
+      "trace_sha256": "4f4e69018fb9662bcc1717821cd621dfc6aacc71ed6c3e5c3a969bddfa01a29b",
+      "summary": {
+        "completed_displacement_goals": 29,
+        "censored_or_unscored": 1,
+        "accepted_training_samples": 241,
+        "used_to_fit_candidate": false
+      }
     }
   ],
   "baseline_demonstrations": {
@@ -1081,12 +1453,23 @@
       ]
     },
     "closed_loop_evaluated": false,
-    "promoted": false
+    "promoted": false,
+    "policy_source_sha256": "fa0b92211d09e0c1eaa14e0bd55b103eec6278ce57d497fe16a94b787c662402"
   },
   "interpretation": [
     "The first probe did not reach dry support despite 37 successful short displacement goals. Local movement rewards do not establish task completion.",
     "The second probe allowed baseline swimming and airborne movement to complete before exercising motor authority and hot replacement.",
-    "Neither physical probe used the trained neural policy. Model metrics measure held-out control fit only.",
+    "The three physical handover probes used purpose-built test policies. The unpromoted neural candidate was evaluated on held-out demonstrated actions only.",
     "No new multiplayer win rate, human-opponent result or sustained-movement improvement is established."
-  ]
+  ],
+  "baseline_comparison": {
+    "reference": "bots-bank-landing.json",
+    "reference_sha256": "2824f9a4d612335d4536ca68fc38bb0135b57f0984fdff3f73753bb24d5039c6",
+    "observed_receipt_sha256": "9a7b51578ed736ea9850f08c75325ddeaf54e8283dc0fe15411388bc4a59a91e",
+    "matched_case_yaws": 27,
+    "expected_case_yaws": 27,
+    "mismatches": [],
+    "criterion": "Capability disabled. Equal supported dry time at original millisecond precision, landing health and sector.",
+    "max_unrounded_duration_delta_seconds": 0.00033352999999980426
+  }
 }

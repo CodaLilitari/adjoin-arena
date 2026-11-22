@@ -3,6 +3,7 @@ import argparse
 import csv
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -21,12 +22,45 @@ def case_environment(row, yaw):
     return env
 
 
+def compare_baseline(directory, reference):
+    """Match the legacy case/yaw matrix against a completed disabled-seat run."""
+    expected_table = json.loads(reference.read_text())
+    expected = {f"{r['case']}-yaw{r['yaw_deg']}": r for r in (
+        dict(zip(expected_table["matrix_columns"], values)) for values in expected_table["matrix_rows"])}
+    receipt = json.loads((directory/"receipt.json").read_text())
+    if len(expected) != len(expected_table["matrix_rows"]):
+        raise ValueError("Duplicate baseline case/yaw")
+    checks = {}
+    delta_max = 0.
+    for case in receipt["episodes"]:
+        name = case["episode_id"]
+        if name in checks or not re.fullmatch(r"[A-Za-z0-9_.-]{1,100}",name):
+            raise ValueError("Duplicate or invalid episode")
+        dry = re.search(r"^SUPPORTED_DRY elapsed ([0-9.]+).*? sector (\d+).*? health ([0-9.]+)$",
+                        (directory/(name+".log")).read_text(), re.M)
+        baseline = expected.get(name)
+        checks[name] = False
+        if not dry or not baseline or case.get("physical_success") is not True:
+            continue
+        elapsed, sector, hp = float(dry[1]), int(dry[2]), float(dry[3])
+        delta_max = max(delta_max, abs(case["duration_seconds"] - baseline["corrected_dry_s"]))
+        checks[name] = (elapsed == baseline["corrected_dry_s"] and sector == baseline["dry_sector"]
+                        and hp == baseline["hp_at_dry"] and math.isclose(elapsed,case["duration_seconds"],abs_tol=.001))
+    mismatches = sorted((expected.keys() ^ checks.keys()) | {name for name,ok in checks.items() if not ok})
+    return {"reference":reference.name,"reference_sha256":hashlib.sha256(reference.read_bytes()).hexdigest(),
+            "observed_receipt_sha256":hashlib.sha256((directory/"receipt.json").read_bytes()).hexdigest(),
+            "matched_case_yaws":sum(checks.values()),"expected_case_yaws":len(expected),"mismatches":mismatches,
+            "criterion":"Capability disabled. Equal supported dry time at original millisecond precision, landing health and sector.",
+            "max_unrounded_duration_delta_seconds":delta_max}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("source", "build", "map"):
         parser.add_argument("--"+name, required=True, type=Path)
     parser.add_argument("--cases", type=Path, default=HERE / "bank_cases.tsv")
     parser.add_argument("--output", type=Path, required=True, help="New private output directory")
+    parser.add_argument("--compare-baseline", type=Path, help="Compare matched case/yaw landings to an existing QA matrix.")
     args = parser.parse_args()
     args.output.mkdir(mode=0o700, parents=True, exist_ok=False)
     cases = list(csv.DictReader(args.cases.open(), delimiter="\t"))
@@ -62,7 +96,12 @@ def main():
             "Initial horizontal velocity is zero and the existing air-recovery timer is primed.",
             "Successful demonstrations support behavior cloning, not a claim of stronger gameplay."]}
     (args.output / "receipt.json").write_text(json.dumps(receipt,indent=2)+"\n")
-    return 0 if all(r["physical_success"] for r in results) else 1
+    passed = all(r["physical_success"] for r in results)
+    if args.compare_baseline:
+        comparison = compare_baseline(args.output, args.compare_baseline)
+        (args.output/"baseline-comparison.json").write_text(json.dumps(comparison,indent=2)+"\n")
+        passed = passed and not comparison["mismatches"]
+    return 0 if passed else 1
 
 
 if __name__ == "__main__":

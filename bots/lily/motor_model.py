@@ -13,9 +13,14 @@ OUTPUTS = ("forward", "strafe", "turn", "pitch", "jump_probability", "duck_proba
 
 
 def number(value):
-    if type(value) not in (int, float) or not math.isfinite(value):
-        raise ValueError("Expected a finite motor-model number.")
-    return float(value)
+    if type(value) in (int, float):
+        try:
+            numeric = float(value)
+            if math.isfinite(numeric):
+                return numeric
+        except OverflowError:
+            pass
+    raise ValueError("Expected a finite motor-model number.")
 
 
 def vector(value, count):
@@ -26,7 +31,7 @@ def vector(value, count):
 
 def unit(value):
     value = vector(value, 3)
-    length = math.sqrt(sum(x*x for x in value))
+    length = number(math.hypot(*value))
     if length < 1e-8:
         raise ValueError("A direction must have nonzero length.")
     return [x/length for x in value]
@@ -34,6 +39,16 @@ def unit(value):
 
 def dot(a, b):
     return sum(x*y for x, y in zip(a, b))
+
+
+def remaining_goal(position, endpoint, tolerance=1e-8):
+    """World-space direction and remaining distance to a fixed world endpoint."""
+    origin, end = vector(position, 3), vector(endpoint, 3)
+    delta = [number(target - start) for start, target in zip(origin, end)]
+    distance = number(math.hypot(*delta))
+    if distance <= tolerance:
+        return None
+    return {"position": end, "direction": [x / distance for x in delta], "distance": distance}
 
 
 def features(sense, state, goal):
@@ -70,10 +85,10 @@ def validate_model(model):
         raise ValueError("Motor observation/action contract differs.")
     try:
         normalization = model["normalization"]
-        vector(normalization["mean"], len(FEATURES))
+        means = vector(normalization["mean"], len(FEATURES))
         scale = vector(normalization["scale"], len(FEATURES))
-        if any(x <= 0 for x in scale):
-            raise ValueError("Normalization scale must be positive.")
+        if any(abs(x) > 1e6 for x in means) or any(not 1e-12 <= x <= 1e6 for x in scale):
+            raise ValueError("Normalization is outside the bounded physical feature contract.")
         hidden = len(model["b1"])
         if not 1 <= hidden <= 128 or len(model["w1"]) != hidden or len(model["w2"]) != len(OUTPUTS):
             raise ValueError("Motor network exceeds its supported shape.")
@@ -109,7 +124,7 @@ def predict(model, values):
     validate_model(model)
     values = vector(values, len(FEATURES))
     norm = model["normalization"]
-    inputs = [(x-m)/s for x,m,s in zip(values,norm["mean"],norm["scale"])]
-    hidden = [math.tanh(dot(row, inputs)+bias) for row,bias in zip(model["w1"],model["b1"])]
+    inputs = [number((x-m)/s) for x,m,s in zip(values,norm["mean"],norm["scale"])]
+    hidden = [math.tanh(number(dot(row, inputs)+bias)) for row,bias in zip(model["w1"],model["b1"])]
     logits = [dot(row, hidden)+bias for row,bias in zip(model["w2"],model["b2"])]
     return [math.tanh(x) for x in logits[:4]] + [1./(1.+math.exp(-max(-40.,min(40.,x)))) for x in logits[4:]]

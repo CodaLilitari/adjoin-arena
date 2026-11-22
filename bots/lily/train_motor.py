@@ -11,13 +11,63 @@ import json
 import math
 from pathlib import Path
 import random
+import re
 
-from .motor_model import FEATURES, OUTPUTS, canonical, features, vector
+from .motor_model import FEATURES, OUTPUTS, canonical, features, remaining_goal, vector
+
+
+def attribution(row, outcome, attempt):
+    """Return the trace producer only for an unambiguous native control sample."""
+    if not outcome or outcome.get("physical_success") is not True:
+        return None
+    policy_hash = row.get("policy_hash")
+    if (not isinstance(policy_hash, str) or not re.fullmatch("[0-9a-f]{64}", policy_hash)
+            or outcome.get("policy_hash") != policy_hash):
+        return None
+    run = row.get("run_id")
+    if not isinstance(run, str) or not run or run != outcome.get("run_id"):
+        return None
+    for name in ("world_epoch", "life_epoch"):
+        value = row.get(name)
+        if type(value) is not int or not 1 <= value <= 0xffffffff or type(outcome.get(name)) is not int or outcome[name] != value:
+            return None
+    sense = row.get("sense")
+    if not isinstance(sense, dict):
+        return None
+    seq = sense.get("action_seq")
+    if (type(seq) is not int or not 0 <= seq <= 0xffffffff or type(outcome.get("action_seq")) is not int
+            or outcome["action_seq"] != seq or sense.get("phase") != "running"):
+        return None
+    if seq == 0:
+        if (row.get("controller") == "native-baseline" and run == "stock-water-replay"
+                and outcome.get("controller", "native-baseline") == "native-baseline"
+                and sense.get("owner") == "baseline" and outcome.get("status") == "completed"
+                and outcome.get("criterion") == "38 consecutive supported dry physics steps"):
+            return "stock-water-replay"
+        return None
+    if not attempt or any(attempt.get(k) != row.get(k) for k in ("run_id","policy_hash","episode_id")):
+        return None
+    for key in ("world_epoch","life_epoch"):
+        if type(attempt.get(key)) is not int or attempt[key] != row[key]:
+            return None
+    revision = int(policy_hash[:8],16) or 1
+    if (type(attempt.get("action_seq")) is not int or attempt["action_seq"] != seq
+            or type(attempt.get("revision")) is not int or attempt["revision"] != revision
+            or type(sense.get("revision")) is not int or sense["revision"] != revision
+            or type(attempt.get("sample_id")) is not int or not 1 <= attempt["sample_id"] <= 0xffffffff
+            or type(sense.get("owner_sample_id")) is not int or sense["owner_sample_id"] != attempt["sample_id"]
+            or attempt.get("kind") != sense.get("owner")):
+        return None
+    expected_id = f"{run}/{row['world_epoch']}/{row['life_epoch']}/{seq}"
+    if (row["episode_id"] == expected_id and (sense.get("owner"),outcome.get("status"))
+            in (("motor","motor_goal_reached"),("route","arrived"))):
+        return "runtime"
+    return None
 
 
 def dataset(paths):
     """Retain only observed successful episodes with matching applied action IDs."""
-    rows, outcomes = [], {}
+    rows, outcomes, attempts = [], {}, {}
     for raw_path in paths:
         path = Path(raw_path)
         if path.stat().st_size > 128*1024*1024:
@@ -36,6 +86,10 @@ def dataset(paths):
                     if episode in outcomes and outcomes[episode] != row:
                         raise ValueError("Conflicting terminal outcomes for one episode.")
                     outcomes[episode] = row
+                elif row.get("event") == "attempt":
+                    if episode in attempts and attempts[episode] != row:
+                        raise ValueError("Conflicting attempts for one episode.")
+                    attempts[episode] = row
                 elif row.get("event") == "observation" and row.get("goal"):
                     rows.append(row)
                     if len(rows) > 250000:
@@ -43,15 +97,22 @@ def dataset(paths):
     accepted=[]
     for row in rows:
         outcome = outcomes.get(row["episode_id"])
-        if not outcome or outcome.get("physical_success") is not True or outcome.get("status") not in ("completed", "success", "arrived", "motor_goal_reached"):
+        producer = attribution(row,outcome,attempts.get(row["episode_id"]))
+        if not producer:
             continue
-        sense = row.get("sense") or {}
-        if sense.get("action_seq") != outcome.get("action_seq"):
-            continue
-        if outcome.get("policy_hash") is not None and row.get("policy_hash") != outcome["policy_hash"]:
-            continue
+        sense = row["sense"]
         try:
-            inputs = features(sense, row["state"], row["goal"])
+            goal = row["goal"]
+            if "position" in goal:
+                goal = remaining_goal(sense["position"], goal["position"])
+                if goal is None:
+                    continue
+            elif producer != "stock-water-replay":
+                # Historical live traces repeated their initial displacement
+                # without an endpoint. Only the identified baseline fixture
+                # already computed a fresh relative goal at every physics tick.
+                continue
+            inputs = features(sense, row["state"], goal)
             axes = vector(sense["axes"], 4)
             buttons = sense["buttons"]
             if type(buttons) is not int or not 0 <= buttons <= 31 or any(abs(x)>1.00001 for x in axes):

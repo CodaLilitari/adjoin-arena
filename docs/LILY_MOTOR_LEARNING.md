@@ -52,7 +52,8 @@ flags used by the native regression suite.
 ```sh
 python native/tests/stock_water_replay/collect_motor.py \
   --source "$PATCHED_NATIVE_SOURCE" --build "$NATIVE_BUILD" \
-  --map "$OWNED_JKL" --output "$NEW_PRIVATE_DEMO_DIRECTORY"
+  --map "$OWNED_JKL" --output "$NEW_PRIVATE_DEMO_DIRECTORY" \
+  --compare-baseline qa/bots-bank-landing.json
 
 python -m bots.lily.train_motor "$NEW_PRIVATE_DEMO_DIRECTORY"/*.jsonl \
   --output candidate.json --epochs 200 --hidden 32 --seed 23
@@ -67,9 +68,9 @@ episodes; otherwise the episode itself is the split unit. At least two independe
 successful groups are required. Related demonstrations must be given the same
 group by the data producer.
 
-The exported policy takes a fresh, fenced operator directive whose `goal` is
-`learned-motor` and whose `parameters` contain a world direction, positive distance,
-and optional `duration_ms` in 1..600. The default duration is 550 ms. Its outputs
+Every accepted live training row matches a physical terminal on its scoped episode ID, integer action sequence and SHA-256 policy identity. The native sample's revision must match the full policy hash's 32-bit wire revision. Its owner must be running, its source sample must match the recorded attempt, and the attempt, observation and outcome must share an identity and life fence. Sequence zero is reserved for an identified native-baseline stock-water demonstration with its supported dry landing criterion. Old live motor samples that repeat an initial direction and distance without a world endpoint are excluded. Historical stock-water demonstrations already measured the direction and remaining distance to the dry node at every tick. The original 4,306 replay samples remain eligible.
+
+The exported policy takes a fresh, fenced operator directive whose `goal` is `learned-motor` and whose `parameters.position` is a fixed world-space endpoint. Each inference recomputes the relative direction and remaining distance from the current pose. It waits within 0.001 game units of the endpoint. The target must be within 100 game units to produce a motor action. Optional `parameters.duration_ms` accepts 1..600 and defaults to 550 ms. Its outputs
 still pass through native command validation and ordinary player controls.
 Demonstration control ticks and a deployed motor chunk can have different timing;
 that difference is another reason to require physical evaluation before promotion.
@@ -77,10 +78,9 @@ Use the staging and rollback procedure in [the controller guide](LILY_ADAPTIVE.m
 
 ## What live replacement actually proved
 
-The [integration receipt](../qa/lily-adaptive-live.json) records two bounded
+The [integration receipt](../qa/lily-adaptive-live.json) records three bounded
 stock-physics probes through the real native JKCP socket, authenticated companion
-HTTP service, supervisor process and policy child processes. Neither probe
-replaced the engine binary while it was running.
+HTTP service, supervisor process and policy child processes. Each ran against a fixed engine binary.
 
 The first deliberately simple forward-and-turn policy took control underwater.
 Two revisions produced ordinary inputs, a broken candidate was rejected and the
@@ -96,6 +96,10 @@ rejected, and baseline control resumed after supervisor shutdown. The actor also
 established the required dry landing. These are control and handover results.
 The probe policies are not the trained network and do not establish a competitive
 advantage.
+
+A third run exercised the same dry-ground handoff with the `forward-probe` skill. Its two revisions produced 25 and 224 attributed control samples. Across 30 action outcomes, 29 reached their short displacement criterion and one was censored at shutdown. The subsequent offline readback opened the same SQLite database in an independent supervisor. At the same recorded pose, identical fresh policy workers made different validated motor decisions. An empty database supplied the 0.5 prior and the probe policy selected a 250 ms sidestep. The reopened database supplied three wins in three scored attempts, giving a smoothed probability of 0.8 and a 250 ms forward stride. The first controller's physical trace independently contains those three outcomes. The fresh workers ran after the fixture ended and both proposals were captured before transport. Attributed rows now carry a fixed endpoint and current remaining distance, and 241 samples from that trial passed the training filters. They were excluded from the previously fitted candidate.
+
+A case-by-case comparison matched all 27 disabled-seat landings to the historical bank matrix on case, yaw, landing sector, health and supported dry time at millisecond precision. The largest difference between an unrounded recorded duration and the published rounded time was 0.000334 seconds. The receipt identifies the exact reference and collection digests.
 
 ## Development target
 

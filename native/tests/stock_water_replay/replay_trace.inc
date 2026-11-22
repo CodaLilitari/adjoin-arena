@@ -24,14 +24,14 @@ static void motor_trace_frame(SithThing *me,const BotNode *dry,float elapsed,flo
     fprintf(motorTrace,"{\"schema\":1,\"event\":\"observation\",\"monotonic_seconds\":%.9g,"
         "\"run_id\":\"stock-water-replay\",\"world_epoch\":1,\"life_epoch\":1,"
         "\"episode_id\":\"%s\",\"split_group\":\"%s\",\"policy_hash\":\"%s\",\"controller\":\"native-baseline\","
-        "\"goal\":{\"direction\":[%.9g,%.9g,%.9g],\"distance\":%.9g},"
+        "\"goal\":{\"position\":[%.9g,%.9g,%.9g],\"direction\":[%.9g,%.9g,%.9g],\"distance\":%.9g},"
         "\"state\":{\"health\":%.9g,\"shields\":%.9g,\"mana\":%.9g},"
         "\"sense\":{\"action_seq\":0,\"owner\":\"baseline\",\"phase\":\"running\","
         "\"position\":[%.9g,%.9g,%.9g],\"velocity\":[%.9g,%.9g,%.9g],"
         "\"facing\":[%.9g,%.9g,%.9g],\"up\":[%.9g,%.9g,%.9g],"
         "\"head_pitch\":%.9g,\"supported\":%s,\"medium\":\"%s\","
         "\"breath_used_ms\":%u,\"tick_ms\":%.9g,\"axes\":[%.9g,%.9g,%.9g,%.9g],\"buttons\":%u}}\n",
-        elapsed,motorEpisode,motorGroup,motorPolicy,delta.x/distance,delta.y/distance,delta.z/distance,distance,
+        elapsed,motorEpisode,motorGroup,motorPolicy,dry->pos.x,dry->pos.y,dry->pos.z,delta.x/distance,delta.y/distance,delta.z/distance,distance,
         me->actorParams.health,sithInventory_GetInventory(me,SITHBIN_SHIELDS),sithInventory_GetInventory(me,SITHBIN_FORCEMANA),
         me->position.x,me->position.y,me->position.z,me->physicsParams.vel.x,me->physicsParams.vel.y,me->physicsParams.vel.z,
         me->orient.lvec.x,me->orient.lvec.y,me->orient.lvec.z,me->orient.uvec.x,me->orient.uvec.y,me->orient.uvec.z,
@@ -44,7 +44,7 @@ static void motor_trace_end(SithThing *me,int success,float elapsed)
     if (!motorTrace) return;
     fprintf(motorTrace,"{\"schema\":1,\"event\":\"outcome\",\"monotonic_seconds\":%.9g,"
         "\"run_id\":\"stock-water-replay\",\"world_epoch\":1,\"life_epoch\":1,"
-        "\"episode_id\":\"%s\",\"policy_hash\":\"%s\",\"action_seq\":0,"
+        "\"episode_id\":\"%s\",\"controller\":\"native-baseline\",\"policy_hash\":\"%s\",\"action_seq\":0,"
         "\"status\":\"%s\",\"physical_success\":%s,\"duration_seconds\":%.9g,"
         "\"criterion\":\"38 consecutive supported dry physics steps\","
         "\"start_position\":[%.9g,%.9g,%.9g],\"end_position\":[%.9g,%.9g,%.9g]}\n",
