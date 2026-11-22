@@ -119,6 +119,98 @@ def clean_process(status, native):
     return normal
 
 
+def available_stream(path):
+    """Keep complete records, including a final JSON object lacking only its newline."""
+    if not path.exists():
+        return []
+    records = [prior.available_record(line) for line in path.read_bytes().splitlines(keepends=True)]
+    return records[:-1] if records and records[-1] is None else records
+
+
+def censored_engine(work, job, case, status, decide):
+    """Check the engine oracle and available actuation even when a worker lost its journal."""
+    wait_code = status["engine_returncode"] if status else None
+    code = wait_code if wait_code in (0, 1) else None
+    log = work/"engine.log"
+    if log.exists() and any(line.startswith(b"STOCK FULL TICK") for line in log.read_bytes().splitlines()):
+        marked = prior.engine_code(log)
+        if code is not None:
+            equal(marked, code, "censored engine marker")
+        code = marked
+
+    events = available_stream(work/"native.jsonl")
+    if not events:
+        return None
+    assigned = events[0]
+    equal([assigned.get("event"), assigned.get("sector")], ["assigned",job["target_sector"]], "native assignment")
+    end = events[-1] if events[-1].get("event") == "terminal" else None
+    controls = events[1:-1] if end is not None else events[1:]
+    check(all(r.get("event") == "control" for r in controls), "unexpected native event")
+    if end is None:
+        return None
+    physical_code = int(end["terminal"] != "supported_dry") if code is None else code
+    check(motor.valid_terminal(end, job, physical_code), "invalid native terminal")
+    equal(len(controls), end["ticks"], "terminal/control count")
+
+    # Physical controls and timings are independently witnessed by the engine.
+    # A journal prefix can corroborate only its own recorded decisions.
+    frames = available_stream(work/"motor.jsonl")
+    check(len(frames) <= 2*len(controls), "motor stream exceeds terminal")
+    journal = available_stream(work/"decisions.jsonl")
+    check(len(journal) <= len(controls), "journal exceeds terminal")
+    previous = step = 0
+    residual = 0.
+    dt = motor.f32(job["control_dt"])
+    owner = "model" if decide is not None else "baseline"
+    for tick, actual in enumerate(controls):
+        equal([actual["tick"],actual["step"],actual["owner"]], [tick,step,owner], "native tick/owner")
+        axes, buttons = actual["axes"], actual["buttons"]
+        check(len(axes) == 4 and all(type(a) in (int,float) and math.isfinite(a) for a in axes)
+              and type(buttons) is int and 0 <= buttons <= (3 if decide else 31), "invalid physical control")
+        if 2*tick < len(frames):
+            obs = frames[2*tick]
+            motor.physical_record(obs)
+            equal([obs["event"],obs["tick"],obs["step"],obs["sense"]["buttons"]],
+                  ["observation",tick,step,previous], "physical observation order/buttons")
+            equal(obs["goal"], {"sector":assigned["sector"], "position":assigned["position"]}, "physical goal")
+            sense = obs["sense"]
+            wet = sense["medium"] == "water"
+            equal(actual["wet"], wet, "physical medium")
+            check(type(sense["on_water_surface"]) is bool and type(sense["supported"]) is bool
+                  and sense["medium"] in ("water","air") and (tick or wet)
+                  and sense["on_water_surface"] == bool(obs["physics_flags"] & 0x100000)
+                  and math.isclose(sense["tick_ms"],dt*1000,abs_tol=.0001), "invalid physical observation")
+            if tick == 0 and (work/"start.json").exists():
+                origin = prior.available_record((work/"start.json").read_bytes())
+                if origin is not None:
+                    motor.verify_start(obs, case, job["yaw_deg"], origin)
+            if decide is not None:
+                duration = job["requested_hold_ms"]
+                observation = {"state":obs["state"], "lily":{"sense":obs["sense"]}}
+                context = {"directive":{"goal":"learned-motor","parameters":{
+                    "position":assigned["position"], "duration_ms":duration}}}
+                expected = motor.quantized(decide(observation,context),duration)
+                prior.check_censored_control(actual, "control", tick, step, expected, previous)
+        if 2*tick+1 < len(frames):
+            applied = frames[2*tick+1]
+            equal([applied[k] for k in ("event","tick","step","owner","source_tick","axes","buttons","presses")],
+                  ["input",tick,step,owner,tick,axes,buttons,buttons & ~previous], "physical actuation")
+        previous = buttons
+        span = dt+residual
+        ticks = math.floor(span*motor.HZ+.5)
+        residual = span-ticks/motor.HZ
+        if tick == len(controls)-1:
+            check(step < end["step"] <= min(step+ticks,motor.MAX_STEPS), "invalid terminal physics step")
+        step += ticks
+    if (len(frames) == 2*len(controls) and (decide is None or len(journal) == len(controls))
+            and (work/"start.json").is_file()
+            and prior.available_record((work/"start.json").read_bytes()) is not None):
+        # A fully witnessed terminal retains all the unchanged stock joins, even
+        # when an independently observed late failure prevents scoring it.
+        motor.assess(job, work, physical_code, case)
+    return end
+
+
 def audit_attempt(assignment, work, case, policy, model):
     """Reconstruct one claim from immutable raw files; contradictions raise ValueError.
 
@@ -154,14 +246,7 @@ def audit_attempt(assignment, work, case, policy, model):
     status = read(work/"process.json") if "process.json" in raw else None
     if status is None or not clean_process(status, native):
         partial = prior.censored_evidence(work, job, raw, decide)
-        # Even a failed worker can leave complete engine evidence. A clean engine
-        # wait with a final marker must agree with that marker and physical oracle.
-        if status and status["engine_returncode"] in (0, 1) and "engine.log" in raw:
-            markers = [s for s in (work/"engine.log").read_bytes().splitlines() if s.startswith(b"STOCK FULL TICK")]
-            if markers:
-                equal(prior.engine_code(work/"engine.log"), status["engine_returncode"], "censored engine marker")
-                if partial["observed_native_terminal"] is not None and allowed <= set(raw):
-                    motor.assess(job, work, status["engine_returncode"], case)
+        partial["observed_native_terminal"] = censored_engine(work, job, case, status, decide)
         return dict(partial, status="censored", row=None, process=status,
                     reason="missing_process_witness" if status is None else "abnormal_process")
     check(set(raw) - {"process.json.partial"} == allowed, "clean attempt file inventory")

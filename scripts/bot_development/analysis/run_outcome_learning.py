@@ -58,6 +58,27 @@ def claim(path):
     path.mkdir(mode=0o700)
 
 
+def require_inventory(directory, directories, files):
+    """A completed predecessor must have exactly its declared direct children."""
+    check(directory.is_dir() and not directory.is_symlink(), f"missing or indirect inventory: {directory.name}")
+    actual = {p.name:p for p in directory.iterdir()}
+    check(actual.keys() == directories | files
+          and all(not p.is_symlink() and (p.is_dir() if name in directories else p.is_file())
+                  for name,p in actual.items()), f"ambiguous evidence inventory: {directory.name}")
+
+
+def stage_inventory(output, stage):
+    folders = {"build", "models", "train"}
+    files = {"run.json", "training.json"}
+    if stage == "evaluate":
+        folders.add("select")
+        files.update(("selection.json", "freeze.json"))
+    require_inventory(output, folders, files)
+    require_inventory(output/"train", {f"g{n:02d}" for n in range(1,9)}, set())
+    if stage == "evaluate":
+        require_inventory(output/"select", {"development"}, set())
+
+
 def canonical_output(run_id, output):
     equal(run_id, RUN_ID, "declared run ID")
     expected = Path("/dev/shm")/run_id
@@ -358,6 +379,10 @@ def open_block(output, stage, label, bank, ids, refs, binding, edges):
     directory = output/stage/label
     models = {name:identity(ref) if ref else None for name,ref in refs.items()}
     ledger = assignments(label, bank, ids, models, binding)
+    receipts = {"assignments.json","block.json"}
+    if stage == "train":
+        receipts.add("ranking.json")
+    require_inventory(directory, {a["work_dir"] for a in ledger}, receipts)
     equal(read(directory/"assignments.json"), ledger, "saved assignment ledger")
     block = read(directory/"block.json")
     equal(block["assignments_sha256"], motor.digest(directory/"assignments.json"), "saved ledger digest")
@@ -488,6 +513,7 @@ def run(stage, path, output, workers, source=None, build=None, map_path=None):
         check(not output.exists(), "run already claimed; no retry or resume")
     else:
         check(all(p is None for p in (source,build,map_path)), "build arguments are train-only")
+        stage_inventory(output, stage)
     decl, digest, banks = declaration(path)
     _, edges, winners = history(decl)
     if stage == "train":

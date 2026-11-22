@@ -111,3 +111,57 @@ class RolloutTests(unittest.TestCase):
             outcome = r.audit_attempt(a, work, c, policy, model)
             self.assertEqual(outcome["status"], "censored")
             self.assertIsNone(outcome["row"])
+
+    def test_late_worker_retains_engine_terminal_with_short_or_torn_journal(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            a,w,c,p,m,s = self.fixture(Path(tmp))
+            args = (a,w,c,p,m)
+            s.update(worker_returncode=7,error={"type":"ValueError","message":"worker_failed"})
+            (w/"process.json").write_text(json.dumps(s))
+            # Three actual engine control ticks; the independent journal can lose
+            # zero, some or all records that were still buffered when the worker died.
+            frames = list(map(json.loads,(w/"motor.jsonl").read_bytes().splitlines()))
+            start, control, end = map(json.loads,(w/"native.jsonl").read_bytes().splitlines())
+            journal, motor, native = [],[],[start]
+            for tick,step in enumerate((0,6,12)):
+                obs = dict(frames[0],tick=tick,step=step)
+                motor.extend([obs,dict(frames[1],tick=tick,step=step,source_tick=tick)])
+                native.append(dict(control,tick=tick,step=step))
+                journal.append((json.dumps(dict(tick=tick,observation_sha256=r.prior.sha((json.dumps(obs)+"\n").encode()),
+                                                quantized=[0]*5))+"\n").encode())
+            native.append(dict(end,ticks=3,step=13))
+            from test_lily_recovery_evaluation import write_rows
+            write_rows(w/"native.jsonl",native)
+            write_rows(w/"motor.jsonl",motor)
+            for recorded, count in ((b"".join(journal),3),(journal[0],1),(b"",0),(journal[0]+journal[1][:8],1)):
+                with self.subTest(count=count,length=len(recorded)):
+                    (w/"decisions.jsonl").write_bytes(recorded)
+                    evidence = r.audit_attempt(*args)
+                    self.assertEqual((evidence["status"],evidence["row"],evidence["reinferred_decisions"]),
+                                     ("censored",None,count))
+                    self.assertEqual(evidence["observed_native_terminal"]["ticks"],3)
+            (w/"decisions.jsonl").write_bytes(b"")
+            native[2]["axes"]=[1,0,0,0]
+            write_rows(w/"native.jsonl",native)
+            with self.assertRaises(ValueError):
+                r.audit_attempt(*args)
+
+    def test_worker_death_does_not_mask_corrupt_terminal_or_engine_marker(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            a,w,c,p,m,s = self.fixture(Path(tmp))
+            s.update(worker_returncode=7,error={"type":"ValueError","message":"worker_failed"})
+            (w/"process.json").write_text(json.dumps(s))
+            trace = w/"native.jsonl"
+            lines = trace.read_bytes().splitlines(keepends=True)
+            terminal = json.loads(lines[-1])
+            for changed in (dict(terminal,health=50),dict(terminal,ticks=2),dict(terminal,step=8)):
+                with self.subTest(changed=changed):
+                    trace.write_bytes(b"".join(lines[:-1])+(json.dumps(changed)+"\n").encode())
+                    with self.assertRaises(ValueError):
+                        r.audit_attempt(a,w,c,p,m)
+            trace.write_bytes(b"".join(lines[:-1])+b'{"event":"ter')
+            self.assertIsNone(r.audit_attempt(a,w,c,p,m)["observed_native_terminal"])
+            trace.write_bytes(b"".join(lines))
+            (w/"engine.log").write_bytes(b"STOCK FULL TICK landed=1\n")
+            with self.assertRaisesRegex(ValueError, "censored engine marker"):
+                r.audit_attempt(a,w,c,p,m)

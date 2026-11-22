@@ -142,3 +142,67 @@ class RunnerTests(unittest.TestCase):
                                 dict(binding=binding,edges={},winners=[],workers=1),freeze,opened)
             self.assertEqual([x[:2] for x in blocks], [("sealed",["v3","selected","native"]),
                              *((k,["v3","selected"]) for k in run.DIAGNOSTIC)])
+
+    def test_run_refuses_orphan_stage_receipts_before_launch(self):
+        from unittest.mock import patch
+        for stage, names in (("select",("selection.json","freeze.json","selection.json.partial","freeze.json.partial",
+                                        "evaluate","previous-select")),
+                             ("evaluate",("evaluation.json","evaluation.json.partial","previous-evaluate"))):
+            for orphan in names:
+                with self.subTest(stage=stage, orphan=orphan), tempfile.TemporaryDirectory() as tmp:
+                    root = Path(tmp)
+                    for d in ("train","build","models"):
+                        (root/d).mkdir()
+                    for f in ("run.json","training.json"):
+                        run.write(root/f,{})
+                    for g in range(1,9):
+                        (root/"train"/f"g{g:02d}").mkdir()
+                    if stage == "evaluate":
+                        (root/"select"/"development").mkdir(parents=True)
+                        for f in ("selection.json","freeze.json"):
+                            run.write(root/f,{})
+                    if "." in orphan:
+                        (root/orphan).touch()
+                    else:
+                        (root/orphan).mkdir()
+                    launch = Mock(side_effect=AssertionError("physical launcher reached"))
+                    bank = dict(ids=[])
+                    hdr = {"fixture_sources":{"evaluator":{"native/tests/stock_water_replay/evaluate_motor.py":"a"}}}
+                    with (patch.object(run,"canonical_output",return_value=root),
+                          patch.object(run,"declaration",return_value=({},"d",{"development":bank,"sealed":bank})),
+                          patch.object(run,"history",return_value=(None,{},[])),
+                          patch.object(run,"verify_header",return_value=hdr),
+                          patch.object(run,"train_generations",return_value={"checkpoints":{}}),
+                          patch.object(run,"open_block",return_value=({},{})),
+                          patch.object(run,"development",side_effect=run.development if stage=="select" else None,
+                                       return_value={"selected":"g4","model":{}}),
+                          patch.object(run,"run_block",launch),
+                          self.assertRaisesRegex(ValueError,"inventory")):
+                        run.run(stage, root/"decl.json", root, 1)
+                    launch.assert_not_called()
+
+    def test_completed_block_refuses_extra_physical_attempt_directory(self):
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            blockdir = root/"select/development"
+            blockdir.mkdir(parents=True)
+            job = dict(episode_id="e",controller="baseline",case="pose", target_sector=41)
+            bank = dict(role="development",sha256="digest",jobs={("e","baseline"):job},cases={"pose":{}})
+            refs = {"native":None}
+            ledger = run.assignments("development",bank,["e"],refs,{})
+            result = dict(status="complete",row=dict(job,seed=1,origin_sha256="o",target_position=[1,2,3],
+                                                      initial_observation_sha256="s",physical_success=False))
+            (blockdir/ledger[0]["work_dir"]).mkdir()
+            run.write(blockdir/"assignments.json",ledger)
+            run.write(blockdir/"block.json",dict(attempts=[result],counts=run.counts_for([result]),
+                                                assignments_sha256=run.motor.digest(blockdir/"assignments.json")))
+            args = (root,"select","development",bank,["e"],refs,{}, {41:[1,"o",[1,2,3]]})
+            with patch.object(run.trial,"audit_attempt",return_value=result):
+                run.open_block(*args)
+                other = blockdir/"foreign--e"
+                other.mkdir()
+                run.write(other/"assignment.json",dict(ledger[0],candidate_id="foreign"))
+                run.write(other/"process.json",dict(engine_returncode=0))
+                with self.assertRaisesRegex(ValueError,"inventory"):
+                    run.open_block(*args)
