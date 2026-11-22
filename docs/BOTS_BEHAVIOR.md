@@ -98,12 +98,17 @@ stock budget is three stars per rank, up to four per power. Neutral powers becom
 successive side powers at ranks 4–7. The normal profile-loading path installs the saved allocation. The
 driver does not inject mana, stars, ammunition, or health during play.
 
-Kyle is light/balanced; Boba, Trooper, Bossk, Greedo, and Yun are dark/balanced. Jan and Sariss request
-light/dark master builds respectively. At rank 8, those master builds spend 16 stars on their four side
-powers, leave eight unspent, and let the stock editor rules derive Protection or Deadly Sight. They have
-no neutral powers at that rank; lower ranks use balanced allocations. These are project personas, not
-canonical character-ability claims. The [loadout tests](../native/tests/test_bot_loadout.c) cover the
-rank budgets.
+All eight shipped profiles now request `competitive`. Kyle and Jan are light; the other six are dark.
+At rank 8 both sides put four stars in Jump, Speed, Seeing and Pull. Dark adds Grip and Destruction;
+light adds Absorb and Healing. Lower ranks allocate one level at a time across the eligible powers.
+The dark allocation follows historical BGJ guidance; the light allocation is a legal engineering
+baseline to measure, not a claim about a champion's exact build. See the
+[Force source audit](../qa/bots-force-source-audit.json).
+
+Custom profiles retain `balanced` and `master`. At rank 8, a master spends 16 stars on the four side
+powers and leaves eight unspent so the stock editor rules derive Protection or Deadly Sight. Its lower
+ranks use balanced allocation. An omitted custom style remains balanced. The
+[loadout tests](../native/tests/test_bot_loadout.c) cover all 54 rank/side/style combinations.
 
 In range formulas, `L` means stars in that power (1–4), not the session rank.
 
@@ -111,23 +116,31 @@ In range formulas, `L` means stars in that power (1–4), not the session rank.
 |---|---|
 | Jump | A validated route gap with sufficient rank/mana; ordinary charged hotkey and landing checks. |
 | Speed | A sufficiently long, verified supported walking segment rather than a drop. |
-| Seeing | Blindness or recent damage with no visible target; stock effects must actually clear blindness. |
+| Seeing | Competitive style prepares while unblinded for an observed engagement or recent threat/damage. Stock Seeing prevents new Blind effects; it does not cure existing Blind. |
 | Pull | Disarm an eligible gun user within `0.5 + L/2` world units. |
 | Healing | Low health, with the stock mana and availability gates. |
 | Persuasion | Very low health after higher-priority defensive opportunities. |
 | Blinding | Eligible target within `1 + L` world units. |
-| Absorption | Recent attributed hostile Force threat. |
+| Absorption | Recent attributed hostile Force threat; competitive style can also prepare during a visible engagement. Urgent healing remains first. |
 | Protection | Recent damage and reduced health, when the master power exists. |
 | Throw | Nearby debris and an eligible target within four world units; restricted as below. |
-| Grip | Eligible target within one world unit; hold for targeting, then release. |
+| Grip | Eligible target within one world unit; release initiated by the controller requires the intended identity and local COG victim to match. A valid ongoing Grip permits weapon/Bacta input and prevents automatic Force switching. |
 | Lightning | Short held burst with clear aim and protected-player checks. |
 | Destruction | A distant target with conservative splash clearance. |
 | Deadly Sight | Multiple nearby enemies, only outside peace/team play. |
 
 Availability, cooldown, control/blindness state, mana, sight, range, and target eligibility gate
-requests. Surge pickups waive some stock consumption, but the scripts still require nominal mana to
-activate. A requested hotkey is not proof of a successful effect; `BOT_FORCE_INPUT` records the request
-only.
+requests. Competitive style uses a 0.15-second guard between power requests; legacy styles retain
+2.4 seconds, and all styles respect COG-owned per-bin waits. Surge pickups waive some stock
+consumption while most powers still require nominal mana to activate. Protection is an exception:
+its stock script deducts mana without a minimum-mana gate. A requested hotkey is not proof of a
+successful effect; `BOT_FORCE_INPUT` records the request only.
+
+The controller cannot suppress the stock inventory handler's own forced release when actor controls
+become disabled during a held power. That handler sends `DEACTIVATED` before a next-skill cancellation
+can be processed; Grip can then act on its stock-selected eligible victim. This differs from turning
+off the bot's Force setting while ordinary controls remain available. Target-verified release describes
+the controller's initiated action, not an override of every stock engine release path.
 
 Pull, Grip, and Blinding have stock deselection handlers, so a held cast can be cancelled before release
 when its target becomes protected. Throw's deselection only hides its marker: cancellation holds the key

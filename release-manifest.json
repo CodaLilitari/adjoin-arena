@@ -46,7 +46,7 @@
     },
     "bin/bots-linux-x86_64/jk-bot-client": {
       "mode": 493,
-      "sha256": "50924ed74935a06edfb7ee5e937f756ea0a68a7386534740f2e2917ac835779c"
+      "sha256": "fc5331973d4c68d53ceba238ecaca50eb606f66d7a647c00ce0c5e6daaf1bd67"
     },
     "bin/bots-linux-x86_64/libGameNetworkingSockets.so": {
       "mode": 493,
@@ -66,7 +66,7 @@
     },
     "bots/README.md": {
       "mode": 420,
-      "sha256": "fcc8ea9013f3b58c99f527dd1558c3f632271059fdb0d007056976290c89cee0"
+      "sha256": "07baf8c41a3857a85b565ec9569b6f2db96a0ea0c15e3bde9c1d038b412d877e"
     },
     "bots/SOURCES.json": {
       "mode": 420,
@@ -78,19 +78,23 @@
     },
     "bots/map_audit.py": {
       "mode": 420,
-      "sha256": "32804e1c6df6a9ef2dfe12eedfd36d1b69c20d4ec5bc870977c47e6a6e4f11bf"
+      "sha256": "6d0ea18ac1a465e80d32defdbfea3977abf23be2c7ab0f2c1b69591028f6d8c0"
     },
     "bots/profiles.json": {
       "mode": 420,
-      "sha256": "6e439a854243678158e9956ea169ab785fe84f5a550fcd8592797c328880fd82"
+      "sha256": "3487ebd67371705aab8dd72dd3a1986b78599eaf566125ad36fbb8ab9ec3772a"
     },
     "bots/run.py": {
       "mode": 420,
-      "sha256": "c02f41dee9eeab5330c3e0a564839f2baf09a8093f907affc4fca019f2d2fe23"
+      "sha256": "232f76e1f75d0563ab3b123c08e7a9145fce54682ee9c77eda87a511ca349b2a"
     },
     "bots/settings.py": {
       "mode": 420,
       "sha256": "04f7187279f77f58e15ce9f7b8de864012e71337eede30dce96cbe0be461d288"
+    },
+    "bots/spawn_atlas.py": {
+      "mode": 420,
+      "sha256": "096e1e952e547172e3e7910dcce585277de84510b5b69eb37fb0558471bb9414"
     },
     "directplay/Makefile": {
       "mode": 420,
@@ -162,7 +166,7 @@
     },
     "docs/BOTS_BEHAVIOR.md": {
       "mode": 420,
-      "sha256": "21764556376a885e974672502985cdcb942479a46869763473610ee3f76c4849"
+      "sha256": "26caf5209e890091dec2d68661cd7b9ec4e2c737a7f727f6351b9497f9d8a912"
     },
     "docs/BOTS_PROTOTYPE.md": {
       "mode": 420,
@@ -224,9 +228,25 @@
       "mode": 420,
       "sha256": "d6c9c8faa363647e65fdce82be028a634924825115633cee289669cd33354272"
     },
+    "docs/superpowers/plans/2026-11-21-competitive-bot-foundation.md": {
+      "mode": 420,
+      "sha256": "687a286f11ff4671e97ca46794d8eaf69d46ecc80b729edd3d31e7d16e8d8f55"
+    },
+    "docs/superpowers/plans/2026-11-21-competitive-force.md": {
+      "mode": 420,
+      "sha256": "79aeafd909c3c0ce7ad9e8701b986fc7dc46e47aa83a8add693dc8f3facae4e2"
+    },
     "docs/superpowers/specs/2026-10-28-browser-spectator-design.md": {
       "mode": 420,
       "sha256": "2b344376d42cc9926b18715dd2c1afd55fbfcc934f075cd2c68ed60c60f558f5"
+    },
+    "docs/superpowers/specs/2026-11-21-competitive-bots-design.md": {
+      "mode": 420,
+      "sha256": "fa8d47683822b7f37031f2f1c8a984a70e194a806343981f5ccf6b7822118aad"
+    },
+    "docs/superpowers/specs/2026-11-21-competitive-force-design.md": {
+      "mode": 420,
+      "sha256": "ddb41b779efeabcd43ef1808080f2aa253fb9b753a2f4104cfdc5889e1c3a6f9"
     },
     "examples/jk.json": {
       "mode": 420,
@@ -462,7 +482,7 @@
     },
     "native/BOT_BUILD.json": {
       "mode": 420,
-      "sha256": "febb8d1ece0ec7960eabb1817e03a3bf53a2bdc456879989d90900abc8b13e90"
+      "sha256": "e1c33fef1fbd9827f542b014abe2096540c099f3b8b31a91982df77bd7d39251"
     },
     "native/BUILD.json": {
       "mode": 420,
@@ -470,15 +490,15 @@
     },
     "native/README.md": {
       "mode": 420,
-      "sha256": "8cf452bb85d80a87d483496fdafadb6ad18feabb63987e217fac91febe9b7f6a"
+      "sha256": "142a3b05e5af6297862d0fb1ffd2b707d214a1282d64a3683102c2f939cbe90d"
     },
     "native/bot-client.patch": {
       "mode": 420,
-      "sha256": "94b425eff4527345e15dd589a356486d7e97f89243110ec06bc749d58841debd"
+      "sha256": "d318b22a03a8fad496be56605b0189ac34b9b99a4150912ad555884d14d6f8e9"
     },
     "native/bot-relink-linux-x86_64.tar.gz": {
       "mode": 420,
-      "sha256": "d44966fb988c17cc896546898481de30456350677dc20b769d669a051e917792"
+      "sha256": "a2998752735eaa70c07ab49089d8e110a25bf7859e9b4545b1a8a2c36d3ff73c"
     },
     "native/build.sh": {
       "mode": 493,
@@ -554,7 +574,7 @@
     },
     "native/tests/test_bot_behavior.inc": {
       "mode": 420,
-      "sha256": "e960c8e237537d608b9aa4a7623d69236499d103113a6d9db3fca306994a8dc2"
+      "sha256": "419121df8c3c905aa2e398a2ea8021a1e32dcef15107ee3171e86ec8b2d52f8f"
     },
     "native/tests/test_bot_c1_geometry.inc": {
       "mode": 420,
@@ -570,7 +590,7 @@
     },
     "native/tests/test_bot_loadout.c": {
       "mode": 420,
-      "sha256": "ee73838be9966facb56cee2d4a783e5cd0d55bc90cadc0ba301419583c765a32"
+      "sha256": "c484ad22b6445f91d7cac6cff573f39bfc8b46dbc07f99f8d33435b7f439aca8"
     },
     "native/tests/test_bot_navigation.inc": {
       "mode": 420,
@@ -664,6 +684,10 @@
       "mode": 420,
       "sha256": "0943ec76d1ead791072db2ca456694274c9f2d26ba08aa3fa9fee9faf9789998"
     },
+    "qa/bots-competitive-force-build.json": {
+      "mode": 420,
+      "sha256": "47522acb04a95f2f2278a584acd9ce8011962fc13c6ee6434aed228af4dfc0f4"
+    },
     "qa/bots-ctf-acf7.json": {
       "mode": 420,
       "sha256": "216f2afec8d6ca99db258831f4b0c9052661c8067ff16152c553fd1a286ad556"
@@ -732,6 +756,10 @@
       "mode": 420,
       "sha256": "984e71240d9a224c06d9bec00ade29dd405bc00762ff26bdf4975f66cc485757"
     },
+    "qa/bots-force-source-audit.json": {
+      "mode": 420,
+      "sha256": "7ac401b9f9b01fc620eb7e8b510a0a334dcf81219fb1f5179a882a243dfc06e8"
+    },
     "qa/bots-initial-anchor-regression.json": {
       "mode": 420,
       "sha256": "7bbfb33fbd00df366a3780671ff5736e130fa8a8e5a6d04c3248ec01b8293fbc"
@@ -783,6 +811,10 @@
     "qa/bots-stock-map-audit.json": {
       "mode": 420,
       "sha256": "5c4e68d22e75c99f3e5bb5d1257732d8e2a3749a872efa77653c294cfd748511"
+    },
+    "qa/bots-stock-spawn-atlas-receipt.json": {
+      "mode": 420,
+      "sha256": "e1a7c63138abe40efbcb772ecfd5d162bd7d198538423c02a82bde4f06f66c42"
     },
     "qa/browser-asset-admin-layout.json": {
       "mode": 420,
@@ -1402,7 +1434,7 @@
     },
     "tests/test_bots.py": {
       "mode": 420,
-      "sha256": "0314b5bf4ce9711392258619eceb1dd664ca17f9e50ab15b2f331a9f4375ceff"
+      "sha256": "d64552cecfb791b15ae7dc4c6201ce6bb75c25b91565ea74538d8de43964a478"
     },
     "tests/test_chat_admin.py": {
       "mode": 420,
@@ -1439,6 +1471,10 @@
     "tests/test_runtime_display.py": {
       "mode": 420,
       "sha256": "9765b73aca29e60e740324b11f763830446cba6ac4154d8ce2a1b199dba0ea8d"
+    },
+    "tests/test_spawn_atlas.py": {
+      "mode": 420,
+      "sha256": "b18e47148546594260b15c43b0f10b2137c56142764d33e5abeedbb8df6c2d8e"
     },
     "tests/test_spectator.py": {
       "mode": 420,

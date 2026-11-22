@@ -170,6 +170,12 @@ releasing Grip, the controller checks the local targeting script’s victim
 against the intended player’s identity. Weapon fire can continue during a
 valid active Grip.
 
+If the game disables the actor's controls during a held power, its inventory
+handler can force a release before a cancellation input is processed. Grip's
+stock script then controls that outcome. The target check above applies to a
+release initiated by the bot; it does not replace the game's forced-release
+handler.
+
 The controller uses ordinary power hotkeys and lets the stock COG scripts
 enforce costs and effects. Decisions check availability, mana, cooldowns,
 distance, sight lines, and protected players. Healing, protection, absorption,
@@ -300,6 +306,14 @@ including `BOT_LOADOUT`, `BOT_BEHAVIOR`, `BOT_PROVOKED`, `BOT_FORCE_INPUT`, and
 status diagnostics when those events occur. `BOT_JOINED` establishes a joined
 client; `BOT_FORCE_INPUT` establishes a requested input. Neither alone proves
 successful damage, a Force effect, a route, a capture, or client compatibility.
+
+For a direct native diagnostic run, `JK_BOT_TRACE_FORCE=1` enables
+`BOT_FORCE_STATE` at most twice per bot-clock second. It samples only the bot's
+own health, shields, mana, actor flags, stars and active-power mask. The stars
+run from bin 21 through 34; active-mask bit zero is bin 21. An `immobile` sample
+reports the stock actor flag, not which player or power caused it. The managed
+launcher deliberately does not forward arbitrary ambient bot environment
+variables. A sampled trace can miss effects shorter than its interval.
 `xvfb.log` is present when the launcher created the display.
 
 Configuration, lifecycle, and catalog regression checks:
