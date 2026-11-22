@@ -1,4 +1,192 @@
 /* Controlled policy and input tests. Engine effects remain live-test work. */
+#include <unistd.h>
+
+static void test_force_trace(SithThing *self)
+{
+    /* Read back the same optional line consumed by a connected observer. */
+    FILE *capture=tmpfile(); assert(capture);
+    fflush(stderr);
+    int saved=dup(STDERR_FILENO); assert(saved>=0);
+    assert(dup2(fileno(capture),STDERR_FILENO)>=0);
+    assert(unsetenv("JK_BOT_TRACE_FORCE")==0);
+    jkBot_Configure("Bot_Trace","ky.3do");
+    Bot_TraceForce(self); assert(ftell(capture)==0);
+    assert(setenv("JK_BOT_TRACE_FORCE","1",1)==0);
+    jkBot_Configure("Bot_Trace","ky.3do"); assert(unsetenv("JK_BOT_TRACE_FORCE")==0);
+    SithPlayer *player=self->actorParams.pPlayer;
+    memset(player->aItems,0,sizeof(player->aItems));
+    self->idx=5; self->guid=901; self->actorParams.flags=SITH_AF_IMMOBILE;
+    self->actorParams.health=94;
+    player->aItems[SITHBIN_F_SEEING].amount=4;
+    player->aItems[SITHBIN_F_SEEING].state=SITHINVENTORY_ITEM_ACTIVATED;
+    player->aItems[SITHBIN_SHIELDS].amount=25; player->aItems[SITHBIN_FORCEMANA].amount=90;
+    Bot_TraceForce(self); long first=ftell(capture); assert(first>0);
+    bot.now=0.49f; Bot_TraceForce(self); assert(ftell(capture)==first);
+    bot.now=0.5f; Bot_TraceForce(self); assert(ftell(capture)>first);
+    assert(dup2(saved,STDERR_FILENO)>=0); close(saved);
+    rewind(capture); char line[512]; assert(fgets(line,sizeof(line),capture));
+    assert(!strcmp(line,"BOT_FORCE_STATE name=Bot_Trace t=0.00 thing=5 guid=901 health=94.00 shields=25.00 "
+        "mana=90.00 blind=0 immobile=1 stars=0,0,4,0,0,0,0,0,0,0,0,0,0,0 active=0x4\n"));
+    assert(fgets(line,sizeof(line),capture) && strstr(line,"t=0.50 "));
+    assert(!fgets(line,sizeof(line),capture)); fclose(capture);
+    puts("PASS local Force state receipt, opt-in gate, bin ordering and half-second cadence");
+}
+
+static void test_force_frame(void)
+{
+    memcpy(bot.previous,bot.keys,sizeof(bot.keys));
+    memset(bot.keys,0,sizeof(bot.keys));
+}
+
+static void test_competitive_force(SithThing *self, SithThing *peer, rdModel3 *gun, rdModel3 *fists)
+{
+    SithPlayer *own=self->actorParams.pPlayer;
+    assert(setenv("JK_BOT_FORCE_STYLE","competitive",1)==0);
+    jkBot_Configure("Bot_Competitive","ky.3do");
+    assert(unsetenv("JK_BOT_FORCE_STYLE")==0);
+    bot.joined=1; bot.now=20; bot.targetSlot=1;
+    memset(own->aItems,0,sizeof(own->aItems));
+    peer->playerInfo->rd_thing.model3=gun;
+    peer->position.y=0.7f; peer->idx=7;
+    int seeing=SITHBIN_F_SEEING, absorb=SITHBIN_F_ABSORB, grip=SITHBIN_F_GRIP;
+    own->aItems[seeing].amount=own->aItems[absorb].amount=4;
+    own->aItems[seeing].state=own->aItems[absorb].state=SITHINVENTORY_ITEM_AVAILABLE;
+    own->aItems[SITHBIN_FORCEMANA].amount=400;
+    /* An unseen or peaceful peer alone supplies no engagement cue. */
+    testLOS=0; Bot_ForceTick(self,peer,0); assert(bot.forceBin==-1); testLOS=1;
+    peer->playerInfo->rd_thing.model3=fists;
+    Bot_ForceTick(self,peer,0); assert(bot.forceBin==-1);
+    peer->playerInfo->rd_thing.model3=gun;
+    self->actorParams.flags=SITH_AF_CONTROLSDISABLED;
+    Bot_ForceTick(self,peer,0); assert(bot.forceBin==-1); self->actorParams.flags=0;
+    bot.forceEnabled=0; Bot_ForceTick(self,peer,0); assert(bot.forceBin==-1); bot.forceEnabled=1;
+    own->aItems[SITHBIN_FORCEMANA].amount=29;
+    Bot_ForceTick(self,peer,0); assert(bot.forceBin==-1);
+    own->aItems[SITHBIN_FORCEMANA].amount=400;
+    Bot_ForceTick(self,peer,0);
+    assert(bot.forceBin==seeing && bot.keys[Bot_PowerKey(seeing)]);
+    own->aItems[seeing].state|=SITHINVENTORY_ITEM_ACTIVATED;
+    bot.now=20.11f; test_force_frame(); Bot_ForceTick(self,peer,0);
+    assert(bot.forceBin<0 && !bot.keys[Bot_PowerKey(seeing)]);
+    bot.now=20.14f; test_force_frame(); Bot_ForceTick(self,peer,0); assert(bot.forceBin<0);
+    own->aItems[absorb].binWait=sithTime_g_secGameTime+1;
+    bot.now=20.16f; test_force_frame(); Bot_ForceTick(self,peer,0); assert(bot.forceBin<0);
+    sithTime_g_secGameTime+=1;
+    test_force_frame(); Bot_ForceTick(self,peer,0);
+    assert(bot.forceBin==absorb && bot.keys[Bot_PowerKey(absorb)]);
+    puts("PASS competitive visible-engagement Seeing then Absorb, input guard and real bin wait");
+    bot.now+=1; test_force_frame(); Bot_ForceTick(self,NULL,180);
+    own->aItems[seeing].state=SITHINVENTORY_ITEM_AVAILABLE;
+    self->actorParams.flags=SITH_AF_BLIND; bot.hurtUntil=bot.now+2;
+    Bot_ForceTick(self,NULL,180); assert(bot.forceBin==-1);
+    self->actorParams.flags=0; Bot_ForceTick(self,NULL,180); assert(bot.forceBin==seeing);
+    bot.now+=1; test_force_frame(); Bot_ForceTick(self,NULL,180);
+    own->aItems[seeing].state=0; bot.hurtUntil=0; bot.forceThreatUntil=bot.now+5;
+    own->aItems[SITHBIN_F_HEALING].state=SITHINVENTORY_ITEM_AVAILABLE;
+    own->aItems[SITHBIN_F_HEALING].amount=4; self->actorParams.health=50;
+    Bot_ForceTick(self,NULL,180); assert(bot.forceBin==SITHBIN_F_HEALING);
+    bot.now+=1; test_force_frame(); Bot_ForceTick(self,NULL,180); self->actorParams.health=100;
+    Bot_ForceTick(self,NULL,180); assert(bot.forceBin==absorb);
+    bot.now+=1; test_force_frame(); Bot_ForceTick(self,NULL,180); bot.forceThreatUntil=0;
+    own->aItems[absorb].state=0; Bot_ForceTick(self,peer,0); assert(bot.forceBin<0);
+    own->aItems[SITHBIN_FORCEMANA].amount=0;
+    own->aItems[SITHBIN_F_PROTECTION].amount=4;
+    assert(!Bot_RequestForce(self,SITHBIN_F_PROTECTION,0.1f,-1));
+    own->aItems[SITHBIN_F_PROTECTION].state=SITHINVENTORY_ITEM_AVAILABLE;
+    assert(Bot_RequestForce(self,SITHBIN_F_PROTECTION,0.1f,-1));
+    puts("PASS urgent healing, provocation, blinded Seeing restraint and Protection eligibility");
+    bot.now+=1; test_force_frame(); Bot_ForceTick(self,NULL,180);
+    own->aItems[SITHBIN_FORCEMANA].amount=400;
+    own->aItems[grip].amount=4; own->aItems[grip].state=SITHINVENTORY_ITEM_AVAILABLE;
+    SithCogSymbol marker={0}; SithCogSymbolTable table={0}; sithCog cog={0};
+    table.aSymbols=&marker; table.tableSize=table.numUsedSymbols=1; cog.pSymbolTable=&table;
+    enum { WRONG_MARKER, NO_VICTIM, UNKNOWN_SYMBOL, MISSING_COG, WRONG_TYPE, REUSED_IDX, REUSED_NETID, REUSED_GUID, REUSED_SIGNATURE,
+           OUT_OF_RANGE, LOST_LOS, PEACE_HOLD, TEAM_HOLD, DISABLED_HOLD, ACTIVE_PEACE, ACTIVE_DISABLED,
+           ACTIVE_REUSED, MATCH };
+    for (int scenario=WRONG_MARKER;scenario<=MATCH;scenario++) {
+        marker.pName="victim"; marker.val.type=COG_TYPE_INT; marker.val.data[0]=peer->idx;
+        testInventoryTypes[grip].cog=&cog;
+        bot.now+=1; test_force_frame();
+        assert(Bot_RequestForce(self,grip,0.46f,1)); own->curPower=grip;
+        marker.val.data[0]=-1; bot.now+=0.2f; test_force_frame(); Bot_ForceTick(self,peer,0);
+        assert(bot.keys[Bot_PowerKey(grip)] && !bot.keys[INPUT_FUNC_NEXTSKILL]);
+        marker.val.data[0]=peer->idx;
+        switch (scenario) {
+            case WRONG_MARKER: marker.val.data[0]=peer->idx+1; break;
+            case NO_VICTIM: marker.val.data[0]=-1; break;
+            case UNKNOWN_SYMBOL: marker.pName=NULL; break;
+            case MISSING_COG: testInventoryTypes[grip].cog=NULL; break;
+            case WRONG_TYPE: marker.val.type=SITHCOG_VALUE_FLOAT; break;
+            case REUSED_IDX: peer->idx++; marker.val.data[0]=peer->idx; break;
+            case REUSED_NETID: jkPlayer_playerInfos[1].playerNetId++; break;
+            case REUSED_GUID: peer->guid++; break;
+            case REUSED_SIGNATURE: peer->signature++; break;
+            case OUT_OF_RANGE: peer->position.y=1.1f; break;
+            case LOST_LOS: testLOS=0; break;
+            case PEACE_HOLD: peer->playerInfo->rd_thing.model3=fists; break;
+            case TEAM_HOLD: sithNet_MultiModeFlags=MULTIMODEFLAG_TEAMS; break;
+            case DISABLED_HOLD: bot.forceEnabled=0; break;
+        }
+        int originalMarker=marker.val.data[0];
+        bot.now+=0.3f; test_force_frame(); Bot_ForceTick(self,peer,0);
+        assert((int)marker.val.data[0]==originalMarker);
+        if (scenario<ACTIVE_PEACE) {
+            assert(bot.keys[Bot_PowerKey(grip)] && bot.keys[INPUT_FUNC_NEXTSKILL]);
+            own->curPower=SITHBIN_F_JUMP; test_force_frame(); Bot_ForceTick(self,NULL,180);
+            assert(!bot.keys[Bot_PowerKey(grip)] && bot.forceBin<0);
+        } else {
+            assert(!bot.keys[Bot_PowerKey(grip)] && !bot.keys[INPUT_FUNC_NEXTSKILL] && bot.forceBin<0);
+            /* Fixture supplies the active bin that a successful stock release sets. */
+            own->aItems[grip].state|=SITHINVENTORY_ITEM_ACTIVATED;
+            own->aItems[SITHBIN_F_JUMP].state=SITHINVENTORY_ITEM_AVAILABLE;
+            own->aItems[SITHBIN_F_JUMP].amount=4;
+            assert(!Bot_RequestForce(self,SITHBIN_F_JUMP,0.1f,-1)); /* navigation entry */
+            if (scenario==ACTIVE_PEACE) peer->playerInfo->rd_thing.model3=fists;
+            if (scenario==ACTIVE_DISABLED) bot.forceEnabled=0;
+            if (scenario==ACTIVE_REUSED) peer->signature++;
+            own->curWeaponID=SITHBIN_STORMTROOPER_RIFLE;
+            own->aItems[own->curWeaponID].state=SITHINVENTORY_ITEM_AVAILABLE;
+            own->aItems[own->curWeaponID].amount=own->aItems[SITHBIN_ENERGY].amount=1;
+            own->aItems[seeing].state=SITHINVENTORY_ITEM_AVAILABLE;
+            test_force_frame(); Bot_Combat(self,peer);
+            assert(bot.keys[INPUT_FUNC_NEXTSKILL]==(scenario!=MATCH));
+            if (scenario==MATCH) assert(bot.keys[INPUT_FUNC_FIRE1] && !bot.keys[Bot_PowerKey(seeing)]);
+            if (scenario==MATCH) {
+                own->aItems[SITHBIN_BACTATANK].state=SITHINVENTORY_ITEM_AVAILABLE;
+                own->aItems[SITHBIN_BACTATANK].amount=1;
+                self->actorParams.health=55;
+                test_force_frame(); Bot_ForceTick(self,peer,0);
+                assert(bot.keys[Bot_PowerKey(SITHBIN_BACTATANK)] && !bot.keys[INPUT_FUNC_NEXTSKILL]);
+                self->actorParams.health=100;
+            }
+            own->aItems[grip].state=SITHINVENTORY_ITEM_AVAILABLE;
+            own->aItems[seeing].state=0;
+        }
+        peer->position.y=0.7f; testLOS=1; bot.forceEnabled=1;
+        sithNet_MultiModeFlags=0; peer->playerInfo->rd_thing.model3=gun;
+    }
+    testInventoryTypes[grip].cog=NULL;
+    bot.now+=2; assert(Bot_RequestForce(self,SITHBIN_F_JUMP,0.1f,-1));
+    puts("PASS competitive Grip marker and generation checks, ordinary release/cancel, active weapon fire and Bacta");
+
+    const char *legacy[]={"balanced","master"};
+    for (unsigned i=0;i<sizeof(legacy)/sizeof(*legacy);i++) {
+        assert(setenv("JK_BOT_FORCE_STYLE",legacy[i],1)==0);
+        jkBot_Configure("Bot_Legacy","ky.3do"); bot.now=30;
+        own->aItems[grip].state=own->aItems[absorb].state=0;
+        own->aItems[seeing].state=SITHINVENTORY_ITEM_AVAILABLE;
+        Bot_ForceTick(self,peer,0); assert(bot.forceBin<0); /* no proactive Seeing */
+        own->aItems[SITHBIN_FORCEMANA].amount=0;
+        assert(Bot_RequestForce(self,SITHBIN_F_PROTECTION,0.1f,-1));
+        bot.now=30.2f; test_force_frame(); Bot_ForceTick(self,peer,0);
+        own->aItems[SITHBIN_FORCEMANA].amount=400;
+        bot.now=32.39f; assert(!Bot_RequestForce(self,seeing,0.1f,-1));
+        bot.now=32.41f; assert(Bot_RequestForce(self,seeing,0.1f,-1));
+    }
+    assert(unsetenv("JK_BOT_FORCE_STYLE")==0);
+    puts("PASS balanced and master sequencing, original cross-power interval and Protection threshold");
+}
+
 static void test_bot_behavior(void)
 {
     SithSector sector={0}; SithThing self={0},peer={0},shot={0};
@@ -187,5 +375,7 @@ static void test_bot_behavior(void)
     debrisWorld.numThings=-1; assert(!Bot_ForceDebris(&self));
     bot.world=NULL; assert(!Bot_ForceDebris(&self));
     puts("PASS Force debris includes final active slot and respects empty/single/capacity bounds");
+    test_competitive_force(&self,&peer,&gun,&fists);
+    test_force_trace(&self);
     sithPlayer_g_pLocalPlayerThing=NULL;
 }

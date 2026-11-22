@@ -149,13 +149,26 @@ from rank 1, and successive light/dark side powers available at ranks 4–7.
 The normal profile-loading and inventory lifecycle installs that character;
 Force use does not grant live mana, ammunition, health, or extra stars.
 
-Balanced profiles distribute legal stars among neutral and accessible powers
-on their chosen side. Jan and Sariss request a master build: **at rank 8 only**,
-they allocate four stars to each of their four side powers, leave eight stars
-unspent, and let the stock game derive Protection or Deadly Sight. They have no
-neutral powers in that rank-eight build. Below rank 8 they use the balanced
-allocation. These are project persona choices, not claims about a character's
-canonical abilities.
+The eight shipped profiles request `competitive` and require an executable built
+with the matching `native/bot-client.patch`. An older executable rejects the
+style when creating the saved character. At rank 8 the competitive builds put
+four stars in Jump, Speed, Seeing and Pull. Dark adds Grip and Destruction.
+Light adds Absorb and Healing. At lower ranks the planner adds one star per
+eligible power in that order, repeating until the budget is spent.
+
+Custom profiles can still select `balanced` (also the default when
+`force_style` is omitted) or `master`. Balanced distributes stars among
+neutral and accessible side powers. At rank 8 a master build puts four stars
+in each side power and leaves eight stars unspent, allowing the stock game to
+derive Protection or Deadly Sight. A master uses the balanced allocation at
+lower ranks.
+
+Competitive bots prepare Seeing while unblinded and can prepare Absorb during
+a visible engagement or on receiving a Force threat. They allow 0.15 seconds
+between power requests while honoring each power’s own cooldown. Before
+releasing Grip, the controller checks the local targeting script’s victim
+against the intended player’s identity. Weapon fire can continue during a
+valid active Grip.
 
 The controller uses ordinary power hotkeys and lets the stock COG scripts
 enforce costs and effects. Decisions check availability, mana, cooldowns,
@@ -188,14 +201,14 @@ in the [current evidence report](../docs/BOTS_BEHAVIOR.md).
 
 | Profile id | Visible player name | Stock model | Stock sound class | Force build |
 |---|---|---|---|---|
-| `boba_fett` | `Bot_BobaFett` | `kyh4.3do` | `kybobafett.snd` | Dark, balanced |
-| `jan_ors` | `Bot_JanOrs` | `kya10.3do` | `kyfemale.snd` | Light, master at rank 8 |
-| `kyle_katarn` | `Bot_Katarn` | `ky.3do` | `ky.snd` | Light, balanced |
-| `stormtrooper` | `Bot_Trooper` | `kym13.3do` | `kytrooper.snd` | Dark, balanced |
-| `bossk` | `Bot_Bossk` | `kyi14.3do` | `kybossk.snd` | Dark, balanced |
-| `greedo` | `Bot_Greedo` | `kya17.3do` | `kygreedo.snd` | Dark, balanced |
-| `sariss` | `Bot_Sariss` | `kya9.3do` | `kyfemale.snd` | Dark, master at rank 8 |
-| `yun` | `Bot_Yun` | `kya18.3do` | `kyyun.snd` | Dark, balanced |
+| `boba_fett` | `Bot_BobaFett` | `kyh4.3do` | `kybobafett.snd` | Dark, competitive |
+| `jan_ors` | `Bot_JanOrs` | `kya10.3do` | `kyfemale.snd` | Light, competitive |
+| `kyle_katarn` | `Bot_Katarn` | `ky.3do` | `ky.snd` | Light, competitive |
+| `stormtrooper` | `Bot_Trooper` | `kym13.3do` | `kytrooper.snd` | Dark, competitive |
+| `bossk` | `Bot_Bossk` | `kyi14.3do` | `kybossk.snd` | Dark, competitive |
+| `greedo` | `Bot_Greedo` | `kya17.3do` | `kygreedo.snd` | Dark, competitive |
+| `sariss` | `Bot_Sariss` | `kya9.3do` | `kyfemale.snd` | Dark, competitive |
+| `yun` | `Bot_Yun` | `kya18.3do` | `kyyun.snd` | Dark, competitive |
 
 The `Bot_` prefix identifies the players as bots. The roster contains 128
 original fan-written lines, divided into spawn, kill, death, and ambient

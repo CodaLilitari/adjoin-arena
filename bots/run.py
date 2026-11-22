@@ -56,7 +56,7 @@ def load_profiles(path: Path = PROFILE_FILE) -> dict[str, dict]:
             if (not isinstance(item, str) or len(item) > 31
                     or not re.fullmatch(r"[A-Za-z0-9_-]+\." + extension, item)):
                 raise ValueError(f"{ident}: {key} must be a plain ASCII .{extension} basename, at most 31 characters.")
-        if row.get("force_side", "light") not in ("light", "dark") or row.get("force_style", "balanced") not in ("balanced", "master"):
+        if row.get("force_side", "light") not in ("light", "dark") or row.get("force_style", "balanced") not in ("balanced", "master", "competitive"):
             raise ValueError(f"{ident}: invalid Force side or style.")
         taunts = row.get("taunts")
         if not isinstance(taunts, dict) or set(taunts) != set(EVENTS):

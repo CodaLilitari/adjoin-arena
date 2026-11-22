@@ -1,9 +1,9 @@
 diff --git a/src/AI/jkBot.c b/src/AI/jkBot.c
 new file mode 100644
-index 0000000..c61e8ec
+index 0000000..d299029
 --- /dev/null
 +++ b/src/AI/jkBot.c
-@@ -0,0 +1,516 @@
+@@ -0,0 +1,547 @@
 +/*
 + * Ordinary-client multiplayer bot input driver, reconstructed October 2026.
 + * Copyright (C) OpenJKDF2 contributors.
@@ -22,6 +22,7 @@ index 0000000..c61e8ec
 + * combat, networking and respawn remain the original game's responsibility.
 + */
 +#include "AI/jkBot.h"
++#include "AI/jkBotLoadout.h"
 +#include "Engine/sithCollision.h"
 +#include "Engine/sithIntersect.h"
 +#include "Gameplay/sithInventory.h"
@@ -61,10 +62,12 @@ index 0000000..c61e8ec
 +
 +static struct {
 +    int enabled, joined;
-+    int sabersOnly, fistsPeace, forceEnabled;
++    int sabersOnly, fistsPeace, forceEnabled, competitiveForce, traceForce;
++    flex_t nextForceTrace;
 +    char behaviorFile[4096];
 +    flex_t nextBehavior, frameDt, forceThreatUntil, forceUntil, nextForce;
 +    int forceBin, forceTarget, forceCancel, forceEffectBin, forceEffectTarget, forceAvoid;
++    struct { uint32_t idx, netId, guid, signature; } gripTarget;
 +    BotPeer peers[JKPLAYER_NUM_INFOS];
 +    char name[32];
 +    uint32_t random;
@@ -424,12 +427,39 @@ index 0000000..c61e8ec
 +
 +int jkBot_IsEnabled(void) { return bot.enabled; }
 +
++/* Opt-in receipt from this client's own inventory. Bit zero denotes Jump (bin 21). */
++static void Bot_TraceForce(SithThing *self)
++{
++    if (!bot.traceForce || bot.now<bot.nextForceTrace) return;
++    bot.nextForceTrace=bot.now+0.5f;
++    char stars[256];
++    size_t used=0;
++    unsigned active=0;
++    for (int bin=SITHBIN_F_JUMP;bin<=SITHBIN_F_DEADLYSIGHT;bin++) {
++        if (sithInventory_IsInventoryActivated(self,bin)) active|=1u<<(bin-SITHBIN_F_JUMP);
++        int n=snprintf(stars+used,sizeof(stars)-used,"%s%.6g",used ? "," : "",
++            (double)sithInventory_GetInventory(self,bin));
++        if (n<0 || (size_t)n>=sizeof(stars)-used) return;
++        used+=(size_t)n;
++    }
++    fprintf(stderr,"BOT_FORCE_STATE name=%s t=%.2f thing=%u guid=%u health=%.2f shields=%.2f mana=%.2f "
++        "blind=%d immobile=%d stars=%s active=0x%x\n",
++        bot.name,(double)bot.now,self->idx,self->guid,(double)self->actorParams.health,
++        (double)sithInventory_GetInventory(self,SITHBIN_SHIELDS),
++        (double)sithInventory_GetInventory(self,SITHBIN_FORCEMANA),
++        !!(self->actorParams.flags&SITH_AF_BLIND),!!(self->actorParams.flags&SITH_AF_IMMOBILE),stars,active);
++    fflush(stderr);
++}
++
 +void jkBot_Configure(const char *name, const char *skin)
 +{
 +    (void)skin;
 +    memset(&bot,0,sizeof(bot)); memset(&nav,0,sizeof(nav)); bot.enabled=1;
 +    bot.fistsPeace=bot.forceEnabled=1;
++    bot.competitiveForce=jkBotLoadout_Style(getenv("JK_BOT_FORCE_STYLE"))==JKBOT_STYLE_COMPETITIVE;
 +    bot.forceBin=bot.forceTarget=bot.forceEffectBin=bot.forceEffectTarget=-1;
++    const char *trace=getenv("JK_BOT_TRACE_FORCE");
++    bot.traceForce=trace && !strcmp(trace,"1");
 +    const char *settings=getenv("JK_BOT_BEHAVIOR_FILE");
 +    if (settings && strlen(settings)<sizeof(bot.behaviorFile))
 +        strcpy(bot.behaviorFile,settings);
@@ -443,7 +473,7 @@ index 0000000..c61e8ec
 +
 +void jkBot_OnJoined(void)
 +{
-+    bot.joined=1; bot.world=NULL; bot.now=0; bot.nextLog=10.0f;
++    bot.joined=1; bot.world=NULL; bot.now=bot.nextForceTrace=0; bot.nextLog=10.0f;
 +    bot.targetSlot=-1; bot.goal=-1; bot.routeCount=bot.routePos=0;
 +    bot.wasDead=0; bot.nextScan=bot.nextPlan=bot.nextSelect=0;
 +    bot.forceBin=bot.forceTarget=bot.forceEffectBin=bot.forceEffectTarget=-1; bot.nextForce=bot.forceUntil=0;
@@ -464,6 +494,7 @@ index 0000000..c61e8ec
 +    if (bot.now>=bot.nextBehavior) Bot_ReloadBehavior();
 +    SithThing *self=sithPlayer_g_pLocalPlayerThing;
 +    if (self->type!=SITH_THING_PLAYER || !self->sector || !self->actorParams.pPlayer) return;
++    Bot_TraceForce(self);
 +    if (bot.world!=sithWorld_g_pCurrentWorld) {
 +        bot.world=sithWorld_g_pCurrentWorld;
 +        memset(bot.peers,0,sizeof(bot.peers));
@@ -849,10 +880,10 @@ index 0000000..bf61c56
 +}
 diff --git a/src/AI/jkBotForce.inc b/src/AI/jkBotForce.inc
 new file mode 100644
-index 0000000..0a4ce7f
+index 0000000..eacb7e2
 --- /dev/null
 +++ b/src/AI/jkBotForce.inc
-@@ -0,0 +1,199 @@
+@@ -0,0 +1,242 @@
 +/* Copyright (c) 2026 Coda Lilitari. SPDX-License-Identifier: MIT
 +   Use ordinary inventory hotkeys: stock COGs own eligibility, cost and effects. */
 +static int Bot_PowerKey(int bin)
@@ -865,7 +896,7 @@ index 0000000..0a4ce7f
 +{
 +    static const int costs[]={20,20,30,20,200,250,100,200,300,30,50,40,200,300};
 +    if (bin<SITHBIN_F_JUMP || bin>SITHBIN_F_DEADLYSIGHT) return 0;
-+    /* Surges waive consumption, but COGs still require nominal mana. */
++    /* Nominal cost. Protection omits the minimum-mana check on activation. */
 +    if (bin==SITHBIN_F_LIGHTNING)
 +        return 45.0f-5.0f*Bot_Clamp(sithInventory_GetInventory(self,bin),1,4);
 +    return (flex_t)costs[bin-SITHBIN_F_JUMP];
@@ -911,7 +942,7 @@ index 0000000..0a4ce7f
 +        !sithInventory_IsInventoryAvailable(self,bin) || sithInventory_GetInventory(self,bin)<=0 ||
 +        sithInventory_IsInventoryActivated(self,bin) || Bot_PowerKey(bin)<0) return 0;
 +    return self->actorParams.pPlayer->aItems[bin].binWait<=sithTime_g_secGameTime &&
-+        sithInventory_GetInventory(self,SITHBIN_FORCEMANA)>=cost;
++        (bin==SITHBIN_F_PROTECTION || sithInventory_GetInventory(self,SITHBIN_FORCEMANA)>=cost);
 +}
 +static int Bot_HostileForce(int bin)
 +{
@@ -927,20 +958,45 @@ index 0000000..0a4ce7f
 +    if (bin==SITHBIN_F_DEADLYSIGHT) return 2.0f+sithInventory_GetInventory(self,bin);
 +    return 20.0f;
 +}
++/* Slot and thing index can both be recycled between the request and release. */
++static int Bot_GripIdentityMatches(int slot)
++{
++    if (slot<0 || slot>=(int)jkPlayer_maxPlayers || slot>=JKPLAYER_NUM_INFOS) return 0;
++    SithPlayer *player=&jkPlayer_playerInfos[slot];
++    SithThing *thing=player->pLocalPlayer;
++    return thing && player->playerNetId==bot.gripTarget.netId && thing->idx==bot.gripTarget.idx &&
++        thing->guid==bot.gripTarget.guid && thing->signature==bot.gripTarget.signature;
++}
++static int Bot_GripMarkerMatches(void)
++{
++    int victim;
++    return Bot_ForceVictim(SITHBIN_F_GRIP,&victim) && victim>=0 && (uint32_t)victim==bot.gripTarget.idx;
++}
++static int Bot_ActiveCompetitiveGrip(SithThing *self)
++{
++    return bot.competitiveForce && bot.forceEffectBin==SITHBIN_F_GRIP &&
++        sithInventory_IsInventoryActivated(self,SITHBIN_F_GRIP);
++}
 +static int Bot_RequestForce(SithThing *self, int bin, flex_t holdSeconds, int targetSlot)
 +{
-+    if (bot.forceBin>=0 || bot.now<bot.nextForce ||
++    if (bot.forceBin>=0 || bot.now<bot.nextForce || Bot_ActiveCompetitiveGrip(self) ||
 +        !Bot_ForceReady(self,bin,Bot_ForceCost(self,bin))) return 0;
 +    if (Bot_HostileForce(bin)) {
 +        if (!Bot_EnemyAllowed(self,targetSlot)) return 0;
 +        SithThing *target=jkPlayer_playerInfos[targetSlot].pLocalPlayer;
 +        if (Bot_Distance(self->position,target->position)>Bot_ForceRange(self,bin) ||
 +            !sithCollision_HasLOS(self,target,0) || Bot_ProtectedNear(self,self->position,8.0f)) return 0;
++        if (bot.competitiveForce && bin==SITHBIN_F_GRIP) {
++            bot.gripTarget.idx=target->idx;
++            bot.gripTarget.guid=target->guid;
++            bot.gripTarget.signature=target->signature;
++            bot.gripTarget.netId=jkPlayer_playerInfos[targetSlot].playerNetId;
++        }
 +    }
 +    int key=Bot_PowerKey(bin);
 +    bot.forceBin=bin; bot.forceTarget=targetSlot; bot.forceCancel=0;
 +    bot.forceUntil=bot.now+Bot_Clamp(holdSeconds,0.08f,1.0f);
-+    bot.nextForce=bot.now+2.4f; bot.keys[key]=1;
++    bot.nextForce=bot.now+(bot.competitiveForce ? 0.15f : 2.4f); bot.keys[key]=1;
 +    if (Bot_HostileForce(bin)) { bot.forceEffectBin=bin; bot.forceEffectTarget=targetSlot; }
 +    fprintf(stderr,"BOT_FORCE_INPUT name=%s bin=%d level=%.0f mana=%.1f hold=%.2f\n",
 +        bot.name,bin,(double)sithInventory_GetInventory(self,bin),
@@ -973,6 +1029,13 @@ index 0000000..0a4ce7f
 +            (Bot_EnemyAllowed(self,bot.forceTarget) &&
 +             sithCollision_HasLOS(self,jkPlayer_playerInfos[bot.forceTarget].pLocalPlayer,0) &&
 +             !Bot_ProtectedNear(self,self->position,8.0f)));
++        if (allowed && bot.competitiveForce && bin==SITHBIN_F_GRIP) {
++            SithThing *intended=jkPlayer_playerInfos[bot.forceTarget].pLocalPlayer;
++            allowed=!(self->actorParams.flags&SITH_AF_CONTROLSDISABLED) &&
++                Bot_GripIdentityMatches(bot.forceTarget) &&
++                Bot_Distance(self->position,intended->position)<=Bot_ForceRange(self,bin) &&
++                (bot.now<bot.forceUntil || Bot_GripMarkerMatches());
++        }
 +        if (key<0) { bot.forceBin=-1; return; }
 +        /* Throw's deselected only hides its marker. Keep the key held and
 +           look away until its normal pulse loses the target, then release. */
@@ -999,8 +1062,11 @@ index 0000000..0a4ce7f
 +        }
 +        bot.forceBin=-1; bot.forceTarget=-1; return; /* Normal key release. */
 +    }
-+    if (bot.forceEffectBin>=0 && bot.forceEffectBin!=SITHBIN_F_DEADLYSIGHT && sithInventory_IsInventoryActivated(self,bot.forceEffectBin) &&
-+        (!bot.forceEnabled || !Bot_EnemyAllowed(self,bot.forceEffectTarget))) {
++    int activeGrip=Bot_ActiveCompetitiveGrip(self);
++    if (bot.forceEffectBin>=0 && bot.forceEffectBin!=SITHBIN_F_DEADLYSIGHT &&
++        sithInventory_IsInventoryActivated(self,bot.forceEffectBin) &&
++        (!bot.forceEnabled || !Bot_EnemyAllowed(self,bot.forceEffectTarget) ||
++         (activeGrip && (!Bot_GripIdentityMatches(bot.forceEffectTarget) || !Bot_GripMarkerMatches())))) {
 +        if (self->actorParams.pPlayer->curPower==bot.forceEffectBin)
 +            bot.keys[INPUT_FUNC_NEXTSKILL]=!bot.previous[INPUT_FUNC_NEXTSKILL];
 +        else bot.forceEffectBin=-1;
@@ -1014,12 +1080,20 @@ index 0000000..0a4ce7f
 +        int key=Bot_PowerKey(SITHBIN_BACTATANK);
 +        if (key>=0) { bot.keys[key]=1; bot.nextForce=bot.now+1.2f; return; }
 +    }
-+    if (!bot.forceEnabled) return;
++    if (!bot.forceEnabled || activeGrip) return;
 +    if (self->actorParams.health<=60 && Bot_RequestForce(self,SITHBIN_F_HEALING,0.1f,-1)) return;
 +    if (bot.now<bot.forceThreatUntil && Bot_RequestForce(self,SITHBIN_F_ABSORB,0.1f,-1)) return;
++    if (bot.competitiveForce) {
++        int engaged=target && Bot_EnemyAllowed(self,Bot_PlayerSlot(target)) &&
++            sithCollision_HasLOS(self,target,0);
++        if (!(self->actorParams.flags&SITH_AF_BLIND) &&
++            (engaged || bot.now<bot.forceThreatUntil || bot.now<bot.hurtUntil) &&
++            Bot_RequestForce(self,SITHBIN_F_SEEING,0.1f,-1)) return;
++        if (engaged && Bot_RequestForce(self,SITHBIN_F_ABSORB,0.1f,-1)) return;
++    }
 +    if (bot.now<bot.hurtUntil && self->actorParams.health<75 &&
 +        Bot_RequestForce(self,SITHBIN_F_PROTECTION,0.1f,-1)) return;
-+    if (((self->actorParams.flags&SITH_AF_BLIND) || (bot.now<bot.hurtUntil && !target)) &&
++    if (!bot.competitiveForce && ((self->actorParams.flags&SITH_AF_BLIND) || (bot.now<bot.hurtUntil && !target)) &&
 +        Bot_RequestForce(self,SITHBIN_F_SEEING,0.1f,-1)) return;
 +    if (self->actorParams.health<35 && Bot_RequestForce(self,SITHBIN_F_PERSUASION,0.1f,-1)) return;
 +    if (!target || !Bot_EnemyAllowed(self,Bot_PlayerSlot(target))) {
@@ -1054,12 +1128,14 @@ index 0000000..0a4ce7f
 +}
 diff --git a/src/AI/jkBotLoadout.h b/src/AI/jkBotLoadout.h
 new file mode 100644
-index 0000000..7b16507
+index 0000000..d167eb8
 --- /dev/null
 +++ b/src/AI/jkBotLoadout.h
-@@ -0,0 +1,43 @@
+@@ -0,0 +1,59 @@
 +#ifndef _JKBOTLOADOUT_H
 +#define _JKBOTLOADOUT_H
++
++#include <string.h>
 +
 +/* A saved JK multiplayer character, built before joining a session.
 + * The stock character editor grants three stars per rank, four per power,
@@ -1072,16 +1148,26 @@ index 0000000..7b16507
 +    int stars[35];
 +} jkBotLoadout;
 +
-+static int jkBotLoadout_Plan(int rank, int dark, int master, jkBotLoadout *out)
++enum { JKBOT_STYLE_BALANCED, JKBOT_STYLE_MASTER, JKBOT_STYLE_COMPETITIVE };
++
++static inline int jkBotLoadout_Style(const char *name)
++{
++    if (!name || !strcmp(name, "balanced")) return JKBOT_STYLE_BALANCED;
++    if (!strcmp(name, "master")) return JKBOT_STYLE_MASTER;
++    if (!strcmp(name, "competitive")) return JKBOT_STYLE_COMPETITIVE;
++    return -1;
++}
++
++static inline int jkBotLoadout_Plan(int rank, int dark, int style, jkBotLoadout *out)
 +{
 +    if (!out || rank < 0 || rank > 8 || (dark != 0 && dark != 1)
-+            || (master != 0 && master != 1)) return 0;
++            || style < JKBOT_STYLE_BALANCED || style > JKBOT_STYLE_COMPETITIVE) return 0;
 +    *out = (jkBotLoadout){0};
 +    out->rank = rank;
 +    out->unspent = rank * 3;
 +    if (!rank) return 1;
 +    const int side = dark ? 30 : 25;
-+    if (rank == 8 && master) {
++    if (rank == 8 && style == JKBOT_STYLE_MASTER) {
 +        /* The original editor derives the rank-eight special only with all
 +         * four side powers at four stars and no neutral/opposite powers.
 +         * The remaining eight stars stay unspent, exactly as in the editor. */
@@ -1089,9 +1175,13 @@ index 0000000..7b16507
 +        out->unspent -= 16;
 +        return 1;
 +    }
-+    const int order[] = {21, 22, side, 24, 23, side+1, side+2, side+3};
++    const int balanced[] = {21, 22, side, 24, 23, side+1, side+2, side+3};
++    const int competitive[] = {21, 22, 23, 24, dark ? 31 : 28, dark ? 33 : 25};
++    const int *order = style == JKBOT_STYLE_COMPETITIVE ? competitive : balanced;
++    int count = style == JKBOT_STYLE_COMPETITIVE ? sizeof(competitive)/sizeof(*competitive)
++                                                 : sizeof(balanced)/sizeof(*balanced);
 +    for (int level = 1; level <= 4 && out->unspent; ++level) {
-+        for (unsigned i = 0; i < sizeof(order)/sizeof(order[0]) && out->unspent; ++i) {
++        for (int i = 0; i < count && out->unspent; ++i) {
 +            int bin = order[i];
 +            if (bin >= side && bin < side+4 && rank < 4 + bin-side) continue;
 +            out->stars[bin]++;
@@ -2626,7 +2716,7 @@ index a5bda0e..6ba690b 100644
      int v5; // esi
  
 diff --git a/src/Gui/jkGUIMultiplayer.c b/src/Gui/jkGUIMultiplayer.c
-index 5e12ab8..2789aa3 100644
+index 5e12ab8..9cc656e 100644
 --- a/src/Gui/jkGUIMultiplayer.c
 +++ b/src/Gui/jkGUIMultiplayer.c
 @@ -1,4 +1,15 @@
@@ -2645,7 +2735,7 @@ index 5e12ab8..2789aa3 100644
  
  #include "General/stdBitmap.h"
  #include "General/stdFont.h"
-@@ -391,8 +402,133 @@ LABEL_29:
+@@ -391,8 +402,132 @@ LABEL_29:
      }
  }
  
@@ -2656,11 +2746,10 @@ index 5e12ab8..2789aa3 100644
 +    const char *side = getenv("JK_BOT_FORCE_SIDE");
 +    const char *style = getenv("JK_BOT_FORCE_STYLE");
 +    int dark = side && !strcmp(side, "dark");
-+    int master = style && !strcmp(style, "master");
++    int forceStyle = jkBotLoadout_Style(style);
 +    jkBotLoadout plan;
 +    if ((side && strcmp(side, "dark") && strcmp(side, "light")) ||
-+        (style && strcmp(style, "balanced") && strcmp(style, "master")) ||
-+        !jkBotLoadout_Plan(rank, dark, master, &plan)) return 0;
++        !jkBotLoadout_Plan(rank, dark, forceStyle, &plan)) return 0;
 +    _Static_assert(SITHBIN_F_JUMP == 21 && SITHBIN_F_HEALING == 25 &&
 +                   SITHBIN_F_THROW == 30 && SITHBIN_F_DEADLYSIGHT == 34,
 +                   "Saved character planner requires original JK inventory bins");
@@ -2679,7 +2768,7 @@ index 5e12ab8..2789aa3 100644
 +        !jkPlayer_MPCParse(&jkGuiMultiplayer_mpcInfo, NULL,
 +                          jkPlayer_playerShortName, jkPlayer_name, 1)) return 0;
 +    fprintf(stderr, "BOT_LOADOUT rank=%d side=%s style=%s spent=%d remaining=%d\n",
-+            rank, dark ? "dark" : "light", master ? "master" : "balanced",
++            rank, dark ? "dark" : "light", style ? style : "balanced",
 +            rank*3-plan.unspent, plan.unspent);
 +    fflush(stderr);
 +    return 1;
@@ -2779,7 +2868,7 @@ index 5e12ab8..2789aa3 100644
      int v0; // esi
      void *v2; // [esp-4h] [ebp-8h]
  
-@@ -413,6 +549,14 @@ int jkGuiMultiplayer_ShowSynchronizing()
+@@ -413,6 +548,14 @@ int jkGuiMultiplayer_ShowSynchronizing()
  
  int jkGuiMultiplayer_CogMsgHandleJoining(SithMessage *msg)
  {
