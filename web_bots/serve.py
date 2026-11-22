@@ -90,13 +90,21 @@ def browser_pair():
 def child_relay(path):
     # Import the pinned author's relay unchanged; restrict its HTTP handler to
     # the socket upgrade so even its private listener has no file-serving root.
+    bootstrap = sys.stdin.buffer.readline(66)
+    if not re.fullmatch(rb"[0-9a-f]{64}\n", bootstrap):
+        raise RuntimeError("Private relay requires its supervisor bootstrap.")
+    proxy_proof = bootstrap[:-1].decode("ascii")
     m = runpy.run_path(str(path))
     class RelayOnly(m["Handler"]):
         def do_GET(self):
             if self.path.partition("?")[0] != "/relay" or self.headers.get("Upgrade","").lower() != "websocket":
                 self.send_error(404)
-            else:
-                self.handle_websocket()
+                return
+            proof = self.headers.get_all("X-JK-Relay-Proof", [])
+            if len(proof) != 1 or not proof[0].isascii() or not hmac.compare_digest(proof[0], proxy_proof):
+                self.send_error(403)
+                return
+            self.handle_websocket()
 
         def do_POST(self):
             self.send_error(404)
@@ -139,6 +147,7 @@ class Host:
         self.channels = {ident:self.hub.open_browser_channel(ident) for ident in SEATS}
         self.seats = {ident: {"instance":None,"cookie":None,"poll":0., "seq_base":0,"world_base":0,
                               "graphics":None, "view":None, "stage":"waiting", "dropped":0} for ident in SEATS}
+        self.proxy_proof = secrets.token_hex(32)
         self.port = self.relay_port = self.http = None
         self.capture = None
 
@@ -401,7 +410,8 @@ class Host:
         ws=web.WebSocketResponse(max_msg_size=65536)
         suffix=request.rel_url.query_string
         url=f"http://127.0.0.1:{self.relay_port}/relay"+("?"+suffix if suffix else "")
-        async with self.http.ws_connect(url,max_msg_size=65536,compress=0) as upstream:
+        async with self.http.ws_connect(url, max_msg_size=65536, compress=0,
+                                        headers={"X-JK-Relay-Proof":self.proxy_proof}) as upstream:
             await ws.prepare(request)
             async def forward(source,dest):
                 async for message in source:
@@ -422,6 +432,16 @@ class Host:
         return ws
 
 
+def relay_ready_port(line):
+    """Decode the relay's complete ASCII port line on Unix or Windows."""
+    if not re.fullmatch(rb"[0-9]{1,5}\r?\n", line):
+        raise ValueError("Missing or malformed relay port.")
+    port = int(line)
+    if not 1 <= port <= 65535:
+        raise ValueError("Relay port outside 1..65535.")
+    return port
+
+
 async def serve(args):
     run=Path(args.runtime)/("arena-"+time.strftime("%Y%m%d-%H%M%S")+"-"+secrets.token_hex(4))
     host=Host(args.data,args.engine_dir,run,args.room,args.model_gob,args.companion_chat)
@@ -430,12 +450,20 @@ async def serve(args):
     try:
         if not args.relay_script.is_file():
             raise ValueError("Supply relay/relay.py from the current pinned JKWeb relay repository.")
-        proc=await asyncio.create_subprocess_exec(sys.executable,"-u","-m","web_bots.serve","--relay-child",
-            str(args.relay_script.resolve()),stdin=asyncio.subprocess.PIPE,stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.DEVNULL)
-        line=await asyncio.wait_for(proc.stdout.readline(),10)
-        if not re.fullmatch(rb"[0-9]{1,5}\n",line):
-            raise RuntimeError("Private upstream relay failed to send its ready port.")
-        host.relay_port=int(line)
+        relay_log = run / "relay.stderr.log"
+        log_fd = os.open(relay_log, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(log_fd, "wb") as errors:
+            proc = await asyncio.create_subprocess_exec(
+                sys.executable, "-u", "-m", "web_bots.serve", "--relay-child",
+                str(args.relay_script.resolve()), stdin=asyncio.subprocess.PIPE,
+                stdout=asyncio.subprocess.PIPE, stderr=errors)
+        try:
+            proc.stdin.write(host.proxy_proof.encode("ascii") + b"\n")
+            await proc.stdin.drain()
+            line = await asyncio.wait_for(proc.stdout.readline(), 10)
+            host.relay_port = relay_ready_port(line)
+        except (OSError, ValueError, TimeoutError) as error:
+            raise RuntimeError(f"Private upstream relay did not report a valid port. See {relay_log}.") from error
         async def discard():
             while await proc.stdout.read(8192):
                 pass
@@ -454,7 +482,8 @@ async def serve(args):
     finally:
         await runner.cleanup()
         if proc and proc.returncode is None:
-            proc.terminate()
+            with contextlib.suppress(ProcessLookupError):
+                proc.terminate()
             try:
                 await asyncio.wait_for(proc.wait(),3)
             except asyncio.TimeoutError:

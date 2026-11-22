@@ -11,8 +11,6 @@ import tempfile
 import time
 from urllib.parse import urlsplit
 
-from playwright.async_api import async_playwright
-
 
 SEATS = ("lily", "boba", "jan", "yun")
 SOFTWARE = re.compile(r"swiftshader|llvmpipe|softpipe|software|basic render|\bwarp\b|lavapipe", re.I)
@@ -41,7 +39,8 @@ def check_view(status):
     if status.get("joined_count") != 4 or any(not seats.get(i, {}).get("joined") for i in SEATS):
         return "waiting for four fresh engine states"
     own = [seats[i].get("self") or {} for i in SEATS]
-    if {p.get("slot") for p in own} != set(range(4)) or own[0].get("slot") != 0:
+    slots = [p.get("slot") for p in own]
+    if any(type(slot) is not int for slot in slots) or set(slots) != set(range(4)) or slots[0] != 0:
         return "waiting for four distinct slots with Lily hosting"
     nets = {p.get("net_id") for p in own}
     if len(nets) != 4 or any(type(n) is not int or n <= 0 for n in nets):
@@ -58,15 +57,20 @@ def check_view(status):
         return "software renderer reported: " + renderer
     if not DEVICE.search(renderer) or not gl.get("width") or not gl.get("height"):
         return "waiting for a named hardware WebGL renderer and drawable"
+    if abs(gl["width"] * 9 - gl["height"] * 16) > 16:
+        return "waiting for a 16:9 drawing buffer"
     return None
 
 
 async def launch(args):
+    from playwright.async_api import async_playwright
+
     manifest, tokens = read_manifest(args.run_json)
     out = Path(tempfile.mkdtemp(prefix="chrome-qa-", dir=args.run_json.parent))
     receipt = out / "qualification.json"
     print(f"Qualification receipt: {receipt}", flush=True)
     logs = {i: deque(maxlen=120) for i in SEATS}
+    navigation = {i: deque(maxlen=80) for i in SEATS}
     samples = deque(maxlen=360)
     report = {"room": manifest["room"], "phase": "launch", "qualified": False}
     pages = {}
@@ -79,12 +83,16 @@ async def launch(args):
         return value
 
     def log(ident, kind, message):
-        logs[ident].append([round(time.monotonic() - started, 2), kind, redact(str(message))[:700]])
+        entry = [round(time.monotonic() - started, 2), kind, redact(str(message))[:700]]
+        logs[ident].append(entry)
+        if "BOT_NAV_READY " in entry[2] or "BOT_NAV_COVERAGE " in entry[2]:
+            navigation[ident].append(entry)
         if ident == "lily" and "BOT_WEB_HOST " in str(message):
             host_room.set()
 
     def save():
-        data = {**report, "samples": list(samples), "console": {i: list(v) for i, v in logs.items()}}
+        data = {**report, "samples": list(samples), "console": {i: list(v) for i, v in logs.items()},
+                "navigation": {i: list(v) for i, v in navigation.items()}}
         temp = out / "qualification.tmp"
         temp.write_text(json.dumps(data, ensure_ascii=True, indent=2), encoding="utf-8")
         os.replace(temp, receipt)
@@ -163,6 +171,14 @@ async def launch(args):
                 await snapshot("joined")
                 await lily.bring_to_front()
                 if args.record_seconds:
+                    report.update(phase="warmup", warmup_seconds=args.warmup_seconds)
+                    save()
+                    deadline = time.monotonic() + args.warmup_seconds
+                    while time.monotonic() < deadline:
+                        await status()
+                        save()
+                        await asyncio.sleep(min(1, max(0, deadline - time.monotonic())))
+                    await lily.bring_to_front()
                     await wait_for("Capture readiness", args.timeout, check_view)
                     report["phase"] = "recording"
                     report["recorder"] = await lily.evaluate("s=>window.jkBot.startRecording(s)", args.record_seconds)
@@ -221,10 +237,11 @@ def main():
     parser.add_argument("--run-json", required=True, type=Path, help="Private arena run.json from web_bots.serve.")
     parser.add_argument("--timeout", type=int, default=150, help="Seconds allowed for host creation and for joins.")
     parser.add_argument("--record-seconds", type=int, default=0, help="Record 1..120 seconds after qualification.")
+    parser.add_argument("--warmup-seconds", type=int, default=20, help="Sample live gameplay for this many seconds before recording (default 20).")
     parser.add_argument("--hold-seconds", type=int, default=None, help="Keep the browsers open after qualification or capture. Without capture, the default is until interrupted.")
     args = parser.parse_args()
-    if not args.chrome.is_file() or not args.run_json.is_file() or not 0 <= args.record_seconds <= 120 or args.timeout <= 0 or (args.hold_seconds is not None and args.hold_seconds < 0):
-        parser.error("Supply existing files, positive timeout, 0..120 recording seconds and nonnegative hold time.")
+    if not args.chrome.is_file() or not args.run_json.is_file() or not 0 <= args.record_seconds <= 120 or args.timeout <= 0 or args.warmup_seconds < 0 or (args.hold_seconds is not None and args.hold_seconds < 0):
+        parser.error("Supply existing files, positive timeout, 0..120 recording seconds and nonnegative warmup and hold times.")
     try:
         asyncio.run(launch(args))
     except KeyboardInterrupt:

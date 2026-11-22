@@ -1,13 +1,27 @@
+import asyncio
 import base64
+import sys
 import json
 import struct
 from pathlib import Path
 import tempfile
 import unittest
 
+from aiohttp import ClientSession
 from aiohttp.test_utils import TestClient, TestServer
 from web_bots import serve
 from bots import companion as cp
+
+
+class RelayReadyTests(unittest.TestCase):
+    def test_windows_and_unix_relay_port_lines(self):
+        for line, expected in ((b"12345\r\n",12345),(b"65535\n",65535),(b"1\n",1)):
+            with self.subTest(line=line):
+                self.assertEqual(serve.relay_ready_port(line),expected)
+        for line in (b"",b"0\n",b"65536\r\n",b"123456\n",b"-1\n",b" 42\n",b"42 \n",
+                     b"42\r",b"42",b"42\r\r\n",b"42\nextra",b"port 42\n"):
+            with self.subTest(line=line), self.assertRaises(ValueError):
+                serve.relay_ready_port(line)
 
 
 class HostTests(unittest.IsolatedAsyncioTestCase):
@@ -113,3 +127,38 @@ class HostTests(unittest.IsolatedAsyncioTestCase):
         status=await (await self.client.get("/status")).json()
         self.assertNotIn("capture_id",status["capture"])
         self.assertEqual((self.host.runtime/status["capture"]["filename"]).read_bytes(),raw)
+
+    async def test_internal_relay_accepts_only_the_proxy_proof(self):
+        # The upstream handler doubles as an observable upgrade marker. This
+        # exercises the private child process independently of the public API.
+        fixture = self.root / "relay_fixture.py"
+        fixture.write_text("""from http.server import BaseHTTPRequestHandler
+HOLD_S = 60
+class Handler(BaseHTTPRequestHandler):
+    def handle_websocket(self):
+        self.send_response(204)
+        self.end_headers()
+def IceConfig(*args): return None
+def Relay(*args): return None
+""")
+        proc = await asyncio.create_subprocess_exec(
+            sys.executable, "-u", "-m", "web_bots.serve", "--relay-child", str(fixture),
+            stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE)
+        try:
+            proof = "c" * 64
+            proc.stdin.write((proof + "\n").encode())
+            await proc.stdin.drain()
+            port = serve.relay_ready_port(await asyncio.wait_for(proc.stdout.readline(), 5))
+            async with ClientSession() as session:
+                for supplied, status in ((None,403),("wrong",403),(proof,204)):
+                    headers = {"Upgrade":"websocket","Origin":"https://other.invalid"}
+                    if supplied is not None:
+                        headers["X-JK-Relay-Proof"] = supplied
+                    async with session.get(f"http://127.0.0.1:{port}/relay?net=2",headers=headers) as res:
+                        self.assertEqual(res.status,status)
+                        self.assertNotIn(proof,await res.text())
+        finally:
+            proc.stdin.close()
+            await asyncio.wait_for(proc.wait(),5)
+        self.assertNotIn(proof.encode(),await proc.stderr.read())

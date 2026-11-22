@@ -1580,13 +1580,17 @@
       "mode": 420,
       "sha256": "47df11f2e9b572918abbdf04116bb52f1fa3d38dc4f895f2a1269e5f3e04faaa"
     },
+    "tests/test_web_bot_chrome.py": {
+      "mode": 420,
+      "sha256": "87a4f4330ad6ef4a7bb08cf9d754a10d773528ede619359b650e31ed74264221"
+    },
     "tests/test_web_bot_client.js": {
       "mode": 420,
       "sha256": "5fff1bd5806f9560f41cd2c45a15b579fb698909d30fa67bc3acf8cdcd2c3b52"
     },
     "tests/test_web_bot_host.py": {
       "mode": 420,
-      "sha256": "f7b064a446fd4a5f631a8b806a27702a0557b6f06277e62bb8dfc44448406b33"
+      "sha256": "828653f7fc0c48cfbff12164d78a46700c4c3379d1113673ee3a7c2788906155"
     },
     "tools/admin-helper.css": {
       "mode": 420,
@@ -1634,11 +1638,11 @@
     },
     "web_bots/index.html": {
       "mode": 420,
-      "sha256": "8102a86774389606fa1c9c15d982db87b5c0be8642ab85fbc0f09cf0ee29db9d"
+      "sha256": "3ed9f0341c38351588f1b896f3b59656dd59d9cce6d535dd994132cee001ee62"
     },
     "web_bots/launch_chrome.py": {
       "mode": 420,
-      "sha256": "365167a8a03d265ccd236d878e970b0ce7f0cd5f8b104571ce9fc4eadc8faa55"
+      "sha256": "d4d861a19dcdbc7be83ad4a2bda4a7e2e6f630d8945a02d90b78c22b6189cd3e"
     },
     "web_bots/package_engine.py": {
       "mode": 420,
@@ -1646,7 +1650,7 @@
     },
     "web_bots/serve.py": {
       "mode": 420,
-      "sha256": "c8fd08a844eb083d1533699946fbd742f618a3644a7fa08221f2d848561106d3"
+      "sha256": "f8c6a99b61183186e92d29c36153073774bba9a0829a9de11caee15210b9057c"
     },
     "web_gateway/README.md": {
       "mode": 420,
