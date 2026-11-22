@@ -124,7 +124,9 @@ launcher records actual status too. Persist `process.json` in `finally`, includi
 actual engine and worker wait results, timeout/error, monotonic elapsed duration
 and UTC start/end. Never manufacture a handoff to obtain process status.
 
-Use exclusive directories and prewritten assignment claims for attempts. A stage
+Use the canonical private run directory `/dev/shm/<run_id>` from the declaration;
+reject an alternate output path that could reset a partially consumed run. Use
+exclusive directories and prewritten assignment claims for attempts. A stage
 is not resumable: refuse an existing stage or ambiguous prior attempt. Do not
 silently retry failed physical runs or launch a replacement block. Allow already
 dispatched work to finish and preserve it when another attempt fails. Pending
