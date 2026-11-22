@@ -140,8 +140,29 @@
     "six_suites_exit_zero": true
   },
   "live_comparison": {
-    "status": "pending final two-flag Seeing build",
-    "claim": "The preceding movement run verified actual shaft exits, while also exposing the Jump twinkle false casts. The final source correction requires its own live observation."
+    "status": "Seeing correction verified; sector 42 pool escape remains under investigation",
+    "runtime_build": "aae9a1f16c5eea5ef9b916cf3009cc1a1509e7cf",
+    "wasm_sha256": "7ff3f866ff8a6fa5624c61293afdef28148a08d4d6920d0ba9c711595528c702",
+    "trace_sha256": "ec02d11f84a2397239aa36d12063d6172c4542d8a7f4c90843b6dd2d965ee3c2",
+    "map": "Canyon Oasis",
+    "mode": "FF guns",
+    "four_hardware_browser_clients": true,
+    "seconds_after_join_qualification": 120,
+    "phase": "complete",
+    "own_state_samples": {
+      "lily": 523,
+      "boba": 464,
+      "jan": 479,
+      "yun": 495
+    },
+    "observed_seeing_activated_samples": {
+      "lily": 0,
+      "boba": 0,
+      "jan": 0,
+      "yun": 0
+    },
+    "retained_force_jump_requests": 8,
+    "claim": "The final two-flag Seeing correction produced no observed Seeing activations while Force Jump was used. The separate sector54 shaft escape is supported by the preceding movement run. This match exposed an unresolved sector42 water-edge escape and does not qualify general water reliability."
   },
   "intermediate_live_failure": {
     "build": "a00f2acc7e6616955c4c3d6bc5db39c8d0fb821b",
@@ -326,5 +347,20 @@
     },
     "seeing_result": "The three remaining requests exposed the Force Jump twinkle false positive and motivated the final two-flag correction.",
     "limits": "Unseeded four-bot match. Horizontal stationarity includes legitimate vertical swimming and intentional combat pauses; it is not a score of navigation failure or human playing strength."
+  },
+  "outstanding_water_edge": {
+    "status": "investigating",
+    "sector": 42,
+    "observed_bot": "Boba",
+    "observed_position": [
+      -1.873,
+      1.848,
+      -0.349
+    ],
+    "observed_health": 70,
+    "observed_goal": 329,
+    "observed_next_node": 546,
+    "observed_route": "swim",
+    "observation": "An urgent air route remained active but emitted neither jump nor dive at repeated status samples. The bot eventually drowned near this edge. Source tracing and an exact-position replay are in progress."
   }
 }
