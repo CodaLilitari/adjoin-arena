@@ -8,6 +8,7 @@
 uint32_t jkPlayer_maxPlayers;
 SithPlayer jkPlayer_playerInfos[JKPLAYER_NUM_INFOS];
 int32_t sithNet_MultiModeFlags;
+int32_t sithNet_tickrate=16;
 SithThing *sithPlayer_g_pLocalPlayerThing;
 flex_t sithTime_g_secGameTime;
 static int testLOS=1;

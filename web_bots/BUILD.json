@@ -14,20 +14,20 @@
     " 5a82f71ed1dfc0bec044d9702463dbdf84ea3b71 lib/zlib (5a82f71)"
   ],
   "changed_sources": {
-    "src/AI/jkBot.c": "40db36b9a348560a97469415bc99db8163924a78810d392410e8aba9b9bfdd74",
+    "src/AI/jkBot.c": "f685e5af5748501e2627d4c81cd033839f054269fdfb1cbe3f49327186685a07",
     "src/AI/jkBot.h": "d822c0f525b820307b9dde817677b81af8ccca5b3024d2a7859d0cb16314f70f",
     "src/AI/jkBotBehavior.h": "c00a67f6f3db10f47200b111521818ac96e6435b48f38fa366d2f4cfebcf387b",
     "src/AI/jkBotBehavior.inc": "b5f77326432392e708b6ef5f717d97644e4e99d66aa21f02889c40d388fac18f",
     "src/AI/jkBotCombat.inc": "496a42a6ff47906b6040c58e141bbec44ab6252a066db66a18d6a3e4c6a07ce2",
     "src/AI/jkBotCompanion.inc": "91e1e975bb34f46cf1553ba77bcfbd4f57db550c1e6d1981facc1d62c44eacdc",
-    "src/AI/jkBotForce.inc": "28d6b05d60353db55191b29ec0f6f3d779b5c6716c3b1ee8d6b9dbfdbe2a7ac8",
+    "src/AI/jkBotForce.inc": "8c4032ac2a8eafb180264409ee6278364c093a9f0842c44673a7da71ea57dd09",
     "src/AI/jkBotHearing.inc": "30c08aeefde67acaab5bdc63cfd93be0941f5b4614e8eec1ea357841ba6aee8a",
     "src/AI/jkBotLoadout.h": "aab6d025bb9ec2c431beb2d6bd559992b664e9ce075fcaa9c1103ae9ed5dcdc1",
-    "src/AI/jkBotNavigate.inc": "ba3d8765fefd68956df3120a866e9b866f4cab3fac97a256a264f7a164724fcd",
-    "src/AI/jkBotNavigation.inc": "775fdd496468ba16c443d651fc84d2661c36443fe794ef2f6fed33b8041ba22b",
+    "src/AI/jkBotNavigate.inc": "6144a2b2651eb5ce03bcfcf3dc73fada1c6ac0ebdc55aa2f16c61c74b1a82da4",
+    "src/AI/jkBotNavigation.inc": "05863e996ee6abd0b1e7092ae1587c32ba3aa52d48db689858de892cd6433dde",
     "src/AI/jkBotPersona.c": "618f31f58e45a13d89b5dc0493233d446d5eaeada681bd0de758a155a50d578d",
     "src/AI/jkBotPersona.h": "e193097d937ed22400fe84d86a1e9e7f18884cc2be876fb1540627bee96e0bfb",
-    "src/AI/jkBotWaterExit.inc": "26da1dd699350c6c29bd254b68798624c0bdc8a972177911437cfa2d96f1eebc",
+    "src/AI/jkBotWaterExit.inc": "bdd94ef603f40ffeea4a8dfabde36021a0e84ce3edeed8bd523652b989a6a244",
     "src/Cog/sithCog.c": "1b6e11427af188d95868b2d652b14478d9859b74f58f2148ff95537b34343c21",
     "src/Devices/sithControl.c": "39002df35df8661cad1c2d17f7384c1161210fd565dfd3ebd4a1386945811c25",
     "src/Devices/sithSoundMixer.c": "8f2d16952f4a8f77b7459ee84f182a88fba75644d27499aa30f7a096ce8aff25",
@@ -44,20 +44,20 @@
   },
   "files": {
     "bin/bots-jkweb/openjkdf2.js": {
-      "sha256": "ebda179d919397f8745a83823eb1df3d637c8fcf747f59ca833addd0d05ae4fa",
+      "sha256": "1ab23ba29252c931d1a852951cfc333b1d9e5481b55dd9f0032d9c79d7f2a434",
       "bytes": 563022
     },
     "bin/bots-jkweb/openjkdf2.wasm": {
-      "sha256": "02b30f01336cf169e688cb32fb1b6dfa5eff77612b9d42142a507b234db116e4",
-      "bytes": 3778141
+      "sha256": "6991967382b851003bc9e0a5090e9b38fb8bf22e8deff0767116150641bc6213",
+      "bytes": 3781984
     },
     "web_bots/engine.patch": {
-      "sha256": "77afef1b88e8980ea3e0f73901a518aae4985e09789c28d8e2226427336dfc99",
-      "bytes": 235361
+      "sha256": "0fe78a860fca10fe45688f52a4c76698b2337c59dca214a1f3bfac8d0aeb2e57",
+      "bytes": 242195
     },
     "web_bots/engine-relink.tar.gz": {
-      "sha256": "c2eed856531d032234dbc9833b9f102c89d2aa5474d2269600a6bf6efa3a3be5",
-      "bytes": 1558150
+      "sha256": "9138b0bf87b7b8f2eaa73d71da676fbb59e3d6f9b3ef753a64acd62e58f961b8",
+      "bytes": 1559893
     }
   }
 }

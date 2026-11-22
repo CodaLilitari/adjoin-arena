@@ -116,7 +116,7 @@ In range formulas, `L` means stars in that power (1–4), not the session rank.
 |---|---|
 | Jump | A validated route gap with sufficient rank/mana; ordinary charged hotkey and landing checks. |
 | Speed | A sufficiently long, verified supported walking segment rather than a drop. |
-| Seeing | Competitive style prepares while unblinded for an observed engagement or recent threat/damage. Stock Seeing prevents new Blind effects; it does not cure existing Blind. |
+| Seeing | Current local Blind, or an eligible hostile player's synchronized Persuasion effect within the normal forward view, range and line of sight. Ordinary combat, damage and generic Force threats do not trigger it. Stock Seeing prevents subsequent Blind effects; it does not cure an existing Blind timer. |
 | Pull | Disarm an eligible gun user within `0.5 + L/2` world units. |
 | Healing | Low health, with the stock mana and availability gates. |
 | Persuasion | Very low health after higher-priority defensive opportunities. |

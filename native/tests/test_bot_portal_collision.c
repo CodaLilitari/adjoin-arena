@@ -15,6 +15,7 @@
 #include "Engine/sithCollision.c"
 
 uint32_t jkPlayer_maxPlayers;
+int32_t sithNet_MultiModeFlags;
 SithPlayer jkPlayer_playerInfos[JKPLAYER_NUM_INFOS];
 SithThing *sithPlayer_g_pLocalPlayerThing;
 SithWorld *sithWorld_g_pCurrentWorld;
@@ -227,7 +228,7 @@ static void test_water_entry(void)
     test_world.numSurfaces=test_world.numVertices=0;
     int bottom[3],top[3];
     for (int i=0;i<3;i++) {
-        flex_t left=i ? .20f : 0,right=.65f,low=i==0 ? 0 : i==1 ? -.05f : -.65f;
+        flex_t left=i ? .20f : -.40f,right=.65f,low=i==0 ? 0 : i==1 ? -.05f : -.65f;
         flex_t high=i==0 ? .6f : i==1 ? 0 : -.05f;
         SithSector *s=&test_sectors[i]; s->id=i;
         s->boundingbox_onecorner=(rdVector3){left,-.3f,low};
@@ -259,9 +260,36 @@ static void test_water_entry(void)
     assert(!Bot_Clear(NULL,dry.sector,dry.pos,wet.pos,.045f,1));
     bot.nNodes=2;bot.nodes[0]=dry;bot.nodes[1]=wet;
     assert(Bot_EdgeMode(0,1)==BOT_ROUTE_WATER_ENTRY);
-    assert(Bot_EnterWater(&self,&wet,BOT_ROUTE_WATER_ENTRY));
+    assert(Bot_EnterWater(&self,&wet,BOT_ROUTE_WATER_ENTRY,0));
     assert(bot.axes[INPUT_FUNC_FORWARD]>0.5f && !bot.keys[INPUT_FUNC_JUMP] && !bot.keys[INPUT_FUNC_DUCK]);
     assert(Bot_Distance(self.position,dry.pos)==0);
+    /* The planned first edge begins on the dry shelf ahead of the actor.
+       Approaching its supported anchor is necessary from outside entry range. */
+    self.position.x=-0.19f;
+    BotNode actual=dry; actual.pos=self.position;
+    assert(!Bot_WaterEntry(&actual,&wet));
+    bot.goal=1; memset(bot.axes,0,sizeof(bot.axes));
+    assert(Bot_EnterWater(&self,&wet,BOT_ROUTE_WATER_ENTRY,0));
+    assert(bot.goal==1 && bot.axes[INPUT_FUNC_FORWARD]>0.5f && !bot.keys[INPUT_FUNC_JUMP]);
+    assert(self.position.x==-0.19f);
+    /* A valid anchor can be only 0.02 away while the actual start is just
+       outside the 0.55 entry limit. Route arrival tolerance must not skip it. */
+    bot.nodes[0].pos.x=-0.13f;
+    self.position.x=-0.15f; actual.pos=self.position;
+    assert(Bot_WaterEntry(&bot.nodes[0],&wet) && !Bot_WaterEntry(&actual,&wet));
+    memset(bot.axes,0,sizeof(bot.axes));
+    assert(Bot_EnterWater(&self,&wet,BOT_ROUTE_WATER_ENTRY,0));
+    assert(bot.goal==1 && bot.axes[INPUT_FUNC_FORWARD]>0.5f);
+    bot.nodes[0]=dry;
+    /* Closing the passage must invalidate the anchor approach as well. */
+    test_adjoins[2].flags&=~SITHSURF_ADJOIN_ALLOW_MOVEMENT;
+    test_adjoins[3].flags&=~SITHSURF_ADJOIN_ALLOW_MOVEMENT;
+    memset(bot.axes,0,sizeof(bot.axes));
+    assert(Bot_EnterWater(&self,&wet,BOT_ROUTE_WATER_ENTRY,0));
+    assert(bot.goal==-1 && !bot.axes[INPUT_FUNC_FORWARD]);
+    test_adjoins[2].flags|=SITHSURF_ADJOIN_ALLOW_MOVEMENT;
+    test_adjoins[3].flags|=SITHSURF_ADJOIN_ALLOW_MOVEMENT;
+    self.position=dry.pos;
     /* The reverse edge needs real momentum before a fresh surface jump. */
     test_world.gravity=4; nav.jumpVelocity=1.5f; nav.maxRunSpeed=1;
     self.actorParams.maxThrust=2; self.actorParams.jumpSpeed=1.5f; self.physicsParams.mass=150;
@@ -270,6 +298,7 @@ static void test_water_entry(void)
     assert(Bot_EdgeMode(1,0)==BOT_ROUTE_WATER_EXIT);
     assert(Bot_WaterExitArc(&wet,&dry,&swimStart,&flight));
     assert(flight>0.2f && flight<0.8f);
+    bot.physicsStep=bot.frameDt=0.02f;
     nav.waterExitFrom=1; nav.waterExitTo=0; nav.waterExitStart=swimStart;
     nav.waterExitUntil=4; nav.waterExitPhase=0;
     self.sector=wet.sector; self.attach_flags=0; self.position=swimStart;
@@ -277,6 +306,28 @@ static void test_water_entry(void)
     memset(bot.keys,0,sizeof(bot.keys)); Bot_ExitWaterMove(&self);
     assert(bot.keys[INPUT_FUNC_JUMP] && nav.waterExitPhase==0);
     self.position=swimStart; self.physicsParams.flags|=SITH_PF_ONWATERSURFACE; self.field_48=.025f;
+    self.physicsParams.flags|=SITH_PF_CROUCHING;
+    int storedFlags=self.physicsParams.flags;
+    assert(Bot_StockWaterMotion(&self));
+    assert(!Bot_WaterLanding(&self,&wet,&dry,0,0,&flight));
+    bot.previous[INPUT_FUNC_JUMP]=0; memset(bot.keys,0,sizeof(bot.keys));
+    Bot_ExitWaterMove(&self);
+    assert(nav.waterExitPhase==3 && bot.keys[INPUT_FUNC_JUMP] && (int)self.physicsParams.flags==storedFlags);
+    /* Ordinary dry controls release crouch after leaving the water. Only
+       a return to the breathing surface should restart the bank run-up. */
+    self.sector=dry.sector; self.position.z=swimStart.z+0.1f;
+    self.physicsParams.flags&=~(SITH_PF_CROUCHING|SITH_PF_ONWATERSURFACE);
+    memset(bot.keys,0,sizeof(bot.keys)); Bot_ExitWaterMove(&self);
+    assert(nav.waterExitPhase==4 && !bot.keys[INPUT_FUNC_JUMP]);
+    self.sector=wet.sector; self.position=swimStart; self.physicsParams.flags|=SITH_PF_ONWATERSURFACE;
+    Bot_ExitWaterMove(&self); assert(nav.waterExitPhase==0);
+    /* A fast continuous swim can breach into the dry air column without
+       a jump. Keep its valid bank route while ordinary gravity returns it. */
+    self.sector=dry.sector; self.position.z=swimStart.z+0.1f;
+    self.physicsParams.flags&=~SITH_PF_ONWATERSURFACE;
+    Bot_ExitWaterMove(&self); assert(nav.waterExitPhase==4 && !bot.keys[INPUT_FUNC_DUCK]);
+    self.sector=wet.sector; self.position=swimStart; self.physicsParams.flags|=SITH_PF_ONWATERSURFACE;
+    Bot_ExitWaterMove(&self); assert(nav.waterExitPhase==0);
     bot.previous[INPUT_FUNC_JUMP]=1; memset(bot.keys,0,sizeof(bot.keys));
     Bot_ExitWaterMove(&self);
     assert(!bot.keys[INPUT_FUNC_JUMP] && nav.waterExitPhase==1);
@@ -316,7 +367,7 @@ static void test_water_entry(void)
     assert(Bot_EdgeMode(1,0)<0);
     memset(bot.axes,0,sizeof(bot.axes));
     assert(Bot_EdgeMode(0,1)<0);
-    assert(Bot_EnterWater(&self,&wet,BOT_ROUTE_WATER_ENTRY) && bot.goal==-1 && !bot.axes[INPUT_FUNC_FORWARD]);
+    assert(Bot_EnterWater(&self,&wet,BOT_ROUTE_WATER_ENTRY,0) && bot.goal==-1 && !bot.axes[INPUT_FUNC_FORWARD]);
     test_adjoins[2].flags|=SITHSURF_ADJOIN_ALLOW_MOVEMENT|SITHSURF_ADJOIN_ALLOW_AI_ONLY;
     test_adjoins[3].flags|=SITHSURF_ADJOIN_ALLOW_MOVEMENT|SITHSURF_ADJOIN_ALLOW_AI_ONLY;
     assert(!Bot_WaterEntry(&dry,&wet));

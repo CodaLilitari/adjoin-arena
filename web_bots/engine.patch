@@ -1,9 +1,9 @@
 diff --git a/src/AI/jkBot.c b/src/AI/jkBot.c
 new file mode 100644
-index 0000000..09c3c4a
+index 0000000..53e66d0
 --- /dev/null
 +++ b/src/AI/jkBot.c
-@@ -0,0 +1,757 @@
+@@ -0,0 +1,762 @@
 +/*
 + * Ordinary-client multiplayer bot input driver, reconstructed October 2026.
 + * Copyright (C) OpenJKDF2 contributors.
@@ -66,7 +66,7 @@ index 0000000..09c3c4a
 +    int sabersOnly, fistsPeace, forceEnabled, competitiveForce, elite, traceForce;
 +    flex_t nextForceTrace;
 +    char behaviorFile[4096];
-+    flex_t nextBehavior, frameDt, forceThreatUntil, forceUntil, nextForce;
++    flex_t nextBehavior, frameDt, physicsStep, forceThreatUntil, forceUntil, nextForce;
 +    int forceBin, forceTarget, forceCancel, forceEffectBin, forceEffectTarget, forceAvoid;
 +    struct { uint32_t idx, netId, guid, signature; } gripTarget;
 +    BotPeer peers[JKPLAYER_NUM_INFOS];
@@ -576,7 +576,7 @@ index 0000000..09c3c4a
 +        bot.nodes[node].sector && (bot.nodes[node].sector->flags&SITH_SECTOR_UNDERWATER) &&
 +        (bot.keys[INPUT_FUNC_JUMP] || bot.keys[INPUT_FUNC_DUCK])) {
 +        flex_t z=bot.nodes[node].pos.z;
-+        swimProgress=fabsf(z-bot.progressPos.z)-fabsf(z-self->position.z)>0.13f;
++        swimProgress=fabsf(z-bot.progressPos.z)-fabsf(z-self->position.z)>0.04f;
 +    }
 +    if (Bot_NavigationWaiting(self) || swimProgress ||
 +        Bot_Horizontal(Bot_Sub(self->position,bot.progressPos))>0.13f) {
@@ -675,6 +675,11 @@ index 0000000..09c3c4a
 +        !sithWorld_g_pCurrentWorld || !sithPlayer_g_pLocalPlayerThing || !sithPlayer_g_pLocalPlayer) return;
 +    if (!isfinite(dt) || dt<=0) return;
 +    bot.frameDt=Bot_Min(dt,0.25f); bot.now+=bot.frameDt;
++#ifdef FIXED_TIMESTEP_PHYS
++    bot.physicsStep=DELTA_PHYSTICK_FPS;
++#else
++    bot.physicsStep=bot.frameDt;
++#endif
 +    if (bot.now>=bot.nextBehavior) Bot_ReloadBehavior();
 +    SithThing *self=sithPlayer_g_pLocalPlayerThing;
 +    if (self->type!=SITH_THING_PLAYER || !self->sector || !self->actorParams.pPlayer) return;
@@ -736,7 +741,7 @@ index 0000000..09c3c4a
 +    if (bot.now>=bot.nextLog) {
 +        bot.nextLog=bot.now+10.0f;
 +        int next=bot.routePos<bot.routeCount ? bot.route[bot.routePos] : -1;
-+        fprintf(stderr,"BOT_STATUS name=%s t=%.1f sector=%u pos=%.3f,%.3f,%.3f health=%.1f weapon=%d target=%d goal=%d path=%d/%d kills=%d deaths=%d vz=%.3f pitch=%.1f next=%d edge=%d following=%d recover=%.2f exit=%d,%d,%d keys=%d,%d pf=%x\n",
++        fprintf(stderr,"BOT_STATUS name=%s t=%.1f sector=%u pos=%.3f,%.3f,%.3f health=%.1f weapon=%d target=%d goal=%d path=%d/%d kills=%d deaths=%d vz=%.3f pitch=%.1f next=%d edge=%d following=%d recover=%.2f exit=%d,%d,%d keys=%d,%d pf=%x dt=%.3f breath_ms=%u\n",
 +            bot.name,(double)bot.now,self->sector->id,(double)self->position.x,(double)self->position.y,
 +            (double)self->position.z,(double)self->actorParams.health,sithInventory_GetCurrentWeapon(self),
 +            bot.targetSlot,bot.goal,bot.routePos,bot.routeCount,sithPlayer_g_pLocalPlayer->numKills,
@@ -744,7 +749,7 @@ index 0000000..09c3c4a
 +            (double)self->actorParams.headPYR.x,next,bot.routeMode,bot.followingRoute,
 +            (double)Bot_Max(0,bot.nextRecovery-bot.now),nav.waterExitUntil>0 ? nav.waterExitPhase : -1,
 +            nav.waterExitFrom,nav.waterExitTo,bot.keys[INPUT_FUNC_JUMP],bot.keys[INPUT_FUNC_DUCK],
-+            (unsigned)self->physicsParams.flags);
++            (unsigned)self->physicsParams.flags,(double)bot.frameDt,(unsigned)self->actorParams.endurance);
 +        fflush(stderr);
 +    }
 +}
@@ -1621,10 +1626,10 @@ index 0000000..aedb241
 +}
 diff --git a/src/AI/jkBotForce.inc b/src/AI/jkBotForce.inc
 new file mode 100644
-index 0000000..0acb8b7
+index 0000000..1e5d598
 --- /dev/null
 +++ b/src/AI/jkBotForce.inc
-@@ -0,0 +1,275 @@
+@@ -0,0 +1,284 @@
 +/* Copyright (c) 2026 Coda Lilitari. SPDX-License-Identifier: MIT
 +   Use ordinary inventory hotkeys: stock COGs own eligibility, cost and effects. */
 +static int Bot_PowerKey(int bin)
@@ -1768,6 +1773,18 @@ index 0000000..0acb8b7
 +    }
 +    return 0;
 +}
++/* Stock Seeing prevents subsequent Blind hits. Persuasion's replicated
++   render flag produces twinkles in view even before Seeing is active. */
++static int Bot_NeedsSeeing(SithThing *self)
++{
++    if (self->actorParams.flags&SITH_AF_BLIND) return 1;
++    for (unsigned slot=0;slot<jkPlayer_maxPlayers && slot<JKPLAYER_NUM_INFOS;slot++) {
++        SithThing *peer=jkPlayer_playerInfos[slot].pLocalPlayer;
++        if (peer && (peer->jkFlags&JKFLAG_PERSUASION) && Bot_EnemyBase(self,(int)slot) &&
++            !Bot_IsPeaceful(self,(int)slot) && Bot_VisibleTarget(self,peer)) return 1;
++    }
++    return 0;
++}
 +static void Bot_ForceTick(SithThing *self, SithThing *target, flex_t aimError)
 +{
 +    bot.forceAvoid=0;
@@ -1856,19 +1873,16 @@ index 0000000..0acb8b7
 +    }
 +    if (!bot.forceEnabled || activeGrip) return;
 +    if (self->actorParams.health<=60 && Bot_RequestForce(self,SITHBIN_F_HEALING,0.1f,-1)) return;
++    if (!sithInventory_IsInventoryActivated(self,SITHBIN_F_SEEING) && Bot_NeedsSeeing(self) &&
++        Bot_RequestForce(self,SITHBIN_F_SEEING,0.1f,-1)) return;
 +    if (bot.now<bot.forceThreatUntil && Bot_RequestForce(self,SITHBIN_F_ABSORB,0.1f,-1)) return;
 +    if (bot.competitiveForce) {
 +        int engaged=target && Bot_EnemyAllowed(self,Bot_PlayerSlot(target)) &&
 +            sithCollision_HasLOS(self,target,0);
-+        if (!(self->actorParams.flags&SITH_AF_BLIND) &&
-+            (engaged || bot.now<bot.forceThreatUntil || bot.now<bot.hurtUntil) &&
-+            Bot_RequestForce(self,SITHBIN_F_SEEING,0.1f,-1)) return;
 +        if (engaged && Bot_RequestForce(self,SITHBIN_F_ABSORB,0.1f,-1)) return;
 +    }
 +    if (bot.now<bot.hurtUntil && self->actorParams.health<75 &&
 +        Bot_RequestForce(self,SITHBIN_F_PROTECTION,0.1f,-1)) return;
-+    if (!bot.competitiveForce && ((self->actorParams.flags&SITH_AF_BLIND) || (bot.now<bot.hurtUntil && !target)) &&
-+        Bot_RequestForce(self,SITHBIN_F_SEEING,0.1f,-1)) return;
 +    if (self->actorParams.health<35 && Bot_RequestForce(self,SITHBIN_F_PERSUASION,0.1f,-1)) return;
 +    if (!target || !Bot_EnemyAllowed(self,Bot_PlayerSlot(target))) {
 +        if (bot.routePos<bot.routeCount && bot.route[bot.routePos]>=0 && bot.route[bot.routePos]<bot.nNodes) {
@@ -2303,11 +2317,24 @@ index 0000000..d167eb8
 +#endif
 diff --git a/src/AI/jkBotNavigate.inc b/src/AI/jkBotNavigate.inc
 new file mode 100644
-index 0000000..302d4be
+index 0000000..6f230f6
 --- /dev/null
 +++ b/src/AI/jkBotNavigate.inc
-@@ -0,0 +1,331 @@
+@@ -0,0 +1,397 @@
 +/* Movement execution for jkBotNavigation.inc; ordinary inputs only. */
++/* Stock FreeCam tilts forward thrust with head pitch. Keep the extra
++   upward stroke inside checked water clearance, including its lateral drift. */
++static void Bot_SwimUp(SithThing *self)
++{
++    if (self->actorParams.headPYR.x<=55 || (self->physicsParams.flags&SITH_PF_ONWATERSURFACE)) return;
++    flex_t pitch=self->actorParams.headPYR.x/BOT_DEG;
++    rdVector3 up=self->position;
++    flex_t reach=0.16f*cosf(pitch);
++    up.x+=self->orient.lvec.x*reach; up.y+=self->orient.lvec.y*reach;
++    up.z+=0.16f*sinf(pitch);
++    if (Bot_WaterClear(self->sector,self->position,up,self->moveSize)) bot.axes[INPUT_FUNC_FORWARD]=1;
++}
++
 +static int Bot_NavDirectMove(SithThing *self, rdVector3 target, int swim)
 +{
 +    rdVector3 delta=Bot_Sub(target,self->position);
@@ -2323,6 +2350,9 @@ index 0000000..302d4be
 +    }
 +    if (swim) {
 +        if (delta.z>0.05f) {
++            if (Bot_NeedsAir(self) && delta.z>0.16f &&
++                (horizontal<0.035f || Bot_Dot(delta,self->orient.lvec)>0.5f*horizontal))
++                Bot_SwimUp(self);
 +            /* Surface jump needs a fresh key press; underwater ascent may be held. */
 +            if (!(self->physicsParams.flags&SITH_PF_ONWATERSURFACE) || fmodf(bot.now,0.5f)<0.32f)
 +                bot.keys[INPUT_FUNC_JUMP]=1;
@@ -2331,7 +2361,7 @@ index 0000000..302d4be
 +    return 1;
 +}
 +
-+static int Bot_EnterWater(SithThing *self, const BotNode *node, int mode)
++static int Bot_EnterWater(SithThing *self, const BotNode *node, int mode, int from)
 +{
 +    if ((self->sector->flags&SITH_SECTOR_UNDERWATER) || !(node->sector->flags&SITH_SECTOR_UNDERWATER)) return 0;
 +    BotNode actual={.pos=self->position,.sector=self->sector};
@@ -2340,6 +2370,17 @@ index 0000000..302d4be
 +        Bot_NavDirectMove(self,opening,0); return 1;
 +    }
 +    if (mode==BOT_ROUTE_WATER_ENTRY && self->attach_flags) {
++        /* First edges start at a graph anchor, which may still lie ahead.
++           Approach it on supported ground before retrying the water entry. */
++        if (from>=0 && bot.nodes[from].sector==self->sector) {
++            BotNode *anchor=&bot.nodes[from];
++            rdVector3 toward=Bot_Sub(anchor->pos,self->position);
++            int drop=0;
++            if (Bot_WaterEntry(anchor,node) && Bot_WalkableSpan(&actual,anchor,&drop,0.001f) && !drop) {
++                Bot_Move(self,toward,0);
++                return 1;
++            }
++        }
 +        bot.goal=-1; bot.nextPlan=0; return 1;
 +    }
 +    return 0;
@@ -2359,7 +2400,7 @@ index 0000000..302d4be
 +static int Bot_StockWaterMotion(SithThing *self)
 +{
 +    uint32_t required=SITH_PF_USETHRUST|SITH_PF_USEGRAVITY;
-+    uint32_t altered=SITH_PF_FLY|SITH_PF_PARTIALGRAVITY|SITH_PF_CROUCHING|SITH_PF_200000;
++    uint32_t altered=SITH_PF_FLY|SITH_PF_PARTIALGRAVITY|SITH_PF_200000;
 +    return (self->physicsParams.flags&required)==required && !(self->physicsParams.flags&altered) &&
 +        self->physicsParams.mass>0 && self->actorParams.maxThrust>0 &&
 +        isfinite(self->actorParams.extraSpeed) && self->actorParams.extraSpeed>=0 &&
@@ -2378,10 +2419,28 @@ index 0000000..302d4be
 +        nav.waterExitUntil=0;
 +        return;
 +    }
++    /* A fast normal ascent can breach the surface before the run-up. Keep
++       the checked shore while gravity returns the swimmer to the same column. */
++    if ((nav.waterExitPhase==0 || nav.waterExitPhase==3) && !self->attach_flags &&
++        self->sector!=wet->sector && Bot_SectorSafe(self->sector) &&
++        !(self->sector->flags&SITH_SECTOR_UNDERWATER) &&
++        Bot_Horizontal(Bot_Sub(self->position,nav.waterExitStart))<0.25f &&
++        self->position.z>=nav.waterExitStart.z) {
++        nav.waterExitPhase=4; nav.waterExitUntil=bot.now+2;
++    }
 +    if (bot.now>=nav.waterExitUntil || !Bot_StockWaterMotion(self) || !Bot_SectorSafe(self->sector) ||
 +        (nav.waterExitPhase<2 && self->sector!=wet->sector)) {
 +        dry->avoidUntil=bot.now+5;
 +        nav.waterExitUntil=0; bot.goal=-1; bot.routeCount=0; bot.nextPlan=0;
++        return;
++    }
++    if (nav.waterExitPhase>=3) {
++        /* The stock dry controls release the crouch bit above the water.
++           Let this ordinary vertical hop return to the checked swim start. */
++        if (nav.waterExitPhase==4 && self->sector==wet->sector &&
++            (self->physicsParams.flags&SITH_PF_ONWATERSURFACE)) {
++            nav.waterExitPhase=0; nav.waterExitUntil=bot.now+4;
++        }
 +        return;
 +    }
 +    if (distance<0.01f) return;
@@ -2392,6 +2451,16 @@ index 0000000..302d4be
 +    }
 +    int surface=(self->physicsParams.flags&SITH_PF_ONWATERSURFACE)!=0;
 +    if (!nav.waterExitPhase) {
++        if (!surface && Bot_NeedsAir(self) && self->position.z<nav.waterExitStart.z-0.075f) {
++            rdVector3 above=nav.waterExitStart;
++            above.z=self->position.z+0.8f;
++            if (Bot_Horizontal(Bot_Sub(above,self->position))<0.001f) {
++                above.x+=self->orient.lvec.x*0.01f; above.y+=self->orient.lvec.y*0.01f;
++            }
++            Bot_Aim(self,above,0); Bot_SwimUp(self);
++            bot.keys[INPUT_FUNC_JUMP]=1;
++            return;
++        }
 +        /* Center and settle at the checked swim start. Approach with velocity
 +           feedback so momentum from the preceding edge does not carry over. */
 +        rdVector3 adjust=Bot_Sub(nav.waterExitStart,self->position);
@@ -2413,7 +2482,19 @@ index 0000000..302d4be
 +        if (!surface || self->position.z<nav.waterExitStart.z || error>0.025f ||
 +            Bot_Horizontal(self->physicsParams.vel)>0.085f || fabsf(self->actorParams.headPYR.x)>5 ||
 +            Bot_Dot(toward,self->orient.lvec)<0.97f) return;
-+        nav.waterExitPhase=1;
++        if (self->physicsParams.flags&SITH_PF_CROUCHING) {
++            /* A crouched water jump has only 70% of normal impulse. Clear
++               crouch through the usual dry controls before the bank run-up. */
++            rdVector3 up=self->position; up.z+=0.23f;
++            SithSector *air=Bot_SectorAt(&up,self->sector);
++            if (!bot.previous[INPUT_FUNC_JUMP] && Bot_SectorSafe(air) &&
++                !(air->flags&SITH_SECTOR_UNDERWATER) &&
++                Bot_WaterClear(self->sector,self->position,up,self->moveSize)) {
++                bot.keys[INPUT_FUNC_JUMP]=1; nav.waterExitPhase=3; nav.waterExitUntil=bot.now+2;
++            }
++            return;
++        }
++        nav.waterExitPhase=1; nav.waterExitUntil=bot.now+4;
 +    }
 +    /* Release underwater ascent first. Take off only while an actual fresh
 +       press is available and the measured velocity still clears the rim. */
@@ -2423,8 +2504,7 @@ index 0000000..302d4be
 +    flex_t lateral=toward.x*self->physicsParams.vel.y-toward.y*self->physicsParams.vel.x;
 +    flex_t flight;
 +    if (speed>=0 && fabsf(lateral)<0.035f &&
-+        Bot_WaterFlight(self,wet,dry,self->position,self->position.z+self->field_48,
-+                        speed,lateral,self->physicsParams.vel.z,&flight)) {
++        Bot_WaterLanding(self,wet,dry,speed,lateral,&flight)) {
 +        bot.keys[INPUT_FUNC_JUMP]=1;
 +        nav.waterExitPhase=2; nav.waterExitUntil=bot.now+flight+0.65f;
 +    }
@@ -2598,7 +2678,7 @@ index 0000000..302d4be
 +        } else { node->avoidUntil=bot.now+5; bot.goal=-1; bot.nextPlan=0; }
 +        return;
 +    }
-+    if (Bot_EnterWater(self,node,mode)) return;
++    if (Bot_EnterWater(self,node,mode,from)) return;
 +    if (mode==BOT_ROUTE_SWIM || mode==BOT_ROUTE_WATER_ENTRY || (self->sector->flags&SITH_SECTOR_UNDERWATER)) {
 +        Bot_NavDirectMove(self,node->pos,1); return;
 +    }
@@ -2640,10 +2720,10 @@ index 0000000..302d4be
 +}
 diff --git a/src/AI/jkBotNavigation.inc b/src/AI/jkBotNavigation.inc
 new file mode 100644
-index 0000000..7c793d9
+index 0000000..5035780
 --- /dev/null
 +++ b/src/AI/jkBotNavigation.inc
-@@ -0,0 +1,1163 @@
+@@ -0,0 +1,1164 @@
 +/* Ordinary-input navigation; see jkBot.c for license.
 + * The graph is made from the loaded map, not a map-name waypoint lookup.
 + * CTF observes stock CTF_MAIN bindings and synchronized flag attachment state;
@@ -2771,7 +2851,8 @@ index 0000000..7c793d9
 +static int Bot_NeedsAir(SithThing *self)
 +{
 +    return self->sector && (self->sector->flags&SITH_SECTOR_UNDERWATER) &&
-+        (self->actorParams.health<30 || (nav.waterSince>0 && bot.now-nav.waterSince>14.0f));
++        (self->actorParams.health<30 || self->actorParams.endurance>=8000 ||
++         (nav.waterSince>0 && bot.now-nav.waterSince>8.0f));
 +}
 +
 +static int Bot_ObjectiveUrgent(SithThing *self)
@@ -3982,10 +4063,10 @@ index 0000000..ab67201
 +#endif
 diff --git a/src/AI/jkBotWaterExit.inc b/src/AI/jkBotWaterExit.inc
 new file mode 100644
-index 0000000..39ba866
+index 0000000..65205f2
 --- /dev/null
 +++ b/src/AI/jkBotWaterExit.inc
-@@ -0,0 +1,140 @@
+@@ -0,0 +1,190 @@
 +/* Copyright (c) 2026 Coda Lilitari. SPDX-License-Identifier: MIT */
 +/* Arc segments are short enough that the ordinary steering probe's endpoint
 +   tolerance could hide a rim hit. Check their complete swept volume. */
@@ -4085,6 +4166,56 @@ index 0000000..39ba866
 +        Bot_Floor(previous,sector,BOT_FOOT_HEIGHT+0.04f,&landing,&support) &&
 +        support==sector && fabsf(landing.z-previous.z)<0.025f &&
 +        Bot_WaterClear(sector,previous,dry->pos,radius);
++}
++
++/* Verify the live jump against a dry floor contact and the short supported
++   walk from that contact to the graph anchor. Stock physics repeatedly scales
++   the same acceleration between control reads in stepped multiplayer. */
++static int Bot_WaterLanding(SithThing *self,const BotNode *wet,BotNode *dry,
++                            flex_t speed,flex_t lateral,flex_t *seconds)
++{
++    if (self->physicsParams.flags&SITH_PF_CROUCHING) return 0;
++    if (bot.physicsStep<=0 || bot.frameDt<=0) return 0;
++    flex_t dt=bot.physicsStep, control=Bot_Max(dt,bot.frameDt);
++    flex_t surface=self->position.z+self->field_48, contact=dry->pos.z-BOT_FOOT_HEIGHT+self->moveSize+0.001f;
++    rdVector3 direction=Bot_Sub(dry->pos,self->position);
++    flex_t distance=Bot_Horizontal(direction);
++    if (distance<0.04f) return 0;
++    direction.x/=distance; direction.y/=distance;
++    flex_t vz=self->physicsParams.vel.z+nav.jumpVelocity, nextControl=0, thrust=0;
++    rdVector3 pos=self->position, swept=pos;
++    SithSector *sector=wet->sector;
++    for (int i=0;i*dt<1.0f;i++) {
++        flex_t time=i*dt;
++        if (time+0.5f*dt>=nextControl) {
++            thrust=self->actorParams.maxThrust;
++            nextControl+=control;
++        }
++        int water=pos.z<surface;
++        flex_t decay=1.0f-dt*self->physicsParams.airDrag*(water ? 4.0f : 1.0f);
++        thrust*=water ? 0.6f : 0.3f;
++        speed=speed*decay+dt*thrust; lateral*=decay;
++        vz=vz*decay-dt*bot.world->gravity*(water ? self->physicsParams.buoyancy : 1.0f);
++        int landing=vz<0 && pos.z+dt*vz<=contact;
++        if (landing && pos.z<contact) return 0;
++        flex_t step=landing ? (contact-pos.z)/vz : dt;
++        pos.x+=step*(speed*direction.x-lateral*direction.y);
++        pos.y+=step*(speed*direction.y+lateral*direction.x); pos.z+=step*vz;
++        if (!landing && (i%3)!=2) continue;
++        if (!Bot_WaterClear(sector,swept,pos,self->moveSize)) return 0;
++        sector=Bot_SectorAt(&pos,sector); swept=pos;
++        if (!Bot_SectorSafe(sector) || (sector->flags&(SITH_SECTOR_USETHRUST|SITH_SECTOR_NOGRAVITY))) return 0;
++        if (landing) {
++            rdVector3 floor; SithSector *support;
++            if (sector!=dry->sector || !Bot_Floor(pos,sector,BOT_FOOT_HEIGHT+0.04f,&floor,&support) ||
++                support!=dry->sector || fabsf(floor.z-dry->pos.z)>0.025f) return 0;
++            BotNode actual={.pos=floor,.sector=support}; int drop=0;
++            flex_t walk=Bot_Horizontal(Bot_Sub(dry->pos,floor));
++            if (walk>0.14f || (walk>=0.001f && (!Bot_WalkableSpan(&actual,dry,&drop,0.001f) || drop))) return 0;
++            *seconds=time+step; return 1;
++        }
++    }
++    return 0;
 +}
 +
 +static int Bot_WaterExitArc(const BotNode *wet,const BotNode *dry,rdVector3 *launch,flex_t *duration)

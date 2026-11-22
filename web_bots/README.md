@@ -78,11 +78,18 @@ needed for a jump, and penalizes only a route it actually drove unsuccessfully.
 The new regression exercises the normal bot tick; the earlier aligned water-exit
 replay had started after route selection and missed this arbitration failure.
 
-A subsequent live trial exposed a deeper shaft failure. Recovery now credits
-vertical movement toward the commanded submerged waypoint, and ordinary dive
-input brakes the ascent before the surface jump. The same 48 controlled deep
-approaches failed on the intermediate build and landed on dry ground with the
-revised controller; live match qualification remains a separate check.
+Two subsequent live trials exposed deeper shaft failures. Recovery now credits
+vertical progress, seeks air earlier, and plans around the browser's actual
+control and physics cadence. The bot uses normal upward-facing swimming and
+surface jumps, preserves the shore route through a brief breach, and can clear
+crouch through an ordinary hop. A dry approach also walks to its water-entry
+anchor instead of repeatedly discarding a still-distant opening.
+
+The follow-up receipt retains the failed intermediate trials and explains the
+limits of the original simplified fixtures. An independent replay using stock
+engine collision, surface capture, sector transitions, drowning and controls
+reached sustained dry footing in all 36 observed-state cases. Actual browser
+multiplayer qualification is recorded separately.
 
 Stock multiplayer permits pulling the Bryar. Active Absorb prevents the
 disarm, and repeated requests against an unchanged weapon were wasting Lily's
@@ -90,6 +97,11 @@ mana. The bot now checks the intended target again at release and backs off
 repeated Pulls on the same unchanged opponent weapon. A known weapon change or
 new life clears that history. The decision uses synchronized weapon changes;
 the victim's stock script remains authoritative about immunity and disarming.
+
+Seeing now requires local Blind or an observed hostile Persuasion effect.
+Ordinary engagement, unexplained damage and generic Force threats do not trigger
+it. Seeing protects against a subsequent Blind; the current Blind timer remains
+under stock script control.
 
 ## Build and relink
 

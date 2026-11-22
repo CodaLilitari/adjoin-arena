@@ -1,9 +1,9 @@
 {
   "schema": 1,
-  "title": "Canyon Oasis recording review: movement ownership and repeated Force Pull",
+  "title": "Canyon Oasis recording follow-up: water, wall recovery and selective Force use",
   "baseline_runtime": "42154174ec8421e642bfcb56308b2959c2db22e2",
   "reviewed_video_sha256": "fd6c8f7fc25cea86019cebdc08a967caec35962600f095e763155f3415cbad3e",
-  "revised_wasm_sha256": "02b30f01336cf169e688cb32fb1b6dfa5eff77612b9d42142a507b234db116e4",
+  "revised_wasm_sha256": "6991967382b851003bc9e0a5090e9b38fb8bf22e8deff0767116150641bc6213",
   "review_method": "Rendered video samples across the full two minutes, synchronized own-state traces and retained engine console events, followed by source tracing and normal-tick regressions.",
   "observed_stalls": [
     {
@@ -48,7 +48,12 @@
     "Attribute a failed route only after continuous ownership on the same node and goal; evaluate the expiry frame before returning control.",
     "Preserve route heading and pitch for jump approach, committed flight and water exit while still checking physical aim for gunfire and servicing Force hold/cancellation.",
     "Count vertical progress toward the commanded submerged waypoint, while retaining stall penalties for stationary or receding swimmers.",
-    "Use ordinary dive input to brake a fast ascent before the surface run-up, so the engine can capture the water-surface state before a legal jump."
+    "Use ordinary dive input to brake a fast ascent before the surface run-up, so the engine can capture the water-surface state before a legal jump.",
+    "Walk to the supported dry start of a water-entry edge when the graph anchor is still ahead; retry the actual entry every tick.",
+    "Seek air after eight seconds or stock endurance reaching 8000 ms, and sooner at low health. Ordinary upward-facing forward movement supplements the jump swim input through checked clearance.",
+    "Predict the live bank jump using actual control and physics cadence; accept a collision-checked dry landing followed by a short supported walk to the graph waypoint.",
+    "If crouched, use an ordinary vertical surface hop so stock dry controls release crouch before the bank jump.",
+    "Retain the checked shoreline route through a brief upward breach instead of selecting another submerged goal."
   ],
   "normal_tick_tests": {
     "source": "native/tests/test_bot_movement_tick.inc",
@@ -79,26 +84,28 @@
     "additional_off_axis_opponent_cases": 2,
     "additional_landings": 2,
     "ordinary_jumps_per_success": 1,
-    "limits": "One shoreline, controlled starts facing the bank. Off-axis cases rotate the visible opponent 39.5 degrees from the required exit heading. This is not a live multiplayer qualification or coverage of every shoreline."
+    "limits": "One shoreline, controlled starts facing the bank. Off-axis cases rotate the visible opponent 39.5 degrees from the required exit heading. This is not a live multiplayer qualification or coverage of every shoreline.",
+    "status": "Historical intermediate fixture, superseded for current JKWeb qualification",
+    "fidelity_gap": "Refreshed controls on every physics step and did not fully reproduce current JKWeb surface capture and sector-transition behavior. Retained to explain why live testing was still necessary."
   },
   "native_verification": {
-    "build_metadata_sha256": "5466fe7f6e422644d688ec4f17f743d9bf1a7450dc785452ec5a7f9e785cc022",
+    "build_metadata_sha256": "65074ae01c5632c69799624c6966a582f4f74d7760f989172a99c9dc82a2661b",
     "files": {
       "bin/bots-linux-x86_64/jk-bot-client": {
-        "sha256": "172f1b949eb1eef49215f0eb1a4c0091c9d1dc642b706198e1c642e88cc58606",
-        "bytes": 8652256
+        "sha256": "1f0b8dc7faf60be8ab14a04330067d965cd977bcfacebc74d598b9f732608825",
+        "bytes": 8656472
       },
       "bin/bots-linux-x86_64/libGameNetworkingSockets.so": {
         "sha256": "8246a869b1d72115ecc849309629aa1abbce0bf1a0f23cc70deaded98d82d8e9",
         "bytes": 3644744
       },
       "native/bot-client.patch": {
-        "sha256": "254580e59e9859e7a984856b22376af553925d23ca6f90bbe5506bab8bcb0085",
-        "bytes": 244850
+        "sha256": "bc9de60c890faadcfd61b7f1665e744fdc3ded68d692b3c3b97864b4c70cbf0d",
+        "bytes": 251684
       },
       "native/bot-relink-linux-x86_64.tar.gz": {
-        "sha256": "00bf9d0804af9480253cb546b8028647a2f0c23bce11335efbab41df17302d32",
-        "bytes": 6021638
+        "sha256": "056e4ff4a600548c1588aee21f1a5e14d8f62b1ba689e6e98f2254bf3139ffe4",
+        "bytes": 6024651
       }
     },
     "scanned_units": 205,
@@ -110,7 +117,7 @@
       "clean_pinned_source_accepts_patch": true,
       "packaged_source_dependency_hashes_verified": 222,
       "all_packaged_link_input_hashes_verified": 218,
-      "relinked_executable_sha256": "172f1b949eb1eef49215f0eb1a4c0091c9d1dc642b706198e1c642e88cc58606",
+      "relinked_executable_sha256": "1f0b8dc7faf60be8ab14a04330067d965cd977bcfacebc74d598b9f732608825",
       "headless_invalid_profile_exit": 6,
       "patched_source_regressions": [
         "hearing and elite pursuit",
@@ -133,8 +140,8 @@
     "six_suites_exit_zero": true
   },
   "live_comparison": {
-    "status": "pending revised deep-water build",
-    "claim": "The intermediate live failure is retained above. The controlled 48-case exit replay does not itself qualify general multiplayer navigation."
+    "status": "pending final authentic-physics controller",
+    "claim": "Both intermediate live failures remain recorded. No general live improvement is inferred from the fixture alone."
   },
   "intermediate_live_failure": {
     "build": "a00f2acc7e6616955c4c3d6bc5db39c8d0fb821b",
@@ -197,6 +204,97 @@
     "intermediate_build_landings": 0,
     "revised_build_landings": 48,
     "controls": "Ordinary movement, swim, dive and jump; no position/velocity writes in the bot controller.",
-    "limits": "Controlled starts at the observed Canyon Oasis shaft; separate from unscripted multiplayer qualification."
+    "limits": "Controlled starts at the observed Canyon Oasis shaft; separate from unscripted multiplayer qualification.",
+    "status": "Historical intermediate fixture, superseded for current JKWeb qualification",
+    "fidelity_gap": "Refreshed controls on every physics step and did not fully reproduce current JKWeb surface capture and sector-transition behavior. Retained to explain why live testing was still necessary."
+  },
+  "force_seeing": {
+    "triggers": [
+      "Current local Blind, to prevent a subsequent Blind while Seeing is active.",
+      "An eligible hostile player has the synchronized Persuasion render flag within the normal forward view, range and line of sight."
+    ],
+    "not_triggers": [
+      "Ordinary visible engagement",
+      "Unexplained damage",
+      "Generic Force threat"
+    ],
+    "existing_blind_is_not_cured": true,
+    "remote_inventory_read": false,
+    "stock_rules_modified": false,
+    "stock_seeing_script_sha256": "47fcffb1a371cf61ec386d3eded9615f0f9ae2945997738c4861091c28fe6ac4",
+    "tests_source": "native/tests/test_bot_behavior.inc",
+    "tests_sha256": "0b6388da1eb51eceefcf3237651a34c2633aea1237a30e0b6d1677ce72f2b48f",
+    "verification": "Both source-tree drivers passed the 38 named groups, including independent negative cases, hostile Persuasion visibility/peace gates, insufficient mana and no recast after the Persuasion flag clears. Independent source review found no blocker."
+  },
+  "dry_water_entry_replay": {
+    "map": "JK1MP/m10.jkl",
+    "observed_sector": 41,
+    "observed_delay_seconds": 10.123,
+    "cause": "The first graph edge omitted the still-unreached dry anchor. The actual water opening remained outside the 0.55-unit entry limit; repeated rejection gave no movement.",
+    "stalled_poses": 5,
+    "headings": 3,
+    "control_hz": [
+      20,
+      60
+    ],
+    "matched_cases": 30,
+    "previous_reached_legal_entry_within_1_45_seconds": 0,
+    "revised_reached_legal_entry": 30,
+    "revised_entry_seconds_range": [
+      0.083,
+      0.55
+    ],
+    "ordinary_jumps": 0,
+    "already_valid_starts_preserved": 6,
+    "limits": "Endpoint is reaching a legal water-entry position, not completing the subsequent swim."
+  },
+  "second_intermediate_live_failure": {
+    "build": "af33c329d340440f8a0a2480897bb0c7868051dd",
+    "wasm_sha256": "02b30f01336cf169e688cb32fb1b6dfa5eff77612b9d42142a507b234db116e4",
+    "trace_sha256": "ca2f8e6b1ef0896c0647f1e8313ab4d099a6b4eeaf687fc4e3cd8a3f12bfe10d",
+    "four_hardware_browser_clients": true,
+    "conclusion": "Lily moved more consistently, but Boba still drowned after a late ascent, then reached breathing height without completing a bank exit in his second life. Not accepted as reliable water navigation.",
+    "causes": [
+      "Actual browser controls refresh once per rendered frame, while intervening stock underwater physics steps repeatedly scale stored thrust. The earlier fixture overestimated swim acceleration.",
+      "A retained crouch flag reduces the stock surface jump impulse by 30%.",
+      "The bank predictor demanded the waypoint center instead of a valid nearer supported landing."
+    ]
+  },
+  "authentic_stock_water_replay": {
+    "map": "JK1MP/m10.jkl",
+    "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+    "method": "Independent harness uses engine sithThing_UpdateMove, MoveThing, FindFloor, sector enter/exit, surface capture, drowning, jump and player-control routines with actual stock physics substeps.",
+    "observed_starts": 3,
+    "headings": 3,
+    "control_hz": [
+      15,
+      20,
+      30,
+      60
+    ],
+    "physics_hz": 150,
+    "matched_cases": 36,
+    "revised_supported_dry_finishes": 36,
+    "consecutive_supported_physics_steps_required": 38,
+    "closest_matched_case": {
+      "prior_build": "af33c329d340440f8a0a2480897bb0c7868051dd",
+      "prior_drowned_after_seconds": 4.0,
+      "prior_death_z": 0.53,
+      "observed_live_death_z": 0.507,
+      "revised_breath_after_seconds": 3.393,
+      "revised_dry_after_seconds": 7.293,
+      "revised_health": 10,
+      "ordinary_jumps": 2
+    },
+    "second_life_case": {
+      "revised_dry_after_seconds": 3.1,
+      "revised_health": 60
+    },
+    "high_rate_turnaround": {
+      "control_hz": 60,
+      "revised_dry_after_seconds": 6.52,
+      "revised_health": 50
+    },
+    "limits": "Known Canyon Oasis shaft, controlled starts and no competing actors. Requires a separate actual browser multiplayer run."
   }
 }

@@ -168,9 +168,14 @@ in each side power and leaves eight stars unspent, allowing the stock game to
 derive Protection or Deadly Sight. A master uses the balanced allocation at
 lower ranks.
 
-Competitive bots prepare Seeing while unblinded and can prepare Absorb during
-a visible engagement or on receiving a Force threat. They allow 0.15 seconds
-between power requests while honoring each power’s own cooldown. Before
+Seeing requires a specific countering opportunity: the bot is currently Blind,
+or an eligible hostile player's synchronized Persuasion effect is within the
+normal forward view, range and line of sight. Ordinary combat, damage and a
+generic Force threat do not trigger Seeing. Stock Seeing protects against a
+subsequent Blind; it does not clear an existing Blind timer. Competitive bots
+can still prepare Absorb during a visible engagement or on receiving a Force
+threat. They allow 0.15 seconds between power requests while honoring each
+power’s own cooldown. Before
 releasing Grip, the controller checks the local targeting script’s victim
 against the intended player’s identity. Weapon fire can continue during a
 valid active Grip.
