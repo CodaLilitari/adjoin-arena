@@ -862,7 +862,7 @@
     },
     "qa/bots-movement-force-followup.json": {
       "mode": 420,
-      "sha256": "996dccfbf5372dca49289040fc23e62fe7e53b3488d851fd9b7d0a9cd545ed55"
+      "sha256": "2e2fcd10ba4d495afde15bcbda42d0b10d696fdf19d5f0c6d072b9afb8ea9ed5"
     },
     "qa/bots-recovery-assets.json": {
       "mode": 420,

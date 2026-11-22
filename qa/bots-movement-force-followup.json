@@ -150,10 +150,94 @@
     }
   },
   "live_comparison": {
-    "status": "combined pool and charged-jump browser verification pending",
+    "status": "combined browser trial completed; recorded pool exits observed alive; no full-charge cast occurred in this match",
+    "runtime_build": "61a4aed2db2e930f7ed1d3041d684111424c3e7a",
     "wasm_sha256": "6a000aaf1770ecb8014284b27fa2ba4522a8ab2acd888848930c368c5674d5d7",
-    "earlier_seeing_trial": "seeing_live_trial",
-    "earlier_movement_trial": "movement_live_trial"
+    "js_sha256": "7b52a7616729167a8ccb2377d5dbfe8dc04acd447fc28d5a784a364762efbac7",
+    "trace_sha256": "ecbbd53a25de8c6ed261d6deaf055f1dffd035cd2f7d1d10768590637ae9efde",
+    "map": "Canyon Oasis",
+    "mode": "FF guns",
+    "four_hardware_browser_clients": true,
+    "seconds_after_join_qualification": 120,
+    "phase": "complete",
+    "own_state_samples": {
+      "lily": 519,
+      "boba": 489,
+      "jan": 459,
+      "yun": 474
+    },
+    "observed_seeing_activated_samples": {
+      "lily": 0,
+      "boba": 0,
+      "jan": 0,
+      "yun": 0
+    },
+    "force_jump_requests": {
+      "lily": [],
+      "boba": [
+        0.25
+      ],
+      "jan": [],
+      "yun": [
+        0.25
+      ]
+    },
+    "observed_force_jump_activated_samples": {
+      "lily": 0,
+      "boba": 2,
+      "jan": 0,
+      "yun": 0
+    },
+    "pool_exits": [
+      {
+        "bot": "Lily",
+        "life_epoch": 1,
+        "wet_sector_samples": [
+          42,
+          44
+        ],
+        "bank_sector": 10,
+        "bank_standing_samples_game_seconds": [
+          45.89,
+          46.093,
+          46.511,
+          46.765,
+          46.965,
+          47.217
+        ],
+        "standing_z": 0.1201,
+        "health": 74.30705261230469,
+        "health_preserved_during_recorded_escape": true
+      },
+      {
+        "bot": "Lily",
+        "life_epoch": 1,
+        "wet_sector_samples": [
+          42,
+          44
+        ],
+        "bank_sector": 10,
+        "bank_walking_samples_game_seconds": [
+          62.791,
+          63.013
+        ],
+        "standing_z": 0.1191,
+        "health": 27.5595703125,
+        "health_preserved_during_recorded_escape": true,
+        "subsequent_status_game_seconds": 70.1,
+        "subsequent_sector": 33
+      }
+    ],
+    "horizontal_motion_screen": {
+      "method": "First 120 seconds after all four seats publish fresh native observations. Alive samples within 0.13 horizontal map units of an anchor for at least 2 seconds are candidate stalls; gaps over 0.8 seconds reset the anchor. These samples do not distinguish all intentional pauses, Grip immobility, or bad routes. The two matches are unseeded and do not establish human competitive strength. Pull edges are sampled activation transitions, not a count of successful disarms.",
+      "longest_candidate_seconds": {
+        "lily": 3.196,
+        "boba": 4.0,
+        "jan": 3.483,
+        "yun": 7.223
+      }
+    },
+    "claim": "Four browser clients completed the private match. Lily climbed from the pool to bank-height dry positions twice in the same life, then walked away without losing health during the second escape. Seeing remained inactive in all fresh own-state samples. The complete retained console records two 0.25-second Jump requests, no full-charge request; charged escapes are supported by controlled stock-handler replay, not this live match. The match is unseeded and does not establish every shoreline, all ledges or elite-human performance."
   },
   "intermediate_live_failure": {
     "build": "a00f2acc7e6616955c4c3d6bc5db39c8d0fb821b",
@@ -340,7 +424,7 @@
     "limits": "Unseeded four-bot match. Horizontal stationarity includes legitimate vertical swimming and intentional combat pauses; it is not a score of navigation failure or human playing strength."
   },
   "outstanding_water_edge": {
-    "status": "corrected in matched stock-engine replay; combined browser verification pending",
+    "status": "observed failure corrected in matched replay and integrated browser pool traversal",
     "sector": 42,
     "observed_bot": "Boba",
     "observed_position": [
@@ -352,8 +436,8 @@
     "observed_goal": 329,
     "observed_next_node": 546,
     "observed_route": "swim",
-    "observation": "An urgent air route remained active but emitted neither jump nor dive at repeated status samples. The bot eventually drowned near this edge. Source tracing and an exact-position replay are in progress.",
-    "resolution": "Full-body swim clearance, direct overhead air recovery, and stock floor-contact rim prediction. See pool_water_replay for matched old/new outcomes."
+    "observation": "In the earlier aae9a1f run an urgent air route remained active but emitted neither jump nor dive at repeated status samples, and Boba drowned at this edge.",
+    "resolution": "All three matched captured states reach supported dry ground on the corrected source. The integrated browser match shows Lily leaving this pool twice alive; see pool_water_replay and live_comparison. Other shoreline starts remain outside the coverage claim."
   },
   "pool_water_replay": {
     "map": "JK1MP/m10.jkl",
