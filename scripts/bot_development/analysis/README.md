@@ -179,3 +179,41 @@ The scripts expect complete, qualified trace wrappers and the corresponding map/
 The portability changes preserve the analysis logic and existing output keys for the original sector defaults. The pool-context helper now resolves the matching trial label instead of assuming that the last column summary is the desired trial. `export_numeric_map.py` is a thin CLI around the existing stock replay exporter.
 
 Portability verification on 2026-11-22 ran all nine `--help` interfaces and compiled each script. Regenerated C2–C5 gameplay reports, their combined gameplay and sector comparisons, the C5 failed-approach windows, and C4 pool context matched the retained parsed JSON exactly (eight comparisons). The three earlier analyzers matched the original scripts on the same C5 trace. Exporting the owned test map reproduced the prior numeric input byte for byte. These checks verify preservation of the diagnostic tools; they do not add a new live gameplay qualification.
+
+## Frozen recovery evaluation
+
+Rebuild the v2/v3 comparison on the 24 fresh, 27 original and 16 earlier
+stress starts. Supply the six completed independent evaluation directories and
+the original and recovery evidence directories. Each argument identifies a set
+and model role. The auditor checks that role against the frozen hashes, including
+the distinct TSVs for the two sets recorded by the evaluator as `perturbation`.
+Use a new output filename.
+
+```sh
+python scripts/bot_development/analysis/audit_recovery_learning.py \
+  --fresh-v2 "$FRESH_V2_DIR" --fresh-v3 "$FRESH_V3_DIR" \
+  --original-v2 "$ORIGINAL_V2_DIR" --original-v3 "$ORIGINAL_V3_DIR" \
+  --stress-v2 "$STRESS_V2_DIR" --stress-v3 "$STRESS_V3_DIR" \
+  --reference "$ORIGINAL_V2_REFERENCE_DIR" --collection "$RECOVERY_COLLECTION_DIR" \
+  --output "$NEW_EVALUATION_JSON"
+```
+
+The audit reconstructs the frozen training matrix without fitting. It replays
+the v2 collection prefixes, joins each evaluation's observations to its actual
+applied controls and native terminal, reruns the standalone policy on the
+decision journal, and checks repeated baseline trace lengths and digests.
+The receipt retains all six source receipts, raw-file digests, per-heading
+results, per-position transitions, old v2 trajectory comparisons and the
+predeclared criterion. Counts distinguish the 268 scheduled executions from
+the 201 controller/start configurations and the 67 repeated baseline runs.
+Collection branches are counted separately.
+
+A physical timeout or death remains a loss regardless of native or model
+success on the same assignment. A reported infrastructure censor retains its
+reason and available raw evidence and makes the experiment inconclusive.
+A missing assignment, pending evaluation or evidence contradiction stops the
+audit. A completed measurement that misses an engineering threshold still
+produces a valid receipt. The native terminal recorder supplies the 38-step
+support streak. The 150 Hz support history and per-process OS exit status were
+not separately archived for the independent evaluations. Executable hashes
+are those captured by each evaluator during its temporary build.

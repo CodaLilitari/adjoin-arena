@@ -87,11 +87,14 @@ stage.replace("directive.json")
 
 The initial policy recognizes `explore`, `resource`, `route` with an optional current `parameters.node`, `motor` with optional `parameters.skill` and `parameters.distance`, and `baseline`. A custom policy may implement other goals. Give a changed order a new ID. Renewing an active ID updates its expiry and keeps its original parameters. Reusing an ID after its previous expiry starts a new order with its new parameters. The runtime rereads the directive and checks the original sample age after any blocking lease or persistence operation, immediately before posting the action. Existing maneuvers finish before any tactical change. Life/world/run mismatches and expired directives are ignored. A directive can be present at initial launch or replaced while running. Astra uses this same lease through the supervisor. There is no hosted-model connection.
 
-The separate `water_contact_v2.py` policy is a synchronous stock-fixture
-experiment. Its water-surface contact input is absent from the deployed
-observation contract, and it rejects that missing field. Its original-start
-improvement did not extend to the predeclared nearby cases, so it remains
-unpromoted. See the [independent movement comparison](LILY_MOTOR_LEARNING.md#independent-control-and-feedback-cadence).
+The separate `water_contact_v2.py` and `water_recovery_v3.py` policies are
+synchronous stock-fixture experiments. Their required water-surface contact
+input is absent from the deployed observation contract, and they reject that
+missing field. Recovery v3 passed its declared same-pool transfer criterion,
+landing 10/24 fresh starts against v2's 0/24, but it remains unpromoted. Neither
+is selected automatically or qualified for this deployed observation path.
+See [corrective recovery learning](LILY_MOTOR_LEARNING.md#corrective-recovery-candidate)
+and the [checkpoint](reviews/2026-11-22-lily-recovery-learning-checkpoint.md).
 
 ## Commit to a bank across motor commands
 

@@ -24,16 +24,29 @@ physics, including an unsuccessful unrestricted movement probe.
 Read [the operator guide](LILY_ADAPTIVE.md), [wire contract](LILY_PROTOCOL.md), and
 [learning experiment](LILY_MOTOR_LEARNING.md). The first small neural movement
 candidate was trained from 27 successful physical replays and remains unpromoted.
-The [latest review checkpoint](reviews/2026-11-22-lily-independent-motor-checkpoint.md)
-records independent motor control, feedback cadence and one contact/history
-candidate. Frozen v1 landed in 22/27, 21/27 and 18/27 original starts at requested
-550 ms, 100 ms and every-tick schedules. The contact candidate reached 21/27
-at every tick, but regressed from v1's 10/16 to 7/16 on predeclared nearby starts.
-Both remain unpromoted. All 226 executions had complete ownership and physical
-outcomes; this count includes 43 repeated baseline checks. The native baseline
-landed in all 27 original and all 16 nearby trials. See the
-[independent receipt](../qa/lily-independent-motor.json) and
-[failure diagnosis](../qa/lily-contact-failures.json).
+The [latest review checkpoint](reviews/2026-11-22-lily-recovery-learning-checkpoint.md)
+records one corrective recovery fit. Frozen v2 first drove eight scheduled
+branches from the two original training pool poses; the native teacher then
+took over without resetting the actor or held inputs. Six branches landed and
+two timed out. Their 768 eligible correction rows were appended to the unchanged
+3,431 original rows for one fixed fit. The weights and export were frozen before
+opening the six fresh pool positions at four headings each.
+
+Recovery v3 landed 10/24 fresh starts against v2's 0/24 and the native baseline's
+23/24. It also reached 26/27 original starts and 10/16 prior nearby starts, versus
+21/27 and 7/16 for v2. Gains cover five fresh positions, and all 20 historical
+original shaft winners remain successful. The original `pool-100-yaw0` and prior
+`perturb-shaft-a-yaw90` regressions remain recorded. All 268 evaluation executions
+have complete physical outcomes and no native assistance to model inputs; 67
+are repeated baseline checks. See the [collection](../qa/lily-recovery-collection.json),
+[freeze](../qa/lily-recovery-freeze.json) and [evaluation](../qa/lily-recovery-evaluation.json).
+The declared engineering criterion is met. V3 remains an unpromoted synchronous
+fixture policy, with 14/24 fresh failures and no new live multiplayer qualification.
+
+The [preceding independent checkpoint](reviews/2026-11-22-lily-independent-motor-checkpoint.md)
+retains the v1 feedback-cadence comparison, contact/history v2 and the
+[failure diagnosis](../qa/lily-contact-failures.json). Frozen v1/v2 artifacts,
+the production controllers and native/browser engine packages are preserved.
 
 The [preceding bank checkpoint](reviews/2026-11-22-lily-bank-checkpoint.md)
 records the deployed task and handover experiment.

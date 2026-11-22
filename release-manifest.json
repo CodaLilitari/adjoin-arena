@@ -120,6 +120,10 @@
       "mode": 420,
       "sha256": "ae90a49fa07bbbd56c86fb0315f3f3980902a2bf1d5497c9439e532c95a7554f"
     },
+    "bots/lily/models/water_recovery_v3.json": {
+      "mode": 420,
+      "sha256": "e08532a4c1a2f7b0fa88417456d177cedd03c67d26555c4a5be1f4d80b599043"
+    },
     "bots/lily/motor_contact.py": {
       "mode": 420,
       "sha256": "dc294acfab45ca007dd03eec054f4cd83b089a44210ef39cb0ff5b632f9ce667"
@@ -140,6 +144,10 @@
       "mode": 420,
       "sha256": "fa470f017927057f7b9406219b2baba757b4ae01a60e1e9c1f76620f61ebc251"
     },
+    "bots/lily/policies/water_recovery_v3.py": {
+      "mode": 420,
+      "sha256": "f849e6bae2e41e86a3ed70b6df00d6365c1803da9973fbaae6e1db8d26650d51"
+    },
     "bots/lily/protocol.py": {
       "mode": 420,
       "sha256": "8993370f8a659c9847ae70112836ab62c897849be1a4b3725f9d070d71853e9e"
@@ -155,6 +163,10 @@
     "bots/lily/train_motor.py": {
       "mode": 420,
       "sha256": "f1885b8ca9edc7887057471e2b7f6a4005a7557a251a68838d2921eb87bfe334"
+    },
+    "bots/lily/train_recovery_motor.py": {
+      "mode": 420,
+      "sha256": "1f988d241fdbdd60dd72b371b2aaa3316fddf800b1ef09a6b99d69396531c5e0"
     },
     "bots/lily/worker.py": {
       "mode": 420,
@@ -254,7 +266,7 @@
     },
     "docs/BOTS_CONTINUATION.md": {
       "mode": 420,
-      "sha256": "b7be1e77b59b9396c128f57b08a46a576f90d9add70cabcac53aa4abd2067a7e"
+      "sha256": "1607da904d433e7fdd6e3ad6b453457286bc92fdce377033aa15815b7b6104e5"
     },
     "docs/BOTS_PROTOTYPE.md": {
       "mode": 420,
@@ -274,11 +286,11 @@
     },
     "docs/LILY_ADAPTIVE.md": {
       "mode": 420,
-      "sha256": "b5d78c884f44ed41aee4e6d558fedf70c1efddc1fbdf0404d1327943e3ff41b8"
+      "sha256": "52b8e845143dbf9ba4ad783d4abe87b62470ac617b2b2fd1f4fb68a77b576212"
     },
     "docs/LILY_MOTOR_LEARNING.md": {
       "mode": 420,
-      "sha256": "2d648b2f02ca90a058f0a0dbc19b2361e90636ae2f73dc4ff416ea83ed9f185a"
+      "sha256": "55214af28c0459060e22d9b6b875216d5807497e60da33adc286446bb7805e3d"
     },
     "docs/LILY_PROTOCOL.md": {
       "mode": 420,
@@ -344,6 +356,10 @@
       "mode": 420,
       "sha256": "64ca90748260205aeb27996e1cf68f4285d11cfc043f0f113db3d35a90d9b74d"
     },
+    "docs/reviews/2026-11-22-lily-recovery-learning-checkpoint.md": {
+      "mode": 420,
+      "sha256": "71138bf1e3233f6f45112c5818c4c22e072dbe9a81682248f0758324100124f7"
+    },
     "docs/superpowers/plans/2026-10-28-browser-spectator.md": {
       "mode": 420,
       "sha256": "8b424e08cfb8c2ed223665953f7c0c7083ccdd61e3b0995e27855ca3ab03aa9c"
@@ -380,6 +396,10 @@
       "mode": 420,
       "sha256": "10ef7be80f2c5a975f2a041a051bd4d0cd3d4baf768510a9320773c457497854"
     },
+    "docs/superpowers/plans/2026-11-22-lily-recovery-learning.md": {
+      "mode": 420,
+      "sha256": "21b11af8595c83d4e9bbdb098f7cda5fa8ef095ee0f7200cfe3f638808d95084"
+    },
     "docs/superpowers/specs/2026-10-28-browser-spectator-design.md": {
       "mode": 420,
       "sha256": "2b344376d42cc9926b18715dd2c1afd55fbfcc934f075cd2c68ed60c60f558f5"
@@ -407,6 +427,10 @@
     "docs/superpowers/specs/2026-11-22-lily-independent-motor-design.md": {
       "mode": 420,
       "sha256": "046f4948240b48fb876df86407fc4c211d327201bb05a1518f0491567868e604"
+    },
+    "docs/superpowers/specs/2026-11-22-lily-recovery-learning-design.md": {
+      "mode": 420,
+      "sha256": "eae9132e3c9f75ece2350cd28ea31474486f034669a8f9823a2198cb09969273"
     },
     "examples/jk.json": {
       "mode": 420,
@@ -742,7 +766,7 @@
     },
     "native/tests/stock_water_replay/README.md": {
       "mode": 420,
-      "sha256": "5718fa30ee9534eefe853d3246ffa7997bb2bd824b50bda23aa035940db33e40"
+      "sha256": "fe1b34eee41df94461214afc0a47b780a5420f906c82b02a870ab00ad777815c"
     },
     "native/tests/stock_water_replay/bank_cases.tsv": {
       "mode": 420,
@@ -764,13 +788,17 @@
       "mode": 420,
       "sha256": "9b898eaffd000be8d89fcc382cd6b18426aef30618000ab721cb7e81fcaeef4c"
     },
+    "native/tests/stock_water_replay/collect_recovery.py": {
+      "mode": 420,
+      "sha256": "370a38195415fb46fcccfc4e20c2de913502ab007f4fbcdf6c99730de7e68ba3"
+    },
     "native/tests/stock_water_replay/evaluate_bank.py": {
       "mode": 420,
       "sha256": "bfd164fe3d80f64808f36ecd9f37adde13bc78cf9248c0bc69f607ee03636f41"
     },
     "native/tests/stock_water_replay/evaluate_motor.py": {
       "mode": 420,
-      "sha256": "5ef9b8903c42e8ccc4883a92ced71c8c818044730eec85b5846e0afa9265682b"
+      "sha256": "59d475b45b455b087c176827761dcacddff7199e2ad8feb113de775b4c8c2789"
     },
     "native/tests/stock_water_replay/geometry.py": {
       "mode": 420,
@@ -778,11 +806,15 @@
     },
     "native/tests/stock_water_replay/independent_motor.inc": {
       "mode": 420,
-      "sha256": "7e320a68de0ff4aad6a5813ba53410df92060d008b84d56698d27836fe7780ae"
+      "sha256": "3dd78b15afcc6470ff900d343fcdd51e53b3b2e069f98de77541b62b94119e27"
     },
     "native/tests/stock_water_replay/live_policy.py": {
       "mode": 420,
       "sha256": "82ebf0a395037210d24a555b02ace9587a553a2181dd95f305d7e104caa5d2a4"
+    },
+    "native/tests/stock_water_replay/recovery.inc": {
+      "mode": 420,
+      "sha256": "bc1a2ff725f77f6ad5aa3f2d2923948026dc18814d4e93dcd22053db84f6af8b"
     },
     "native/tests/stock_water_replay/replay.c": {
       "mode": 420,
@@ -790,7 +822,7 @@
     },
     "native/tests/stock_water_replay/replay_loop.inc": {
       "mode": 420,
-      "sha256": "c660a55c0d51456cd15a640aa3a0cdca31bb64c5d2e2407707ab4e8b0740db8c"
+      "sha256": "7f22482e8478a7895f001746dce5b9f9dbaf9f5576655e2c6f97a5e17c28afba"
     },
     "native/tests/stock_water_replay/replay_trace.inc": {
       "mode": 420,
@@ -1624,6 +1656,26 @@
       "mode": 420,
       "sha256": "4203cc19a0d381a361656f0889b97bf5da918b6872cb7da32e06dd768832bb2b"
     },
+    "qa/lily-recovery-collection.json": {
+      "mode": 420,
+      "sha256": "490aa0ee4e03c44b6aedd5c0a4cc0b58e4050cef67d230729096e7f345d45d96"
+    },
+    "qa/lily-recovery-declaration.json": {
+      "mode": 420,
+      "sha256": "156e35ea59eb2fc681a1c9e5ca83d44c3a349c202607da359d2b0f6b92600e54"
+    },
+    "qa/lily-recovery-evaluation.json": {
+      "mode": 420,
+      "sha256": "3c9ac2887e7d2a00736f5656280cb76be5009bb59f6f9b65506533812022a263"
+    },
+    "qa/lily-recovery-freeze.json": {
+      "mode": 420,
+      "sha256": "f6802ddbf9d8929fecd1d43cec82d370283819af8c032b04fad6f388a3a52dad"
+    },
+    "qa/lily-recovery-fresh-cases.tsv": {
+      "mode": 420,
+      "sha256": "9e83493cf8dbd010c05c812ee3c2254b0e316a901022fe3a8ca6f8f7da563c4e"
+    },
     "qa/native-client-handshake.log": {
       "mode": 420,
       "sha256": "4c6ddebabd559f2e5fa7982a49b1880738f926d2d85d513fc4e411d9ff4aea54"
@@ -1814,7 +1866,7 @@
     },
     "scripts/bot_development/analysis/README.md": {
       "mode": 420,
-      "sha256": "9b3479b24363243b041db8cd3e330654476dd8359f1df7a86547465b9b57bcfe"
+      "sha256": "1fc8a14c59409637e5d7871edb493224181a4593a3e553a5394fe6288ea166bb"
     },
     "scripts/bot_development/analysis/analyze_approach_windows.py": {
       "mode": 420,
@@ -1835,6 +1887,10 @@
     "scripts/bot_development/analysis/audit_motor_failures.py": {
       "mode": 420,
       "sha256": "aa7ca11ca1d09a8444434c8aaaa1966bd0c7a689095d71d980d3c38904271547"
+    },
+    "scripts/bot_development/analysis/audit_recovery_learning.py": {
+      "mode": 420,
+      "sha256": "af182057eb483361264c6f9d507923a4a51800706f3bee9e33908533e8d18e7b"
     },
     "scripts/bot_development/analysis/compare_gameplay.py": {
       "mode": 420,
@@ -2019,6 +2075,18 @@
     "tests/test_lily_protocol.py": {
       "mode": 420,
       "sha256": "30ea6ece8cfb203d90169def67f74513b973cc649a707cf96d4fa70d7854f3ba"
+    },
+    "tests/test_lily_recovery_collection.py": {
+      "mode": 420,
+      "sha256": "e14408128b4df4130dd9da1ddfd76ade31bf7504078615243cd96a5ca4551545"
+    },
+    "tests/test_lily_recovery_evaluation.py": {
+      "mode": 420,
+      "sha256": "e6b78ffa45f896205d856926484efa867d84e01e119e065a6880443d377ba07f"
+    },
+    "tests/test_lily_recovery_motor.py": {
+      "mode": 420,
+      "sha256": "59dfaf0ab8023ebd2bfa8e33213924d492b6d51d7172afb72bd1be1123e1bc0e"
     },
     "tests/test_lily_runtime.py": {
       "mode": 420,

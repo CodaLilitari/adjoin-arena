@@ -5,6 +5,12 @@ network is an **unpromoted experiment**, not the default controller. The retaine
 route and skill estimates used by the adaptive policy are a separate, online
 learning mechanism. Training this network does not alter those estimates.
 
+The latest [corrective recovery checkpoint](reviews/2026-11-22-lily-recovery-learning-checkpoint.md)
+records a third experimental policy. One refit on the original corpus plus
+successful teacher corrections improved fresh unaided landings from 0/24 to
+10/24. The native baseline reached 23/24. All three neural artifacts remain
+available; no production controller or deployed engine package changed.
+
 ## First measured candidate
 
 The stock-physics replay recorded 27 successful bank escapes from nine captured
@@ -282,11 +288,84 @@ seconds. Merely counting jump presses cannot distinguish a completed landing.
 
 These traces support a problem with the approach and recovery, beyond a missing
 jump edge alone. They do not isolate whether missing observations, insufficient
-demonstration coverage or both caused the failures. A concrete next experiment
-is corrective demonstration collection from off-route states reached on the
-original training pool poses, preserving actual input history and evaluating
-the resulting policy unaided on newly sealed starts. The current stress set has
-now been examined and becomes diagnostic evidence for that next candidate.
+demonstration coverage or both caused the failures. They motivated the following
+corrective demonstration experiment. The original excluded groups and this
+stress set are diagnostic evidence for that candidate.
+
+## Corrective recovery candidate
+
+The [frozen declaration](../qa/lily-recovery-declaration.json) schedules eight
+continuous handoffs from frozen v2 to the native teacher. Model control lasts
+approximately 1, 4, 8 or 16 seconds on each of the two original training pool
+poses. Exact prefixes and the pre-input handoff observation match archived v2
+bytes. Position, momentum, breath, held inputs, RNG and the original 60-second
+physics budget continue through the switch. The teacher begins with a cold
+planner and selects its own route. Only progress timing and passively observed
+water/health/breath bookkeeping are seeded at takeover.
+
+Six branches completed the assigned bank task; the two later pool-90 branches
+timed out. The [collection receipt](../qa/lily-recovery-collection.json) retains
+all eight. Only the first 128 teacher ticks of each successful suffix enter
+training, with that cap applied before the existing goal eligibility filter.
+The loader uses actual preceding buttons at the first teacher frame, including
+nonzero masks. Failed or censored suffixes, model-prefix actions, later teacher
+ticks and development/fresh rows contribute no labels.
+
+The original 3,431 rows and their canonical order are unchanged. The 768 added
+corrections give 4,199 training rows. A single cold fit reuses the 17/32/6
+contact network, 200 epochs, seed 23, Adam .01, batch128 and .5 button threshold.
+All eight assignments have included/excluded counts and source hashes in the
+model provenance. The [freeze receipt](../qa/lily-recovery-freeze.json) pins the
+new weights and standalone export before all fresh rollouts. Normalization,
+minibatches and total optimizer updates change with the larger corpus, so the
+result does not isolate demonstration coverage at matched compute.
+
+| Every-tick independent control | Native | Contact v2 | Recovery v3 |
+| --- | ---: | ---: | ---: |
+| Fresh six pool poses × four headings | 23/24 | 0/24 | 10/24 |
+| Original starts, diagnostic/nonregression | 27/27 | 21/27 | 26/27 |
+| Prior nearby starts, diagnostic | 16/16 | 7/16 | 10/16 |
+
+The [complete evaluation](../qa/lily-recovery-evaluation.json) records all 268
+executions, including 67 duplicate baseline runs used for pairing. Every
+evaluated model input is unaided. The declared engineering criterion is met:
+ten net fresh gains, positive gain at five of six positions, all 20 original
+shaft winner identities preserved, and complete matched evidence. The original
+`pool-100-yaw0` and old `perturb-shaft-a-yaw90` regressions remain visible.
+The headings are clustered, and the map and pool are already known.
+
+`bots/lily/models/water_recovery_v3.json` and its matching policy are experimental
+artifacts. Fourteen fresh cases still fail. The live observation contract does
+not supply the required contact field, and no launcher stages this candidate.
+This is one supervised correction fit, not continuous neural training.
+
+Reproduce with the private archived v2 matrix whose receipt matches the
+declaration, the matching checkout, and your owned stock inputs. New source
+versions or new collections need their own declaration and candidate freeze;
+the fixed experiment's verifier deliberately rejects substituted artifacts.
+
+```sh
+python native/tests/stock_water_replay/collect_recovery.py \
+  --source "$PATCHED_NATIVE_SOURCE" --build "$NATIVE_BUILD" --map "$OWNED_JKL" \
+  --reference "$ARCHIVED_ORIGINAL_V2_MATRIX" \
+  --declaration qa/lily-recovery-declaration.json \
+  --output "$NEW_PRIVATE_RECOVERY_DIRECTORY"
+
+python -m bots.lily.train_recovery_motor \
+  "$ARCHIVED_ORIGINAL_V2_MATRIX" "$NEW_PRIVATE_RECOVERY_DIRECTORY" \
+  qa/lily-recovery-declaration.json --output "$NEW_RECOVERY_MODEL"
+python -m bots.lily.motor_contact "$NEW_RECOVERY_MODEL" \
+  --output "$NEW_RECOVERY_POLICY"
+```
+
+After freezing, use `evaluate_motor.py` with baseline/every-tick arms and each
+of the original, prior stress and fresh TSVs for both frozen policies. The
+[offline audit helper](../scripts/bot_development/analysis/README.md#frozen-recovery-evaluation)
+reopens the six directories, reconstructs the training matrix without fitting,
+replays every frozen decision and computes the declared criterion. It permits
+different policies to choose different first actions from the same physical
+start. Neither training, export, collection nor audit output overwrites an
+existing artifact.
 
 ## Development target
 
@@ -296,10 +375,12 @@ Acquisition, combat disengagement and engagement outcomes still need their own
 oracles. A short physical displacement remains supporting evidence and cannot
 stand in for those outcomes.
 
-The independent experiment now separates model control from baseline assistance
-and makes corrective collection and outcome-based optimization measurable.
-The failed nearby trials motivate recovery coverage, recurrent physical context,
-terrain observations and further direct closed-loop evaluation.
+Independent control and corrective collection are now measured separately.
+The successful refit supports retaining learner-reached recovery states in the
+training process. The two teacher failures and fourteen fresh v3 failures also
+bound what this round of imitation achieved. The next learning work should add
+task-outcome optimization and temporal/terrain context, with this frozen v3
+candidate and the native bot retained as explicit comparisons.
 Cloning the existing controller can initialize a skill. Improvement beyond that
 controller needs outcome-based optimization and comparisons against the same
 starting conditions. Opponent-conditioned tactics and self-play need recorded
