@@ -1,9 +1,9 @@
 diff --git a/src/AI/jkBot.c b/src/AI/jkBot.c
 new file mode 100644
-index 0000000000000000000000000000000000000000..53e66d077a7d5d76e9b2676a79e3ebc0bc97c5a9
+index 0000000000000000000000000000000000000000..ef1f8d7dafca48b68f285ad72597c8fb8b62a6eb
 --- /dev/null
 +++ b/src/AI/jkBot.c
-@@ -0,0 +1,762 @@
+@@ -0,0 +1,769 @@
 +/*
 + * Ordinary-client multiplayer bot input driver, reconstructed October 2026.
 + * Copyright (C) OpenJKDF2 contributors.
@@ -226,13 +226,20 @@ index 0000000000000000000000000000000000000000..53e66d077a7d5d76e9b2676a79e3ebc0
 +        jkPlayer_playerInfos[slot].teamNum>0;
 +}
 +
++/* Force Jump shares Persuasion's twinkle flag. Only Persuasion also sets
++   the invisible actor flag. Both arrive in the ordinary thing-state update. */
++static int Bot_Persuaded(const SithThing *peer)
++{
++    return (peer->jkFlags&JKFLAG_PERSUASION) && (peer->actorParams.flags&SITH_AF_INVISIBLE);
++}
++
 +static int Bot_EnemyAllowed(SithThing *self, int slot)
 +{
 +    /* A blinded client cannot use world coordinates for perfect gun aiming. */
 +    if (self->actorParams.flags&SITH_AF_BLIND) return 0;
 +    if (!Bot_EnemyBase(self,slot) || Bot_IsPeaceful(self,slot)) return 0;
 +    SithThing *t=jkPlayer_playerInfos[slot].pLocalPlayer;
-+    if ((t->jkFlags&JKFLAG_PERSUASION) &&
++    if (Bot_Persuaded(t) &&
 +        !sithInventory_IsInventoryActivated(self,SITHBIN_F_SEEING)) return 0;
 +    return 1;
 +}
@@ -1626,10 +1633,10 @@ index 0000000000000000000000000000000000000000..aedb241f993796f19786c847842b6109
 +}
 diff --git a/src/AI/jkBotForce.inc b/src/AI/jkBotForce.inc
 new file mode 100644
-index 0000000000000000000000000000000000000000..cd03097caa9a119b3c26f911b73398c747adf3e6
+index 0000000000000000000000000000000000000000..08c6263fbba8bd331537209d590978c669143cbb
 --- /dev/null
 +++ b/src/AI/jkBotForce.inc
-@@ -0,0 +1,284 @@
+@@ -0,0 +1,283 @@
 +/* Copyright (c) 2026 Coda Lilitari. SPDX-License-Identifier: MIT
 +   Use ordinary inventory hotkeys: stock COGs own eligibility, cost and effects. */
 +static int Bot_PowerKey(int bin)
@@ -1773,14 +1780,13 @@ index 0000000000000000000000000000000000000000..cd03097caa9a119b3c26f911b73398c7
 +    }
 +    return 0;
 +}
-+/* Stock Seeing prevents subsequent Blind hits. Persuasion's replicated
-+   render flag produces twinkles in view even before Seeing is active. */
++/* Stock Seeing prevents subsequent Blind hits and reveals a persuaded opponent. */
 +static int Bot_NeedsSeeing(SithThing *self)
 +{
 +    if (self->actorParams.flags&SITH_AF_BLIND) return 1;
 +    for (unsigned slot=0;slot<jkPlayer_maxPlayers && slot<JKPLAYER_NUM_INFOS;slot++) {
 +        SithThing *peer=jkPlayer_playerInfos[slot].pLocalPlayer;
-+        if (peer && (peer->jkFlags&JKFLAG_PERSUASION) && Bot_EnemyBase(self,(int)slot) &&
++        if (peer && Bot_Persuaded(peer) && Bot_EnemyBase(self,(int)slot) &&
 +            !Bot_IsPeaceful(self,(int)slot) && Bot_VisibleTarget(self,peer)) return 1;
 +    }
 +    return 0;

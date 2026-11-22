@@ -3,7 +3,7 @@
   "title": "Canyon Oasis recording follow-up: water, wall recovery and selective Force use",
   "baseline_runtime": "42154174ec8421e642bfcb56308b2959c2db22e2",
   "reviewed_video_sha256": "fd6c8f7fc25cea86019cebdc08a967caec35962600f095e763155f3415cbad3e",
-  "revised_wasm_sha256": "6991967382b851003bc9e0a5090e9b38fb8bf22e8deff0767116150641bc6213",
+  "revised_wasm_sha256": "7ff3f866ff8a6fa5624c61293afdef28148a08d4d6920d0ba9c711595528c702",
   "review_method": "Rendered video samples across the full two minutes, synchronized own-state traces and retained engine console events, followed by source tracing and normal-tick regressions.",
   "observed_stalls": [
     {
@@ -89,10 +89,10 @@
     "fidelity_gap": "Refreshed controls on every physics step and did not fully reproduce current JKWeb surface capture and sector-transition behavior. Retained to explain why live testing was still necessary."
   },
   "native_verification": {
-    "build_metadata_sha256": "65074ae01c5632c69799624c6966a582f4f74d7760f989172a99c9dc82a2661b",
+    "build_metadata_sha256": "d4222385f2233734f35e6bc41d78b0af927626eab96a24019fe96c2a1f788635",
     "files": {
       "bin/bots-linux-x86_64/jk-bot-client": {
-        "sha256": "1f0b8dc7faf60be8ab14a04330067d965cd977bcfacebc74d598b9f732608825",
+        "sha256": "c439cfc950fc4926f228c22c0aa4e99210b764afa14812c1822ec369b8b1ec2d",
         "bytes": 8656472
       },
       "bin/bots-linux-x86_64/libGameNetworkingSockets.so": {
@@ -100,12 +100,12 @@
         "bytes": 3644744
       },
       "native/bot-client.patch": {
-        "sha256": "bc9de60c890faadcfd61b7f1665e744fdc3ded68d692b3c3b97864b4c70cbf0d",
-        "bytes": 251684
+        "sha256": "08a993d3c87d6fcec57a432ee755981ad35cef5b9dd2302824f34b29f9ef12f3",
+        "bytes": 251900
       },
       "native/bot-relink-linux-x86_64.tar.gz": {
-        "sha256": "056e4ff4a600548c1588aee21f1a5e14d8f62b1ba689e6e98f2254bf3139ffe4",
-        "bytes": 6024651
+        "sha256": "25e3ccdbd74e66b07d24f42bebea086786cd1caf878bfa57a56651613a465b4e",
+        "bytes": 6024644
       }
     },
     "scanned_units": 205,
@@ -117,7 +117,7 @@
       "clean_pinned_source_accepts_patch": true,
       "packaged_source_dependency_hashes_verified": 222,
       "all_packaged_link_input_hashes_verified": 218,
-      "relinked_executable_sha256": "1f0b8dc7faf60be8ab14a04330067d965cd977bcfacebc74d598b9f732608825",
+      "relinked_executable_sha256": "c439cfc950fc4926f228c22c0aa4e99210b764afa14812c1822ec369b8b1ec2d",
       "headless_invalid_profile_exit": 6,
       "patched_source_regressions": [
         "hearing and elite pursuit",
@@ -140,8 +140,8 @@
     "six_suites_exit_zero": true
   },
   "live_comparison": {
-    "status": "pending final authentic-physics controller",
-    "claim": "Both intermediate live failures remain recorded. No general live improvement is inferred from the fixture alone."
+    "status": "pending final two-flag Seeing build",
+    "claim": "The preceding movement run verified actual shaft exits, while also exposing the Jump twinkle false casts. The final source correction requires its own live observation."
   },
   "intermediate_live_failure": {
     "build": "a00f2acc7e6616955c4c3d6bc5db39c8d0fb821b",
@@ -211,20 +211,23 @@
   "force_seeing": {
     "triggers": [
       "Current local Blind, to prevent a subsequent Blind while Seeing is active.",
-      "An eligible hostile player has the synchronized Persuasion render flag within the normal forward view, range and line of sight."
+      "An eligible hostile player has both the synchronized Persuasion twinkle flag and actor invisibility flag within the normal forward view, range and line of sight."
     ],
     "not_triggers": [
       "Ordinary visible engagement",
       "Unexplained damage",
-      "Generic Force threat"
+      "Generic Force threat",
+      "The 0.33-second Force Jump twinkle without actor invisibility"
     ],
     "existing_blind_is_not_cured": true,
     "remote_inventory_read": false,
     "stock_rules_modified": false,
     "stock_seeing_script_sha256": "47fcffb1a371cf61ec386d3eded9615f0f9ae2945997738c4861091c28fe6ac4",
     "tests_source": "native/tests/test_bot_behavior.inc",
-    "tests_sha256": "0b6388da1eb51eceefcf3237651a34c2633aea1237a30e0b6d1677ce72f2b48f",
-    "verification": "Both source-tree drivers passed the 38 named groups, including independent negative cases, hostile Persuasion visibility/peace gates, insufficient mana and no recast after the Persuasion flag clears. Independent source review found no blocker."
+    "tests_sha256": "280d56f4d24721cc7ed0abbe91fad7107f667b91c96537b3280acb40355f0ee9",
+    "verification": "Both source-tree drivers passed 38 named groups and hearing passed seven groups, including Jump-only and true-Persuasion cases. Independent source review verified both flags are carried by the same normal multiplayer state update.",
+    "stock_jump_script_sha256": "36c2b8176c38bfdea43b1c6431892a9022d5e7a98435af79164d9105a484c882",
+    "shared_effect_flag_correction": "Stock Force Jump also sets the twinkle flag. Requiring the separate synchronized actor invisibility flag prevents false Seeing casts and keeps jumping opponents targetable."
   },
   "dry_water_entry_replay": {
     "map": "JK1MP/m10.jkl",
@@ -295,6 +298,33 @@
       "revised_dry_after_seconds": 6.52,
       "revised_health": 50
     },
-    "limits": "Known Canyon Oasis shaft, controlled starts and no competing actors. Requires a separate actual browser multiplayer run."
+    "limits": "Known Canyon Oasis shaft, controlled starts and no competing actors. Requires a separate actual browser multiplayer run. The fixture starts the bot underwater timer at 20 seconds to exercise escape; it does not qualify the fresh-dive air decision.",
+    "reusable_harness": "native/tests/stock_water_replay/README.md",
+    "harness_relocation_verified": {
+      "breath_seconds": 3.393,
+      "supported_dry_seconds": 7.293,
+      "health": 10,
+      "ordinary_jumps": 2,
+      "retail_data_included": false
+    }
+  },
+  "movement_live_trial": {
+    "build": "ce606bb790e97f97e7b9ee01e0eedf9459da413e",
+    "wasm_sha256": "6991967382b851003bc9e0a5090e9b38fb8bf22e8deff0767116150641bc6213",
+    "trace_sha256": "568375bbcc6e086562fc4ea614fb2566d3f581163b938df5496dfa66d1c781e7",
+    "four_hardware_browser_clients": true,
+    "mode": "FF guns",
+    "map": "Canyon Oasis",
+    "seconds_after_join_qualification": 120,
+    "observed_water_exit": "Boba reached standing bank height after two shaft dives at game times approximately 35.9 and 54.5 seconds. He retained 50 health through both dives, moved across dry sector 41 and returned to combat.",
+    "observed_timing": "Retained status samples measured control-frame intervals from 0.025 to 0.180 seconds in this run, validating the need to account for control versus physics cadence.",
+    "seeing_requests": {
+      "lily": 0,
+      "boba": 1,
+      "jan": 0,
+      "yun": 2
+    },
+    "seeing_result": "The three remaining requests exposed the Force Jump twinkle false positive and motivated the final two-flag correction.",
+    "limits": "Unseeded four-bot match. Horizontal stationarity includes legitimate vertical swimming and intentional combat pauses; it is not a score of navigation failure or human playing strength."
   }
 }

@@ -74,6 +74,9 @@ static void test_competitive_force(SithThing *self, SithThing *peer, rdModel3 *g
     Bot_ForceTick(self,NULL,180); assert(bot.forceBin<0);
     bot.forceThreatUntil=0;
     peer->jkFlags|=JKFLAG_PERSUASION;
+    /* Force Jump uses the same twinkle flag for 0.33 seconds. */
+    Bot_ForceTick(self,peer,0); assert(bot.forceBin<0 && Bot_EnemyAllowed(self,1));
+    peer->actorParams.flags|=SITH_AF_INVISIBLE;
     testLOS=0; Bot_ForceTick(self,NULL,180); assert(bot.forceBin<0); testLOS=1;
     peer->playerInfo->rd_thing.model3=fists;
     Bot_ForceTick(self,NULL,180); assert(bot.forceBin<0);
@@ -86,6 +89,7 @@ static void test_competitive_force(SithThing *self, SithThing *peer, rdModel3 *g
     bot.now+=1; test_force_frame(); Bot_ForceTick(self,NULL,180); assert(bot.forceBin<0);
     Bot_ForceTick(self,NULL,180); assert(bot.forceBin<0);
     peer->jkFlags&=~JKFLAG_PERSUASION;
+    peer->actorParams.flags&=~SITH_AF_INVISIBLE;
     own->aItems[seeing].state=SITHINVENTORY_ITEM_AVAILABLE;
     bot.now+=26; test_force_frame(); Bot_ForceTick(self,peer,0); assert(bot.forceBin<0);
     self->actorParams.flags=SITH_AF_BLIND;
@@ -325,13 +329,15 @@ static void test_bot_behavior(void)
     peer.guid++; assert(Bot_IsPeaceful(&self,1));
     puts("PASS fists mesh identity, explicit damage/Force attribution, expiry and identity reset");
     remote.rd_thing.model3=&gun; peer.jkFlags=JKFLAG_PERSUASION;
+    assert(Bot_EnemyAllowed(&self,1)); /* Jump twinkles leave an ordinary target. */
+    peer.actorParams.flags|=SITH_AF_INVISIBLE;
     assert(!Bot_EnemyAllowed(&self,1));
     own.aItems[SITHBIN_F_SEEING].state=SITHINVENTORY_ITEM_ACTIVATED;
     assert(Bot_EnemyAllowed(&self,1));
     own.aItems[SITHBIN_F_SEEING].state=0;
     bot.targetSlot=1; bot.targetGuid=(int)peer.guid; bot.nextScan=0;
     assert(Bot_UpdateTarget(&self)==NULL && bot.targetSlot==-1);
-    peer.jkFlags=0; self.actorParams.flags=SITH_AF_BLIND;
+    peer.jkFlags=0; peer.actorParams.flags&=~SITH_AF_INVISIBLE; self.actorParams.flags=SITH_AF_BLIND;
     own.aItems[SITHBIN_F_SEEING].state=SITHINVENTORY_ITEM_ACTIVATED;
     bot.targetSlot=1; bot.targetGuid=(int)peer.guid;
     assert(!Bot_EnemyAllowed(&self,1) && Bot_UpdateTarget(&self)==NULL && bot.targetSlot==-1);

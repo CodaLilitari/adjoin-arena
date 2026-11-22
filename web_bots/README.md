@@ -100,7 +100,9 @@ the victim's stock script remains authoritative about immunity and disarming.
 
 Seeing now requires local Blind or an observed hostile Persuasion effect.
 Ordinary engagement, unexplained damage and generic Force threats do not trigger
-it. Seeing protects against a subsequent Blind; the current Blind timer remains
+it. The Persuasion check requires both synchronized effect and actor invisibility
+flags, so Force Jump's shared twinkle alone does not qualify. Seeing protects
+against a subsequent Blind; the current Blind timer remains
 under stock script control.
 
 ## Build and relink

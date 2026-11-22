@@ -170,7 +170,10 @@ lower ranks.
 
 Seeing requires a specific countering opportunity: the bot is currently Blind,
 or an eligible hostile player's synchronized Persuasion effect is within the
-normal forward view, range and line of sight. Ordinary combat, damage and a
+normal forward view, range and line of sight. Persuasion requires both its
+twinkle flag and actor invisibility flag; Force Jump's brief twinkle alone
+does not trigger Seeing or hide the opponent from ordinary target selection.
+Ordinary combat, damage and a
 generic Force threat do not trigger Seeing. Stock Seeing protects against a
 subsequent Blind; it does not clear an existing Blind timer. Competitive bots
 can still prepare Absorb during a visible engagement or on receiving a Force
