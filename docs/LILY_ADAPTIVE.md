@@ -2,6 +2,10 @@
 
 Start an adaptive-enabled Lily seat with its companion. The supervisor uses the scoped local `lily.json` for that run. It acquires the existing companion lease when the first action is ready. The other bots keep their normal controllers.
 
+The [motor learning experiment](LILY_MOTOR_LEARNING.md) includes training, model
+export and measured stock-physics evidence. Its first neural candidate is available
+for explicit experiments and is not the default policy.
+
 ## Start, stage and roll back
 
 Keep a writable copy of the initial policy and a backup of a known-good revision. These examples use a local work directory for the operator's policy, trace and experience.

@@ -30,6 +30,26 @@ The runner extracts the required stock control, movement, sector transition and 
 
 Look for `BREATH` (endurance reset), `TRANSITION` (a sector or surface flag change) and `SUPPORTED_DRY` (sustained floor attachment). The process exit code reports the final result.
 
+## Applied-control demonstrations and live policy probe
+
+`run.py --trace-out PRIVATE.jsonl --episode-id UNIQUE_ID` records the selected
+ordinary movement controls before stock input handling, plus the independent
+supported-dry terminal. `collect_motor.py` compiles once and records the full
+matrix in a new private directory. It groups yaw variants of one captured pose
+for a training split. These demonstrations use the existing autonomous controller.
+
+`live_policy.py --source SOURCE --build BUILD --map OWNED_JKL --output NEW_PRIVATE_DIR`
+runs a separate 30-second, wall-paced integration probe. It uses a real native
+companion socket, authenticated loopback HTTP, the supervisor CLI and isolated
+policy processes. The probe lets baseline navigation finish swimming or airborne
+movement, sends ordinary motor controls on supported dry ground, swaps executable
+policy source, rejects an invalid candidate and checks baseline return after the
+controller stops. It writes an explicit receipt and retains private logs. Rendering,
+opponents and stock inventory/Force scripts remain outside this fixture.
+
+See [the motor learning report](../../../docs/LILY_MOTOR_LEARNING.md) for the
+measured candidate, scope and reproduction commands.
+
 ## Bank landing regression cases
 
 `bank_cases.tsv` supplies the six later swimmer poses at four initial yaw offsets and the three earlier sector-42 controls at their recorded test heading. Every row must establish 38 consecutive supported dry steps in its requested sector before the deadline. To run the full matrix from the repository root in Bash, set the three paths as above and run the following.

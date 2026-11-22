@@ -5,7 +5,30 @@ analysis, source verification and native observation helpers used for this work.
 The packaged custom JKWeb runtime includes its complete source patch and build
 inputs; the tool guide maps each artifact to its repository location.
 
-## Packaged fifth refinement candidate
+## Adaptive Lily development branch
+
+`feature/lily-adaptive-player` adds an explicitly enabled Lily controller while
+retaining the existing autonomous bots. `--adaptive-lily` enables its companion
+capability only for Lily. Her separate Python supervisor can stage new executable
+policies during play, preserve an active undertaking until a safe handover, and
+retain conditional route/skill outcomes across restarts. Motor commands use
+ordinary movement, view, weapon and Force inputs.
+
+The native and JKWeb packages in this branch contain the new adapter. The
+[build receipt](../qa/lily-adaptive-build.json) records pinned source, source
+correspondence, exact runtime hashes and independent relinks. This branch has no
+new rendered multiplayer qualification. The [physical integration receipt](../qa/lily-adaptive-live.json)
+separately records live policy changes through the native companion under stock
+physics, including an unsuccessful unrestricted movement probe.
+
+Read [the operator guide](LILY_ADAPTIVE.md), [wire contract](LILY_PROTOCOL.md), and
+[learning experiment](LILY_MOTOR_LEARNING.md). The first small neural movement
+candidate was trained from 27 successful physical replays and remains unpromoted.
+Task-level outcome scoring, learned combat, self-play and recurrent movement
+policies remain development work. Historical candidate 5 below is the preserved
+comparison baseline; its binary hashes describe that earlier package.
+
+## Historical fifth refinement candidate
 
 The Linux and JKWeb packages include the reviewed correction for optional dry upgrades through a
 recently failed water approach, alongside the earlier supply and bank-landing repairs. Independent
