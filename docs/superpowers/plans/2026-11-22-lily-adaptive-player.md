@@ -1,6 +1,6 @@
 # Lily Adaptive Player Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Give Lily ordinary-input authority, persistent outcome learning and live executable policy replacement while retaining existing autonomous bots.
 
@@ -48,12 +48,12 @@
 - Publish exact fields/layouts in `docs/LILY_PROTOCOL.md` before Tasks 2/3 wire integration. Consumers must use the codec rather than duplicate layouts.
 - Native feature flag `JK_BOT_LILY=1`; disabled path preserves original behavior.
 
-- [ ] Write native failures proving disabled rejection, malformed/deadline/sample rejection, input application, continuous held edges, bounded queued successor, physical route completion and terminal identity replay.
-- [ ] Run those tests and confirm failures reflect missing extension behavior.
-- [ ] Implement the bounded protocol, rich state, offer/route ownership and motor authority from the spec; keep authoritative stock rules and existing settings intact.
-- [ ] Write and run matching codec tests including nonfinite, oversize and wrong-type payloads.
-- [ ] Run affected native tests plus the existing native regression set; record exact commands and results.
-- [ ] Generate the native patch and commit only this task's files; report source/worktree state and remaining runtime risks.
+- [x] Write native failures proving disabled rejection, malformed/deadline/sample rejection, input application, continuous held edges, bounded queued successor, physical route completion and terminal identity replay.
+- [x] Run those tests and confirm failures reflect missing extension behavior.
+- [x] Implement the bounded protocol, rich state, offer/route ownership and motor authority from the spec; keep authoritative stock rules and existing settings intact.
+- [x] Write and run matching codec tests including nonfinite, oversize and wrong-type payloads.
+- [x] Run affected native tests plus the existing native regression set; record exact commands and results.
+- [x] Generate the native patch and commit only this task's files; report source/worktree state and remaining runtime risks.
 
 ### Task 2: Scoped companion, CLI and browser/native launch integration
 
@@ -70,11 +70,11 @@
 - Authenticated POST `commit` and `motor` use the existing lease/fences with Task 1 codec. Keep a separate bounded history for high-rate extension commands.
 - CLI `commit` and `motor` accept local JSON payloads; CLI observe exposes extension state. Launcher flag is `--adaptive-lily` and enables required companion/native capability only for Lily.
 
-- [ ] Add failing tests for enabled versus default seats, malformed commands, stale observation/fence, duplicate submission, continuous >256-command operation, and browser deadline/identity rebasing.
-- [ ] Implement bridge integration using codec validation; preserve legacy pending/idempotence semantics.
-- [ ] Implement launch flags and CLI. Native Lily may use stock Kyle assets unless an existing compatible cosmetic is explicitly provided; do not change current defaults.
-- [ ] Run affected Python/Node tests and the complete Python suite, reporting pre-existing failures separately.
-- [ ] Commit only task-owned files and report the shared JSON contract to Task 3.
+- [x] Add failing tests for enabled versus default seats, malformed commands, stale observation/fence, duplicate submission, continuous >256-command operation, and browser deadline/identity rebasing.
+- [x] Implement bridge integration using codec validation; preserve legacy pending/idempotence semantics.
+- [x] Implement launch flags and CLI. Native Lily may use stock Kyle assets unless an existing compatible cosmetic is explicitly provided; do not change current defaults.
+- [x] Run affected Python/Node tests and the complete Python suite, reporting pre-existing failures separately.
+- [x] Commit only task-owned files and report the shared JSON contract to Task 3.
 
 ### Task 3: Live policy supervisor, retained outcomes and initial skills
 
@@ -90,12 +90,12 @@
 - `ExperienceStore` owns durable, deduplicated attempts/outcomes and estimates; worker state remains bounded JSON separate from retained experience.
 - Runtime trace records observations/applied controls, policy transitions, native acknowledgments and actual outcomes, with credentials/chat excluded.
 
-- [ ] Add failing integration tests for same-session executable replacement, equal-length source rewrite, hanging import/decision, invalid output, policy crash, action-boundary handoff, stale life, and retained exactly-once outcome learning.
-- [ ] Implement isolated asynchronous worker IO and bounded supervisor decisions; active policy continues while candidate warms.
-- [ ] Implement persistent conditional outcome estimates and an adaptive initial policy with meaningful route choice, stable commitment and at least one ordinary motor skill.
-- [ ] Implement fenced operator directives through the existing owner rather than a competing lease; same directive renewal must retain progress.
-- [ ] Run real worker-process tests plus full Python suite. Explicitly distinguish playback completion, physical arrival, useful acquisition and censoring.
-- [ ] Commit task-owned files, report commands for live stage/activation/rollback and exact trace schema for Task 4.
+- [x] Add failing integration tests for same-session executable replacement, equal-length source rewrite, hanging import/decision, invalid output, policy crash, action-boundary handoff, stale life, and retained exactly-once outcome learning.
+- [x] Implement isolated asynchronous worker IO and bounded supervisor decisions; active policy continues while candidate warms.
+- [x] Implement persistent conditional outcome estimates and an adaptive initial policy with meaningful route choice, stable commitment and at least one ordinary motor skill.
+- [x] Implement fenced operator directives through the existing owner rather than a competing lease; same directive renewal must retain progress.
+- [x] Run real worker-process tests plus full Python suite. Explicitly distinguish playback completion, physical arrival, useful acquisition and censoring.
+- [x] Commit task-owned files, report commands for live stage/activation/rollback and exact trace schema for Task 4.
 
 ### Task 4: Motor-learning experiment, real-engine validation and packaging
 
@@ -110,12 +110,12 @@
 - Exports versioned feature normalization, action contract and JSON weights suitable for standard-library policy inference, with digest recorded by runtime.
 - Real-engine probe must use the new extension path, not call only the legacy controller fixture and infer equivalent behavior.
 
-- [ ] Validate a compact train/export path with separate episode splits and honest held-out loss/action agreement; do not equate cloning with stronger gameplay.
-- [ ] Build native and browser adapters using existing pinned dependencies and reproducible packaging.
-- [ ] Exercise ordinary motor inputs and a controller revision in a live engine or stock-physics injected-action environment; retain exact engine/policy digests, action/outcome timing and fallback result.
-- [ ] Verify retained learning on observed outcomes across supervisor restarts and unchanged behavior/capability of baseline seats.
-- [ ] Train/evaluate an actual compact candidate only when suitable observed data are available; otherwise report the unfulfilled data requirement explicitly with runnable tooling.
-- [ ] Perform independent whole-branch review, resolve material findings, publish commits to the new branch and provide a reproducible continuation checkpoint.
+- [x] Validate a compact train/export path with separate episode splits and honest held-out loss/action agreement; do not equate cloning with stronger gameplay.
+- [x] Build native and browser adapters using existing pinned dependencies and reproducible packaging.
+- [x] Exercise ordinary motor inputs and a controller revision in a live engine or stock-physics injected-action environment; retain exact engine/policy digests, action/outcome timing and fallback result.
+- [x] Verify retained learning on observed outcomes across supervisor restarts and unchanged behavior/capability of baseline seats.
+- [x] Train/evaluate an actual compact candidate only when suitable observed data are available; otherwise report the unfulfilled data requirement explicitly with runnable tooling.
+- [x] Perform independent whole-branch review, resolve material findings, publish commits to the new branch and provide a reproducible continuation checkpoint.
 
 ## Execution rulings
 
@@ -123,3 +123,7 @@
 - Use an isolated feature worktree. Temporary builds may use the separate temporary filesystem; preserve existing captures and baseline artifacts.
 - Independent tasks may proceed concurrently with exclusive file ownership and a fixed shared contract; dependent wire integration waits for Task 1's published codec. This follows the session's proactive parallel-work instruction.
 - Testing is concentrated on actual control, lifecycle, process replacement and learning attribution risks. Do not add implementation-mirroring tests or repeat successful suites without a concrete remaining risk.
+
+## Completion checkpoint
+
+The first increment is implemented, independently reviewed and published as draft PR #2 on `feature/lily-adaptive-player`, stacked on the preserved baseline branch. The final review/test checkpoint is `docs/reviews/2026-11-22-lily-adaptive-checkpoint.md`. That document and the QA receipts distinguish physical control, retained decisions, held-out model fit and the competitive work still open.

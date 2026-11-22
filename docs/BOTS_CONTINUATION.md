@@ -24,6 +24,8 @@ physics, including an unsuccessful unrestricted movement probe.
 Read [the operator guide](LILY_ADAPTIVE.md), [wire contract](LILY_PROTOCOL.md), and
 [learning experiment](LILY_MOTOR_LEARNING.md). The first small neural movement
 candidate was trained from 27 successful physical replays and remains unpromoted.
+The [review checkpoint](reviews/2026-11-22-lily-adaptive-checkpoint.md) records
+verification, design choices and the remaining development scope.
 Task-level outcome scoring, learned combat, self-play and recurrent movement
 policies remain development work. Historical candidate 5 below is the preserved
 comparison baseline; its binary hashes describe that earlier package.

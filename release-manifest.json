@@ -102,7 +102,7 @@
     },
     "bots/lily/export_motor_policy.py": {
       "mode": 420,
-      "sha256": "2b2d04c2f5b8cee4d4f86cd1ffc37653264b270c459ec5fe95615dd8b736ce59"
+      "sha256": "f80d86dd28bb63e43c0ae81f0ef03ba3862b5ae6ad909443aec13461687b0ef8"
     },
     "bots/lily/memory.py": {
       "mode": 420,
@@ -114,7 +114,7 @@
     },
     "bots/lily/motor_model.py": {
       "mode": 420,
-      "sha256": "2e3cccc63e81ce545395a5d79c76b22acd77f5056424366dd832ccfca28a4ba0"
+      "sha256": "631c18643b1ad77937e875d8e08c3eeea9b1cfd877fd1fe24e3574e07e97c97a"
     },
     "bots/lily/policies/adaptive.py": {
       "mode": 420,
@@ -122,7 +122,7 @@
     },
     "bots/lily/policies/water_bc_v1.py": {
       "mode": 420,
-      "sha256": "c242f7da65f2796fe42f613e838b163b00456ab9c5b95ed83daf4666e8668d42"
+      "sha256": "fa0b92211d09e0c1eaa14e0bd55b103eec6278ce57d497fe16a94b787c662402"
     },
     "bots/lily/protocol.py": {
       "mode": 420,
@@ -130,11 +130,11 @@
     },
     "bots/lily/runtime.py": {
       "mode": 420,
-      "sha256": "2194fb1c23775b49944d899d634fcd495d6ee6718d4e76d0f95bfb5bc6eaed47"
+      "sha256": "9876ad1e391541d60d5c73dd00bc3a8ef854a47332d930d5e573d28720ac2142"
     },
     "bots/lily/train_motor.py": {
       "mode": 420,
-      "sha256": "ef7bd1df5d5207ed9c6ccc22ed4a636a9c97cffdbad8f863fc3dafdc18a6ab09"
+      "sha256": "fa0d74d42eb4e7a1957c94b4799603661528be7adcd11fbc6afd868d29b3c568"
     },
     "bots/lily/worker.py": {
       "mode": 420,
@@ -234,7 +234,7 @@
     },
     "docs/BOTS_CONTINUATION.md": {
       "mode": 420,
-      "sha256": "364fbaa1ebca74f2c0d60e697b9b2eceac0be40acc6573bec58628d1d1e056cb"
+      "sha256": "7c3f100b099ecf4386a6baad52d0b7a92b7d86457d0ad436c175956b51eb0905"
     },
     "docs/BOTS_PROTOTYPE.md": {
       "mode": 420,
@@ -254,11 +254,11 @@
     },
     "docs/LILY_ADAPTIVE.md": {
       "mode": 420,
-      "sha256": "ee8eec05b25d8f50725e4421c559483c3c5ac1f52355e5330d7d84296a65f8c6"
+      "sha256": "17bf5edc3bdf616e82e503f807c7bb437bf53c08525c275626d4a897f3a91acc"
     },
     "docs/LILY_MOTOR_LEARNING.md": {
       "mode": 420,
-      "sha256": "1a69490f89ee250cdea51dcb865da3c28f5a9144c68f7572c101c2fa8901f624"
+      "sha256": "72c9f953e03897beb82cebc0c12756e38d75337f4d27a5458e1d5c286c38cfb4"
     },
     "docs/LILY_PROTOCOL.md": {
       "mode": 420,
@@ -308,6 +308,10 @@
       "mode": 420,
       "sha256": "90b8b95a82fd56fc08bfc42dfa5ee7fb7902ea86d5a4b7cc59be8066d8126314"
     },
+    "docs/reviews/2026-11-22-lily-adaptive-checkpoint.md": {
+      "mode": 420,
+      "sha256": "64aea11a5caa6bdd86a06010de01ce682a8023ca2a5de4f4934b0ee632dc6775"
+    },
     "docs/superpowers/plans/2026-10-28-browser-spectator.md": {
       "mode": 420,
       "sha256": "8b424e08cfb8c2ed223665953f7c0c7083ccdd61e3b0995e27855ca3ab03aa9c"
@@ -334,7 +338,7 @@
     },
     "docs/superpowers/plans/2026-11-22-lily-adaptive-player.md": {
       "mode": 420,
-      "sha256": "2511791c5fbf77dd5961b6bc90721daae876dee95e532cb190547e91b5e818ee"
+      "sha256": "752eb2c31edbb43e031cb57498f01f41fd704a8972a9f0ebbf238f573b1cfba4"
     },
     "docs/superpowers/specs/2026-10-28-browser-spectator-design.md": {
       "mode": 420,
@@ -698,7 +702,7 @@
     },
     "native/tests/stock_water_replay/collect_motor.py": {
       "mode": 420,
-      "sha256": "75d274faf26c782ee67acd3789caac349e89d74aa6dc71a65136d46cc98281db"
+      "sha256": "9b898eaffd000be8d89fcc382cd6b18426aef30618000ab721cb7e81fcaeef4c"
     },
     "native/tests/stock_water_replay/geometry.py": {
       "mode": 420,
@@ -706,7 +710,7 @@
     },
     "native/tests/stock_water_replay/live_policy.py": {
       "mode": 420,
-      "sha256": "5806e87c0476ea62ea83781799bf66f2b4d7adca77d448d309f36cb1428e77c2"
+      "sha256": "82ebf0a395037210d24a555b02ace9587a553a2181dd95f305d7e104caa5d2a4"
     },
     "native/tests/stock_water_replay/replay.c": {
       "mode": 420,
@@ -718,7 +722,7 @@
     },
     "native/tests/stock_water_replay/replay_trace.inc": {
       "mode": 420,
-      "sha256": "1d7076a61c2da7e4e5def4d6c1bc615ac69ba8ecad2c8e91166273de67528801"
+      "sha256": "8bebc31a6074d771dd9a9a9befefdec31d7eb156f7db404366d4072016ffd328"
     },
     "native/tests/stock_water_replay/run.py": {
       "mode": 420,
@@ -1510,7 +1514,7 @@
     },
     "qa/lily-adaptive-live.json": {
       "mode": 420,
-      "sha256": "b4125baaed5107ff832a4979c1cd086cf13c49291e8d8eb631ab4d9089332300"
+      "sha256": "31b377981759f44669c8e6decb0981661eb27ab4efc8cf280e2afda295cb6991"
     },
     "qa/native-client-handshake.log": {
       "mode": 420,
@@ -1870,7 +1874,7 @@
     },
     "tests/test_lily_motor_model.py": {
       "mode": 420,
-      "sha256": "7220df2459275bb7b3b8f4241d4cb88b6e458c12d6b090b8079cdd4f3969a2d5"
+      "sha256": "023f93267c00c621c06566f5fecd33a6c8224b210fca4c833aade202c581c5f6"
     },
     "tests/test_lily_protocol.py": {
       "mode": 420,
@@ -1878,7 +1882,7 @@
     },
     "tests/test_lily_runtime.py": {
       "mode": 420,
-      "sha256": "64dfdf1998095c0460b6fee9a5580f177801f122a31596608e7e0fc7ba2b02cf"
+      "sha256": "6e86c101d049dac502f8a35b3f69302630424e135c9ab1b04011a730613b5509"
     },
     "tests/test_manager.py": {
       "mode": 420,
