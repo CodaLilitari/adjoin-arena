@@ -52,8 +52,8 @@ Here `original_directory` is the completed frozen-v2 original matrix used as the
 - [x] Add failing tests for physical failure/censor rejection, prefix/post-cap exclusion, nonzero boundary history, immutable original split/order, receipt/source tampering and zero-row no-fit gate.
 - [x] Implement strict original corpus preservation and bounded successful correction extraction in case/K/tick order, with per-assignment inclusion/exclusion counts.
 - [x] Verify the numerical recipe and standalone export parity. Obtain independent spec/quality review before fitting once.
-- [ ] Fit and freeze one candidate after complete collection and fresh-case declaration; record all inputs/code/settings/hashes without opening fresh outcomes.
-- [ ] Commit task code, tests and frozen artifacts; root runs the fixed evaluation and publishes results.
+- [x] Fit and freeze one candidate after complete collection and fresh-case declaration; record all inputs/code/settings/hashes without opening fresh outcomes.
+- [x] Commit task code, tests and frozen artifacts; root runs the fixed evaluation and publishes results.
 
 ### Task 3: Sealed evaluation, report and push
 
