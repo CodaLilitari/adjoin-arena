@@ -24,12 +24,18 @@ def policy_source(model):
 validate_model(MODEL)
 
 def decide(observation, context):
+    directive = context.get("directive") or {}
+    task = context.get("bank_task")
+    if directive.get("goal") == "escape-bank" and (not task or task["status"] != "active"):
+        return {"action": "baseline"}
     if context.get("undertaking"):
         return {"action": "wait"}
-    directive = context.get("directive") or {}
-    if directive.get("goal") != "learned-motor":
+    if directive.get("goal") == "escape-bank":
+        params = task
+    elif directive.get("goal") == "learned-motor":
+        params = directive.get("parameters") or {}
+    else:
         return {"action": "baseline"}
-    params = directive.get("parameters") or {}
     sense = observation["lily"]["sense"]
     goal = remaining_goal(sense["position"], params["position"], tolerance=.001)
     if goal is None:
@@ -43,8 +49,11 @@ def decide(observation, context):
     buttons = (1 if values[4] >= .5 else 0) | (2 if values[5] >= .5 else 0)
     step = dict(zip(OUTPUTS[:4], values[:4]))
     step.update(duration_ms=duration, buttons=buttons)
-    return {"action": "motor", "skill": "learned-motor", "steps": [step],
-            "goal": {"direction": goal["direction"], "distance": goal["distance"]}}
+    result = {"action": "motor", "skill": "learned-motor", "steps": [step],
+              "goal": {"direction": goal["direction"], "distance": goal["distance"]}}
+    if directive["goal"] == "escape-bank":
+        result["task_id"] = task["task_id"]
+    return result
 ''')
     source="\n\n".join(pieces)+"\n"
     compile(source,"lily-learned-motor","exec")

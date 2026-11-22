@@ -5,7 +5,8 @@ static rdVector3 motorStart;
 static void motor_trace_begin(SithThing *me)
 {
     const char *path=getenv("LILY_MOTOR_TRACE");
-    if (!path) return;
+    /* The imitation schema describes baseline demonstrations exclusively. */
+    if (!path || lily.enabled) return;
     motorEpisode=getenv("LILY_MOTOR_EPISODE");
     motorPolicy=getenv("LILY_MOTOR_POLICY");
     assert(motorEpisode && motorPolicy);

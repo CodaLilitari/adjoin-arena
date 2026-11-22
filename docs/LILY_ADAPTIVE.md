@@ -56,6 +56,7 @@ Observation contains the run/world/life fence, stock state, freshness and `lily.
 | --- | --- |
 | `abi_version`, `state_version`, `state` | Supervisor ABI, worker-declared schema, and last accepted bounded JSON object. Two revisions can explicitly share a positive integer `STATE_VERSION`. State resets on an incompatible version or new life. |
 | `undertaking` | Null when available, otherwise the episode ID, native action sequence, skill and physical goal. The supervisor owns its lifetime. |
+| `bank_task` | Null, or the durable bank task ID, `active`/`closed` status, fixed world position, target sector and simulation budget. It spans multiple native actions. |
 | `directive` | A fresh operator-local directive for this exact run, world and life, or null. |
 | `routes` | Estimates for current choices, keyed by the ephemeral node rendered as a string. Durable evidence is keyed by geometry. |
 | `skills` | Conditional estimates for `forward-probe` and `sidestep` at the current pose. |
@@ -86,6 +87,61 @@ stage.replace("directive.json")
 
 The initial policy recognizes `explore`, `resource`, `route` with an optional current `parameters.node`, `motor` with optional `parameters.skill` and `parameters.distance`, and `baseline`. A custom policy may implement other goals. Give a changed order a new ID. Renewing an active ID updates its expiry and keeps its original parameters. Reusing an ID after its previous expiry starts a new order with its new parameters. The runtime rereads the directive and checks the original sample age after any blocking lease or persistence operation, immediately before posting the action. Existing maneuvers finish before any tactical change. Life/world/run mismatches and expired directives are ignored. A directive can be present at initial launch or replaced while running. Astra uses this same lease through the supervisor. There is no hosted-model connection.
 
+## Commit to a bank across motor commands
+
+The opt-in `escape-bank` directive gives the movement policy one task above its
+short native motor actions. Stage `bots/lily/policies/water_bc_v1.py` explicitly
+to use the checked-in learned candidate. Its weights remain experimental; the
+default adaptive policy does not silently select this model.
+
+Using the same fresh fence and atomic directive-file replacement shown above,
+supply a verified dry-bank position and sector:
+
+```python
+order.update(id="bank-escape-01", provenance="operator", expires_at=time.time() + 90,
+             goal="escape-bank",
+             parameters={"position": dry_bank_position, "sector": dry_bank_sector,
+                         "budget_seconds": 60})
+```
+
+The task starts from a fresh wet observation at a native handover opportunity.
+The target must be within 100 game units; the optional budget is 1–60 simulated
+seconds and defaults to 60. A bank-aware custom policy reads `context.bank_task`
+and echoes its `task_id` on each motor decision. The supervisor removes that
+Python-only field before sending native controls and binds the command to the
+committed endpoint. A conflicting local motor goal is rejected. Accepted child
+actions link to the task only after positive native admission evidence.
+
+The target, policy digest and task identity remain fixed across motor chunks.
+New source can be staged and probed during play; voluntary replacement waits
+until the task closes and native control is safe. Explicit release, a changed
+operator order, worker fault, stale observations or lost authority still release
+control. No policy may acquire an independent second lease.
+
+Bank IDs have stricter retry semantics than general directives: the same ID in
+the same environment/run/world/life cannot restart after completion, expiry or a
+supervisor restart. Use a new ID for a new attempt, even at the same destination.
+Renewing the old ID can extend its operator expiry but cannot change its target
+or budget. Recovery reconciles pending receipts, preserves already-bound native
+sequences, and censors the interrupted task instead of reconstructing missing play.
+
+The live stopping proxy requires fresh, distinct supported/air samples within
+0.15 game units of the target, spanning at least 0.25 simulated seconds. It starts
+timing from a new stock-clock publication after the first qualifying observation;
+the cached clock can precede that observation. A gap over 0.25 seconds resets the
+proxy. An absent or regressing clock disables timed evidence for that task. The
+budget likewise starts from a new clock publication after assignment. Operator
+expiry and control faults still end authority.
+
+Live `sampled_dry` and `budget_elapsed` records have **null physical verdicts**.
+Rich sense does not publish the actor's sector, floor identity or every physics
+step. The separate stock replay establishes a true landing only after 38
+consecutive floor-attached steps in the requested dry sector at 150 Hz. Its
+receipt reports physical success separately from controller credit: baseline
+assistance or no wet candidate takeover cannot become an independent learned win.
+See [the task comparison](../qa/lily-bank-task.json) and
+[human reference review](reviews/2026-11-22-human-oasis-reference.md).
+
 ## Evidence, persistence and trace
 
 Choose an environment ID that identifies the actual level content and rules. A stock map name reused for different geometry would mix incompatible evidence. SQLite journals the exact intended command and run-wide request ID before dispatch. The journal excludes the lease secret and credential. If the POST reply is lost, the supervisor looks up the same receipt without reissuing the action. The request ID, action kind and original run/world/life must all match. A later exclusive owner can reconcile a journal entry left by a crash between acceptance and local bookkeeping. A missing or evicted receipt leaves the unresolved submission censored. The native episode is linked to the durable request in one SQLite transaction. SQLite also stores observed native phase changes and terminal records. Route keys use the environment, target sector, half-unit position cell, approach heading and vertical direction, class and item bin. Motor keys use the environment, skill, starting cell, intended direction, medium and support state. Native sense has no self-sector field, so overlapping motor starting cells in distinct sectors can coincide. Counts persist across game and worker restarts. Attempts abandoned by an unknown previous game process have no physical verdict and cannot affect the competence estimate. A new exclusive controller censors outstanding records from its run after obtaining the lease.
@@ -108,6 +164,7 @@ Use `--trace FILE` to append one JSON record per line. Every row has `schema: 1`
 | `observation` | `sense` is the decoded native sample including axes, buttons, pose, peer records and action identity. `state` contains available health, shields, mana, weapon, ammo, kills, deaths, game_time and position. `episode_id`, `policy_hash`, `skill`, and `goal` are populated only for a matching running owner, action sequence, revision and source sample. |
 | `submission`, `submission_reconciled`, `submission_censored` | Durable request identity before dispatch, recovery of a matching receipt, or unresolved evidence. These records have a `request_id`; only a bound native action has an episode ID. |
 | `attempt` | `episode_id, action_seq, sample_id, revision, policy_hash, kind, skill, key, goal`. A declared motor goal and a route goal both include the fixed world position, initial direction and distance. Route goals also include sector and item bin. |
+| `bank_start`, `bank_outcome` | Durable task assignment or its single live terminal, with `task_id`, policy identity and evidence source. Task-assigned attempts also carry `task_id`. Live bank outcomes are censored even when sampled dry support ends steering. |
 | `ack`, `progress` | `episode_id, policy_hash` and either native action sequence and transport status, or the decoded native progress record. |
 | `outcome` | `episode_id, action_seq, policy_hash, skill, status, physical_success, duration_seconds, applied_ms, damage, item_gain`. Verdicts can be true, false or null. Wall elapsed time and native applied simulation milliseconds have distinct units and clocks. |
 | `stage`, `candidate_ready`, `activated`, `rejected`, `fallback`, `admission_error`, `recovered_attempt` | Policy transitions, failure/rollback and evidence recovery. `activated` includes the previous hash if available. |

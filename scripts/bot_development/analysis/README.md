@@ -1,6 +1,6 @@
 # Bot trial analysis helpers
 
-These tools preserve the analysis used for the Canyon Oasis bot refinements. They take explicit input paths instead of depending on the original development machine. They use Python 3.11 or newer and the standard library; `export_numeric_map.py` also imports the existing repository map parser.
+These tools preserve the analysis used for the Canyon Oasis bot refinements. They take explicit input paths instead of depending on the original development machine. They use Python 3.11 or newer and the standard library; `export_numeric_map.py` also imports the existing repository map parser. The optional public-footage extractor additionally needs `yt-dlp` and FFmpeg.
 
 Keep your map exports, telemetry and generated reports outside the checkout. The source tools contain no retail map, model, recording or companion credentials. Run the commands below from the repository root, with the quoted variables set to your own files.
 
@@ -84,6 +84,34 @@ python scripts/bot_development/analysis/analyze_trial.py \
 python scripts/bot_development/analysis/compare_legacy_runs.py \
   "$FIRST_TRIAL_GZ" "$SECOND_TRIAL_GZ" > "$LEGACY_COMPARISON_JSON"
 ```
+
+## Human match references
+
+Two helpers preserve the public-footage review method without packaging the
+recordings. Both require a new output directory outside the checkout.
+
+Collect official seek previews and their nominal timestamp index with the
+standard library:
+
+```sh
+python scripts/bot_development/analysis/review_youtube_previews.py \
+  --video XfU43kYxC88 --start 120 --end 180 --output "$NEW_PREVIEW_DIRECTORY"
+```
+
+For a playable public excerpt, supply `yt-dlp` and FFmpeg. This helper ignores
+`yt-dlp` configuration, uses no cookies or browser session, limits each request to
+five minutes, and writes one-second samples, contact sheets and a hashed manifest:
+
+```sh
+python scripts/bot_development/analysis/sample_public_match.py \
+  'https://www.youtube.com/watch?v=1dCC8uMLdjo' 370 410 "$NEW_CLIP_DIRECTORY"
+```
+
+An inaccessible stream remains inaccessible; the helper does not attempt login.
+Preview timestamps and decoded sample times are nominal. Sparse stills cannot
+establish input order, exact Force timing, hit confirmation or hidden inventory.
+See the [bounded human reference review](../../../docs/reviews/2026-11-22-human-oasis-reference.md)
+for the actual observations and their limits.
 
 ## Evidence limits
 

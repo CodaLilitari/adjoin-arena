@@ -1,5 +1,10 @@
 # Adaptive Lily development checkpoint
 
+This records the initial adapter checkpoint. The later
+[bank-task checkpoint](2026-11-22-lily-bank-checkpoint.md) documents the new task
+semantics, additional tests and first matched physical score for the movement
+candidate. Historical counts and scope below describe the earlier implementation.
+
 This checkpoint is approved for the development draft in
 [PR #2](https://github.com/CodaLilitari/jk-cross-server/pull/2), stacked on
 `feature/competitive-bot-foundation`. The preserved baseline remains at

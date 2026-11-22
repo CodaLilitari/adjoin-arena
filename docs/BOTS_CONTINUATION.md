@@ -24,10 +24,17 @@ physics, including an unsuccessful unrestricted movement probe.
 Read [the operator guide](LILY_ADAPTIVE.md), [wire contract](LILY_PROTOCOL.md), and
 [learning experiment](LILY_MOTOR_LEARNING.md). The first small neural movement
 candidate was trained from 27 successful physical replays and remains unpromoted.
-The [review checkpoint](reviews/2026-11-22-lily-adaptive-checkpoint.md) records
+The [latest review checkpoint](reviews/2026-11-22-lily-bank-checkpoint.md) records
 verification, design choices and the remaining development scope.
-Task-level outcome scoring, learned combat, self-play and recurrent movement
-policies remain development work. Historical candidate 5 below is the preserved
+The bank-escape task now holds one target and policy revision across motor chunks,
+persists one task terminal, and separates live sampled stops from the exact stock
+landing oracle. The [matched comparison](../qa/lily-bank-task.json) found 27/27
+baseline landings and 22/27 candidate-assigned landings, with no independently
+attributable learned landing. The model remains unpromoted. The
+[human Oasis review](reviews/2026-11-22-human-oasis-reference.md) preserves the
+bounded footage observations and an explicit correction to an unverified ammo
+interpretation. Pickup/combat task scoring, learned combat, self-play and recurrent
+movement policies remain development work. Historical candidate 5 below is the preserved
 comparison baseline; its binary hashes describe that earlier package.
 
 ## Historical fifth refinement candidate

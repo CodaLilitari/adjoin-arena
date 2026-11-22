@@ -27,7 +27,8 @@ code in a single ABI-1 policy, so the live loader hashes the whole candidate.
 | Held-out axis mean squared error before fitting | 0.38896 |
 | Held-out axis mean squared error after fitting | 0.18565 |
 | Held-out jump/duck binary accuracy | 85.89% |
-| Closed-loop bank-escape score of the learned network | Not measured |
+| Closed-loop candidate-assigned bank escapes | 22/27; 18 assisted landings and 4 without wet candidate takeover |
+| Independently attributable neural bank escapes | Not established; zero eligible independent trials |
 | Multiplayer or human-opponent score of the learned network | Not measured |
 
 Every yaw variant of a captured pose stays in the same split. This prevents
@@ -101,12 +102,71 @@ A third run exercised the same dry-ground handoff with the `forward-probe` skill
 
 A case-by-case comparison matched all 27 disabled-seat landings to the historical bank matrix on case, yaw, landing sector, health and supported dry time at millisecond precision. The largest difference between an unrounded recorded duration and the published rounded time was 0.000334 seconds. The receipt identifies the exact reference and collection digests.
 
+## Matched physical evaluation
+
+The [bank-task receipt](../qa/lily-bank-task.json) records 54 complete trials:
+27 captured case/yaw starts for each controller arm. Candidate runs used the
+deployed supervisor, isolated worker, authenticated companion and real native
+motor commands. Both arms used the same stock physics, seed, starting state,
+bank and control interval. The learned weights were unchanged.
+
+| Measure | Preserved baseline | Candidate-assigned run |
+| --- | ---: | ---: |
+| Supported landings, all assigned starts | 27/27 | 22/27 |
+| Supported landings, five previous holdouts | 5/5 | 4/5 |
+| Simulated timeouts | 0 | 4 |
+| Deaths before landing | 0 | 1 |
+| Missing physical verdicts | 0 | 0 |
+
+The candidate actually drove while wet in 23 runs. Eighteen of those reached the
+bank with baseline assistance; five failed. Four other runs landed without wet
+candidate takeover. Every control tick had an identified owner. None of the
+candidate runs qualified for independent neural credit, so an autonomous
+candidate success rate cannot be computed from this experiment. The deployed
+combination performed worse on these assigned starts and remains unpromoted.
+
+All 27 disabled-seat demonstration files were byte-identical to a fresh build of
+the preceding `9e07697` checkpoint. Their landing times, sectors and health also
+matched the historical matrix. All 4,306 original training observations matched
+after accounting for metadata already added before this task. The receipt
+distinguishes the original training archive hashes from newly emitted files.
+
+The complete matrix followed fixes for task target binding, restart admission
+reconciliation and conservative clock anchoring. A final local-outcome guard
+prevents a custom policy from earning a displacement win at distance zero.
+That guard does not change control inputs or bank verdicts; all 688 recorded
+motor attempts had positive distances (minimum 0.119057 game units). The receipt
+preserves the exact matrix source hashes and separately records this tested,
+unexercised guard's final source hash.
+
+Reproduce the comparison with a new private directory:
+
+```sh
+python native/tests/stock_water_replay/evaluate_bank.py \
+  --source "$PATCHED_NATIVE_SOURCE" --build "$NATIVE_BUILD" \
+  --map "$OWNED_JKL" --output "$NEW_PRIVATE_EVAL" --workers 4
+```
+
+The fixture contains no opponents, contested pickups or stock Force scripts.
+Its wall-paced candidate transport also admits startup and scheduling variation.
+The earlier complete run landed in 23/27 candidate trials; it is retained in the
+receipt rather than substituted for the final 22/27 result. Neither run proves
+multiplayer strength or isolates what the neural policy would do without any
+baseline contribution.
+
 ## Development target
 
-The next learned controller should choose temporally extended skills with explicit
-termination and task-level outcomes: escape the water, acquire a specific useful
-pickup, disengage with health remaining, or win an engagement. A short physical
-displacement is supporting evidence. It must not stand in for those outcomes.
+The bank task now supplies commitment across motor actions and a separate exact
+outcome. It does not train a value function or change neural weights online.
+Acquisition, combat disengagement and engagement outcomes still need their own
+oracles. A short physical displacement remains supporting evidence and cannot
+stand in for those outcomes.
+
+One concrete next experiment is the timing mismatch: the demonstrations label
+26–87 ms control ticks, while the exported policy holds each prediction for
+550 ms. Shorter feedback intervals, recurrent state and additional terrain
+observations can be compared with this same physical score. Their benefit must
+be measured. The failed clone is not a reason to promote a larger untested model.
 
 The first candidate's limitations motivate recurrent physical context, terrain
 features, diverse successful demonstrations and direct closed-loop evaluation.

@@ -16,6 +16,7 @@ import threading
 import time
 
 from . import protocol
+from .bank_task import BankTask, bank_id, bank_parameters, bank_verdict, finite_number
 from .memory import route_key, skill_key
 from .motor_model import remaining_goal
 from .worker import MAX_DECISION, MAX_SOURCE, encode, read
@@ -146,7 +147,10 @@ def decision(result, obs, worker):
     elif action == "route":
         fields.update(("skill", "node"))
     elif action == "motor":
-        fields.update(("skill", "steps", "goal"))
+        fields.update(("skill", "steps", "goal", "task_id"))
+        if "task_id" in result and (type(result["task_id"]) is not str or
+                                    not re.fullmatch(r"[0-9a-f]{64}", result["task_id"])):
+            raise ValueError("invalid_task_identity")
     else:
         raise ValueError("unknown_action")
     if set(result) - fields or type(result.get("state", {})) is not dict:
@@ -219,7 +223,7 @@ class Supervisor:
         self.next_stage = self.renew_at = 0.
         self.lease = self.fence = self.undertaking = None
         self.state = {}
-        self.directive = None
+        self.directive = self.bank = None
         self.counter = time.time_ns()
         self.last_sample = self.last_decision = self.last_phase = None
         self.block_until = 0.
@@ -228,8 +232,8 @@ class Supervisor:
         self.fresh = False
 
     def emit(self, event, **fields):
-        self.trace(dict(schema=1, event=event, monotonic_seconds=time.monotonic(),
-                        **(self.fence or dict.fromkeys(FENCE)), **fields))
+        self.trace({"schema": 1, "event": event, "monotonic_seconds": time.monotonic(),
+                    **(self.fence or dict.fromkeys(FENCE)), **fields})
 
     def retire(self, worker):
         if worker:
@@ -271,22 +275,46 @@ class Supervisor:
                 self.candidate = None
                 self.emit("rejected", policy_hash=digest, reason="worker_spawn_failed")
 
-    def release(self):
-        if self.lease:
-            self.block_sample = self.last_sample
-            self.generation += 1
-            try:
-                self.call("release", dict(self.lease, request_id="release-" + os.urandom(10).hex()))
-            except (OSError, ValueError):
-                pass
-        self.lease = None
+    def finish_bank(self, terminal, reason):
+        task = self.bank
+        if task is None or task.outcome is not None:
+            return
+        outcome = dict(bank_verdict(terminal=terminal, controller="candidate", wet_takeover=task.wet_takeover,
+                                    baseline_assisted=False, ownership_complete=False),
+                       evidence="live_sampled", reason=reason, observed_wet_takeover=task.wet_takeover)
+        if outcome["physical_success"] is not None:
+            raise ValueError("Live observations cannot establish an exact bank verdict")
+        task_id = task.record["task_id"]
+        if self.memory.finish_bank(task_id, outcome):
+            self.emit("bank_outcome", task_id=task_id, policy_hash=task.record["policy_hash"], **outcome)
+        else:
+            # Another exclusive owner may already have censored this task during an outage.
+            _, outcome = self.memory.bank(task_id)
+        task.outcome = outcome
+        self.generation += 1
+        if self.undertaking and self.undertaking.get("task_id") == task_id:
+            self.terminate_attempt("bank_" + terminal)
+
+    def release(self, bank_terminal="control_lost", reason="release"):
+        try:
+            self.finish_bank(bank_terminal, reason)
+        finally:
+            # A failed local journal write must never suppress native fallback.
+            lease, self.lease = self.lease, None
+            if lease:
+                self.block_sample = self.last_sample
+                self.generation += 1
+                try:
+                    self.call("release", dict(lease, request_id="release-" + os.urandom(10).hex()))
+                except (OSError, ValueError):
+                    pass
 
     def close(self):
         try:
             try:
                 self.terminate_attempt("supervisor_exit")
             finally:
-                self.release()
+                self.release(reason="supervisor_exit")
         finally:
             self.retire(self.active)
             self.retire(self.candidate)
@@ -332,7 +360,7 @@ class Supervisor:
         else:
             self.emit("fallback", policy_hash=worker.digest, reason=reason)
             self.terminate_attempt(reason)
-            self.release()
+            self.release(reason=reason)
             self.retire(worker)
             self.active = None
             self.state = {}
@@ -357,6 +385,7 @@ class Supervisor:
         current = self.undertaking
         return dict(abi_version=1, state_version=worker.state_version, state=self.state if compatible else {},
                     directive=self.directive, routes=routes, skills=skills,
+                    bank_task=self.bank.context() if self.bank else None,
                     undertaking={k: current[k] for k in ("episode_id", "action_seq", "skill", "goal")} if current else None)
 
     def marker(self):
@@ -380,6 +409,10 @@ class Supervisor:
         else:
             if current or new:
                 self.generation += 1
+            if self.bank is not None:
+                if self.bank.outcome is None:
+                    self.release("directive_ended", "order_replaced_or_expired")
+                self.bank = None
             self.directive = new
 
     def valid_plan(self, marker, sampled_at):
@@ -390,6 +423,8 @@ class Supervisor:
     def check_receipt(intent, response):
         expected = {k: intent[k] for k in (*FENCE, "request_id")}
         expected["kind"] = "commit" if intent["kind"] == "route" else "motor"
+        if "action_seq" in intent:
+            expected["action_seq"] = intent["action_seq"]
         if (not isinstance(response, dict) or any(response.get(k) != v for k, v in expected.items())
                 or type(response.get("action_seq")) is not int or not 1 <= response["action_seq"] <= 0xffffffff
                 or response.get("status") not in ("applied", "pending", "rejected", "expired", "stale",
@@ -404,6 +439,7 @@ class Supervisor:
     def recover_submissions(self):
         # A new, exclusive lease can inspect receipts left by its predecessor.
         # A recovered episode has no continuous observation window across the outage.
+        pending = self.memory.pending_admissions(self.fence["run_id"])
         for intent in self.memory.unresolved(self.fence["run_id"]):
             try:
                 receipt = self.receipt(intent)
@@ -417,15 +453,31 @@ class Supervisor:
                 continue
             _, eid = self.memory.bind(intent, receipt["action_seq"])
             if receipt["status"] == "applied":
-                self.memory.admitted(eid)
+                self.memory.admitted(eid, intent.get("task_id"))
             self.emit("submission_reconciled", request_id=intent["request_id"], episode_id=eid,
+                      status=receipt["status"])
+        for attempt in pending:
+            # The episode already exists. A changed sequence must never create
+            # a replacement child or silently move this durable association.
+            eid = "/".join(str(attempt[k]) for k in (*FENCE, "action_seq"))
+            try:
+                receipt = self.receipt(attempt)
+            except (OSError, ValueError):
+                self.emit("submission_censored", request_id=attempt["request_id"],
+                          reason="late_admission_unconfirmed")
+                continue
+            if receipt["status"] == "applied":
+                self.memory.admitted(eid, attempt.get("task_id"))
+            self.emit("submission_reconciled", request_id=attempt["request_id"], episode_id=eid,
                       status=receipt["status"])
         for abandoned in self.memory.recover(self.fence["run_id"]):
             self.emit("recovered_attempt", episode_id=abandoned, status="owner_lost", physical_success=None)
 
-    def send(self, obs, result, command, marker, sampled_at):
-        if time.monotonic() < self.block_until:
-            return "not_sent"
+        for record, outcome in self.memory.recover_banks(self.fence["run_id"]):
+            self.emit("bank_outcome", task_id=record["task_id"], policy_hash=record["policy_hash"],
+                      **{k: record[k] for k in FENCE}, **outcome)
+
+    def attach(self):
         if not self.lease:
             attached = self.call("attach", dict(self.fence, controller="lily-runtime"))
             self.lease = dict(self.fence, lease_id=attached["lease_id"])
@@ -433,6 +485,76 @@ class Supervisor:
                                self.memory.request_floor(self.fence["run_id"]))
             self.renew_at = time.monotonic() + attached["expires_in"] * .5
             self.recover_submissions()
+
+    @staticmethod
+    def bank_clock(obs):
+        age = obs.get("age_seconds")
+        value = obs["state"].get("game_time")
+        return value if finite_number(age) and 0 <= age <= .75 and finite_number(value) else None
+
+    def open_bank(self, obs, sampled_at):
+        order = self.directive
+        if self.bank or not order or order["goal"] != "escape-bank":
+            return
+        task_id = bank_id(self.environment, self.fence, order["id"])
+        stored = self.memory.bank(task_id)
+        if not stored or stored[1] is None:
+            marker = self.marker()
+            self.attach()  # Reconcile the previous exclusive owner's tasks first.
+            if not self.valid_plan(marker, sampled_at):
+                self.release()
+                return
+            stored = self.memory.bank(task_id)
+        if stored:
+            if stored[1] is None:
+                raise ValueError("unreconciled_bank")
+            self.bank = BankTask(stored[0], None)
+            self.bank.outcome = stored[1]
+            if self.lease:
+                self.release()
+            return
+        sense = obs["lily"]["sense"]
+        record = dict(self.fence, environment=self.environment, task_id=task_id, directive_id=order["id"],
+                      policy_hash=self.active.digest, start_sample=sense["sample_id"], start_position=list(sense["position"]),
+                      start_game_time=self.bank_clock(obs))
+        try:
+            record.update(bank_parameters(order["parameters"], sense["position"]))
+            reason = None if sense["medium"] == "water" else "requires_wet_start"
+        except ValueError:
+            reason = "invalid_parameters"
+        if not self.memory.begin_bank(record):
+            raise ValueError("duplicate_bank_assignment")
+        self.generation += 1
+        self.bank = BankTask(record, record["start_game_time"])
+        self.emit("bank_start", **record)
+        if reason:
+            self.release("unavailable", reason)
+
+    def send(self, obs, result, command, marker, sampled_at):
+        if time.monotonic() < self.block_until:
+            return "not_sent"
+        task_id = result.get("task_id")
+        bank_goal = None
+        if self.directive and self.directive["goal"] == "escape-bank":
+            if not self.bank or self.bank.outcome is not None:
+                return "not_sent"
+            if task_id != self.bank.record["task_id"] or result["action"] != "motor":
+                self.release("unavailable", "policy_did_not_accept_bank_task")
+                return "not_sent"
+            sense = obs["lily"]["sense"]
+            target = self.bank.record["position"]
+            supplied = result.get("goal")
+            if supplied:
+                endpoint = [v + d * supplied["distance"] for v, d in
+                            zip(sense["position"], supplied["direction"])]
+                if math.dist(endpoint, target) > 1e-6:
+                    self.release("unavailable", "bank_goal_mismatch")
+                    return "not_sent"
+            bank_goal = remaining_goal(sense["position"], target) or dict(
+                position=list(target), direction=list(sense["facing"]), distance=0.)
+        elif task_id is not None:
+            return "not_sent"
+        self.attach()
         if not self.valid_plan(marker, sampled_at):
             return "not_sent"
         self.counter = max(time.time_ns(), self.counter + 1)
@@ -450,12 +572,17 @@ class Supervisor:
                   "distance": length, "sector": choice["sector"], "item_bin": choice["item_bin"]}
         else:
             direction = goal["direction"] if goal else sense["facing"]
-            if goal:
+            if bank_goal is not None:
+                goal = bank_goal
+                direction = goal["direction"]
+            elif goal:
                 goal = dict(goal, position=[v+d*goal["distance"] for v,d in zip(sense["position"],direction)])
             key = skill_key(self.environment, result["skill"], sense, direction)
         intent = dict(self.fence, request_id=request_id, policy_hash=self.active.digest,
                       sample_id=command["sample_id"], skill=result["skill"], kind=result["action"],
                       key=key, goal=goal, revision=self.active.revision, command=command, ttl_seconds=ttl)
+        if task_id is not None:
+            intent["task_id"] = task_id
         self.memory.prepare(intent)
         self.emit("submission", request_id=request_id, policy_hash=self.active.digest, kind=result["action"])
         # Both lease acquisition and the durable journal transaction may block.
@@ -473,7 +600,7 @@ class Supervisor:
             except (ValueError, OSError):
                 self.memory.disposition(intent, "unconfirmed")
                 self.emit("submission_censored", request_id=request_id, reason="unconfirmed_dispatch")
-                self.release()
+                self.release(reason="unconfirmed_dispatch")
                 raise
         attempt, eid = self.memory.bind(intent, response["action_seq"])
         self.undertaking = dict(attempt, episode_id=eid, started=started, deadline=started + ttl + 1.,
@@ -486,7 +613,7 @@ class Supervisor:
     def accept_action(self):
         u = self.undertaking
         if not u["admitted"]:
-            self.memory.admitted(u["episode_id"])
+            self.memory.admitted(u["episode_id"], u.get("task_id"))
             if u["next_state"] is not None:
                 self.state = u["next_state"]
             u["admitted"] = True
@@ -510,11 +637,15 @@ class Supervisor:
                         and sense["phase"] in ("started", "running"))
         if attributed:
             self.accept_action()
+            if (self.bank and self.bank.outcome is None and u.get("task_id") == self.bank.record["task_id"]
+                    and sense["owner"] == "motor" and sense["phase"] == "running" and sense["medium"] == "water"):
+                self.bank.wet_takeover = True
         if self.last_sample != sense["sample_id"]:
             self.last_sample = sense["sample_id"]
             self.emit("observation", sense=sense, state={k: v for k, v in obs["state"].items() if k in STATE_FIELDS},
                       policy_hash=u["policy_hash"] if attributed else None,
                       episode_id=u["episode_id"] if attributed else None,
+                      task_id=u.get("task_id") if attributed else None,
                       skill=u["skill"] if attributed else None,
                       goal=remaining_goal(sense["position"], u["goal"]["position"]) if attributed and u["goal"] else None)
             if attributed and u["kind"] == "motor" and u["goal"]:
@@ -551,7 +682,8 @@ class Supervisor:
                     status = "playback"
                     # Sampled in-flight progress can establish a lower bound.
                     # Missing a positive displacement between samples cannot prove failure.
-                    if u["goal"] and u["max_projection"] is not None and u["max_projection"] >= u["goal"]["distance"]:
+                    if (u["goal"] and u["goal"]["distance"] > 0 and u["max_projection"] is not None
+                            and u["max_projection"] >= u["goal"]["distance"]):
                         status, verdict = "motor_goal_reached", True
                 elif p["phase"] == "failed" and p["reason"] == "invalid_route" and u["kind"] == "route":
                     verdict = False
@@ -565,7 +697,7 @@ class Supervisor:
                 pass
         if self.undertaking and now >= u["deadline"]:
             self.terminate_attempt("lost_terminal")
-            self.release()
+            self.release(reason="lost_terminal")
 
     def safe(self, obs):
         sense = obs["lily"]["sense"]
@@ -576,6 +708,8 @@ class Supervisor:
         received = now if observed_at is None else observed_at
         fence = {k: observation[k] for k in FENCE}
         if fence != self.fence:
+            self.finish_bank("fence_changed", "run_world_or_life_changed")
+            self.bank = None
             self.terminate_attempt("fence_changed")
             self.lease = None
             self.generation += 1
@@ -593,7 +727,7 @@ class Supervisor:
         if not fresh and self.fresh:
             self.generation += 1
             self.terminate_attempt("stale_telemetry")
-            self.release()
+            self.release(reason="stale_telemetry")
             self.last_decision = None
             self.emit("fallback", reason="stale_telemetry", policy_hash=self.active.digest if self.active else None)
         self.fresh = fresh
@@ -609,6 +743,10 @@ class Supervisor:
             if ages.get("offers") is None or ages["offers"] > 2:
                 obs["lily"]["offers"] = None
             self.record(obs, now)
+            if self.bank and self.bank.outcome is None:
+                terminal = self.bank.observe(obs["lily"]["sense"], self.bank_clock(obs))
+                if terminal:
+                    self.release(terminal, "sampled_game_state")
             safe = self.safe(obs)
             if self.lease and now >= self.renew_at:
                 try:
@@ -616,7 +754,7 @@ class Supervisor:
                     self.renew_at = now + .5 * response["expires_in"]
                 except (OSError, ValueError):
                     self.terminate_attempt("lease_lost")
-                    self.release()
+                    self.release(reason="lease_lost")
                     return
         for worker in (self.candidate, self.active):
             if not worker:
@@ -633,7 +771,7 @@ class Supervisor:
                             self.emit("candidate_ready", policy_hash=worker.digest)
                     elif obs and safe and self.valid_plan(marker, when):
                         if result["action"] == "baseline":
-                            self.release()
+                            self.release("directive_ended", "policy_released")
                         elif result["action"] != "wait":
                             if result["action"] == "route" and (not obs["lily"]["offers"] or
                                     cmd["offer_id"] != obs["lily"]["offers"]["offer_id"]):
@@ -658,7 +796,7 @@ class Supervisor:
         if self.candidate_ready and self.candidate_scope != self.marker()[:3]:
             self.candidate_ready = False
         safe = self.safe(obs)
-        if safe and self.candidate and self.candidate_ready:
+        if safe and self.candidate and self.candidate_ready and (not self.bank or self.bank.outcome is not None):
             old = self.active
             self.active, self.candidate = self.candidate, None
             if not old or old.state_version is None or old.state_version != self.active.state_version:
@@ -671,5 +809,11 @@ class Supervisor:
             self.emit("activated", policy_hash=self.active.digest, previous_hash=old.digest if old else None)
         marker = (obs["lily"]["sense"]["sample_id"], self.generation)
         if safe and self.active and self.active.phase == "idle" and marker != self.last_decision and now >= self.block_until:
-            self.last_decision = marker
+            try:
+                self.open_bank(obs, received - age)
+            except (OSError, ValueError):
+                self.emit("admission_error", policy_hash=self.active.digest)
+                self.block_until = time.monotonic() + .5
+                return
+            self.last_decision = (obs["lily"]["sense"]["sample_id"], self.generation)
             self.enqueue(self.active, obs, received - age)

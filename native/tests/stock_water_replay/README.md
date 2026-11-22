@@ -68,3 +68,42 @@ while IFS=$'\t' read -r id origin wet dry start x y z dt flags hp endurance pitc
     done
 done < <(tail -n +2 "$fixture/bank_cases.tsv")
 ```
+
+## Matched bank evaluation
+
+Run the unchanged autonomous controller and the checked-in movement clone on
+the same 27 assigned case/yaw pairs. The optional `--episode` argument selects
+one case/yaw ID (for example, `boba-190.017-yaw0`) for a paired smoke run.
+
+```bash
+python3 native/tests/stock_water_replay/evaluate_bank.py \
+    --source "$PATCHED_WEB_SOURCE" --build "$NATIVE_BUILD" --map "$OWNED_JKL" \
+    --output "$NEW_PRIVATE_DIRECTORY" --workers 4
+```
+
+Each candidate gets its own real-time engine, loopback companion, fenced
+`escape-bank` directive, supervisor, policy worker and fresh database. The
+directive uses the actual destination node selected by the fixture. The native
+baseline advances the same sequence of control and 150 Hz stock physics steps
+without wall-clock pacing. A simulated timeout ends on step 9,000. First breath
+means the first observed transition from positive breath usage to zero.
+
+The evaluator-only build observes the return from the native control selector
+before end-of-frame cleanup clears a completed action. Its wrapper calls the
+original selector once and returns the original result. Each native control
+frame records the applied axes, buttons, control tick, water flag, action
+sequence, revision, sample and fence. `applied.jsonl` joins actual motor ticks
+to the supervisor's bank task, action identity and full policy digest. An
+unmatched motor or missing frame makes controller attribution unknown.
+Neutral boundary frames have a distinct owner. The baseline-only demonstration
+writer is disabled whenever the adaptive seat is enabled.
+
+The private output keeps all assigned rows in `receipt.json`, including
+configuration failures and timeouts. `physical_success` uses the native
+landing/death/time oracle. `controller_success` also requires complete
+ownership, actual wet takeover by a candidate, and freedom from baseline
+assistance for that candidate. The summary reports the model's five original
+holdouts separately. A physical loss counts as a completed trial. The process
+returns nonzero if one or more trials lack a physical verdict. Publish the
+sanitized receipt after review. The per-case traces, databases and engine logs
+contain private fixture evidence.

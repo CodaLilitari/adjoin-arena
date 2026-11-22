@@ -47,6 +47,10 @@ __typeof__(sithTime_g_fps) sithTime_g_fps=20;
 static void sithControl_PlayerMovementMots(SithThing *me){abort();}
 #include "stock_functions.inc"
 #include "replay_trace.inc"
+#include "bank_oracle.h"
+#ifdef BANK_EVALUATION
+#include "bank_trace.inc"
+#endif
 static int play_exit(SithThing *me,int from,int to,SithSector *startSector,float dt) {
     BotNode *wet=&bot.nodes[from], *dry=&bot.nodes[to];rdVector3 surface;flex_t duration;
     assert(Bot_WaterExitArc(wet,dry,&nav.waterExitStart,&duration));
@@ -94,7 +98,14 @@ static int play_exit(SithThing *me,int from,int to,SithSector *startSector,float
     int realtime=getenv("LILY_REPLAY_REALTIME")!=NULL;
     int keepPlaying=getenv("LILY_REPLAY_CONTINUE")!=NULL;
     motor_trace_begin(me);
-    for(int tick=0;tick*dt<maxSeconds;tick++) {
+    int tick=0;
+#ifdef BANK_EVALUATION
+    assert(getenv("LILY_BANK_TRACE") && !keepPlaying && maxSeconds==60.0f);
+    bank_begin(dry);
+    for(;stepIndex<9000;tick++) {
+#else
+    for(;tick*dt<maxSeconds;tick++) {
+#endif
         if (realtime) {
             double delay=realStart+tick*dt-Companion_Clock();
             if (delay>0) { struct timespec pause={.tv_sec=(time_t)delay,.tv_nsec=(long)((delay-(time_t)delay)*1e9)}; nanosleep(&pause,NULL); }
@@ -103,7 +114,15 @@ static int play_exit(SithThing *me,int from,int to,SithSector *startSector,float
         int surf=!!(me->physicsParams.flags&SITH_PF_ONWATERSURFACE);
         ears.records[0].cue.kind=0;
         ears.records[0].last=bot.now;
+#ifdef BANK_EVALUATION
+        bankOwner="unknown";
+        bankActionSeq=bankRevision=bankSample=0;
+        sithTime_g_secGameTime=stepIndex/150.0f;
+#endif
         jkBot_Tick(dt);
+#ifdef BANK_EVALUATION
+        bank_frame(me,tick,stepIndex);
+#endif
         motor_trace_frame(me,dry,tick*dt,dt);
         if(tick%10==0)fprintf(stderr,"TICK %d ph%d from%d to%d pos%f,%f,%f goal%d key%d axes %.2f %.2f heading %.2f\n",tick,nav.waterExitPhase,nav.waterExitFrom,nav.waterExitTo,me->position.x,me->position.y,me->position.z,bot.goal,bot.keys[INPUT_FUNC_JUMP],bot.axes[INPUT_FUNC_FORWARD],bot.axes[INPUT_FUNC_SLIDE],bot.axes[INPUT_FUNC_TURN]);
         if(getenv("TRACE_X") && tick%10==0){
@@ -117,21 +136,38 @@ static int play_exit(SithThing *me,int from,int to,SithSector *startSector,float
         if(bot.keys[INPUT_FUNC_JUMP] && surf && !bot.previous[INPUT_FUNC_JUMP]) kicks++;
         if(me->attach_flags)sithControl_PlayerMovement(me);else sithControl_FreeCam(me);
         double span=dt+residual;int count=lround(span*150.0);residual=span-count/150.0;
+#ifdef BANK_EVALUATION
+        if (count>9000-stepIndex) count=9000-stepIndex;
+#endif
         for(int sub=0;sub<count;sub++){
         float step=1.0f/150;
         sithTime_g_frameTimeFlex=step;
         unsigned before=me->actorParams.endurance;
         sithActor_Update(me, ((++stepIndex % 3)==1)?6:7);
-        if(before>0 && me->actorParams.endurance==0 && firstBreath<0){firstBreath=tick;fprintf(stderr,"BREATH elapsed %.3f health %.1f\n",stepIndex/150.,me->actorParams.health);}
-        if(me->actorParams.health<=0){fprintf(stderr,"DROWN elapsed %.3f z %.3f\n",tick*dt,me->position.z);motor_trace_end(me,0,stepIndex/150.0f);return 0;}
+        if(before>0 && me->actorParams.endurance==0 && firstBreath<0){firstBreath=stepIndex;fprintf(stderr,"BREATH elapsed %.3f health %.1f\n",stepIndex/150.,me->actorParams.health);}
+        if(me->actorParams.health<=0){
+#ifdef BANK_EVALUATION
+            bank_terminal(me,"died",tick+1,stepIndex,drySteps,firstBreath);
+#endif
+            fprintf(stderr,"DROWN elapsed %.3f z %.3f\n",tick*dt,me->position.z);motor_trace_end(me,0,stepIndex/150.0f);return 0;}
         int oldSector=me->sector->id;unsigned oldSurface=me->physicsParams.flags & SITH_PF_ONWATERSURFACE;
         sithPhysics_UpdateThing(me,step);
         sithThing_UpdateMove(me,step);
         if(oldSector!=me->sector->id || oldSurface!=(me->physicsParams.flags&SITH_PF_ONWATERSURFACE))
             fprintf(stderr,"TRANSITION sec %.3f sector %d->%d surf %d->%d vz %.4f pf %x z %.4f\n",stepIndex/150.,oldSector,me->sector->id,!!oldSurface,!!(me->physicsParams.flags&SITH_PF_ONWATERSURFACE),me->physicsParams.vel.z,me->physicsParams.flags,me->position.z);
-        int grounded=me->sector==dry->sector && (me->attach_flags&SITH_ATTACH_SURFACE) && me->attachedSurface && me->attachedSurface->pSector==dry->sector;
-        drySteps=grounded?drySteps+1:0;
-        if(drySteps>=38 && !landed){
+#ifdef BANK_EVALUATION
+        if (me->actorParams.health<=0) {
+            bank_terminal(me,"died",tick+1,stepIndex,drySteps,firstBreath);
+            return 0;
+        }
+#endif
+        int attached=(me->attach_flags&SITH_ATTACH_SURFACE) && me->attachedSurface && me->attachedSurface->pSector
+                   ? (int)me->attachedSurface->pSector->id : -1;
+        if(bank_supported_step(&drySteps,dry->sector->id,me->sector->id,attached,
+                               !(me->sector->flags&SITH_SECTOR_UNDERWATER)) && !landed){
+#ifdef BANK_EVALUATION
+            bank_terminal(me,"supported_dry",tick+1,stepIndex,drySteps,firstBreath);
+#endif
             fprintf(stderr,"SUPPORTED_DRY elapsed %.3f stable %.3f sector %d kicks %d z %.3f health %.1f\n",stepIndex/150.,drySteps/150.,me->sector->id,kicks,me->position.z,me->actorParams.health);
             landed=1; motor_trace_end(me,1,stepIndex/150.0f);
             if (!keepPlaying) return 1;
@@ -139,6 +175,9 @@ static int play_exit(SithThing *me,int from,int to,SithSector *startSector,float
 
         }
     }
+#ifdef BANK_EVALUATION
+    bank_terminal(me,"sim_timeout",tick,stepIndex,drySteps,firstBreath);
+#endif
     motor_trace_end(me,0,stepIndex/150.0f);
     return landed;
 }

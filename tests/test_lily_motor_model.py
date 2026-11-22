@@ -73,6 +73,23 @@ class MotorModelTests(unittest.TestCase):
         self.assertEqual(scope["decide"](observation, {"undertaking": {"action_seq": 3}}), {"action": "wait"})
         self.assertEqual(scope["decide"](observation, {"undertaking": None})["action"], "baseline")
 
+    def test_bank_export_uses_frozen_task_target_and_releases_on_latch(self):
+        scope = {}
+        exec(compile(policy_source(constant_model()), "generated-policy", "exec"), scope)
+        row = sample()
+        obs = dict(lily={"sense": row["sense"]}, state=row["state"])
+        directive = dict(goal="escape-bank", parameters={"position": [-3., 0., 0.]})
+        context = dict(directive=directive)
+        self.assertEqual(scope["decide"](obs, context), {"action": "baseline"})
+        task = dict(task_id="a"*64, position=[.5, 0., 0.], sector=41, budget_seconds=60, status="active")
+        context["bank_task"] = task
+        action = scope["decide"](obs, context)
+        self.assertEqual((action["task_id"], action["goal"]["direction"], action["steps"][0]["duration_ms"]),
+                         (task["task_id"], [1., 0., 0.], 550))
+        task["status"] = "closed"
+        context["undertaking"] = {"action_seq": 7}
+        self.assertEqual(scope["decide"](obs, context), {"action": "baseline"})
+
     def test_dataset_excludes_censored_and_unattributed_controls(self):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "trace.jsonl"

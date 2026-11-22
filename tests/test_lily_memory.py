@@ -1,4 +1,5 @@
 from pathlib import Path
+import sqlite3
 import tempfile
 import unittest
 
@@ -36,6 +37,42 @@ class MemoryTest(unittest.TestCase):
                 self.assertEqual(s.estimate(ak)["trials"], 1)
             finally:
                 s.close()
+
+    def test_existing_attempt_database_gains_an_idempotent_bank_journal(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "legacy.sqlite3"
+            old = sqlite3.connect(path)
+            old.execute("CREATE TABLE attempts(episode TEXT PRIMARY KEY, environment_key TEXT NOT NULL, "
+                        "identity TEXT NOT NULL, outcome TEXT, success INTEGER, duration REAL)")
+            old.execute("INSERT INTO attempts VALUES('historical','motor','{}','{}',1,.25)")
+            old.commit()
+            old.close()
+            store = ExperienceStore(path)
+            record = dict(task_id="first", run_id="r", position=[1., 2., 3.], policy_hash="a"*64)
+            other = dict(record, task_id="second")
+            independent = dict(record, task_id="other-run", run_id="s")
+            try:
+                self.assertEqual(store.estimate("motor")["wins"], 1)
+                self.assertTrue(store.begin_bank(record))
+                self.assertFalse(store.begin_bank(dict(record, position=[0., 0., 0.])))
+                self.assertTrue(store.begin_bank(other))
+                self.assertTrue(store.begin_bank(independent))
+                outcome = dict(terminal="sampled_dry", physical_success=None)
+                self.assertTrue(store.finish_bank("first", outcome))
+                self.assertFalse(store.finish_bank("first", dict(terminal="supported_dry", physical_success=True)))
+            finally:
+                store.close()
+            store = ExperienceStore(path)
+            try:
+                self.assertEqual(store.bank("first"), (record, outcome))
+                recovered, = store.recover_banks("r")
+                self.assertEqual((recovered[0], recovered[1]["terminal"]), (other, "restarted"))
+                self.assertIsNone(recovered[1]["physical_success"])
+                self.assertEqual(store.recover_banks("r"), [])
+                self.assertEqual(store.bank("other-run"), (independent, None))
+                self.assertEqual(store.estimate("motor")["wins"], 1)
+            finally:
+                store.close()
 
     def test_close_peer_can_select_learned_motor_over_available_route(self):
         offer = dict(node=4, sector=1, position=[4., 2., 0.], item_bin=0, **{"class": "patrol"}, utility=1, cost=1)

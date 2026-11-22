@@ -3,6 +3,8 @@ import json
 import math
 import sqlite3
 
+from .bank_task import bank_verdict
+
 
 def packed(value):
     return json.dumps(value, separators=(",", ":"), sort_keys=True, allow_nan=False)
@@ -46,6 +48,14 @@ class ExperienceStore:
                 PRIMARY KEY (run, request)
             );
             CREATE INDEX IF NOT EXISTS pending_submissions ON submissions(run, disposition);
+            CREATE TABLE IF NOT EXISTS bank_tasks (
+                task_id TEXT PRIMARY KEY, run TEXT NOT NULL, identity TEXT NOT NULL, outcome TEXT
+            );
+            CREATE INDEX IF NOT EXISTS open_banks ON bank_tasks(run) WHERE outcome IS NULL;
+            CREATE TABLE IF NOT EXISTS bank_children (
+                episode TEXT PRIMARY KEY REFERENCES attempts(episode),
+                task_id TEXT NOT NULL REFERENCES bank_tasks(task_id)
+            );
             CREATE TABLE IF NOT EXISTS transitions (
                 episode TEXT NOT NULL, phase TEXT NOT NULL, evidence TEXT NOT NULL,
                 PRIMARY KEY (episode, phase)
@@ -69,6 +79,14 @@ class ExperienceStore:
                                "AND disposition IN ('prepared','unconfirmed') ORDER BY rowid", (run_id,))
         return [json.loads(raw) for (raw,) in rows]
 
+    def pending_admissions(self, run_id):
+        """Already-bound open children whose positive native receipt may have arrived late."""
+        rows = self.db.execute(
+            "SELECT a.identity FROM submissions s JOIN attempts a ON a.episode=s.episode "
+            "WHERE s.run=? AND s.disposition='linked' AND s.admitted=0 AND a.outcome IS NULL "
+            "ORDER BY s.rowid", (run_id,))
+        return [json.loads(raw) for (raw,) in rows]
+
     def disposition(self, intent, status):
         with self.db:
             self.db.execute("UPDATE submissions SET disposition=? WHERE run=? AND request=? AND episode IS NULL",
@@ -86,9 +104,40 @@ class ExperienceStore:
                             (episode, intent["run_id"], intent["request_id"]))
         return attempt, episode
 
-    def admitted(self, episode):
+    def admitted(self, episode, task_id=None):
         with self.db:
-            self.db.execute("UPDATE submissions SET admitted=1 WHERE episode=?", (episode,))
+            updated = self.db.execute("UPDATE submissions SET admitted=1 WHERE episode=?", (episode,))
+            if task_id and updated.rowcount:
+                self.db.execute("INSERT OR IGNORE INTO bank_children(episode,task_id) "
+                                "SELECT ?,task_id FROM bank_tasks WHERE task_id=?", (episode, task_id))
+
+    def bank(self, task_id):
+        row = self.db.execute("SELECT identity,outcome FROM bank_tasks WHERE task_id=?", (task_id,)).fetchone()
+        return (json.loads(row[0]), json.loads(row[1]) if row[1] else None) if row else None
+
+    def begin_bank(self, record):
+        with self.db:
+            inserted = self.db.execute("INSERT OR IGNORE INTO bank_tasks(task_id,run,identity) VALUES(?,?,?)",
+                                       (record["task_id"], record["run_id"], packed(record)))
+        return inserted.rowcount == 1
+
+    def finish_bank(self, task_id, outcome):
+        with self.db:
+            updated = self.db.execute("UPDATE bank_tasks SET outcome=? WHERE task_id=? AND outcome IS NULL",
+                                      (packed(outcome), task_id))
+        return updated.rowcount == 1
+
+    def recover_banks(self, run):
+        """Censor abandoned commitments only after obtaining exclusive control of this run."""
+        outcome = dict(bank_verdict(terminal="restarted", controller="candidate", wet_takeover=False,
+                                    baseline_assisted=False, ownership_complete=False), evidence="live_sampled",
+                       reason="exclusive_owner_recovery")
+        with self.db:
+            # UPDATE ... RETURNING would exclude older SQLite versions used by the server.
+            self.db.execute("BEGIN IMMEDIATE")
+            rows = self.db.execute("SELECT identity FROM bank_tasks WHERE run=? AND outcome IS NULL", (run,)).fetchall()
+            self.db.execute("UPDATE bank_tasks SET outcome=? WHERE run=? AND outcome IS NULL", (packed(outcome), run))
+        return [(json.loads(raw), outcome) for (raw,) in rows]
 
     def begin(self, attempt):
         episode = episode_id(attempt)

@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 import tempfile
@@ -84,6 +85,221 @@ class SupervisorTest(unittest.TestCase):
             sample_id=cmd["sample_id"], owner="motor", phase="completed", reason="none", outcome="playback",
             applied_ms=202, node=-1)
         sense["sample_id"] += 1
+
+    def bank_order(self, order_id="escape-one", *, position=None, budget=60):
+        self.sup.directive_file = self.policy.with_suffix(".json")
+        self.sup.directive_file.write_text(json.dumps(dict(id=order_id, goal="escape-bank", provenance="operator",
+            parameters=dict(position=position or [0., 1., 0.], sector=41, budget_seconds=budget),
+            run_id="test", world_epoch=1, life_epoch=1, expires_at=time.time()+30)))
+
+    def bank_setup(self, budget=60):
+        self.obs["lily"]["sense"].update(medium="water", supported=False)
+        self.obs["age_seconds"] = 0.
+        self.obs["state"]["game_time"] = 1.
+        self.policy.write_text(
+            "ABI_VERSION=1\ndef decide(o,c):\n"
+            " task=c['bank_task']\n"
+            " if not task or task['status']!='active': return {'action':'baseline'}\n"
+            " return {'action':'motor','skill':'bank','task_id':task['task_id'],"
+            "'steps':[{'duration_ms':200,'turn':1}]}\n")
+        self.bank_order(budget=budget)
+
+    def bank_outcomes(self):
+        return [r for r in self.log if r["event"] == "bank_outcome"]
+
+    def test_bank_motor_without_local_goal_records_the_committed_endpoint(self):
+        self.bank_setup()
+        self.start()
+        self.assertEqual(self.sup.undertaking["goal"]["position"], [0., 1., 0.])
+
+    def test_bank_motor_cannot_relabel_an_unrelated_endpoint(self):
+        self.bank_setup()
+        source = self.policy.read_text().replace("'steps':", "'goal':{'direction':[1,0,0],'distance':9},'steps':")
+        self.policy.write_text(source)
+        self.until(lambda:bool(self.bank_outcomes()) or bool(self.motors()))
+        self.assertEqual(self.motors(), [])
+        self.assertEqual(self.bank_outcomes()[0]["reason"], "bank_goal_mismatch")
+        self.assertIsNone(self.sup.lease)
+
+    def test_already_at_bank_endpoint_does_not_award_a_displacement_win(self):
+        self.bank_setup()
+        self.obs["lily"]["sense"]["position"] = [0., 1., 0.]
+        self.start()
+        u = self.sup.undertaking
+        self.obs["lily"]["sense"].update(owner="motor", phase="running", revision=u["revision"],
+            action_seq=u["action_seq"], owner_sample_id=u["sample_id"], safe_handover=False)
+        self.until(lambda:self.sup.undertaking["max_projection"] == 0.)
+        self.finish()
+        self.until(lambda:any(row["event"] == "outcome" for row in self.log))
+        outcome, = [row for row in self.log if row["event"] == "outcome"]
+        self.assertEqual(outcome["status"], "playback")
+        self.assertIsNone(outcome["physical_success"])
+
+    def restart_pending_bank(self, *, final_status="applied", changed_seq=False):
+        self.bank_setup()
+        def pending(op, body=None):
+            response = self.link(op, body)
+            if op == "motor":
+                response["status"] = "pending"
+            return response
+        self.sup.call = pending
+        self.start()
+        original = dict(self.sup.undertaking)
+        self.assertIsNone(self.memory.db.execute("SELECT episode FROM bank_children").fetchone())
+        old = self.sup
+        old.retire(old.active)
+        old.active = None
+        old.bank = old.undertaking = old.lease = None
+        old.close()
+        receipt = self.link.receipts[original["request_id"]]
+        receipt["status"] = final_status
+        if changed_seq:
+            receipt["action_seq"] += 1
+        self.sup = Supervisor(self.policy, self.memory, "level", self.link, trace=self.log.append,
+                              directive_file=old.directive_file)
+        self.addCleanup(self.sup.close)
+        self.until(lambda:self.sup.bank and self.sup.bank.outcome)
+        self.assertEqual(len(self.motors()), 1)
+        self.assertEqual(self.sup.bank.outcome["terminal"], "restarted")
+        self.assertIsNone(self.sup.bank.outcome["physical_success"])
+        outcome = json.loads(self.memory.db.execute("SELECT outcome FROM attempts WHERE episode=?",
+                                                   (original["episode_id"],)).fetchone()[0])
+        self.assertEqual((outcome["status"], outcome["physical_success"]), ("owner_lost", None))
+        return original
+
+    def test_restart_recovers_late_admission_without_replaying_the_child(self):
+        original = self.restart_pending_bank()
+        self.assertEqual(self.memory.db.execute("SELECT admitted FROM submissions WHERE request=?",
+                                               (original["request_id"],)).fetchone(), (1,))
+        self.assertEqual(self.memory.db.execute("SELECT episode,task_id FROM bank_children").fetchall(),
+                         [(original["episode_id"], original["task_id"])])
+
+    def test_restart_does_not_credit_a_changed_native_sequence(self):
+        original = self.restart_pending_bank(changed_seq=True)
+        self.assertEqual(self.memory.db.execute("SELECT admitted FROM submissions WHERE request=?",
+                                               (original["request_id"],)).fetchone(), (0,))
+        self.assertEqual(self.memory.db.execute("SELECT episode FROM bank_children").fetchall(), [])
+
+    def test_restart_does_not_credit_a_still_pending_child(self):
+        original = self.restart_pending_bank(final_status="pending")
+        self.assertEqual(self.memory.db.execute("SELECT admitted FROM submissions WHERE request=?",
+                                               (original["request_id"],)).fetchone(), (0,))
+        self.assertEqual(self.memory.db.execute("SELECT episode FROM bank_children").fetchall(), [])
+
+    def test_bank_commits_across_chunks_then_activates_replacement(self):
+        self.bank_setup(budget=5)
+        self.start()
+        self.obs["state"]["game_time"] = 1.125  # First clock published after assignment.
+        self.obs["lily"]["sense"]["sample_id"] += 1
+        self.sup.step(self.obs)
+        task_id = self.sup.bank.record["task_id"]
+        source = self.policy.read_text()
+        self.policy.write_text(source.replace("'turn':1", "'turn':0"))
+        self.until(lambda:self.sup.candidate_ready)
+        self.bank_order(position=[3,2,1], budget=55)
+        self.finish()
+        self.until(lambda:len(self.motors()) == 2)
+        self.assertEqual(self.sup.active.digest, self.original)
+        self.assertEqual(self.sup.bank.context(), dict(task_id=task_id, status="active", sector=41,
+                                                        position=[0., 1., 0.], budget_seconds=5))
+        self.assertTrue(all("task_id" not in body for body in self.motors()))
+        self.assertEqual(self.memory.db.execute("SELECT task_id FROM bank_children").fetchall(),
+                         [(task_id,), (task_id,)])
+        self.obs["state"]["game_time"] = 6.125
+        self.until(lambda:self.sup.active.digest != self.original)
+        outcome, = self.bank_outcomes()
+        self.assertEqual((outcome["terminal"], outcome["physical_success"], outcome["controller_success"]),
+                         ("budget_elapsed", None, None))
+        self.assertIsNone(self.sup.lease)
+        self.assertEqual(len(self.motors()), 2)
+        self.bank_order("new-at-same-destination", budget=5)
+        self.until(lambda:len(self.motors()) == 3)
+        self.assertNotEqual(task_id, self.sup.bank.record["task_id"])
+
+    def test_bank_reject_never_links_and_worker_fault_releases(self):
+        self.bank_setup()
+        def reject(op, body=None):
+            receipt = self.link(op, body)
+            if op == "motor":
+                receipt["status"] = "rejected"
+            return receipt
+        self.sup.call = reject
+        self.start()
+        self.assertIsNone(self.memory.db.execute("SELECT episode FROM bank_children").fetchone())
+        self.sup.active.process.kill()
+        self.until(lambda:bool(self.bank_outcomes()))
+        self.assertIsNone(self.sup.lease)
+        outcome, = self.bank_outcomes()
+        self.assertEqual(outcome["terminal"], "control_lost")
+        self.assertIsNone(outcome["physical_success"])
+
+    def test_bank_restart_censors_open_record_once_without_replaying_order(self):
+        self.bank_setup()
+        self.start()
+        old = self.sup
+        # Simulate abrupt worker/process loss, bypassing graceful supervisor.close().
+        old.retire(old.active)
+        old.active = None
+        old.bank = old.undertaking = old.lease = None
+        old.close()
+        self.sup = Supervisor(self.policy, self.memory, "level", self.link, trace=self.log.append,
+                              directive_file=old.directive_file)
+        self.addCleanup(self.sup.close)
+        self.until(lambda:self.sup.bank and self.sup.bank.outcome)
+        self.assertEqual([r["terminal"] for r in self.bank_outcomes()], ["restarted"])
+        self.assertEqual(len(self.motors()), 1)
+        self.bank_order(position=[3, 2, 1])
+        self.until(lambda:self.sup.lease is None)
+        self.assertEqual(self.sup.bank.context()["position"], [0., 1., 0.])
+        self.assertEqual(len(self.motors()), 1)
+
+    def test_live_sampled_landing_requires_supported_near_target_and_is_censored(self):
+        self.bank_setup()
+        self.start()
+        sense = self.obs["lily"]["sense"]
+        u = self.sup.undertaking
+        sense.update(owner="motor", phase="running", revision=u["revision"], action_seq=u["action_seq"],
+                     owner_sample_id=u["sample_id"], safe_handover=False)
+        self.until(lambda:self.sup.bank.wet_takeover)
+        sense.update(medium="air", supported=True, position=[0., 1., 0.])
+        for age in (1.125, 1.25, 1.375, 1.5):
+            self.obs["state"]["game_time"] = age
+            sense["sample_id"] += 1
+            self.sup.step(self.obs)
+        row, = self.bank_outcomes()
+        self.assertEqual((row["terminal"],row["physical_success"],row["attribution"]), ("sampled_dry",None,"unknown"))
+        self.assertTrue(row["observed_wet_takeover"])
+        self.assertIsNone(self.sup.lease)
+        # Removing and re-adding the same ID in this life still leaves the task closed.
+        self.sup.directive_file.unlink()
+        self.sup.step(self.obs)
+        self.bank_order()
+        sense.update(medium="water", safe_handover=True, phase="idle", owner="baseline")
+        self.until(lambda:self.sup.bank and self.sup.bank.outcome)
+        self.assertEqual(len(self.motors()), 1)
+
+    def test_replacing_bank_directive_preempts_and_fence_censors_exactly_once(self):
+        self.bank_setup()
+        self.start()
+        self.bank_order("second")
+        self.until(lambda:len(self.motors()) == 2)
+        self.assertEqual([r["terminal"] for r in self.bank_outcomes()], ["directive_ended"])
+        self.obs["life_epoch"] += 1
+        self.obs["native_active"] = False
+        self.sup.step(self.obs)
+        self.assertEqual([(r["life_epoch"], r["terminal"],r["physical_success"]) for r in self.bank_outcomes()],
+                         [(1,"directive_ended",None),(1,"fence_changed",None)])
+
+    def test_unrelated_or_dry_policy_cannot_submit_a_bank_motor(self):
+        self.bank_setup()
+        self.policy.write_text(policy())
+        self.until(lambda:bool(self.bank_outcomes()))
+        self.assertEqual((self.bank_outcomes()[0]["terminal"], len(self.motors())), ("unavailable", 0))
+        self.obs["lily"]["sense"]["medium"] = "air"
+        self.bank_order("dry")
+        self.until(lambda:len(self.bank_outcomes()) == 2)
+        self.assertEqual(self.bank_outcomes()[-1]["reason"], "requires_wet_start")
+        self.assertIsNone(self.sup.lease)
 
     def test_equal_length_hot_swap_at_physical_boundary(self):
         self.start()

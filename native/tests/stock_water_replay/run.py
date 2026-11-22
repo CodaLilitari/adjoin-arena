@@ -39,7 +39,7 @@ def stock_functions(source):
     return "\n\n".join(functions) + "\n"
 
 
-def build_replay(source, build, map_path, work):
+def build_replay(source, build, map_path, work, *, bank_evaluation=False):
     source, build, work = Path(source).resolve(), Path(build).resolve(), Path(work)
     flags_file = build / "CMakeFiles/sith_engine.dir/flags.make"
     flags = dict(line.split(" = ", 1) for line in flags_file.read_text().splitlines() if " = " in line)
@@ -47,6 +47,13 @@ def build_replay(source, build, map_path, work):
     geometry = work / "map.numeric"
     write_geometry(map_path, geometry)
     compile_args = [os.environ.get("CC", "cc"), f"-I{source}/src", f"-I{work}"]
+    if bank_evaluation:
+        # Only the evaluator's translation unit observes control arbitration.
+        # Keep the original native driver and its single call unchanged.
+        shadow = work / "AI/jkBotLily.inc"
+        shadow.parent.mkdir()
+        shadow.write_text('#include_next "AI/jkBotLily.inc"\n#include "bank_drive.inc"\n')
+        compile_args[1:1] = [f"-I{work}", f"-I{HERE}", "-DBANK_EVALUATION"]
     for key in ("C_DEFINES", "C_INCLUDES", "C_FLAGS"):
         compile_args.extend(shlex.split(flags[key]))
     for lib in ("SDL", "SDL_mixer", "GameNetworkingSockets"):
