@@ -69,5 +69,13 @@ The fourth candidate recorded failed-approach memory, but a healthy bot with 88 
 - [x] Reproduce the actual dry-upgrade choice before changing production source. Include a productive alternative, cached equipment goal, fallback planning and an underwater rescan.
 - [x] Prefer the productive alternative for nonessential equipment while retaining the ordinary transit graph, needed recovery, explicit opponent pursuit and distinct entries. Inspect physical controls and movement ownership.
 - [x] Preserve the affected driver, portal, hearing, loadout and bank replay cases on both source configurations; obtain independent review of the scoped correction.
-- [ ] Rebuild and verify the exact native/browser packages, privately record a fresh four-seat 240-second match, and inspect all seats before qualifying movement.
-- [ ] Preserve every failed trial, deliver the validated final recording and update the continuation checkpoint and release metadata.
+- [x] Rebuild and verify the exact native/browser packages, privately record a fresh four-seat 240-second match, and inspect all seats before qualifying movement. Candidate 5 passed capture checks and failed broad sustained-movement qualification; its specific optional dry-weapon recurrence was not observed in the available cooldown windows.
+- [x] Preserve every failed trial, deliver the validated fifth recording and update the continuation checkpoint and release metadata. Publication remains pending.
+
+
+## Next increment: Validate forward water transit and useful recovery
+
+- [x] Distinguish the bot's eight-second air priority from the engine's twenty-second first drowning threshold. Check near-vertical forward-swim control and preserve the existing bank-escape evidence. No production changes are included from this investigation.
+- [ ] Add an ordinary-input, stock-collision replay of the observed forward passage. Measure actual wet-to-wet crossing, next breath, health loss and final stock pickup, using realistic control intervals and headings.
+- [ ] Isolate steering and breathing-budget candidates. Require a supported escape margin and meaningful progress; a longer deadline alone is not evidence of a safe route.
+- [ ] Compare time to actual shield or health recovery against an alternative destination, with urgent, low-ammunition and no-alternative controls. Preserve autonomous combat and valid objectives.

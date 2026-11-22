@@ -4,14 +4,44 @@
 
 The Linux and JKWeb packages include the reviewed correction for optional dry upgrades through a
 recently failed water approach, alongside the earlier supply and bank-landing repairs. Independent
-relinks reproduced each runtime file byte for byte. Candidate 5's four-seat trial is pending. The
-failed movement qualifications for candidates 3 and 4 remain documented below.
+relinks reproduced each runtime file byte for byte. Candidate 5 passed four-seat capture checks
+and failed sustained-movement qualification. The preceding trials remain documented below.
 
 | Packaged runtime | SHA-256 | Verification |
 | --- | --- | --- |
 | Linux x86-64 bot | `862e566209dae8fab218243a47455b5a5616bf98fb8d1f09fa65969f9c8519aa` | 205 translation units scanned, one rebuilt (`jkBot.c`), 223 source and 218 link-input hashes verified. The patched source passed 79 named groups and 54 legal loadouts. [Native build receipt](../qa/bots-refinement-native-build.json) |
 | JKWeb WASM | `9e802daf1ebeb808cf3822bd63e9b58506c34be4126a7ce5bdc26c9295751542` | All 28 changed source hashes verified against the patched, pinned JKWeb source. [Browser build receipt](../qa/bots-refinement-web-build.json) |
 | JKWeb JavaScript | `dd348b7f5dace28a4cd387eca7942eb30e25ef78b091e87217937a39cf2a2cd7` | Matches the same browser relink. |
+
+## Fifth refinement trial
+
+Runtime `5ed040735bfd1ef57448a47aa063453d6b53ef18` completed 240.0305 seconds in the four-seat
+arena. The capture verified Lily’s third-person model, red saber side and tip, and game audio.
+All seats ran autonomously. The trace contained seven failed-approach markers and three nearly
+complete retry windows with an observed bank return. During those windows no identified dry
+railgun or repeater upgrade drew a healthy, heavily armed bot back into the marked shaft.
+One pack’s contents were unknown, and the trace omits the planner’s rejected options.
+
+| Seat | Wet / living samples | Total time confined horizontally | Longest interval | Sampled opening → closing kills/deaths |
+| --- | ---: | ---: | ---: | --- |
+| Lily | 489 / 800 | 127.79 s | 16.78 s | 0/0 → 2/2 |
+| Boba | 426 / 789 | 64.76 s | 13.61 s | 0/1 → 3/5 |
+| Jan | 257 / 801 | 53.88 s | 38.23 s | 0/0 → 4/4 |
+| Yun | 520 / 810 | 150.31 s | 23.98 s | 1/1 → 3/4 |
+
+Useful pickups still cost too much time. Yun went back through the shaft for two dry shield
+recharges. Across 115 living samples spanning 31.695 seconds, he held concussion with 80 cells,
+reported no target and stayed at 100 health and 70 shields. Lily also returned for dry Bacta
+with full health and shields. Her carried Bacta count was unavailable. All seats had other
+periods of at least 39 seconds on mapped dry ground. These unseeded matches establish neither
+a consistent score advantage nor an improvement attributable to the policy alone.
+[Four-build comparison and capture verification](../qa/bots-refinement5-live.json)
+
+The next test is forward traversal from supported bank 41 through the deep shaft to an eligible
+shield. Reproduce Yun’s inventory, offer a reachable alternative, and measure route progress,
+time to an actual shield gain and the cost of an air return. Include a low-health or imminent-
+combat case and a case where the shaft is the only route. The existing 27 stock replays measure
+escape to the bank. Forward traversal still needs its own measurement.
 
 ## Fourth refinement trial
 
@@ -34,7 +64,7 @@ concussion rifle, 88 cells and no target. Jan also returned for a dry railgun wh
 She had zero shields, which makes her separate trip toward shield recharge a different decision.
 The packaged correction targets optional dry upgrades that call for another costly dive while
 preserving necessary recovery, pursuit and objective transit. Controlled route tests and independent
-review passed; its fresh live trial is pending. [Dry-detour regression receipt](../qa/bots-dry-supply-detour.json) [Four-seat comparison and private video verification](../qa/bots-refinement4-live.json)
+review passed. The fifth refinement trial above records the live result. [Dry-detour regression receipt](../qa/bots-dry-supply-detour.json) [Four-seat comparison and private video verification](../qa/bots-refinement4-live.json)
 
 ## Third refinement trial
 
@@ -93,6 +123,23 @@ configurations. One previously successful 79 ms control slowed from 25.573 to 29
 and still finished with 60 HP. The third refinement trial above shows how these physically
 reachable banks can coexist with an unproductive choice of the next supply route.
 [Bank replay matrix](../qa/bots-bank-landing.json)
+
+## Next navigation test
+
+The source check identifies two separate questions. The bot starts urgent air recovery at eight
+seconds of endurance or continuous immersion (or below 30 HP), while the pinned engine first
+requests drowning damage after 20 seconds and resets endurance at a dry sector or the water
+surface. The controller also derives forward swimming from horizontal waypoint error, so a
+nearly vertical route can lose pitched forward thrust. The observed shield trips turned back
+before reaching the deeper continuation. Neither fact establishes that a longer dive is safe.
+
+The next replay must use ordinary inputs and stock collision to measure actual forward portal
+passage, time to the next breath, damage and confirmed item gain. The existing 27-case suite
+checks supported dry-bank escape; its seeded dive age and wet-to-dry setup cannot prove forward
+wet-to-wet transit. Compare baseline steering and breathing decisions with isolated candidates
+before changing a production deadline. Primary implementation references are `sithActor_Update`
+in `src/World/sithActor.c`, `Bot_NeedsAir` in `src/AI/jkBotNavigation.inc`, and swimming controls
+in `src/AI/jkBotNavigate.inc`. All use the pinned source identities in the build receipts.
 
 ## Competitive work still open
 

@@ -186,7 +186,7 @@
     },
     "docs/BOTS_CONTINUATION.md": {
       "mode": 420,
-      "sha256": "ca70201dd5cff90d5b8346669432ae6fa4d57875e4f5118f010e3c026e8827b3"
+      "sha256": "f2306cfdabcc87398a370b3c25a5df0b8a2b5d026994d0350c94c6f9b0053d49"
     },
     "docs/BOTS_PROTOTYPE.md": {
       "mode": 420,
@@ -270,7 +270,7 @@
     },
     "docs/superpowers/plans/2026-11-22-bot-supply-recovery.md": {
       "mode": 420,
-      "sha256": "1c7046dd64437a1aaa477168c7a9234c45330b7d9a594f8198d5e8fc7cf72a64"
+      "sha256": "436987be034e3c878e3924d2bdd9748ec7f0150b39eac4e772bd451069f412f6"
     },
     "docs/superpowers/specs/2026-10-28-browser-spectator-design.md": {
       "mode": 420,
@@ -975,6 +975,10 @@
     "qa/bots-refinement4-live.json": {
       "mode": 420,
       "sha256": "2669f49d0b06e331b245f1e9a1583baf8d29c0276448fb2ca673ca5b035895ea"
+    },
+    "qa/bots-refinement5-live.json": {
+      "mode": 420,
+      "sha256": "1608da4cfedaf65536eed8f8c6020f02cf680226a030cf42cd424dddde7e0e55"
     },
     "qa/bots-server-controls.json": {
       "mode": 420,
