@@ -1,5 +1,5 @@
 diff --git a/src/AI/jkBot.c b/src/AI/jkBot.c
-index d59f677..9003e49 100644
+index d59f677..cb4ace5 100644
 --- a/src/AI/jkBot.c
 +++ b/src/AI/jkBot.c
 @@ -38,13 +38,30 @@
@@ -10,7 +10,7 @@ index d59f677..9003e49 100644
 +/* Ordinary edges keep their old cap; two more slots are reserved for running jumps. */
 +#define BOT_PLAIN_EDGES 16
 +#define BOT_EDGES 18
-+#define BOT_RUNJUMPS 64
++#define BOT_RUNJUMPS 192
  #define BOT_CANDIDATES 48
  #define BOT_PATH 256
  #define BOT_FOOT_HEIGHT 0.120114f
@@ -746,7 +746,7 @@ index 7a4d61a..3030ce2 100644
      Bot_Move(self,d,mode==BOT_ROUTE_DROP && self->actorParams.health>=30);
  }
 diff --git a/src/AI/jkBotNavigation.inc b/src/AI/jkBotNavigation.inc
-index 6d82309..3a94154 100644
+index 6d82309..fd4489e 100644
 --- a/src/AI/jkBotNavigation.inc
 +++ b/src/AI/jkBotNavigation.inc
 @@ -7,7 +7,13 @@
@@ -759,7 +759,7 @@ index 6d82309..3a94154 100644
 +typedef struct {
 +    int from,to,speedRank,jumpRank;
 +    flex_t speed,hold,runway,sprint,seconds,failedUntil;
-+    unsigned char boost,sped,force;
++    unsigned char boost,sped,force,dive,walk;
 +} BotRunJump;
  enum { BOT_OBJECTIVE_NONE, BOT_OBJECTIVE_JOIN, BOT_OBJECTIVE_CAPTURE,
         BOT_OBJECTIVE_RETURN, BOT_OBJECTIVE_RECOVER, BOT_OBJECTIVE_ESCORT,
@@ -769,8 +769,8 @@ index 6d82309..3a94154 100644
      flex_t waterSince, waitUntil, liftWaitAt, jumpUntil, jumpStarted, nextObjectiveLog;
      flex_t jumpVelocity, maxRunSpeed;
 +    BotRunJump runEdges[BOT_RUNJUMPS];
-+    int runCount, runCursor, runPhase, runFrom, runTo, runAir, runHeld, runLogged, runFlight;
-+    flex_t runUntil, runSeen, runRelease, runHealth;
++    int runCount, runCursor, runPhase, runFrom, runTo, runAir, runHeld, runLogged, runFlight, runActive;
++    flex_t runUntil, runSeen, runRelease, runHealth, runSpedAt;
      int forceJumpKnown, forceJumpPending;
      flex_t combatJumpUntil, nextCombatJump;
      int combatJumpAirborne;
@@ -931,10 +931,10 @@ index 6d82309..3a94154 100644
          }
 diff --git a/src/AI/jkBotRunJump.inc b/src/AI/jkBotRunJump.inc
 new file mode 100644
-index 0000000..48739d8
+index 0000000..1ad3225
 --- /dev/null
 +++ b/src/AI/jkBotRunJump.inc
-@@ -0,0 +1,394 @@
+@@ -0,0 +1,515 @@
 +/* Copyright (c) 2026 Coda Lilitari. SPDX-License-Identifier: MIT */
 +/* Running jumps: a jump released at running speed keeps that speed through
 +   the air (the stock Force Jump script adds its upward velocity to the
@@ -1115,10 +1115,94 @@ index 0000000..48739d8
 +    return 0;
 +}
 +
-+static BotRunJump *Bot_RunJumpPlan(int from,int to)
++/* Running off a ledge into water below: the engine quarters the vertical
++   speed at the surface, so the landing costs nothing. From the launch node
++   the body keeps running to the lip, falls, and must be in water before it
++   can touch any floor. */
++static int RunJump_Dive(SithThing *self,const BotNode *a,const BotNode *b,flex_t speed,flex_t thrust,flex_t lip)
 +{
-+    for (int i=0;i<nav.runCount;i++) if (nav.runEdges[i].from==from && nav.runEdges[i].to==to) return &nav.runEdges[i];
-+    return NULL;
++    rdVector3 delta=Bot_Sub(b->pos,a->pos);
++    flex_t length=Bot_Horizontal(delta),radius=self->moveSize;
++    rdVector3 direction={delta.x/length,delta.y/length,0};
++    const int unsafe=SITH_SECTOR_USETHRUST|SITH_SECTOR_NOGRAVITY;
++    const flex_t dt=bot.physicsStep>0 && bot.physicsStep<=0.067f ? bot.physicsStep : 1.0f/150.0f;
++    const flex_t control=Bot_Max(dt,bot.frameDt>0 && bot.frameDt<=0.10f ? bot.frameDt : 1.0f/30.0f);
++    const flex_t decay=1.0f-dt*self->physicsParams.airDrag;
++    /* The sphere is clear of the corner a little past the last foothold. */
++    flex_t along=lip+radius+0.04f,push=0,next=0,vz=0;
++    rdVector3 pos=a->pos; pos.x+=along*direction.x; pos.y+=along*direction.y;
++    SithSector *sector=Bot_SectorAt(&pos,a->sector);
++    rdVector3 swept=pos; flex_t top=pos.z;
++    for (int i=0;i*dt<3.0f;i++) {
++        if (i*dt+0.5f*dt>=next) { push=thrust; next+=control; }
++        push*=0.3f; speed=speed*decay+push*dt; vz=vz*decay-bot.world->gravity*dt;
++        along+=speed*dt;
++        pos.x=a->pos.x+along*direction.x; pos.y=a->pos.y+along*direction.y; pos.z+=vz*dt;
++        if (i%3!=2) continue;
++        if (!Bot_WaterClear(sector,swept,pos,radius)) return 0;
++        swept=pos; sector=Bot_SectorAt(&pos,sector);
++        if (!Bot_SectorSafe(sector) || (sector->flags&unsafe)) return 0;
++        if (!(sector->flags&SITH_SECTOR_UNDERWATER)) continue;
++        rdVector3 deeper=pos; deeper.z-=0.2f;
++        return top-pos.z>=0.8f && Bot_WaterClear(sector,pos,deeper,radius) &&
++               Bot_Distance(pos,b->pos)<=2.5f && Bot_WaterClear(sector,pos,b->pos,radius);
++    }
++    return 0;
++}
++
++static int Bot_RunDiveSolve(SithThing *self,const BotNode *a,BotNode *b,int speedRank,int sped,BotRunJump *plan)
++{
++    if (!self || !(self->moveSize>=0.02f && self->moveSize<=0.25f) || !(bot.world->gravity>0) ||
++        !(self->physicsParams.airDrag>=0 && self->physicsParams.airDrag<10) || !(self->actorParams.maxThrust>0) ||
++        !Bot_SectorSafe(a->sector) || !Bot_SectorSafe(b->sector) ||
++        (a->sector->flags&(SITH_SECTOR_UNDERWATER|SITH_SECTOR_USETHRUST|SITH_SECTOR_NOGRAVITY))) return 0;
++    rdVector3 delta=Bot_Sub(b->pos,a->pos);
++    flex_t distance=Bot_Horizontal(delta);
++    if (!(distance>=0.3f && distance<=3.6f) || delta.z>-0.9f || delta.z<-9.0f) return 0;
++    rdVector3 direction={delta.x/distance,delta.y/distance,0};
++    /* Level floor from the node to the lip, and the run-up behind the node. */
++    rdVector3 pos=a->pos,floor; SithSector *sector=a->sector,*support=NULL; flex_t lip=0;
++    for (;;) {
++        rdVector3 ahead=pos; ahead.x+=0.04f*direction.x; ahead.y+=0.04f*direction.y;
++        if (!Bot_Clear(NULL,sector,pos,ahead,self->moveSize,1)) { runJumpDropped[2]++; return 0; }
++        pos=ahead; lip+=0.04f; sector=Bot_SectorAt(&pos,sector);
++        if (!Bot_SectorSafe(sector) || (sector->flags&(SITH_SECTOR_UNDERWATER|SITH_SECTOR_USETHRUST|SITH_SECTOR_NOGRAVITY))) return 0;
++        if (!Bot_Floor(pos,sector,BOT_FOOT_HEIGHT+0.05f,&floor,&support)) break;
++        if (fabsf(floor.z-a->pos.z)>0.05f || lip>0.9f || lip>=distance) { runJumpDropped[2]++; return 0; }
++    }
++    flex_t room=0;
++    for (flex_t length=0.30f;length<=3.3f;length+=0.15f) { if (!RunJump_Runway(a,direction,length)) break; room=length; }
++    if (room<=0) { runJumpDropped[2]++; return 0; }
++    /* Slowest first: a walk, a run, a strafing run. Force Speed changes all
++       three, so each state of it is solved on its own. */
++    for (int pace=0;pace<3;pace++) {
++        flex_t thrust=(self->actorParams.maxThrust+(sped ? RunJump_Boost(speedRank) : 0))*(pace==2 ? BOT_DIAGONAL_GAIN : 1.0f);
++        flex_t ground=pace ? thrust : 0.5f*thrust;
++        flex_t runway=Bot_Min(room,0.85f*2.0f*ground/RunJump_Drag(self)),speed,sprint;
++        RunJump_Sprint(self,ground,runway+lip,&speed,&sprint);
++        if (!RunJump_Dive(self,a,b,speed,thrust,lip) || !RunJump_Dive(self,a,b,0.92f*speed,thrust,lip) ||
++            !RunJump_Dive(self,a,b,1.06f*speed,thrust,lip)) continue;
++        plan->speed=speed; plan->hold=0; plan->runway=runway; plan->sprint=sprint; plan->seconds=0;
++        plan->boost=pace==2; plan->sped=sped; plan->force=0; plan->dive=1; plan->walk=pace==0;
++        return 1;
++    }
++    runJumpDropped[3]++;
++    return 0;
++}
++
++/* A plan is solved for one speed. With Force Speed already running only a
++   plan solved with it fits; without it, either kind does (the bot can bring
++   Speed up), and the one that needs no mana is preferred. */
++static BotRunJump *Bot_RunJumpPlan(SithThing *self,int from,int to)
++{
++    int active=self->actorParams.extraSpeed>0.01f;
++    BotRunJump *found=NULL;
++    for (int i=0;i<nav.runCount;i++) {
++        BotRunJump *plan=&nav.runEdges[i];
++        if (plan->from!=from || plan->to!=to || (active && !plan->sped)) continue;
++        if (!found || (!active && found->sped && !plan->sped)) found=plan;
++    }
++    return found;
 +}
 +
 +static int Bot_RunJumpRank(SithThing *self,int bin)
@@ -1127,7 +1211,7 @@ index 0000000..48739d8
 +/* Planner gate: the powers the plan was solved with, and the mana for them. */
 +static int Bot_RunJumpUsable(SithThing *self,int from,int to)
 +{
-+    BotRunJump *plan=Bot_RunJumpPlan(from,to);
++    BotRunJump *plan=Bot_RunJumpPlan(self,from,to);
 +    if (!plan || !BT_ON(RUN_JUMP) || self->actorParams.health<40 || plan->failedUntil>bot.now) return 0;
 +    if (plan->sped && Bot_RunJumpRank(self,SITHBIN_F_SPEED)!=plan->speedRank) return 0;
 +    if (plan->force && Bot_RunJumpRank(self,SITHBIN_F_JUMP)<plan->jumpRank) return 0;
@@ -1148,18 +1232,31 @@ index 0000000..48739d8
 +    if ((a->sector->flags&SITH_SECTOR_UNDERWATER) || nav.liftForNode[i] || !Bot_SectorSafe(a->sector)) goto done;
 +    /* Landings worth a jump: a long way round by the ordinary graph, and a
 +       real gap in between. The three that save the most are tried. */
-+    int best[3]={-1,-1,-1}; flex_t saved[3]={-1,-1,-1};
++    /* Dry landings are ranked by the detour they save. Water below is all
++       one pool to swim in: the nearest places are tried first, until one
++       can be reached. */
++    int best[3]={-1,-1,-1},pool[8]; flex_t saved[3]={-1,-1,-1},near[8],poolSaved[8];
++    for (int k=0;k<8;k++) { pool[k]=-1; near[k]=1e20f; poolSaved[k]=0; }
 +    Bot_PathDistances(self,i,distance,parent);
 +    for (int j=0;j<bot.nNodes;j++) {
 +        BotNode *b=&bot.nodes[j];
-+        if (j==i || (b->sector->flags&SITH_SECTOR_UNDERWATER) || nav.liftForNode[j]) continue;
++        if (j==i || nav.liftForNode[j]) continue;
++        int wet=(b->sector->flags&SITH_SECTOR_UNDERWATER)!=0;
 +        rdVector3 d=Bot_Sub(b->pos,a->pos);
 +        flex_t horizontal=Bot_Horizontal(d);
-+        if (horizontal<1.3f || horizontal>4.6f || fabsf(d.z)>1.2f) continue;
++        if (wet ? (horizontal<0.3f || horizontal>3.6f || d.z>-0.9f || d.z<-9.0f)
++                : (horizontal<1.3f || horizontal>4.6f || fabsf(d.z)>1.2f)) continue;
 +        /* A place the ordinary graph cannot reach has no known way back. */
 +        if (distance[j]>=1e19f) continue;
 +        if (distance[j]<3.0f*horizontal+4.0f) { runJumpDropped[0]++; continue; }
 +        flex_t saving=distance[j]-horizontal;
++        if (wet) {
++            for (int k=0;k<8;k++) if (horizontal<near[k]) {
++                for (int m=7;m>k;m--) { pool[m]=pool[m-1]; near[m]=near[m-1]; poolSaved[m]=poolSaved[m-1]; }
++                pool[k]=j; near[k]=horizontal; poolSaved[k]=saving; break;
++            }
++            continue;
++        }
 +        if (saving<=saved[2]) continue;
 +        rdVector3 middle=Bot_Mix(a->pos,b->pos,0.5f),floor; SithSector *support=NULL;
 +        middle.z=Bot_Max(a->pos.z,b->pos.z);
@@ -1170,21 +1267,30 @@ index 0000000..48739d8
 +            best[k]=j; saved[k]=saving; break;
 +        }
 +    }
-+    for (int k=0,added=0;k<3 && best[k]>=0 && added<2 && nav.runCount<BOT_RUNJUMPS;k++) {
-+        int j=best[k];
++    for (int order=0,added=0,dives=0;order<11 && added<2 && nav.runCount<BOT_RUNJUMPS;order++) {
++        int j=order<8 ? pool[order] : best[order-8];
++        flex_t worth=order<8 ? poolSaved[order] : saved[order-8];
++        if (j<0 || (order<8 && dives)) continue;
 +        BotRunJump plan={0};
-+        if (!Bot_RunJumpSolve(self,a,&bot.nodes[j],speedRank,jumpRank,&plan)) continue;
++        BotRunJump other={0}; int both=0;
++        if (bot.nodes[j].sector->flags&SITH_SECTOR_UNDERWATER) {
++            int plain=Bot_RunDiveSolve(self,a,&bot.nodes[j],speedRank,0,&plan);
++            int fast=speedRank>0 && Bot_RunDiveSolve(self,a,&bot.nodes[j],speedRank,1,plain ? &other : &plan);
++            if (!plain && !fast) continue;
++            both=plain && fast;
++        } else if (!Bot_RunJumpSolve(self,a,&bot.nodes[j],speedRank,jumpRank,&plan)) continue;
 +        plan.from=i; plan.to=j; plan.speedRank=speedRank; plan.jumpRank=jumpRank;
-+        if (a->nEdges>=BOT_EDGES) continue;
++        if (a->nEdges>=BOT_EDGES || nav.runCount+both>=BOT_RUNJUMPS) continue;
 +        nav.runEdges[nav.runCount++]=plan;
-+        Bot_AddEdge(i,j,BOT_ROUTE_RUNJUMP); added++;
++        if (both) { other.from=i; other.to=j; other.speedRank=speedRank; other.jumpRank=jumpRank; nav.runEdges[nav.runCount++]=other; }
++        Bot_AddEdge(i,j,BOT_ROUTE_RUNJUMP); added++; dives+=plan.dive;
 +        rdVector3 gap=Bot_Sub(bot.nodes[j].pos,a->pos);
 +        fprintf(stderr,"BOT_RUNJUMP name=%s event=edge from=%d to=%d at=%.2f,%.2f,%.2f land=%.2f,%.2f,%.2f distance=%.2f rise=%.2f "
-+            "speed=%.2f force_speed=%d strafe=%d force_jump=%d hold=%.2f runway=%.2f sprint=%.2f flight=%.2f saved=%.1f\n",
++            "speed=%.2f force_speed=%d strafe=%d force_jump=%d hold=%.2f runway=%.2f sprint=%.2f flight=%.2f saved=%.1f dive=%d walk=%d speed_states=%d\n",
 +            bot.name,i,j,(double)a->pos.x,(double)a->pos.y,(double)a->pos.z,
 +            (double)bot.nodes[j].pos.x,(double)bot.nodes[j].pos.y,(double)bot.nodes[j].pos.z,
 +            (double)Bot_Horizontal(gap),(double)gap.z,(double)plan.speed,plan.sped,plan.boost,plan.force,
-+            (double)plan.hold,(double)plan.runway,(double)plan.sprint,(double)plan.seconds,(double)saved[k]);
++            (double)plan.hold,(double)plan.runway,(double)plan.sprint,(double)plan.seconds,(double)worth,plan.dive,plan.walk,1+both);
 +    }
 +done:
 +    if (nav.runCursor>=bot.nNodes) {
@@ -1204,7 +1310,7 @@ index 0000000..48739d8
 +    fprintf(stderr,"BOT_RUNJUMP name=%s t=%.2f event=fail why=%s from=%d to=%d phase=%d pos=%.2f,%.2f,%.2f health=%.0f\n",
 +        bot.name,(double)bot.now,why,plan->from,plan->to,nav.runPhase,
 +        (double)self->position.x,(double)self->position.y,(double)self->position.z,(double)self->actorParams.health);
-+    nav.runPhase=0; nav.runFrom=nav.runTo=0;
++    nav.runPhase=0; nav.runFrom=nav.runTo=nav.runActive=0;
 +    bot.goal=-1; bot.routeCount=bot.routePos=0; bot.nextPlan=0;
 +}
 +
@@ -1213,6 +1319,9 @@ index 0000000..48739d8
 +   record: a landing anywhere but the foothold sets the edge aside. */
 +static void Bot_RunJumpWatch(SithThing *self)
 +{
++    /* Force Speed lasts 5 + 2.5 a rank from the moment it comes up. */
++    if (self->actorParams.extraSpeed<=0.01f) nav.runSpedAt=0;
++    else if (nav.runSpedAt<=0) nav.runSpedAt=bot.now;
 +    if (nav.runFlight<1 || nav.runFlight>nav.runCount) { nav.runFlight=0; return; }
 +    BotRunJump *plan=&nav.runEdges[nav.runFlight-1];
 +    BotNode *b=&bot.nodes[plan->to];
@@ -1220,12 +1329,12 @@ index 0000000..48739d8
 +    int wet=(self->sector->flags&SITH_SECTOR_UNDERWATER)!=0;
 +    if (!dead && !wet && !(self->attach_flags&(SITH_ATTACH_SURFACE|SITH_ATTACH_THINGFACE))) return;
 +    flex_t miss=Bot_Horizontal(Bot_Sub(b->pos,self->position)),dz=self->position.z-b->pos.z;
-+    int ok=!dead && !wet && fabsf(dz)<=0.25f && miss<=0.9f;
++    int ok=plan->dive ? (!dead && wet) : (!dead && !wet && fabsf(dz)<=0.25f && miss<=0.9f);
 +    fprintf(stderr,"BOT_RUNJUMP name=%s t=%.2f event=land from=%d to=%d ok=%d miss=%.2f dz=%.2f lost=%.0f health=%.0f dead=%d wet=%d\n",
 +        bot.name,(double)bot.now,plan->from,plan->to,ok,(double)miss,(double)dz,
 +        (double)(nav.runHealth-self->actorParams.health),(double)self->actorParams.health,dead,wet);
 +    if (!ok) plan->failedUntil=bot.now+60.0f;
-+    nav.runFlight=0;
++    nav.runFlight=0; nav.runLogged=0;
 +}
 +
 +/* Phases: 0 walk to the start of the run-up, bring up Force Speed, stand
@@ -1234,16 +1343,23 @@ index 0000000..48739d8
 +   is no stopping once the sprint starts: the run-up is too short for that. */
 +static int Bot_RunJumpMove(SithThing *self,int from,int nodeIndex)
 +{
-+    BotRunJump *plan=Bot_RunJumpPlan(from,nodeIndex);
-+    if (!plan) return 0;
++    if (nav.runFrom!=from+1 || nav.runTo!=nodeIndex+1 || bot.now-nav.runSeen>0.6f) {
++        nav.runFrom=from+1; nav.runTo=nodeIndex+1; nav.runPhase=0; nav.runActive=0;
++        nav.runUntil=bot.now+7.0f; nav.runAir=nav.runLogged=0;
++    }
++    BotRunJump *plan=nav.runPhase>0 && nav.runActive>0 && nav.runActive<=nav.runCount ? &nav.runEdges[nav.runActive-1]
++                                                                                   : Bot_RunJumpPlan(self,from,nodeIndex);
++    if (plan && plan->dive && (self->sector->flags&SITH_SECTOR_UNDERWATER)) return 0; /* in the water: the swim takes over */
++    if (!plan) {
++        /* Nothing solved for the speed the bot has right now. */
++        nav.runPhase=0; nav.runFrom=nav.runTo=nav.runActive=0;
++        bot.goal=-1; bot.routeCount=bot.routePos=0; bot.nextPlan=0;
++        return 1;
++    }
 +    BotNode *a=&bot.nodes[from],*b=&bot.nodes[nodeIndex];
 +    rdVector3 delta=Bot_Sub(b->pos,a->pos);
 +    flex_t distance=Bot_Horizontal(delta);
 +    rdVector3 direction={delta.x/distance,delta.y/distance,0};
-+    if (nav.runFrom!=from+1 || nav.runTo!=nodeIndex+1 || bot.now-nav.runSeen>0.6f) {
-+        nav.runFrom=from+1; nav.runTo=nodeIndex+1; nav.runPhase=0;
-+        nav.runUntil=bot.now+7.0f; nav.runAir=0;
-+    }
 +    nav.runSeen=bot.now; nav.waitUntil=bot.now+0.3f;
 +    bot.routeMode=BOT_ROUTE_RUNJUMP; bot.routeAim=1; bot.moveRun=bot.moveBoost=0;
 +    if (bot.nextPlan<bot.now+1.0f) bot.nextPlan=bot.now+1.0f;
@@ -1279,11 +1395,16 @@ index 0000000..48739d8
 +            return 1;
 +        }
 +        if (plan->sped && fabsf(self->actorParams.extraSpeed-extra)>0.05f) { RunJump_Fail(self,plan,"speed-rank",60.0f); return 1; }
++        /* Speed that would run out before the launch is left to run out, and
++           brought up fresh. */
++        if (plan->sped && nav.runSpedAt>0 &&
++            nav.runSpedAt+5.0f+2.5f*plan->speedRank-bot.now<Bot_Max(plan->hold,plan->sprint)+0.8f) { nav.runUntil=Bot_Max(nav.runUntil,bot.now+3.0f); return 1; }
++        if (!plan->sped && self->actorParams.extraSpeed>0.01f) return 1; /* the lookup picks the other plan next tick */
 +        if (bot.forceBin>=0 || (plan->force && bot.now<bot.nextForce) ||
 +            Bot_Dot(look,self->orient.lvec)<0.995f || Bot_Horizontal(self->physicsParams.vel)>0.05f) return 1;
 +        if (plan->force && !Bot_ForceReady(self,SITHBIN_F_JUMP,Bot_ForceCost(self,SITHBIN_F_JUMP))) { RunJump_Fail(self,plan,"no-mana",15.0f); return 1; }
 +        /* Both the key and the sprint are timed back from one release. */
-+        nav.runPhase=1; nav.runAir=0; nav.runHeld=0;
++        nav.runPhase=1; nav.runAir=0; nav.runHeld=0; nav.runActive=(int)(plan-nav.runEdges)+1;
 +        nav.runRelease=bot.now+Bot_Max(plan->hold,plan->sprint)+2.0f*bot.frameDt;
 +        fprintf(stderr,"BOT_RUNJUMP name=%s t=%.2f event=start from=%d to=%d runway=%.2f speed=%.2f hold=%.2f sprint=%.2f boost=%.1f\n",
 +            bot.name,(double)bot.now,from,nodeIndex,(double)plan->runway,(double)plan->speed,(double)plan->hold,
@@ -1291,7 +1412,7 @@ index 0000000..48739d8
 +    }
 +    if (nav.runPhase==1) {
 +        Bot_Aim(self,lookAt,0);
-+        if (!grounded && bot.now<nav.runRelease-0.08f) { RunJump_Fail(self,plan,"knocked-off",15.0f); return 1; }
++        if (!grounded && !plan->dive && bot.now<nav.runRelease-0.08f) { RunJump_Fail(self,plan,"knocked-off",15.0f); return 1; }
 +        if (!grounded) { nav.runPhase=2; nav.runAir=1; }
 +        else {
 +            if (plan->force && !nav.runHeld && bot.now>=nav.runRelease-plan->hold) {
@@ -1302,10 +1423,10 @@ index 0000000..48739d8
 +                rdVector3 offset=Bot_Sub(self->position,a->pos); offset.z=0;
 +                flex_t along=Bot_Dot(offset,direction);
 +                rdVector3 desired={direction.x-2.0f*(offset.x-along*direction.x),direction.y-2.0f*(offset.y-along*direction.y),0};
-+                Bot_ThrustAxes(self,desired,plan->boost); bot.keys[INPUT_FUNC_FAST]=1;
++                Bot_ThrustAxes(self,desired,plan->boost); bot.keys[INPUT_FUNC_FAST]=!plan->walk;
 +            }
-+            if (!plan->force && bot.now>=nav.runRelease) { bot.keys[INPUT_FUNC_JUMP]=1; }
-+            if (bot.now>nav.runRelease+0.30f) { RunJump_Fail(self,plan,"no-takeoff",60.0f); return 1; }
++            if (!plan->force && !plan->dive && bot.now>=nav.runRelease) { bot.keys[INPUT_FUNC_JUMP]=1; }
++            if (bot.now>nav.runRelease+(plan->dive ? 0.8f : 0.30f)) { RunJump_Fail(self,plan,"no-takeoff",60.0f); return 1; }
 +            return 1;
 +        }
 +    }
