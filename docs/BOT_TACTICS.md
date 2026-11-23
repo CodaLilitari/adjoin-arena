@@ -135,7 +135,16 @@ On Canyon Oasis this finds the way into the concussion rifle alcove that
 players use: from the lower centre platform, Force Speed, a strafing sprint
 of 0.3 to 1 unit and a nearly full Force Jump, 2.1 to 2.7 units across and
 one unit up. It needs Force Jump rank three or four; lower ranks find no
-way in. Getting out is still the swim.
+way in.
+
+**Running off.** The same solver handles a ledge above water: walk or
+sprint off the lip and fall in, which costs no health because the engine
+quarters the vertical speed at the surface. The nearest water below is
+tried first, at a walk, a run and a strafing run, once without Force Speed
+and once with it, and the plan used is the one solved for the speed the bot
+has at that moment. On Canyon Oasis this is the way out of the alcove: off
+the south end of the ledge into the canal below. The bots still go down the
+shaft when they want the rail detonator that lies in it.
 
 ## Confinement
 
@@ -278,6 +287,12 @@ rebuild, and refresh the build receipts in the usual way.
   running jumps moved at 0.59 and 0.56 against 0.47 and 0.44, were wet 22%
   and 27% of the time against 37% and 35%, and scored 6 and 10 kills
   against 6 and 6.
+- Four later matches (20 minutes, four bots) with run-offs added: thirteen
+  more jumps, twelve landed. The miss was Force Speed running out during
+  the charge: the bot launched at half speed, fell two units and lost 23
+  health. A guard against that was added afterwards and has not been run
+  live. Seven run-offs from the alcove ledge all landed in the canal with
+  no health lost. Each bot solved 85 to 89 jump and run-off plans.
 
 Read the table with care. Two groups on identical settings in one 240 s
 match differed by 0.48 against 0.63 in speed and 36% against 19% in time
@@ -296,8 +311,9 @@ them, a missed jump into that alcove is a two-unit fall, and there is no
 abort once the sprint starts. Running jumps have only been seen at rank
 four; the solver reports a way into the alcove at Force Jump rank three
 and none below. No jump across a level gap at full speed has been tried
-live, and the bots still leave the alcove by swimming. Behaviour on moving
-platforms is untested.
+live. Run-offs have no fixture test for their geometry, only for the choice
+of plan. Force Jumps out of water, dodge jumps and firing in the air are
+not built. Behaviour on moving platforms is untested.
 
 ## Human footage
 
