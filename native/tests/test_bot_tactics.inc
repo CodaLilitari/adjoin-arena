@@ -470,7 +470,7 @@ static void test_tactic_runjump(void)
     memset(nav.runEdges,0,sizeof(nav.runEdges)); nav.runCount=1;
     nav.runEdges[0]=(BotRunJump){.from=0,.to=1,.speedRank=4,.jumpRank=4,.speed=2.3f,.hold=0.3f,.runway=0.45f,.sprint=0.33f,.sped=1,.force=1};
     own.aItems[SITHBIN_F_SPEED].amount=4; own.aItems[SITHBIN_F_JUMP].amount=4; own.aItems[SITHBIN_FORCEMANA].amount=400;
-    assert(Bot_RunJumpPlan(0,1)==&nav.runEdges[0] && !Bot_RunJumpPlan(1,0));
+    assert(Bot_RunJumpPlan(&self,0,1)==&nav.runEdges[0] && !Bot_RunJumpPlan(&self,1,0));
     assert(Bot_RunJumpUsable(&self,0,1));
     Bot_PathDistances(&self,0,distance,parent); assert(fabsf(distance[1]-7.4f)<0.0005f);
     own.aItems[SITHBIN_FORCEMANA].amount=10; assert(!Bot_RunJumpUsable(&self,0,1));
@@ -482,10 +482,21 @@ static void test_tactic_runjump(void)
     self.actorParams.health=100; nav.runEdges[0].failedUntil=bot.now+60; assert(!Bot_RunJumpUsable(&self,0,1));
     bot.now+=61; assert(Bot_RunJumpUsable(&self,0,1));
     bot.forceEnabled=0; assert(!Bot_RunJumpUsable(&self,0,1)); bot.forceEnabled=1;
+    /* A plan is solved for one speed. Without Force Speed running either
+       kind fits and the one needing no mana is preferred; with it running
+       only a plan solved with it is used. */
+    nav.runEdges[1]=(BotRunJump){.from=0,.to=1,.speedRank=4,.jumpRank=4,.speed=1.5f,.runway=0.6f,.sprint=1.0f,.dive=1}; nav.runCount=2;
+    assert(Bot_RunJumpPlan(&self,0,1)==&nav.runEdges[1]);
+    self.actorParams.extraSpeed=2.5f; assert(Bot_RunJumpPlan(&self,0,1)==&nav.runEdges[0]);
+    nav.runEdges[0].from=5;
+    assert(!Bot_RunJumpPlan(&self,0,1) && !Bot_RunJumpUsable(&self,0,1) && "nothing solved for this speed");
+    self.actorParams.extraSpeed=0; assert(Bot_RunJumpUsable(&self,0,1));
+    own.aItems[SITHBIN_FORCEMANA].amount=0; assert(Bot_RunJumpUsable(&self,0,1) && "a plain run-off costs no mana");
+    own.aItems[SITHBIN_FORCEMANA].amount=400; nav.runEdges[0].from=0;
     TacticsUse(1); assert(!Bot_RunJumpUsable(&self,0,1) && "legacy has no running jumps");
     Bot_PathDistances(&self,0,distance,parent); assert(distance[1]>1e19f);
     TacticsUse(0); nav.runCount=0; bot.forceEnabled=0;
-    puts("PASS running jump: sprint speed from rest, drag-limited flight, solved Force Jump hold, rank and landing-speed limits, planner gate and legacy off");
+    puts("PASS running jump: sprint speed from rest, drag-limited flight, solved Force Jump hold, rank and landing-speed limits, plan per Force Speed state, planner gate and legacy off");
 }
 
 static void test_tactic_confinement(void)
