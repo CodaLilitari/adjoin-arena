@@ -75,7 +75,28 @@ places and any small pickup counted the same as dry ones:
 - `water_entry_cost` (default 4): added to the path cost of every step
   into water, so a dry route wins unless the swim saves real distance.
 
-The existing failed-dive memory, breath handling and bank exit are unchanged.
+Three more came out of the first live matches (see Evidence):
+
+- `swim_pitch` (default 1): stock swimming thrusts along the view, and the
+  forward key is twice as strong as the rise and sink keys. The bots sank
+  and rose on those keys alone. A steep leg is now swum the way a player
+  swims it: look along it and push forward. In the matches the median sinking
+  speed went from about 0.25 to about 0.6 units a second.
+- `crossing_seconds` (default 17): the engine gives twenty seconds of air.
+  The bots turned back after `dive_seconds` (8) whatever they were doing,
+  which made any swim longer than that impossible and, on Canyon Oasis,
+  trapped them on the concussion rifle ledge: the only way off is a swim
+  they kept abandoning at the bottom of the shaft. A swim whose route comes
+  out on another bank may now take this long; a dive to a pickup on the
+  bottom is still held to `dive_seconds` each way.
+- `dive_retry` (default 45): a swim is judged before the bot gets wet, and
+  one that cannot fit is refused. If a bot does turn back for air, that way
+  into that water and the place it was heading for are set aside for this
+  many seconds, so the same dive is not repeated at once.
+
+Every step from a bank into water now carries `water_entry_cost`; in the
+first version only one kind of entry did, and pool edges were free. The
+bank exit itself is unchanged.
 
 ## Confinement
 
@@ -97,7 +118,7 @@ count and avoid time.
 
 ## Tactics
 
-`python -m bots.tactics list` prints the table: 23 named values with a
+`python -m bots.tactics list` prints the table: 26 named values with a
 default, a legacy value, and a range. The legacy column reproduces the
 behaviour before this change, so one build can play both.
 
@@ -158,10 +179,12 @@ python3 native/tests/run_stock_ground_tests.py  --source SRC --build BUILD
 python3 -m unittest tests.test_bot_tactics
 ```
 
-For a first match, compare two bots or two runs: one on the defaults and one
-with `--preset legacy`. Things to read from the logs: `BOT_CONFINED` counts
-and whether strikes climb, `BOT_STATUS` distance covered per interval, time
-with a wet sector, deaths by falling, and the score. If running causes
+For a match, compare two groups in the same game: one on the defaults and
+one with `--preset legacy`. Things to read from the logs: `BOT_MOVE` (every
+ten seconds: time alive, wet, on foot, running, running refused by the
+runway check, swimming pitched), `BOT_WATER` (each entry with its
+destination, each exit with its length, each refused swim and each
+air-return), `BOT_CONFINED` counts and whether strikes climb, and the score. If running causes
 falls on a particular map, raise `run_brake` or set `strafe_run=0` before
 turning `run` off.
 
@@ -170,7 +193,7 @@ rebuild, and refresh the build receipts in the usual way.
 
 ## Evidence and limits
 
-- 86 native fixture groups pass (79 existing, 7 new), also under
+- 87 native fixture groups pass (79 existing, 8 new), also under
   AddressSanitizer and UndefinedBehaviorSanitizer. The 79 existing groups
   pass with the legacy values and again with the new defaults.
 - The stock ground check runs `Engine/sithPhysics.c` and the unmodified
@@ -183,12 +206,41 @@ rebuild, and refresh the build receipts in the usual way.
   line, launcher plumbing and the coach, including a session against a real
   hub with a simulated engine.
 
-Not established: anything about a real map or a real match. Corner
-overshoot on narrow walkways at running speed, jump accuracy after a run,
-behaviour on moving platforms and the presets' value are all untested.
-The bank-exit predictor is unchanged, so a bot that does enter water can
-still fail to leave it; the confinement check makes that failure shorter,
-not impossible.
+- Live matches: a dedicated host on Canyon Oasis with four bot clients
+  built from this overlay, two on the defaults and two on `legacy` in the
+  same game, positions sampled five times a second.
+
+  | match | length | speed, new / legacy | time wet | standing still | kills |
+  | --- | --- | --- | --- | --- | --- |
+  | first build, 1 | 300 s | 0.48 / 0.55 | 41% / 17% | 28% / 13% | 5 / 6 |
+  | first build, 2 | 240 s | 0.51 / 0.56 | 41% / 18% | 31% / 12% | 5 / 7 |
+  | this build, 1 | 300 s | 0.58 / 0.47 | 25% / 31% | 12% / 21% | 6 / 8 |
+  | this build, 2 | 300 s | 0.68 / 0.50 | 12% / 23% | 10% / 14% | 10 / 11 |
+
+  The first build lost. With the concussion rifle valued properly the bots
+  went and got it, and then could not leave its ledge (see `crossing_seconds`
+  above). In those two matches the old bots never picked it up; in later
+  ones they did, and were caught the same way. The three swim tactics are
+  the answer to that. The bot profiles were swapped between the two matches
+  of each pair.
+
+Read the table with care. Two groups on identical settings in one 240 s
+match differed by 0.48 against 0.63 in speed and 36% against 19% in time
+wet, so a single match of this size cannot rank two settings. What the
+matches do show: the walking, the slow sinking and the eight-second air
+rule were real, and the kills are level. Nothing here shows the new
+defaults winning fights.
+
+Not established: any map but Canyon Oasis, any match with a human in it,
+Full Force play, and the presets' value. Running is used for under a quarter
+of the time on foot: the route follower only asks for it on straight
+stretches, and the runway check refuses nearly half of those requests.
+The swim pre-check itself has no fixture test; its parts do. The bots
+still reach the concussion rifle only by swimming. Players also get into
+that alcove with a Force Speed and Force Jump run-up (reported by Andrei,
+not checked against footage here); the bots' Force Jump is a standing
+jump of at most 1.2 units and cannot. Jump accuracy after a run and behaviour on moving
+platforms are untested.
 
 ## Human footage
 
