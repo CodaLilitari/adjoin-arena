@@ -74,7 +74,7 @@
     },
     "bots/README.md": {
       "mode": 420,
-      "sha256": "d7cf6aeef0c9a9749fc64968f46f3b51cbdd40f47755eb7313031b38bb6d51b0"
+      "sha256": "29c890263cd53c0de309e6752dfd444624ea317a42f21143db96afdd138739e1"
     },
     "bots/SOURCES.json": {
       "mode": 420,
@@ -118,7 +118,7 @@
     },
     "bots/tactics.py": {
       "mode": 420,
-      "sha256": "086d6e691041afa37b5f962bd0b9622c2813536445733ee9da82393268bdcef6"
+      "sha256": "e491b872540c77fd863f9159a2efc9cccd26852f88522a23e07d886568c4cd32"
     },
     "directplay/Makefile": {
       "mode": 420,
@@ -202,7 +202,7 @@
     },
     "docs/BOT_TACTICS.md": {
       "mode": 420,
-      "sha256": "4a8934885d13de8c836416294c9fe3ad185c2a2ac999c7af457d934e7b0faf6d"
+      "sha256": "6c33932340ba142de9710b9afc078f325b25233a1108fa3c71b011e123a61c6a"
     },
     "docs/BROWSER_SPECTATOR.md": {
       "mode": 420,
@@ -554,7 +554,7 @@
     },
     "native/bot-tactics.patch": {
       "mode": 420,
-      "sha256": "e2ddeff46271e4f24d2ce533f755288f7a0c3784192ccd9bf9622cc45fa0c89a"
+      "sha256": "3f0ac4f3726f8e2f83bb880f8776971ddc99df0d4d10a1a417833c0e3f72ec4b"
     },
     "native/build.sh": {
       "mode": 493,
@@ -734,7 +734,7 @@
     },
     "native/tests/test_bot_tactics.inc": {
       "mode": 420,
-      "sha256": "9ab3acd6f11bc12e8c82a3222de72fd01a5189f7061823885a37996dd88ae72c"
+      "sha256": "7a109d5cd3534a161a30e356780d7962d146a2f7721f000892bd3d92b74cee15"
     },
     "native/tests/test_native_probe_traffic.cpp": {
       "mode": 420,
