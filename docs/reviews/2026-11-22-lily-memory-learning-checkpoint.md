@@ -285,6 +285,10 @@ used claim; do not use a relocated copy to restart the declared experiment.
 
 ## Review findings, rulings and limits
 
+The [chronological workflow record](2026-11-22-lily-memory-workflow.md) preserves
+the task completions, changed assumptions, validation and initial result
+publication receipt. It supplements the concise rulings below.
+
 One fresh pre-run code review found seven Important issues. One consolidated
 correction pass added regression coverage for partial-run accounting, publication
 and inventory boundaries, contradictory process evidence, a unique run claim and

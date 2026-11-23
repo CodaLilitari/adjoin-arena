@@ -382,11 +382,15 @@
     },
     "docs/reviews/2026-11-22-lily-memory-learning-checkpoint.md": {
       "mode": 420,
-      "sha256": "63c0820b188e2865a8994cca5a6ace817d256926b806de5b2008148676fd1a2f"
+      "sha256": "86abe54afdc77d38fed65a6d0a6ae359cb5d09f1b2e79e0cebeaf101c896a47e"
     },
     "docs/reviews/2026-11-22-lily-memory-measured-review.md": {
       "mode": 420,
       "sha256": "8c3187d0d5ab7c25ae2c4f00b31e830220762eaaeb4c9cab186ac30acbf924a3"
+    },
+    "docs/reviews/2026-11-22-lily-memory-workflow.md": {
+      "mode": 420,
+      "sha256": "730e0045030af4364c133e9fd9fa894ba0be53ef6d08604f2232d2675c6cfe0d"
     },
     "docs/reviews/2026-11-22-lily-outcome-independent-review.md": {
       "mode": 420,
@@ -1754,7 +1758,7 @@
     },
     "qa/lily-memory-validation.json": {
       "mode": 420,
-      "sha256": "ae365cf87950cd73ab8bbc556874c8fdf5ee6291fb2bb6d627f1458a9441e74a"
+      "sha256": "4365e2fccf5e4b7f92571b2e8cbc473f099885d9f12eefd757d6504cb3b23572"
     },
     "qa/lily-motor-gate-addendum.json": {
       "mode": 420,

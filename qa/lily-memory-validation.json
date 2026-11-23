@@ -247,7 +247,17 @@
   "release": {
     "version": "0.4.0-dev",
     "integrity_command": "python scripts/build_release.py --check",
-    "managed_files": 631
+    "managed_files": 632
   },
-  "preserved_foundation_commit": "04d482ea760f0604c5fb9e66a6c5f854b1d4385a"
+  "preserved_foundation_commit": "04d482ea760f0604c5fb9e66a6c5f854b1d4385a",
+  "publication_checkpoint": {
+    "commit": "6813feada30e7090b73c0797f39e330462ee2642",
+    "tree": "4555ac6d9f41d864e07c3d4ee7abd4009fb5a285",
+    "remote_commit_and_tree_verified": true,
+    "pr_number": 2,
+    "pr_draft": true,
+    "base_commit": "04d482ea760f0604c5fb9e66a6c5f854b1d4385a",
+    "body_verified": true,
+    "method": "Authenticated desktop Git CLI; hash-verified bundle; fast-forward push; no credential export."
+  }
 }
