@@ -53,6 +53,7 @@ TACTICS = (
     ("crossing_seconds", 17.0, 0.0, 0.0, 19.0, "air allowed for a swim that comes out on another bank (engine limit 20)"),
     ("swim_pitch", 1.0, 0.0, 0.0, 1.0, "swim steep legs by looking along them and pushing forward"),
     ("run_jump", 1.0, 0.0, 0.0, 1.0, "cross gaps with a jump released at a sprint, using Force Speed and Force Jump"),
+    ("dodge_jump", 1.0, 0.0, 0.0, 1.0, "hop over an incoming rocket or charge with a short Force Jump"),
 )
 NAMES = tuple(row[0] for row in TACTICS)
 INDEX = {name: index for index, name in enumerate(NAMES)}
