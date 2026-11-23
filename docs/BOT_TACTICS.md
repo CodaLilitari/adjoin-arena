@@ -98,6 +98,45 @@ Every step from a bank into water now carries `water_entry_cost`; in the
 first version only one kind of entry did, and pool edges were free. The
 bank exit itself is unchanged.
 
+## Running jumps
+
+The stock Force Jump script adds its upward speed to whatever velocity the
+player already has, so a jump released at a sprint keeps the sprint through
+the air. With Force Speed that crosses gaps no standing jump can. The bots'
+only Force Jump was a standing one of at most 1.2 units. `run_jump`
+(default 1) adds the running kind, from ordinary inputs: the run key, the
+movement axes, the jump key and the two Force keys.
+
+- **Solving.** After the ordinary graph is built, each dry node is offered
+  the landings that would save it the longest way round (at least three
+  times the gap plus four units) across a real gap. For each, the run-up is
+  whatever straight level floor lies behind the launch node, from 0.3 units
+  up to the length that reaches full speed. Launch speed follows from the
+  stock rule that ground speed is thrust over drag: Force Speed adds
+  0.5 + rank/2 to a thrust of 2, the run key doubles it, a strafe adds 22
+  percent. The Force Jump hold (upward speed 2.5 + hold, hold at most
+  0.35 per rank) is then solved so the flight comes down on the landing
+  node, at no more than 2.95 units a second, which costs under ten health.
+  Three flights at 94, 100 and 105 percent of the launch speed are swept
+  through the level and must all find the foothold with room to stop.
+- **Jumping.** The bot walks to the start of the run-up, brings up Force
+  Speed if the plan needs it, stands and faces the line. The Force Jump key
+  and the sprint are both timed back from one release moment, so the key
+  comes up as the sprint reaches the launch node. Run-ups are often shorter
+  than the stopping distance, so there is no abort once the sprint starts.
+- **Using.** The planner takes such an edge only with the ranks it was
+  solved for, the mana for both powers, 40 health or more, and no miss on
+  that edge in the last minute. Every flight is logged to its end:
+  `BOT_RUNJUMP event=edge` (what was solved), `start`, `launch` (speed
+  reached against speed wanted), `land` (distance from the foothold, health
+  lost), `fail` (why a jump was not attempted or missed).
+
+On Canyon Oasis this finds the way into the concussion rifle alcove that
+players use: from the lower centre platform, Force Speed, a strafing sprint
+of 0.3 to 1 unit and a nearly full Force Jump, 2.1 to 2.7 units across and
+one unit up. It needs Force Jump rank three or four; lower ranks find no
+way in. Getting out is still the swim.
+
 ## Confinement
 
 `Bot_Recovery` already handles a bot that cannot move. The new check handles
@@ -118,7 +157,7 @@ count and avoid time.
 
 ## Tactics
 
-`python -m bots.tactics list` prints the table: 26 named values with a
+`python -m bots.tactics list` prints the table: 27 named values with a
 default, a legacy value, and a range. The legacy column reproduces the
 behaviour before this change, so one build can play both.
 
@@ -193,7 +232,7 @@ rebuild, and refresh the build receipts in the usual way.
 
 ## Evidence and limits
 
-- 87 native fixture groups pass (79 existing, 8 new), also under
+- 88 native fixture groups pass (79 existing, 9 new), also under
   AddressSanitizer and UndefinedBehaviorSanitizer. The 79 existing groups
   pass with the legacy values and again with the new defaults.
 - The stock ground check runs `Engine/sithPhysics.c` and the unmodified
@@ -224,6 +263,22 @@ rebuild, and refresh the build receipts in the usual way.
   the answer to that. The bot profiles were swapped between the two matches
   of each pair.
 
+- Running jumps, same host and map, every bot with Force Speed and Force
+  Jump at rank four. Each bot solved six or seven jump edges. In five
+  matches (about 21 minutes; four jumping bots in three of them, two in the
+  others) twelve jumps were launched and all twelve landed: the ten with a
+  logged landing came down 0.04 to 0.27 units from the foothold with no
+  health lost, eleven of the twelve went into the concussion rifle alcove
+  and one up onto a walkway. Launch speed was within 9 percent of the speed
+  solved for. Fourteen more times a jump was planned and not started:
+  seven with a run-up the bot could not walk, five where it was not at the
+  launch platform at all, one out of mana, one knocked off the platform
+  while charging. Those cost three to sixteen seconds each; the two common
+  causes are now caught at once and the edge set aside. In the two matches against `legacy` the groups with
+  running jumps moved at 0.59 and 0.56 against 0.47 and 0.44, were wet 22%
+  and 27% of the time against 37% and 35%, and scored 6 and 10 kills
+  against 6 and 6.
+
 Read the table with care. Two groups on identical settings in one 240 s
 match differed by 0.48 against 0.63 in speed and 36% against 19% in time
 wet, so a single match of this size cannot rank two settings. What the
@@ -235,12 +290,14 @@ Not established: any map but Canyon Oasis, any match with a human in it,
 Full Force play, and the presets' value. Running is used for under a quarter
 of the time on foot: the route follower only asks for it on straight
 stretches, and the runway check refuses nearly half of those requests.
-The swim pre-check itself has no fixture test; its parts do. The bots
-still reach the concussion rifle only by swimming. Players also get into
-that alcove with a Force Speed and Force Jump run-up (reported by Andrei,
-not checked against footage here); the bots' Force Jump is a standing
-jump of at most 1.2 units and cannot. Jump accuracy after a run and behaviour on moving
-platforms are untested.
+The swim pre-check and the jump controller have no fixture test; their
+parts do. Twelve jumps is a small sample: nobody was shooting at most of
+them, a missed jump into that alcove is a two-unit fall, and there is no
+abort once the sprint starts. Running jumps have only been seen at rank
+four; the solver reports a way into the alcove at Force Jump rank three
+and none below. No jump across a level gap at full speed has been tried
+live, and the bots still leave the alcove by swimming. Behaviour on moving
+platforms is untested.
 
 ## Human footage
 
