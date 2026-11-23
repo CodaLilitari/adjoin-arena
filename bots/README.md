@@ -307,6 +307,24 @@ processes alone. If a component exits, a join is rejected, or a bot has not
 joined after 90 seconds, it stops its own roster and returns failure. A bounded
 run that ends before all bots join also returns failure.
 
+## Tactics and the coach
+
+Proposed in `native/bot-tactics.patch`; not yet in the packaged bot clients.
+See [Bot movement, tactics and the coach seat](../docs/BOT_TACTICS.md).
+
+With that overlay built in, 23 named values steer the planner and the
+movement code: what each heavy gun is worth, how much water costs, whether
+the bot runs, how long it may stay in one spot before it must go elsewhere.
+`python3 -m bots.tactics list` prints them with their ranges and presets.
+
+- `python3 -m bots.tactics write PATH --preset NAME --set name=value` writes a
+  baseline file; pass it to the launcher with `--tactics-file PATH`.
+- `python3 -m bots.companion_cli --credentials BOT.json tactics --preset NAME`
+  adjusts a running bot through the companion. The engine accepts one
+  adjustment every 8 seconds.
+- `python3 -m bots.coach --credentials BOT.json --memory FILE --label NAME`
+  tries presets on a running bot and keeps the ones that score.
+
 ## Isolation and diagnostics
 
 Standalone runs have timestamp/random identifiers under `runtime/bots`;
