@@ -1680,6 +1680,10 @@
       "mode": 420,
       "sha256": "a0eb0352ed6c69e56242a114ef2d601b12852bcf2eaf61584f95093dc577f9cf"
     },
+    "qa/lily-memory-declaration.json": {
+      "mode": 420,
+      "sha256": "77ef88dcfa3f94c2095a4fbd397cbfd3c6b11fafe8b55f387503df24b66b5b4d"
+    },
     "qa/lily-memory-implementation.bundle": {
       "mode": 420,
       "sha256": "fdc9730584551bf0fd504af02239f063706b49fbd93237ba33d659d933754bf5"
