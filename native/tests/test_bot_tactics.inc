@@ -1,0 +1,430 @@
+/* Tactic table, run and diagonal movement, water policy and the confinement
+ * watchdog under the new defaults. Controlled fixtures only: flat synthetic
+ * ground and hand-built graphs, not a level or a live match. */
+static void TacticsUse(int legacy)
+{
+    for (int i=0;i<BT_COUNT;i++)
+        tactics.value[i]=legacy ? botTacticSpecs[i].legacy : botTacticSpecs[i].initial;
+}
+
+static void PlainSelf(SithThing *self,SithPlayer *own)
+{
+    memset(self,0,sizeof(*self)); memset(own,0,sizeof(*own));
+    self->type=SITH_THING_PLAYER; self->sector=&plainLand; self->actorParams.pPlayer=own;
+    self->actorParams.health=100; self->actorParams.maxThrust=2; self->actorParams.maxRotVelocity=200;
+    self->physicsParams.surfDrag=3; self->moveSize=self->collideSize=0.065f;
+    self->position=(rdVector3){0,0,BOT_FOOT_HEIGHT};
+    self->orient.lvec=(rdVector3){1,0,0}; self->orient.rvec=(rdVector3){0,-1,0};
+    self->orient.uvec=(rdVector3){0,0,1};
+    self->attach_flags=SITH_ATTACH_SURFACE; self->attachedSurface=&plainGround;
+}
+
+/* One movement request along +x; returns whether the run key was pressed. */
+static int PlainMove(SithThing *self,int run,int boost,int allowDrop)
+{
+    memset(bot.axes,0,sizeof(bot.axes)); memset(bot.keys,0,sizeof(bot.keys));
+    bot.moveRun=run; bot.moveBoost=boost;
+    Bot_Move(self,(rdVector3){1,0,0},allowDrop);
+    assert(!bot.moveRun && !bot.moveBoost && queryDepth==0);
+    return bot.keys[INPUT_FUNC_FAST];
+}
+
+/* Thrust the stock ground controls would apply for the current axes. */
+static rdVector3 PlainThrust(SithThing *self)
+{
+    flex_t forward=bot.axes[INPUT_FUNC_FORWARD], slide=bot.axes[INPUT_FUNC_SLIDE]*0.7f;
+    if (forward<0 && self->attach_flags) forward*=0.5f;
+    rdVector3 thrust={self->orient.lvec.x*forward+self->orient.rvec.x*slide,
+                      self->orient.lvec.y*forward+self->orient.rvec.y*slide,0};
+    return thrust;
+}
+
+static void PlainFace(SithThing *self,flex_t yaw)
+{
+    self->orient.lvec=(rdVector3){cosf(yaw),sinf(yaw),0};
+    self->orient.rvec=(rdVector3){sinf(yaw),-cosf(yaw),0};
+}
+
+static void test_tactic_table(void)
+{
+    float values[BT_COUNT];
+    assert(BT_COUNT<=255 && BOT_TACTICS_WIRE_PAIRS*5+10<=118);
+    for (int i=0;i<BT_COUNT;i++) {
+        const BotTacticSpec *spec=&botTacticSpecs[i];
+        assert(spec->low<=spec->initial && spec->initial<=spec->high);
+        assert(spec->low<=spec->legacy && spec->legacy<=spec->high);
+        for (int j=0;j<i;j++) assert(strcmp(spec->name,botTacticSpecs[j].name));
+    }
+    /* The legacy column switches every new behaviour off. */
+    assert(botTacticSpecs[BT_RUN].legacy==0 && botTacticSpecs[BT_EXACT_THRUST].legacy==0 &&
+           botTacticSpecs[BT_STRAFE_RUN].legacy==0 && botTacticSpecs[BT_CONFINE_SECONDS].legacy==0 &&
+           botTacticSpecs[BT_WATER_ENTRY_COST].legacy==0 && botTacticSpecs[BT_DIVE_MIN_VALUE].legacy==0 &&
+           botTacticSpecs[BT_EXPLORE_WET].legacy==1);
+    const char *good="version=1\n# coach baseline\r\nvalue_conc=22.5\r\nrun=0\n\ngun_far=3\n";
+    assert(Bot_ReadTactics(good,strlen(good),values));
+    assert(values[BT_VALUE_CONC]==22.5f && values[BT_RUN]==0 && values[BT_GUN_FAR]==3);
+    assert(values[BT_VALUE_RAIL]==tactics.value[BT_VALUE_RAIL]);
+    static const char *bad[]={
+        "value_conc=22\n",                     /* no version */
+        "version=2\nvalue_conc=22\n",          /* unknown version */
+        "version=1\nversion=1\n",              /* repeated version */
+        "version=1\nvalue_conk=22\n",          /* unknown name */
+        "version=1\nvalue_conc=22\nvalue_conc=23\n", /* repeated name */
+        "version=1\nvalue_conc=41\n",          /* above the range */
+        "version=1\ndive_seconds=1\n",         /* below the range */
+        "version=1\nvalue_conc=nan\n", "version=1\nvalue_conc=1e1\n",
+        "version=1\nvalue_conc=\n", "version=1\nvalue_conc\n", "version=1\n=3\n",
+    };
+    for (unsigned i=0;i<sizeof(bad)/sizeof(bad[0]);i++)
+        assert(!Bot_ReadTactics(bad[i],strlen(bad[i]),values));
+    jkBot_Configure("Tactics_File","ky.3do");
+    char path[]="/tmp/jk-bot-tactics-XXXXXX";
+    int fd=mkstemp(path); assert(fd>=0); close(fd);
+    assert(strlen(path)<sizeof(tactics.file)); strcpy(tactics.file,path);
+    float before=BT(VALUE_CONC);
+    FILE *file=fopen(path,"w"); assert(file); fputs("version=1\nvalue_conc=30\n",file); fclose(file);
+    bot.goal=3; bot.nextPlan=bot.armNext=50;
+    Bot_ReloadTactics();
+    assert(BT(VALUE_CONC)==30 && tactics.revision==1 && bot.nextPlan==0 && bot.armNext==0);
+    assert(bot.goal==3 && "a new table must not drop the current goal");
+    Bot_ReloadTactics(); assert(tactics.revision==1 && "unchanged content is not applied twice");
+    file=fopen(path,"w"); assert(file); fputs("version=1\nvalue_conc=300\n",file); fclose(file);
+    Bot_ReloadTactics(); assert(BT(VALUE_CONC)==30 && tactics.revision==1);
+    /* A complete revision replaces the table: omitted names return to baseline. */
+    file=fopen(path,"w"); assert(file); fputs("version=1\nvalue_rail=5\n",file); fclose(file);
+    Bot_ReloadTactics();
+    assert(BT(VALUE_RAIL)==5 && BT(VALUE_CONC)==before && tactics.revision==2);
+    unlink(path);
+    puts("PASS tactic bounds, legacy column, strict complete file revisions and unchanged-content reuse");
+}
+
+static void test_tactic_thrust(void)
+{
+    SithThing self; SithPlayer own;
+    testPlainActive=1; plainEdge=plainWall=1e9f; plainGround.flags=0;
+    jkBot_Configure("Thrust_Test","ky.3do"); TacticsUse(0);
+    PlainSelf(&self,&own);
+    flex_t worstLegacy=0;
+    for (int air=0;air<2;air++) for (int diagonal=0;diagonal<2;diagonal++)
+    for (int degrees=-180;degrees<=180;degrees+=5) {
+        flex_t yaw=degrees/BOT_DEG;
+        PlainFace(&self,yaw); self.attach_flags=air ? 0 : SITH_ATTACH_SURFACE;
+        memset(bot.axes,0,sizeof(bot.axes));
+        Bot_ThrustAxes(&self,(rdVector3){1,0,0},diagonal);
+        flex_t forward=bot.axes[INPUT_FUNC_FORWARD], slide=bot.axes[INPUT_FUNC_SLIDE];
+        assert(fabsf(forward)<=1.0f && fabsf(slide)<=1.0f && "never more than a full key");
+        rdVector3 thrust=PlainThrust(&self);
+        flex_t size=Bot_Horizontal(thrust), c=fabsf(cosf(yaw)), s=fabsf(sinf(yaw));
+        assert(fabsf(thrust.y)<0.0005f && thrust.x>0 && "thrust lies exactly along the wanted direction");
+        flex_t gain=cosf(yaw)<0 && !air ? 0.5f : 1.0f, limit=diagonal ? BOT_DIAGONAL_GAIN : 1.0f;
+        if (c>0.0001f) limit=Bot_Min(limit,gain/c);
+        if (s>0.0001f) limit=Bot_Min(limit,BOT_STRAFE_GAIN/s);
+        assert(fabsf(size-limit)<0.0005f && size<=BOT_DIAGONAL_GAIN+0.0005f);
+        /* The earlier axes pushed off the wanted line whenever the body was turned. */
+        if (!air && !diagonal && degrees>-90 && degrees<90) {
+            flex_t oldForward=cosf(yaw), oldSlide=0.7f*sinf(yaw);
+            worstLegacy=Bot_Max(worstLegacy,fabsf(atan2f(oldSlide,oldForward)-yaw)*BOT_DEG);
+        }
+    }
+    assert(worstLegacy>9.5f && worstLegacy<10.5f);
+    /* Both keys at the diagonal angle: a full fifth more thrust than forward alone. */
+    self.attach_flags=SITH_ATTACH_SURFACE; PlainFace(&self,BOT_DIAGONAL_ANGLE);
+    Bot_ThrustAxes(&self,(rdVector3){1,0,0},1);
+    assert(fabsf(bot.axes[INPUT_FUNC_FORWARD]-1.0f)<0.0005f && fabsf(fabsf(bot.axes[INPUT_FUNC_SLIDE])-1.0f)<0.0005f);
+    assert(fabsf(Bot_Horizontal(PlainThrust(&self))-BOT_DIAGONAL_GAIN)<0.0005f);
+    Bot_ThrustAxes(&self,(rdVector3){1,0,0},0);
+    assert(fabsf(Bot_Horizontal(PlainThrust(&self))-1.0f)<0.0005f);
+    testPlainActive=0;
+    puts("PASS exact thrust direction at every body angle, full-key axis bound and diagonal gain");
+}
+
+static void test_tactic_run(void)
+{
+    SithThing self; SithPlayer own;
+    testPlainActive=1; plainEdge=plainWall=1e9f; plainGround.flags=0;
+    jkBot_Configure("Run_Test","ky.3do"); TacticsUse(0); bot.now=5;
+    PlainSelf(&self,&own);
+    assert(PlainMove(&self,1,0,0) && fabsf(bot.axes[INPUT_FUNC_FORWARD]-1.0f)<0.0005f);
+    assert(!PlainMove(&self,0,0,0) && bot.axes[INPUT_FUNC_FORWARD]>0.99f && "no run without a cleared leg");
+    assert(!PlainMove(&self,1,0,1) && "a drop leg is walked");
+    /* Coasting from a run needs about 0.69 units of checked floor. */
+    plainEdge=0.60f; assert(!PlainMove(&self,1,0,0) && bot.axes[INPUT_FUNC_FORWARD]>0.99f);
+    plainEdge=0.75f; assert(PlainMove(&self,1,0,0));
+    plainEdge=1e9f; plainWall=0.60f; assert(!PlainMove(&self,1,0,0));
+    plainWall=1e9f;
+    /* A ledge inside ordinary stopping distance steers aside and never runs. */
+    plainEdge=0.15f; assert(!PlainMove(&self,1,1,0) && fabsf(bot.axes[INPUT_FUNC_SLIDE])>0.1f);
+    plainEdge=1e9f;
+    self.physicsParams.flags=SITH_PF_CROUCHING; assert(!PlainMove(&self,1,0,0));
+    self.physicsParams.flags=0;
+    self.actorParams.flags=SITH_AF_IMMOBILE; assert(!PlainMove(&self,1,0,0));
+    self.actorParams.flags=0;
+    plainGround.flags=SITH_SURFACE_ICY; assert(!PlainMove(&self,1,0,0));
+    plainGround.flags=SITH_SURFACE_WATER; assert(!PlainMove(&self,1,0,0));
+    plainGround.flags=0;
+    plainLand.flags=SITH_SECTOR_USETHRUST; assert(!PlainMove(&self,1,0,0));
+    plainLand.flags=0;
+    self.attach_flags=0; assert(!PlainMove(&self,1,0,0));
+    self.attach_flags=SITH_ATTACH_SURFACE;
+    self.physicsParams.surfDrag=0; assert(!PlainMove(&self,1,0,0) && "unknown footing is walked");
+    self.physicsParams.surfDrag=3;
+    /* Stock Speed adds to thrust, so the same run needs a longer runway. */
+    self.actorParams.extraSpeed=2;
+    plainEdge=1.0f; assert(!PlainMove(&self,1,0,0));
+    plainEdge=1.3f; assert(PlainMove(&self,1,0,0));
+    self.actorParams.extraSpeed=0; plainEdge=1e9f;
+    /* The diagonal is granted with the run and remembered for the next aim. */
+    PlainFace(&self,BOT_DIAGONAL_ANGLE); bot.boostedAt=0;
+    assert(PlainMove(&self,1,1,0) && bot.boostedAt==bot.now);
+    assert(fabsf(Bot_Horizontal(PlainThrust(&self))-BOT_DIAGONAL_GAIN)<0.0005f);
+    /* It needs more room than the run alone: here the run stays, the diagonal goes. */
+    plainEdge=0.75f; bot.boostedAt=0;
+    assert(PlainMove(&self,1,1,0) && bot.boostedAt==0);
+    assert(fabsf(Bot_Horizontal(PlainThrust(&self))-1.0f)<0.0005f);
+    plainEdge=1e9f;
+    BT(RUN)=0; bot.boostedAt=0;
+    assert(!PlainMove(&self,1,1,0) && bot.boostedAt==bot.now && "the diagonal alone still needs its corridor");
+    BT(STRAFE_RUN)=0; bot.boostedAt=0; assert(!PlainMove(&self,1,1,0) && bot.boostedAt==0);
+    /* Legacy values reproduce the earlier inputs exactly. */
+    TacticsUse(1); PlainFace(&self,45/BOT_DEG); bot.boostedAt=0;
+    assert(!PlainMove(&self,1,1,0) && bot.boostedAt==0);
+    assert(fabsf(bot.axes[INPUT_FUNC_FORWARD]-cosf(45/BOT_DEG))<0.0005f);
+    assert(fabsf(fabsf(bot.axes[INPUT_FUNC_SLIDE])-sinf(45/BOT_DEG))<0.0005f);
+    PlainFace(&self,180/BOT_DEG); PlainMove(&self,1,1,0);
+    assert(fabsf(bot.axes[INPUT_FUNC_FORWARD]+0.65f)<0.0005f);
+    testPlainActive=0;
+    puts("PASS run key only on checked dry runway: ledge, wall, drop leg, crouch, ice, water, thrust sector, Speed and legacy");
+}
+
+static void RouteNode(int index,flex_t x,flex_t y)
+{
+    BotNode *node=&bot.nodes[index];
+    memset(node,0,sizeof(*node));
+    node->pos=(rdVector3){x,y,BOT_FOOT_HEIGHT}; node->sector=&plainLand; node->item=-1; node->visited=-120;
+}
+
+static void RouteEdge(int from,int to,int mode)
+{
+    BotNode *node=&bot.nodes[from];
+    node->edges[node->nEdges++]=(BotEdge){to,Bot_Distance(node->pos,bot.nodes[to].pos),mode};
+}
+
+static int RouteStep(SithThing *self,flex_t x,int position)
+{
+    memset(bot.axes,0,sizeof(bot.axes)); memset(bot.keys,0,sizeof(bot.keys));
+    self->position.x=x; bot.routePos=position; bot.moveRun=bot.moveBoost=0;
+    bot.goal=4; bot.routeCount=4; bot.nextPlan=1e9f;
+    Bot_Navigate(self);
+    assert(bot.goal==4 && bot.routePos==position && queryDepth==0);
+    return bot.keys[INPUT_FUNC_FAST];
+}
+
+static void test_tactic_route_run(void)
+{
+    SithThing self; SithPlayer own;
+    testPlainActive=1; plainEdge=plainWall=1e9f; plainGround.flags=0; plainLand.flags=0;
+    jkBot_Configure("Route_Test","ky.3do"); TacticsUse(0); bot.now=5;
+    PlainSelf(&self,&own);
+    bot.world=NULL; bot.graphDone=1; bot.nNodes=5;
+    RouteNode(0,0,0); RouteNode(1,1,0); RouteNode(2,2,0); RouteNode(3,3,0); RouteNode(4,3.5f,0);
+    RouteEdge(0,1,BOT_ROUTE_WALK); RouteEdge(1,2,BOT_ROUTE_WALK); RouteEdge(2,3,BOT_ROUTE_WALK);
+    RouteEdge(3,4,BOT_ROUTE_JUMP);
+    for (int i=0;i<4;i++) bot.route[i]=i+1;
+    bot.routePos=0; bot.routeCount=4; self.position.x=0.1f;
+    assert(fabsf(Bot_StraightWalk(&self,10)-2.9f)<0.0005f && "the jump leg ends the stretch");
+    assert(Bot_StraightWalk(&self,1)>=1 && Bot_StraightWalk(&self,1)<2.9f && "stops measuring once enough");
+    /* Open straight: run, take the diagonal, then turn the body off the path. */
+    bot.boostedAt=0;
+    assert(RouteStep(&self,0.1f,0) && bot.boostedAt==bot.now && fabsf(bot.axes[INPUT_FUNC_TURN])<0.01f);
+    bot.now+=0.033f;
+    assert(RouteStep(&self,0.1f,0) && fabsf(bot.axes[INPUT_FUNC_TURN])>0.3f);
+    assert(fabsf(Bot_Horizontal(PlainThrust(&self))-1.0f)<0.0005f && PlainThrust(&self).x>0.999f);
+    /* An opponent owns the aim; the path still gets its run. */
+    bot.targetSlot=0; bot.now+=0.033f;
+    assert(RouteStep(&self,0.1f,0) && fabsf(bot.axes[INPUT_FUNC_TURN])<0.01f);
+    bot.targetSlot=-1;
+    /* 1.5 units of straight walking remain: run. Half a unit before the jump: walk. */
+    assert(RouteStep(&self,1.5f,1));
+    bot.boostedAt=0;
+    assert(!RouteStep(&self,2.5f,2) && bot.boostedAt==0 && bot.axes[INPUT_FUNC_FORWARD]>0.99f);
+    BT(RUN_BRAKE)=0.4f; assert(RouteStep(&self,2.5f,2)); BT(RUN_BRAKE)=0.8f;
+    /* A square corner ends the stretch at the corner. */
+    RouteNode(3,2,1); RouteNode(4,2,1.5f);
+    bot.nodes[2].nEdges=0; RouteEdge(2,3,BOT_ROUTE_WALK); RouteEdge(3,4,BOT_ROUTE_WALK);
+    bot.routePos=1; self.position.x=1.5f;
+    assert(fabsf(Bot_StraightWalk(&self,10)-0.5f)<0.0005f);
+    assert(!RouteStep(&self,1.5f,1));
+    /* A gentle bend does not. */
+    RouteNode(3,3,0.3f); RouteNode(4,4,0.3f);
+    bot.nodes[2].nEdges=bot.nodes[3].nEdges=0; RouteEdge(2,3,BOT_ROUTE_WALK); RouteEdge(3,4,BOT_ROUTE_WALK);
+    bot.routePos=1; self.position.x=1.5f;
+    assert(Bot_StraightWalk(&self,10)>2.5f && RouteStep(&self,1.5f,1));
+    /* A lift landing ends it too. */
+    nav.liftForNode[3]=1; assert(fabsf(Bot_StraightWalk(&self,10)-0.5f)<0.0005f); nav.liftForNode[3]=0;
+    TacticsUse(1); bot.boostedAt=0;
+    assert(!RouteStep(&self,0.1f,0) && bot.boostedAt==0 && fabsf(bot.axes[INPUT_FUNC_TURN])<0.01f);
+    testPlainActive=0;
+    puts("PASS route follower runs open straights, walks into jumps, corners and lift landings, and turns the body only for the diagonal");
+}
+
+static void WaterNode(int index,flex_t x,SithSector *sector,int item)
+{
+    BotNode *node=&bot.nodes[index];
+    memset(node,0,sizeof(*node));
+    node->pos=(rdVector3){x,0,sector->flags ? -0.3f : 0}; node->sector=sector; node->item=item; node->visited=-120;
+}
+
+static void WaterItem(SithThing *items,int index,const char *name,int node)
+{
+    memset(&items[index],0,sizeof(items[index]));
+    items[index].type=SITH_THING_ITEM; items[index].idx=index; items[index].guid=100+index;
+    items[index].sector=bot.nodes[node].sector; items[index].position=bot.nodes[node].pos;
+    strcpy(items[index].aName,name);
+}
+
+static void test_tactic_water(void)
+{
+    static SithWorld world; static SithThing items[3]; static SithSector land,pool;
+    static flex_t distance[BOT_NODES]; static int parent[BOT_NODES];
+    SithThing self={0}; SithPlayer own={0};
+    memset(&land,0,sizeof(land)); memset(&pool,0,sizeof(pool)); pool.flags=SITH_SECTOR_UNDERWATER;
+    jkBot_Configure("Water_Test","ky.3do"); bot.elite=1; bot.now=5; jkPlayer_maxPlayers=0;
+    self.type=SITH_THING_PLAYER; self.sector=&land; self.actorParams.pPlayer=&own; self.actorParams.health=100;
+    bot.world=sithWorld_g_pCurrentWorld=&world; world.aThings=items; world.numThings=0; world.numThingsLoaded=1;
+    bot.graphDone=1; bot.nNodes=4;
+    WaterNode(0,0,&land,-1); WaterNode(1,5,&land,-1); WaterNode(2,0.6f,&pool,0); WaterNode(3,1.3f,&pool,-1);
+    bot.nodes[0].nEdges=2;
+    bot.nodes[0].edges[0]=(BotEdge){1,5.0f,BOT_ROUTE_WALK};
+    bot.nodes[0].edges[1]=(BotEdge){2,2.6f,BOT_ROUTE_WATER_ENTRY};
+    bot.nodes[2].nEdges=1; bot.nodes[2].edges[0]=(BotEdge){3,2.7f,BOT_ROUTE_SWIM};
+    WaterItem(items,0,"powercell",2);
+    own.aItems[SITHBIN_REPEATER].amount=1; own.aItems[SITHBIN_REPEATER].state=SITHINVENTORY_ITEM_AVAILABLE;
+    /* Before: a cheap power cell and plain curiosity both pull the bot under. */
+    TacticsUse(1);
+    Bot_PathDistances(&self,0,distance,parent); assert(fabsf(distance[2]-2.6f)<0.0005f);
+    assert(Bot_GearValue(&self,0)==5.0f);
+    bot.goal=-1; Bot_Plan(&self); assert(bot.goal==2 && bot.routeCount==1);
+    bot.nodes[2].item=-1; bot.goal=-1; Bot_Plan(&self);
+    assert(bot.goal==2 && "legacy exploration dives");
+    bot.nodes[2].item=0;
+    /* Now: neither is worth the water, including a dive already chosen. */
+    TacticsUse(0);
+    Bot_PathDistances(&self,0,distance,parent); assert(fabsf(distance[2]-6.6f)<0.0005f);
+    assert(Bot_GearValue(&self,0)==0 && Bot_GoalPickup(&self,&bot.nodes[2])==0);
+    bot.goal=2; bot.goalSetAt=bot.now; Bot_Plan(&self);
+    assert(bot.goal==1 && "a cheap dive in progress is let go");
+    bot.nodes[2].item=-1; bot.goal=2; bot.goalSetAt=bot.now; Bot_Plan(&self);
+    assert(bot.goal==1 && "the bot no longer dives just to look");
+    bot.nodes[2].item=0;
+    /* A missing concussion rifle on the bottom is still worth the swim. */
+    world.numThings=1; world.numThingsLoaded=2; WaterItem(items,1,"concrifle",3); bot.nodes[3].item=1;
+    assert(Bot_GearValue(&self,1)==18.0f && Bot_GoalPickup(&self,&bot.nodes[3])==18.0f);
+    bot.goal=-1; Bot_Plan(&self);
+    assert(bot.goal==3 && bot.routeCount==2 && bot.route[0]==2 && bot.route[1]==3);
+    BT(DIVE_MIN_VALUE)=20; bot.goal=-1; Bot_Plan(&self);
+    assert(bot.goal==1 && "the threshold is the coach's to raise");
+    BT(DIVE_MIN_VALUE)=6;
+    /* Health in the water is taken when it is needed, and left when it is not. */
+    world.numThings=2; world.numThingsLoaded=3; WaterItem(items,2,"healthpack",2);
+    self.actorParams.health=35; assert(Bot_GearValue(&self,2)==16.0f);
+    self.actorParams.health=90; assert(Bot_GearValue(&self,2)==0);
+    self.actorParams.health=100;
+    /* Seconds underwater before heading for air. */
+    self.sector=&pool; nav.waterSince=1; bot.now=9.5f;
+    assert(Bot_NeedsAir(&self)); BT(DIVE_SECONDS)=12; assert(!Bot_NeedsAir(&self));
+    puts("PASS water policy drops cheap and exploratory dives, prices the entry, and still dives for the concussion rifle and needed health");
+}
+
+static int ConfineRun(SithThing *self,flex_t seconds,flex_t speed)
+{
+    int strikes=bot.confine.strikes;
+    flex_t last=bot.confine.lastStrike;
+    for (flex_t t=0;t<seconds;t+=0.05f) {
+        bot.now+=0.05f;
+        if (speed>0) self->position.x+=speed*0.05f;
+        else self->position.y=0.12f*sinf(bot.now*3.0f);
+        Bot_Confinement(self);
+        if (bot.confine.lastStrike!=last) return 1;
+    }
+    assert(bot.confine.strikes==strikes);
+    return 0;
+}
+
+static void test_tactic_confinement(void)
+{
+    static SithSector land,pool;
+    SithThing self={0}; SithPlayer own={0};
+    memset(&land,0,sizeof(land)); memset(&pool,0,sizeof(pool)); pool.flags=SITH_SECTOR_UNDERWATER;
+    jkBot_Configure("Confine_Test","ky.3do"); TacticsUse(0); bot.now=10;
+    self.type=SITH_THING_PLAYER; self.sector=&land; self.actorParams.pPlayer=&own; self.actorParams.health=100;
+    bot.world=NULL; bot.graphDone=1; bot.nNodes=3;
+    for (int i=0;i<3;i++) { memset(&bot.nodes[i],0,sizeof(bot.nodes[i])); bot.nodes[i].sector=&land; bot.nodes[i].item=-1; }
+    bot.nodes[1].pos.x=0.5f; bot.nodes[2].pos.x=3.0f;
+    bot.goal=1; bot.route[0]=1; bot.routeCount=1; bot.routePos=0;
+    /* Jittering in place toward a goal: confined after one window. */
+    flex_t started=bot.now;
+    assert(ConfineRun(&self,8,0) && bot.confine.strikes==1);
+    assert(bot.now-started>5.5f && bot.now-started<6.5f);
+    assert(bot.goal==-1 && bot.routeCount==0 && bot.nextPlan==0);
+    assert(fabsf(bot.nodes[1].avoidUntil-(bot.now+12))<0.01f && bot.nodes[0].avoidUntil<=bot.now && bot.nodes[2].avoidUntil<=bot.now);
+    /* A routine avoid may not shorten the escape's. */
+    flex_t held=bot.nodes[1].avoidUntil;
+    Bot_AvoidNode(&bot.nodes[1],5); assert(bot.nodes[1].avoidUntil==held);
+    Bot_AvoidNode(&bot.nodes[2],5); assert(fabsf(bot.nodes[2].avoidUntil-(bot.now+5))<0.01f);
+    bot.nodes[2].avoidUntil=0;
+    /* Again within 45 seconds: twice as long, and the neighbourhood with it. */
+    bot.goal=0; bot.route[0]=0; bot.routeCount=1; bot.routePos=0;
+    assert(ConfineRun(&self,8,0) && bot.confine.strikes==2);
+    assert(fabsf(bot.nodes[0].avoidUntil-(bot.now+24))<0.01f && fabsf(bot.nodes[1].avoidUntil-(bot.now+24))<0.01f);
+    assert(bot.nodes[2].avoidUntil<=bot.now && "a place across the room stays available");
+    bot.goal=2; bot.route[0]=2; bot.routeCount=1; bot.routePos=0;
+    assert(ConfineRun(&self,8,0) && bot.confine.strikes==3);
+    assert(fabsf(bot.nodes[2].avoidUntil-(bot.now+48))<0.01f);
+    /* Not confined: travelling, waiting, fighting on dry ground, or idle. */
+    self.position=(rdVector3){0,0,0}; bot.goal=2; bot.route[0]=2; bot.routeCount=1; bot.routePos=0;
+    assert(!ConfineRun(&self,20,1.0f));
+    self.position=(rdVector3){0,0,0};
+    nav.waitUntil=bot.now+100; assert(!ConfineRun(&self,20,0)); nav.waitUntil=0;
+    nav.liftWaitAt=bot.now; assert(!ConfineRun(&self,20,0)); nav.liftWaitAt=0;
+    bot.targetSlot=0; assert(!ConfineRun(&self,20,0)); bot.targetSlot=-1;
+    bot.goal=-1; assert(!ConfineRun(&self,20,0)); bot.goal=2;
+    BT(CONFINE_SECONDS)=0; assert(!ConfineRun(&self,20,0)); BT(CONFINE_SECONDS)=6;
+    /* A glimpse of an opponent only pauses the count; a real fight clears it. */
+    int caught=0;
+    for (int i=0;i<600 && !caught;i++) {
+        bot.targetSlot=(i/10)%2 ? 0 : -1;
+        caught=ConfineRun(&self,0.05f,0);
+    }
+    assert(caught); bot.targetSlot=-1;
+    bot.goal=2; bot.route[0]=2; bot.routeCount=1; bot.routePos=0;
+    assert(!ConfineRun(&self,4,0));
+    bot.targetSlot=0; assert(!ConfineRun(&self,2.5f,0)); bot.targetSlot=-1;
+    assert(!ConfineRun(&self,4,0) && "the window starts again after a fight");
+    assert(!ConfineRun(&self,60,1.0f)); self.position=(rdVector3){0,0,0};
+    /* More than 45 quiet seconds later the escalation starts over. */
+    assert(ConfineRun(&self,8,0) && bot.confine.strikes==1);
+    /* In water a fight is no excuse, and the escape heads for air. */
+    self.sector=&pool; bot.targetSlot=0; nav.diveEscape=BOT_DIVE_NONE;
+    bot.goal=2; bot.route[0]=2; bot.routeCount=1; bot.routePos=0;
+    nav.waterExitUntil=bot.now+3; nav.waterExitTo=1; bot.nodes[1].avoidUntil=0;
+    assert(ConfineRun(&self,8,0) && bot.confine.strikes==2 && nav.diveEscape==BOT_DIVE_AIR);
+    assert(nav.waterExitUntil==0 && bot.nodes[1].avoidUntil>bot.now+20 && "the failing exit is set aside");
+    /* The legacy column leaves the check off and routine avoids as plain assignments. */
+    TacticsUse(1); bot.targetSlot=-1; self.sector=&land; bot.goal=2;
+    assert(!ConfineRun(&self,20,0));
+    bot.nodes[1].avoidUntil=bot.now+60; Bot_AvoidNode(&bot.nodes[1],5);
+    assert(fabsf(bot.nodes[1].avoidUntil-(bot.now+5))<0.01f);
+    puts("PASS confinement window, doubling and widening escapes, legitimate holds, quiet reset, wet escape to air and legacy off");
+}
+
+static void test_bot_tactics(void)
+{
+    /* Earlier groups leave peers that pointed into their own stack frames. */
+    jkPlayer_maxPlayers=0; memset(jkPlayer_playerInfos,0,sizeof(jkPlayer_playerInfos));
+    test_tactic_table();
+    test_tactic_thrust();
+    test_tactic_run();
+    test_tactic_route_run();
+    test_tactic_water();
+    test_tactic_confinement();
+}

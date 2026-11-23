@@ -1,6 +1,12 @@
 /* Controlled regression checks; not a live multiplayer qualification. */
 #include <assert.h>
 #include <stdio.h>
+/* These groups were written against the behaviour before the tactic table.
+   They pin its legacy column; test_bot_tactics.inc covers the new defaults.
+   Compile with -DJKBOT_TEST_NEW_DEFAULTS to run them against the defaults. */
+#ifndef JKBOT_TEST_NEW_DEFAULTS
+#define JKBOT_TACTICS_BASELINE_LEGACY 1
+#endif
 #include "AI/jkBot.c"
 #ifdef NDEBUG
 #error Assertions must remain enabled for the driver regression tests
@@ -24,9 +30,11 @@ static SithCollision fixtureHit;
 #include "test_bot_static_bridge.inc"
 #include "test_bot_slope_geometry.inc"
 #include "test_bot_combat.inc"
+#include "test_bot_plain_geometry.inc"
 /* Bounded box matching stock m2 sector110; not a full level simulation. */
 int sithIntersect_IsSphereInSector(const rdVector3 *p, flex_t radius, SithSector *sector)
 {
+    if (testPlainActive) return TestPlainSphere(sector);
     if (testC1Active) return TestC1Sphere(p,radius,sector);
     if (testBridgeActive) return TestBridgeSphere(p,radius,sector);
     if (testSlopeActive) return TestSlopeSphere(p,radius,sector);
@@ -38,6 +46,7 @@ int sithIntersect_IsSphereInSector(const rdVector3 *p, flex_t radius, SithSector
 SithSector *sithSector_FindSectorAtPos(SithWorld *world, rdVector3 *position)
 {
     (void)world;
+    if (testPlainActive) return &plainLand;
     if (testC1Active) return TestC1Sector(position);
     if (testBridgeActive) return TestBridgeSector(position);
     if (testSlopeActive) return TestSlopeSectorAt(position);
@@ -48,6 +57,10 @@ flex_t sithCollision_SearchForCollisions(SithSector *sector, SithThing *thing,
     flex_t radius, int flags)
 {
     queryDepth++; pendingHit=0;
+    if (testPlainActive) {
+        pendingHit=TestPlainCollision(from,direction,distance,radius,&corridorHit);
+        return distance;
+    }
     if (testCombatArena) {
         pendingHit=TestCombatCollision(sector,from,direction,distance,radius,&corridorHit);
         if (thing && thing->type==SITH_THING_WEAPON && flags==0)
@@ -115,6 +128,7 @@ SithThing *sithTemplate_GetTemplate(const char *name)
 #include "test_bot_movement_tick.inc"
 #include "test_bot_combat_jump.inc"
 #include "test_bot_equipment.inc"
+#include "test_bot_tactics.inc"
 
 int main(void)
 {
@@ -238,5 +252,6 @@ int main(void)
     test_bot_equipment();
     test_bot_movement_ownership();
     test_combat_supply_jump();
+    test_bot_tactics();
     return 0;
 }
