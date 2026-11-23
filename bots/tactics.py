@@ -49,6 +49,9 @@ TACTICS = (
     ("combat_strafe", 0.55, 0.55, 0.0, 1.0, "sideways share of gunfight movement"),
     ("gun_far", 2.5, 2.5, 0.3, 20.0, "a gunner advances beyond this range"),
     ("gun_near", 0.75, 0.75, 0.0, 10.0, "a gunner backs off inside this range"),
+    ("dive_retry", 45.0, 0.0, 0.0, 300.0, "seconds a way into water is avoided after a wasted dive (0 = no memory)"),
+    ("crossing_seconds", 17.0, 0.0, 0.0, 19.0, "air allowed for a swim that comes out on another bank (engine limit 20)"),
+    ("swim_pitch", 1.0, 0.0, 0.0, 1.0, "swim steep legs by looking along them and pushing forward"),
 )
 NAMES = tuple(row[0] for row in TACTICS)
 INDEX = {name: index for index, name in enumerate(NAMES)}
@@ -61,7 +64,8 @@ RESET = 1
 
 # Starting points for a coach, not tuned results. Each lists only what
 # differs from the defaults and is sent with the reset flag, so the outcome
-# does not depend on what was set before. None has been through a live trial.
+# does not depend on what was set before. Only default and legacy have been
+# through a live match; see docs/BOT_TACTICS.md.
 PRESETS = {
     "default": {},
     "legacy": {name: LEGACY[name] for name in NAMES if LEGACY[name] != DEFAULTS[name]},
