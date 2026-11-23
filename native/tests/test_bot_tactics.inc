@@ -422,6 +422,72 @@ static void test_tactic_swim(void)
     puts("PASS swim: priced and remembered entries, one air-return verdict, crossings on the real air supply, pitched steep legs, surface and legacy unchanged");
 }
 
+static void test_tactic_runjump(void)
+{
+    static SithWorld world; static SithThing items[1]; static SithSector land;
+    static flex_t distance[BOT_NODES]; static int parent[BOT_NODES];
+    SithThing self={0}; SithPlayer own={0};
+    memset(&land,0,sizeof(land));
+    jkBot_Configure("Jump_Test","ky.3do"); bot.elite=1; bot.now=5; jkPlayer_maxPlayers=0;
+    self.type=SITH_THING_PLAYER; self.sector=&land; self.actorParams.pPlayer=&own; self.actorParams.health=100;
+    self.moveSize=self.collideSize=0.065f; self.orient.lvec=(rdVector3){1,0,0}; self.orient.rvec=(rdVector3){0,-1,0};
+    /* The stock player and world. */
+    self.actorParams.maxThrust=2.0f; self.actorParams.jumpSpeed=1.5f;
+    self.physicsParams.surfDrag=3.0f; self.physicsParams.airDrag=0.5f;
+    bot.world=sithWorld_g_pCurrentWorld=&world; world.gravity=4.0f; world.aThings=items; world.numThings=0; world.numThingsLoaded=1;
+    bot.physicsStep=1.0f/150.0f; bot.frameDt=1.0f/30.0f; bot.forceEnabled=1;
+    TacticsUse(0);
+    flex_t speed,seconds,reach,sink,hold; int force;
+    /* Sprinting from rest: thrust over drag, doubled by the run key. */
+    RunJump_Sprint(&self,2.0f,6.0f,&speed,&seconds); assert(fabsf(speed-4.0f/3.0f)<0.01f);
+    flex_t sped=2.0f+RunJump_Boost(4);
+    assert(RunJump_Boost(0)==0 && RunJump_Boost(2)==1.5f && RunJump_Boost(4)==2.5f);
+    RunJump_Sprint(&self,sped,0.30f,&speed,&seconds);
+    assert(speed>1.70f && speed<1.84f && seconds>0.27f && seconds<0.33f && "a third of a unit already gives half of full speed");
+    flex_t longer; RunJump_Sprint(&self,sped,1.0f,&longer,&seconds); assert(longer>speed+0.6f && longer<2.0f*sped/3.0f);
+    /* Flight keeps the launch speed, less air drag; a higher ledge has to be cleared first. */
+    assert(RunJump_Flight(&self,2.0f,2.65f,2.0f,0,&reach,&sink,&seconds));
+    assert(seconds>1.1f && seconds<1.3f && reach>1.9f && reach<2.4f && sink>2.0f && sink<2.4f);
+    assert(!RunJump_Flight(&self,2.0f,2.65f,2.0f,1.0f,&reach,&sink,&seconds) && "too low for the ledge");
+    assert(RunJump_Flight(&self,2.0f,3.85f,2.0f,1.0f,&reach,&sink,&seconds) && sink<2.95f);
+    /* The hold is solved for the gap: the alcove jump on Canyon Oasis wants
+       more hold than rank three has, and rank two cannot make it at all. */
+    flex_t alcove=(2.0f+RunJump_Boost(2))*BOT_DIAGONAL_GAIN;
+    assert(RunJump_Lift(&self,2.13f,alcove,2.10f,1.0f,4,&force,&hold,&seconds) && force==1 && hold>1.05f && hold<1.35f);
+    assert(!RunJump_Lift(&self,2.13f,alcove,2.10f,1.0f,3,&force,&hold,&seconds) || fabsf(hold-1.05f)<0.001f);
+    assert(!RunJump_Lift(&self,2.13f,alcove,2.10f,1.0f,2,&force,&hold,&seconds));
+    assert(RunJump_Lift(&self,2.33f,3.5f,2.40f,0,4,&force,&hold,&seconds) && force==1 && hold>=0.15f && hold<0.6f);
+    assert(RunJump_Lift(&self,2.33f,3.5f,2.40f,0,1,&force,&hold,&seconds) && hold<=0.35f && "a level gap needs only rank one");
+    assert(!RunJump_Lift(&self,3.6f,4.5f,1.4f,0,4,&force,&hold,&seconds) && "too fast for a short gap");
+    assert(!RunJump_Lift(&self,1.33f,2.0f,4.5f,0,4,&force,&hold,&seconds) && "no landing that far that does not hurt");
+    assert(RunJump_Lift(&self,4.0f/3.0f,2.0f,1.0f,0,0,&force,&hold,&seconds) && force==0 && "an ordinary running jump");
+    assert(!RunJump_Lift(&self,4.0f/3.0f,2.0f,2.0f,0,0,&force,&hold,&seconds));
+    /* The planner uses an edge only with the powers it was solved for, the
+       mana for them, good health, and no recent miss. */
+    bot.graphDone=1; bot.nNodes=2;
+    WaterNode(0,0,&land,-1); WaterNode(1,2.4f,&land,-1);
+    bot.nodes[0].nEdges=1; bot.nodes[0].edges[0]=(BotEdge){1,7.4f,BOT_ROUTE_RUNJUMP};
+    memset(nav.runEdges,0,sizeof(nav.runEdges)); nav.runCount=1;
+    nav.runEdges[0]=(BotRunJump){.from=0,.to=1,.speedRank=4,.jumpRank=4,.speed=2.3f,.hold=0.3f,.runway=0.45f,.sprint=0.33f,.sped=1,.force=1};
+    own.aItems[SITHBIN_F_SPEED].amount=4; own.aItems[SITHBIN_F_JUMP].amount=4; own.aItems[SITHBIN_FORCEMANA].amount=400;
+    assert(Bot_RunJumpPlan(0,1)==&nav.runEdges[0] && !Bot_RunJumpPlan(1,0));
+    assert(Bot_RunJumpUsable(&self,0,1));
+    Bot_PathDistances(&self,0,distance,parent); assert(fabsf(distance[1]-7.4f)<0.0005f);
+    own.aItems[SITHBIN_FORCEMANA].amount=10; assert(!Bot_RunJumpUsable(&self,0,1));
+    Bot_PathDistances(&self,0,distance,parent); assert(distance[1]>1e19f && "no mana, no jump");
+    own.aItems[SITHBIN_FORCEMANA].amount=400;
+    own.aItems[SITHBIN_F_SPEED].amount=3; assert(!Bot_RunJumpUsable(&self,0,1) && "solved for another Speed rank");
+    own.aItems[SITHBIN_F_SPEED].amount=4; own.aItems[SITHBIN_F_JUMP].amount=3; assert(!Bot_RunJumpUsable(&self,0,1));
+    own.aItems[SITHBIN_F_JUMP].amount=4; self.actorParams.health=35; assert(!Bot_RunJumpUsable(&self,0,1));
+    self.actorParams.health=100; nav.runEdges[0].failedUntil=bot.now+60; assert(!Bot_RunJumpUsable(&self,0,1));
+    bot.now+=61; assert(Bot_RunJumpUsable(&self,0,1));
+    bot.forceEnabled=0; assert(!Bot_RunJumpUsable(&self,0,1)); bot.forceEnabled=1;
+    TacticsUse(1); assert(!Bot_RunJumpUsable(&self,0,1) && "legacy has no running jumps");
+    Bot_PathDistances(&self,0,distance,parent); assert(distance[1]>1e19f);
+    TacticsUse(0); nav.runCount=0; bot.forceEnabled=0;
+    puts("PASS running jump: sprint speed from rest, drag-limited flight, solved Force Jump hold, rank and landing-speed limits, planner gate and legacy off");
+}
+
 static void test_tactic_confinement(void)
 {
     static SithSector land,pool;
@@ -499,5 +565,6 @@ static void test_bot_tactics(void)
     test_tactic_route_run();
     test_tactic_water();
     test_tactic_swim();
+    test_tactic_runjump();
     test_tactic_confinement();
 }
