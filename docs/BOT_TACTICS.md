@@ -146,6 +146,27 @@ has at that moment. On Canyon Oasis this is the way out of the alcove: off
 the south end of the ledge into the canal below. The bots still go down the
 shaft when they want the rail detonator that lies in it.
 
+**Out of the water.** The stock Force Jump also fires from the water
+surface, and the bots never used it: their only way out was the surface
+hop, 0.7 up and 0.6 across. The solver now looks for banks above an open
+surface. The swimmer floats at the start of a short swim toward the bank,
+holds the jump key for the length of the swim and lets it up a little short
+of the wall, so the body is above the lip when it gets there and its
+swimming speed carries it over. On Canyon Oasis this finds four exits, from
+the oasis pool up to the walkways 1.17 above the water. They need nearly a
+full rank-four jump, so the hold is timed to 1.33 seconds.
+
+## Dodging
+
+The bot is told about every shot fired at it, and until now only used that
+to turn on the shooter. With `dodge_jump` (default 1), an explosive shot
+that will burst within 0.45 units of the bot in 0.3 to 1.6 seconds sets a
+short Force Jump: 0.2 seconds of hold, which lifts the body 0.7 units for a
+little over a second and lands slower than the speed that hurts. The jump
+keeps the ground speed the bot had and leaves its aim free, so it goes on
+firing in the air. Each one logs a `BOT_DODGE` line, and `BOT_MOVE` counts
+dodges and seconds of firing while airborne.
+
 ## Confinement
 
 `Bot_Recovery` already handles a bot that cannot move. The new check handles
@@ -166,7 +187,7 @@ count and avoid time.
 
 ## Tactics
 
-`python -m bots.tactics list` prints the table: 27 named values with a
+`python -m bots.tactics list` prints the table: 28 named values with a
 default, a legacy value, and a range. The legacy column reproduces the
 behaviour before this change, so one build can play both.
 
@@ -293,6 +314,12 @@ rebuild, and refresh the build receipts in the usual way.
   health. A guard against that was added afterwards and has not been run
   live. Seven run-offs from the alcove ledge all landed in the canal with
   no health lost. Each bot solved 85 to 89 jump and run-off plans.
+- Eight further matches (40 minutes): 48 jumps and run-offs launched, 46
+  landed. One jump reached only two thirds of its sprint speed and fell
+  short; one run-off was thrown aside in the air by a blast. Out of the
+  water, two attempts with an earlier timing showed the Force Jump does
+  fire from the surface, and both fell back. The present timing has not
+  yet been tried in a match: the bots were rarely in that pool.
 
 Read the table with care. Two groups on identical settings in one 240 s
 match differed by 0.48 against 0.63 in speed and 36% against 19% in time
@@ -312,8 +339,12 @@ abort once the sprint starts. Running jumps have only been seen at rank
 four; the solver reports a way into the alcove at Force Jump rank three
 and none below. No jump across a level gap at full speed has been tried
 live. Run-offs have no fixture test for their geometry, only for the choice
-of plan. Force Jumps out of water, dodge jumps and firing in the air are
-not built. Behaviour on moving platforms is untested.
+of plan, and neither have the jumps out of water. Dodge jumps and firing
+in the air are built and happen, but whether they save health is not
+measured: in one 300 s match four bots dodged 17 times and two of them fired
+for 3 seconds in the air. After one jump fell short at 9 percent under its
+sprint speed, jumps must now land at 90 and 109 percent of it, which halves
+the ways into the alcove at rank four (three are left). Behaviour on moving platforms is untested.
 
 ## Human footage
 
