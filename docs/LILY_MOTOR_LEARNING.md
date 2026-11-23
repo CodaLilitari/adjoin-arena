@@ -5,7 +5,24 @@ network is an **unpromoted experiment**, not the default controller. The retaine
 route and skill estimates used by the adaptive policy are a separate, online
 learning mechanism. Training this network does not alter those estimates.
 
-The latest [autonomous outcome-learning checkpoint](reviews/2026-11-22-lily-outcome-learning-checkpoint.md)
+The latest [protected memory-learning checkpoint](reviews/2026-11-22-lily-memory-learning-checkpoint.md)
+trains a small residual over G4, pairing a recurrent arm with an equally trained
+static control. Both reached 24/24 pool and 8/8 shaft landings on the open
+regression set, repairing G4's lost shaft escape. Static was selected with
+45,889 physics steps versus recurrent's 57,099; the same recurrent weights with
+history removed used 56,081. This set therefore shows no additional benefit
+from the four-unit memory. The shafts were protected training anchors and the
+pool results had informed the design; this is not an unseen generalization test.
+
+All 2,608 calibration/training/open assignments completed. The transfer stage
+stopped after two invalid reference attempts: the heading checker expected
+ideal trigonometry, while the frozen game uses a sine table. Independent
+binary32 arithmetic matches both recorded starts exactly. Transfer remains
+inconclusive, with 286 sealed assignments and 134 diagnostics unrun. The
+declaration, selected model, all candidates, raw evidence and root-cause review
+are preserved. No new policy was promoted to live play.
+
+The preceding [autonomous outcome-learning checkpoint](reviews/2026-11-22-lily-outcome-learning-checkpoint.md)
 trained the output head from its own unaided physical results. Both measured
 checkpoints landed all 24 development pool starts, versus recovery v3's 11/24,
 but each lost one shaft success (7/8 versus 8/8). The retention rule selected
@@ -13,15 +30,15 @@ neither. All 928 attempts and 519,793 model decisions passed the offline audit;
 sealed and historical evaluation remained unopened. The complete candidate
 lineage is preserved, and the deployed controllers remain unchanged.
 
-The preceding [corrective recovery checkpoint](reviews/2026-11-22-lily-recovery-learning-checkpoint.md)
+The earlier [corrective recovery checkpoint](reviews/2026-11-22-lily-recovery-learning-checkpoint.md)
 records the v3 initialization. One refit on the original corpus plus successful
 teacher corrections improved that earlier fresh bank from 0/24 to 10/24, against
-the native baseline's 23/24. That bank is distinct from the latest development
+the native baseline's 23/24. That bank is distinct from the outcome study's development
 set. The v1-v3 model and export bytes remain available unchanged.
 
 ## Autonomous outcome learning
 
-The new experiment varies only the six-output head's 198 parameters, retaining
+The earlier output-head experiment varies only its 198 parameters, retaining
 v3's 17-feature, 32-unit hidden representation. Eight generations measure the
 incumbent plus six positive/negative perturbation pairs on eight shared starts.
 Successful supported-dry landings rank first; actual successful physics steps

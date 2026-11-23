@@ -264,3 +264,73 @@ owned numeric geometry and the measured replay are kept in the private evidence
 archive. The three payloads reconstruct all 7,765 original files; archive digests
 and measured validation are recorded in
 [`qa/lily-outcome-validation.json`](../../../qa/lily-outcome-validation.json).
+
+## Protected paired memory experiment
+
+The [memory checkpoint](../../../docs/reviews/2026-11-22-lily-memory-learning-checkpoint.md)
+adds a four-unit learned residual over frozen G4, explicit per-episode state,
+equally budgeted static/recurrent searches and protected rehearsal. The existing
+native fixture and earlier model artifacts remain unchanged.
+
+`run_memory_learning.py` binds the exact source, retained executable, schedule
+and candidate lineage to one create-only run. `memory_rollouts.py` carries and
+records state, joins exported actions to native controls and rejects invalid
+or contradictory evidence. `audit_memory_learning.py` reconstructs the retained
+run without launching a game. It preserves actual selection and transfer
+attempts even when execution is incomplete in its covered paths. The recorded
+diagonal-heading exception exposed an uncovered partial-report path: the
+frozen CLI exits before writing JSON. That failure is retained explicitly.
+
+The recorded result is **static selected, transfer inconclusive**. Both trained
+arms achieved 32/32 open landings; static used 45,889 charged steps, recurrent
+57,099 and recurrent with history removed 56,081. The open shafts are training
+anchors and the pools are design-informed regression cases. All 2,608 preceding
+assignments completed, then two diagonal-yaw reference attempts failed the
+frozen heading validator. The native lookup-table arithmetic explains the
+rejection. The 286 other sealed assignments and 134 conditional diagnostics did
+not run. Do not restart or resume this declared execution.
+
+Restore the private evidence and the two public overlays as described in the
+checkpoint. The unchanged build archive's license notices are additional files;
+only `build/*` should be extracted into the raw run. A distinct post-run
+`report_memory_failure.py` invokes the frozen reconstruction, preserves its
+verified completed prefix and independently reproduces both invalid exception
+records. It does not change heading tolerances, accept invalid scores or claim
+that the original CLI passed. To generate that read-only supplemental report:
+
+```sh
+python3 -B -m scripts.bot_development.analysis.report_memory_failure \
+  --declaration qa/lily-memory-declaration.json --run "$RESTORED_MEMORY_RUN" \
+  --output "$NEW_AUDIT_JSON"
+```
+
+The expected result remains `inconclusive`; there are zero scoreable transfer
+attempts. Write audit output outside the raw run. Do not replace the committed
+report or change the original invalid receipts after adjusting a validator.
+Invoking the original `audit_memory_learning` with the same arguments reproduces
+exit 1 and `incorrect_initial_heading`, without a final JSON report. The
+[audit-failure analysis](../../../docs/reviews/2026-11-22-lily-memory-audit-failure.md)
+documents both the exception-boundary fault and the invalid-row schema gap.
+
+The post-run `preserve_memory_learning.py` helper creates disjoint, deterministic
+archives and a receipt, then compares every member's bytes and mode with the
+original. It authenticates the reused build archive, rejects links and unsafe
+paths, checks complete model/export pairs and keeps the executable and numeric
+geometry in the private archive. All three outputs must be new paths outside
+the immutable run:
+
+```sh
+python3 -B -m scripts.bot_development.analysis.preserve_memory_learning \
+  --run "$RESTORED_MEMORY_RUN" \
+  --build qa/lily-outcome-build-inputs.tar.gz \
+  --candidates "$NEW_PUBLIC_MODEL_ARCHIVE" \
+  --evidence "$NEW_PRIVATE_EVIDENCE_ARCHIVE" \
+  --receipt "$NEW_PRESERVATION_RECEIPT"
+```
+
+It does not execute or score episodes. Public/private archive identities and the
+exact reconstructed inventory are recorded in
+[`qa/lily-memory-preservation.json`](../../../qa/lily-memory-preservation.json).
+The [heading investigation](../../../docs/reviews/2026-11-22-lily-memory-heading-investigation.md)
+sets out the prospective numerical correction and synthetic tests; that
+correction was not applied to this frozen study.

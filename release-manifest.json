@@ -302,7 +302,7 @@
     },
     "docs/LILY_MOTOR_LEARNING.md": {
       "mode": 420,
-      "sha256": "d43994715a8b7a45731b8ed57a2ebaf7ceafd0cc84b4be678c049cb71aeb4476"
+      "sha256": "658cafaec382fc013faf394d545b4f97abaab0569e90db5da596bcb549c5b081"
     },
     "docs/LILY_PROTOCOL.md": {
       "mode": 420,
@@ -368,9 +368,25 @@
       "mode": 420,
       "sha256": "64ca90748260205aeb27996e1cf68f4285d11cfc043f0f113db3d35a90d9b74d"
     },
+    "docs/reviews/2026-11-22-lily-memory-audit-failure.md": {
+      "mode": 420,
+      "sha256": "5c490f7c9309e65ba44ac013a2a556c540336437351630f04ceb0bcea369adc5"
+    },
+    "docs/reviews/2026-11-22-lily-memory-heading-investigation.md": {
+      "mode": 420,
+      "sha256": "6fe777ef6364d6abd2cca2466188116fd36d85a9a446722901b97fd5b39fa4a6"
+    },
     "docs/reviews/2026-11-22-lily-memory-independent-review.md": {
       "mode": 420,
       "sha256": "9ea8e9dd013d303eba09ac746f9597b2ea0dc2cd0cc073c379a03bd987ffc927"
+    },
+    "docs/reviews/2026-11-22-lily-memory-learning-checkpoint.md": {
+      "mode": 420,
+      "sha256": "63c0820b188e2865a8994cca5a6ace817d256926b806de5b2008148676fd1a2f"
+    },
+    "docs/reviews/2026-11-22-lily-memory-measured-review.md": {
+      "mode": 420,
+      "sha256": "8c3187d0d5ab7c25ae2c4f00b31e830220762eaaeb4c9cab186ac30acbf924a3"
     },
     "docs/reviews/2026-11-22-lily-outcome-independent-review.md": {
       "mode": 420,
@@ -1680,17 +1696,65 @@
       "mode": 420,
       "sha256": "a0eb0352ed6c69e56242a114ef2d601b12852bcf2eaf61584f95093dc577f9cf"
     },
+    "qa/lily-memory-candidates.tar.gz": {
+      "mode": 420,
+      "sha256": "8fb7cb16d85175910e123331414aa526b0f4c24f68c8f9516a3b6bdd63368520"
+    },
+    "qa/lily-memory-checkpoint-tests.txt": {
+      "mode": 420,
+      "sha256": "2ca060901aea64e4f5e3896fcfd537008725b09e9537a5c7e630ae87272c6712"
+    },
     "qa/lily-memory-declaration.json": {
       "mode": 420,
       "sha256": "77ef88dcfa3f94c2095a4fbd397cbfd3c6b11fafe8b55f387503df24b66b5b4d"
+    },
+    "qa/lily-memory-execution.txt": {
+      "mode": 420,
+      "sha256": "17a8678bae2a6f3f389bb5451646f911c6113f14461cb579f326b7ce574718ea"
+    },
+    "qa/lily-memory-freeze.json": {
+      "mode": 420,
+      "sha256": "4f637274bc18a68b252cf3fad79352e3c03e958e796fbb73094dc2a57c5400f3"
     },
     "qa/lily-memory-implementation.bundle": {
       "mode": 420,
       "sha256": "fdc9730584551bf0fd504af02239f063706b49fbd93237ba33d659d933754bf5"
     },
+    "qa/lily-memory-preservation.json": {
+      "mode": 420,
+      "sha256": "7454e9f89023bc489338988a0bf311149f0c46ca6cb7223e16a419162ec5bba4"
+    },
+    "qa/lily-memory-retention-bound.json": {
+      "mode": 420,
+      "sha256": "812636692d3f9b9ed0bdb1204fd8b3da542d84f082df0b742cc25f1e6358a93d"
+    },
+    "qa/lily-memory-run.json": {
+      "mode": 420,
+      "sha256": "526aab01427067bfd5677f9fb446007cba549d3505dfcabb6c9a4c0df6815c48"
+    },
+    "qa/lily-memory-selection.json": {
+      "mode": 420,
+      "sha256": "2e88cc6661d7aaea8276d682dca5ca6d304d7badcb9827783add8b9b9f0e3ad3"
+    },
+    "qa/lily-memory-strict-audit.txt": {
+      "mode": 420,
+      "sha256": "75de40840c0f047173f1b1a3f106e93ea19bd5ded3ea3965d8fa36eda7761c7d"
+    },
+    "qa/lily-memory-supplemental-audit.txt": {
+      "mode": 420,
+      "sha256": "632ff7b6689115a52248ee0cd87a9b61898ac614ed1d3662fc59df53e6a9da2e"
+    },
+    "qa/lily-memory-supplemental.json": {
+      "mode": 420,
+      "sha256": "475a3b9b311ef900204a5b6ea422d4978ffc7de2f3e0280be33b4908546ed685"
+    },
     "qa/lily-memory-unit-tests.txt": {
       "mode": 420,
       "sha256": "06152ed9fade9087862cee977f4cef122c977dd40345b9f7aa6f793efb57142a"
+    },
+    "qa/lily-memory-validation.json": {
+      "mode": 420,
+      "sha256": "ae365cf87950cd73ab8bbc556874c8fdf5ee6291fb2bb6d627f1458a9441e74a"
     },
     "qa/lily-motor-gate-addendum.json": {
       "mode": 420,
@@ -1974,7 +2038,7 @@
     },
     "scripts/bot_development/analysis/README.md": {
       "mode": 420,
-      "sha256": "f56029ad78a3ac31fd3e89e73f45a8fb31d270ef4a3441ab82452148d57ac087"
+      "sha256": "3439e38b84c248660c8007806c22c72566606116b6a6efc11d9d3594f07f5d50"
     },
     "scripts/bot_development/analysis/analyze_approach_windows.py": {
       "mode": 420,
@@ -2039,6 +2103,14 @@
     "scripts/bot_development/analysis/outcome_rollouts.py": {
       "mode": 420,
       "sha256": "2ee25cffbaf366fa5f55a14b4c2f2d873e91db0d4fec8c8f731880c8626b1790"
+    },
+    "scripts/bot_development/analysis/preserve_memory_learning.py": {
+      "mode": 420,
+      "sha256": "cf0d4c0a5dcb69cc17602aca8748e03ffacee3654371317e227ee6b23cd03d06"
+    },
+    "scripts/bot_development/analysis/report_memory_failure.py": {
+      "mode": 420,
+      "sha256": "bde39c52101d03118553150e886070e3d62266820ce2e493531ac8c7a4066e3a"
     },
     "scripts/bot_development/analysis/review_column.py": {
       "mode": 420,
@@ -2211,6 +2283,10 @@
     "tests/test_lily_memory_experiment.py": {
       "mode": 420,
       "sha256": "67827ab7225aa2cacb7874ce8da40e58ca69d99e87bea6035b3ba15698c732b0"
+    },
+    "tests/test_lily_memory_failure_report.py": {
+      "mode": 420,
+      "sha256": "968af2545155319bd93a1c60ce4fc4207a2260d6cbc3a5d46d0cf02061fba347"
     },
     "tests/test_lily_memory_motor.py": {
       "mode": 420,
