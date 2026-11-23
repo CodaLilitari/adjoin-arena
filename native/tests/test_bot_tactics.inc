@@ -350,6 +350,78 @@ static int ConfineRun(SithThing *self,flex_t seconds,flex_t speed)
     return 0;
 }
 
+static void test_tactic_swim(void)
+{
+    static SithWorld world; static SithThing items[1]; static SithSector land,pool;
+    static flex_t distance[BOT_NODES]; static int parent[BOT_NODES];
+    SithThing self={0}; SithPlayer own={0};
+    memset(&land,0,sizeof(land)); memset(&pool,0,sizeof(pool)); pool.flags=SITH_SECTOR_UNDERWATER;
+    jkBot_Configure("Swim_Test","ky.3do"); bot.elite=1; bot.now=5; jkPlayer_maxPlayers=0;
+    self.type=SITH_THING_PLAYER; self.sector=&land; self.actorParams.pPlayer=&own; self.actorParams.health=100;
+    self.moveSize=self.collideSize=0.065f; self.orient.lvec=(rdVector3){1,0,0}; self.orient.rvec=(rdVector3){0,-1,0};
+    bot.world=sithWorld_g_pCurrentWorld=&world; world.aThings=items; world.numThings=0; world.numThingsLoaded=1;
+    bot.graphDone=1; bot.nNodes=4; bot.frameDt=0.02f;
+    WaterNode(0,0,&land,-1); WaterNode(1,5,&land,-1); WaterNode(2,0.6f,&pool,-1); WaterNode(3,1.3f,&pool,-1);
+    bot.nodes[0].nEdges=1; bot.nodes[0].edges[0]=(BotEdge){2,2.6f,BOT_ROUTE_SWIM};
+    TacticsUse(0);
+    /* Any way from a bank into water is priced, whatever the edge is called;
+       a way in that wasted a dive is priced out until the memory lapses. */
+    Bot_PathDistances(&self,0,distance,parent); assert(fabsf(distance[2]-6.6f)<0.0005f);
+    assert(!Bot_CrossingFailed(&land,&pool));
+    Bot_RememberCrossing(&land,&pool); assert(Bot_CrossingFailed(&land,&pool) && !Bot_CrossingFailed(&pool,&land));
+    Bot_PathDistances(&self,0,distance,parent); assert(fabsf(distance[2]-56.6f)<0.0005f);
+    bot.now+=46; assert(!Bot_CrossingFailed(&land,&pool));
+    Bot_PathDistances(&self,0,distance,parent); assert(fabsf(distance[2]-6.6f)<0.0005f);
+    /* Turning back for air sets the entry and the destination aside once. */
+    self.sector=&pool; nav.waterSince=bot.now-9; bot.entryFrom=1; bot.entryTo=3; bot.goal=3; bot.airReturn=0;
+    assert(Bot_NeedsAir(&self));
+    Bot_CheckAirReturn(&self);
+    assert(bot.airReturn==1 && bot.goal==-1 && Bot_CrossingFailed(&land,&pool));
+    assert(fabsf(bot.nodes[3].avoidUntil-(bot.now+45))<0.001f);
+    bot.goal=1; Bot_CheckAirReturn(&self); assert(bot.goal==1 && "one verdict per swim");
+    self.sector=&land; bot.tele.wasWet=1; bot.crossing=1; Bot_CheckAirReturn(&self);
+    assert(!bot.airReturn && !bot.entryFrom && !bot.entryTo && !bot.crossing);
+    bot.crossing=1; bot.crossingAt=bot.now; bot.tele.wasWet=0; Bot_CheckAirReturn(&self); assert(bot.crossing);
+    bot.now+=2.5f; Bot_CheckAirReturn(&self); assert(!bot.crossing && "an entry never taken does not keep the allowance");
+    /* A swim judged to reach another bank may use most of the engine's
+       twenty seconds; a dive of unknown outcome still turns back early. */
+    self.sector=&pool; nav.waterSince=bot.now-9.5f; bot.crossing=0;
+    assert(Bot_Breath()==8.0f && Bot_NeedsAir(&self));
+    bot.crossing=1; assert(Bot_Breath()==17.0f && !Bot_NeedsAir(&self));
+    self.actorParams.endurance=9000; assert(!Bot_NeedsAir(&self));
+    self.actorParams.endurance=17500; assert(Bot_NeedsAir(&self));
+    self.actorParams.endurance=0; nav.waterSince=bot.now-17.5f; assert(Bot_NeedsAir(&self));
+    nav.waterSince=bot.now-9.5f; self.actorParams.health=25; assert(Bot_NeedsAir(&self)); self.actorParams.health=100;
+    BT(CROSSING_SECONDS)=0; assert(Bot_Breath()==8.0f && Bot_NeedsAir(&self)); BT(CROSSING_SECONDS)=17;
+    bot.crossing=0; self.actorParams.endurance=9000; assert(Bot_NeedsAir(&self)); self.actorParams.endurance=0;
+    /* Steep legs are swum by looking along them and pushing forward. */
+    rdVector3 below={0,0,-1.5f},shallow={1.0f,0,-0.3f},above={0,0,1.5f};
+    nav.waterSince=bot.now; self.position=(rdVector3){0,0,0};
+    memset(bot.axes,0,sizeof(bot.axes)); memset(bot.keys,0,sizeof(bot.keys)); bot.tele.pitched=0;
+    assert(Bot_NavDirectMove(&self,below,1));
+    assert(bot.axes[INPUT_FUNC_PITCH]==-0.8f && bot.axes[INPUT_FUNC_FORWARD]==0 && bot.keys[INPUT_FUNC_DUCK]);
+    self.actorParams.headPYR.x=-60; memset(bot.axes,0,sizeof(bot.axes));
+    assert(Bot_NavDirectMove(&self,below,1));
+    assert(bot.axes[INPUT_FUNC_FORWARD]==1 && bot.keys[INPUT_FUNC_DUCK] && bot.tele.pitched>0);
+    assert(fabsf(bot.axes[INPUT_FUNC_PITCH]-(-15.0f*4.0f/90.0f))<0.0005f && "settles at seventy-five degrees");
+    memset(bot.axes,0,sizeof(bot.axes)); assert(Bot_NavDirectMove(&self,above,1));
+    assert(bot.axes[INPUT_FUNC_FORWARD]==0 && bot.axes[INPUT_FUNC_PITCH]==0.8f && "looking the wrong way: turn first");
+    self.actorParams.headPYR.x=60; memset(bot.axes,0,sizeof(bot.axes)); assert(Bot_NavDirectMove(&self,above,1));
+    assert(bot.axes[INPUT_FUNC_FORWARD]==1);
+    memset(bot.axes,0,sizeof(bot.axes)); assert(Bot_NavDirectMove(&self,shallow,1));
+    assert(bot.axes[INPUT_FUNC_PITCH]==0 && "a shallow leg keeps the ordinary stroke");
+    self.physicsParams.flags|=SITH_PF_ONWATERSURFACE; self.actorParams.headPYR.x=-60;
+    memset(bot.axes,0,sizeof(bot.axes)); assert(Bot_NavDirectMove(&self,below,1));
+    assert(bot.axes[INPUT_FUNC_PITCH]==0 && bot.axes[INPUT_FUNC_FORWARD]==0 && "the surface does not tilt thrust");
+    self.physicsParams.flags&=~SITH_PF_ONWATERSURFACE;
+    TacticsUse(1); memset(bot.axes,0,sizeof(bot.axes)); memset(bot.keys,0,sizeof(bot.keys));
+    assert(Bot_NavDirectMove(&self,below,1));
+    assert(bot.axes[INPUT_FUNC_PITCH]==0 && bot.axes[INPUT_FUNC_FORWARD]==0 && bot.keys[INPUT_FUNC_DUCK] && "legacy sinks on the key alone");
+    Bot_RememberCrossing(&land,&pool); assert(!Bot_CrossingFailed(&land,&pool) && "legacy keeps no dive memory");
+    TacticsUse(0); self.actorParams.headPYR.x=0; bot.crossing=0; bot.goal=-1;
+    puts("PASS swim: priced and remembered entries, one air-return verdict, crossings on the real air supply, pitched steep legs, surface and legacy unchanged");
+}
+
 static void test_tactic_confinement(void)
 {
     static SithSector land,pool;
@@ -426,5 +498,6 @@ static void test_bot_tactics(void)
     test_tactic_run();
     test_tactic_route_run();
     test_tactic_water();
+    test_tactic_swim();
     test_tactic_confinement();
 }
