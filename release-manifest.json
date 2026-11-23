@@ -112,6 +112,10 @@
       "mode": 420,
       "sha256": "80c0415931e2184f9829663d88aa2cb470adc596f95278a5de688e8103b315aa"
     },
+    "bots/lily/memory_search.py": {
+      "mode": 420,
+      "sha256": "a9bcce9832db18e04a72d31e086a5f2ecd0b1ff298a67589cf1f8aac7f3e03a0"
+    },
     "bots/lily/models/water_bc_v1.json": {
       "mode": 420,
       "sha256": "eb514ebc9ebd34021be306ab97070177bcadc5f1c16c78f361a9c06f69bae3da"
@@ -127,6 +131,10 @@
     "bots/lily/motor_contact.py": {
       "mode": 420,
       "sha256": "dc294acfab45ca007dd03eec054f4cd83b089a44210ef39cb0ff5b632f9ce667"
+    },
+    "bots/lily/motor_memory.py": {
+      "mode": 420,
+      "sha256": "bd925b1b4d1650c10edfce296b2af34d4d752b58f831723ad86c23aef397ce65"
     },
     "bots/lily/motor_model.py": {
       "mode": 420,
@@ -408,6 +416,10 @@
       "mode": 420,
       "sha256": "10ef7be80f2c5a975f2a041a051bd4d0cd3d4baf768510a9320773c457497854"
     },
+    "docs/superpowers/plans/2026-11-22-lily-memory-learning.md": {
+      "mode": 420,
+      "sha256": "1a27a9e12e47d8ce1207b4f9a5d5607fabf8a4ac90f191f42840f043ccbf4b35"
+    },
     "docs/superpowers/plans/2026-11-22-lily-outcome-learning.md": {
       "mode": 420,
       "sha256": "f1fa295457bc3b258ec6530d17c97a68a9da00ceb5dc8b0bfc3368008c43aa5f"
@@ -443,6 +455,10 @@
     "docs/superpowers/specs/2026-11-22-lily-independent-motor-design.md": {
       "mode": 420,
       "sha256": "046f4948240b48fb876df86407fc4c211d327201bb05a1518f0491567868e604"
+    },
+    "docs/superpowers/specs/2026-11-22-lily-memory-learning-design.md": {
+      "mode": 420,
+      "sha256": "9299f5023c4b4707009942a631ff1d448114b364802e808fc450e96fa490c7a5"
     },
     "docs/superpowers/specs/2026-11-22-lily-outcome-learning-design.md": {
       "mode": 420,
@@ -1960,6 +1976,10 @@
       "mode": 420,
       "sha256": "51d962d0902d7c7d0a8c357b0170ad6c2de281828f88551f8248de24670ff72b"
     },
+    "scripts/bot_development/analysis/audit_memory_learning.py": {
+      "mode": 420,
+      "sha256": "13e0464e0d1deab73e2f870b0aa0bd90145fe9e2c01c0e41dd3f7f3ec0ba0296"
+    },
     "scripts/bot_development/analysis/audit_motor_failures.py": {
       "mode": 420,
       "sha256": "aa7ca11ca1d09a8444434c8aaaa1966bd0c7a689095d71d980d3c38904271547"
@@ -1992,6 +2012,10 @@
       "mode": 420,
       "sha256": "fcc1f9b978196478442eb491b39031d7dab6a26db0efc49ed3841785cab696b4"
     },
+    "scripts/bot_development/analysis/memory_rollouts.py": {
+      "mode": 420,
+      "sha256": "3620ed30dc5d49f549223902d1197317c58a8d0431f4c9e5843118c2261e0764"
+    },
     "scripts/bot_development/analysis/outcome_build_inputs.py": {
       "mode": 420,
       "sha256": "215cbe5635a8fe355d94e43002a3bce090e6f5f6c3acfc9a2aa45682ae279501"
@@ -2007,6 +2031,10 @@
     "scripts/bot_development/analysis/review_youtube_previews.py": {
       "mode": 420,
       "sha256": "129c2d01bbd9e03d2824de9959864cfce5b2f38a7a51233be729a87bc16c925e"
+    },
+    "scripts/bot_development/analysis/run_memory_learning.py": {
+      "mode": 420,
+      "sha256": "e5587fa09024ba086faa72e6f5197577899683c8482ee3e12bb30cdaede8278c"
     },
     "scripts/bot_development/analysis/run_outcome_learning.py": {
       "mode": 420,
@@ -2163,6 +2191,22 @@
     "tests/test_lily_memory.py": {
       "mode": 420,
       "sha256": "5a5cc740dbc82577a43d558c07cdc19f8cf2ed04694d59a9bc05be114a9f42ee"
+    },
+    "tests/test_lily_memory_experiment.py": {
+      "mode": 420,
+      "sha256": "d8104dfab636ea3c4019b6d55662e41ee8c9978eae91b1d5e73afa54c5234259"
+    },
+    "tests/test_lily_memory_motor.py": {
+      "mode": 420,
+      "sha256": "fda503573a10419dc84ca03f070c0634458d5a70237a0beb351b8296c881ba93"
+    },
+    "tests/test_lily_memory_rollouts.py": {
+      "mode": 420,
+      "sha256": "90ee9834a075efd86379b319a4aba0898d565661a54de166270220b9b4e0c5ac"
+    },
+    "tests/test_lily_memory_search.py": {
+      "mode": 420,
+      "sha256": "b6be90904b33f92593fb70025e1779b4d84f0e62af23f759435de32ecf8a489f"
     },
     "tests/test_lily_motor_model.py": {
       "mode": 420,
