@@ -202,7 +202,7 @@
     },
     "docs/BOT_TACTICS.md": {
       "mode": 420,
-      "sha256": "14b3f166bf97401f7cbfe0082e9c6132eec6ff462e62faf28c414fb1644af627"
+      "sha256": "654dcf5a75cd26ee1433a2845cced6a64d554eccacb1688ebc1ee332645cd2ee"
     },
     "docs/BROWSER_SPECTATOR.md": {
       "mode": 420,
@@ -554,7 +554,7 @@
     },
     "native/bot-tactics.patch": {
       "mode": 420,
-      "sha256": "a6913bef74c3ead17a2effcf74738dce652416542626f2b4bade801eed51b998"
+      "sha256": "daf9690c81cc7802db7e2c1ebfff2dab890d3eae96c57f8a823e4a0db295df49"
     },
     "native/build.sh": {
       "mode": 493,
@@ -734,7 +734,7 @@
     },
     "native/tests/test_bot_tactics.inc": {
       "mode": 420,
-      "sha256": "0fde848df3de2d28abea202230b99070fe2f6943439cc57aaa6b191db0d96440"
+      "sha256": "f23e989c210bd6722f6e788b06553708d4d021274c64a2f51e9e63d9ec728c7f"
     },
     "native/tests/test_native_probe_traffic.cpp": {
       "mode": 420,
