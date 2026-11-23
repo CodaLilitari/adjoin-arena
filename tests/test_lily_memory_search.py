@@ -9,6 +9,7 @@ from test_lily_memory_motor import g4_model
 from test_lily_outcome_search import row
 
 
+@unittest.skipUnless(importlib.util.find_spec("numpy"),"memory search uses optional NumPy")
 class MemorySearchTests(unittest.TestCase):
     def setUp(self):
         self.assertIsNotNone(importlib.util.find_spec("bots.lily.memory_search"), "paired search is not implemented")

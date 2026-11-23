@@ -12,12 +12,20 @@ def reconstruct(root,declaration):
     try:
         return experiment.perform()
     except run.Incomplete as exc:
-        report=experiment.report
-        report.update(status="inconclusive",reason=str(exc),selection=None,transfer_executed=False)
-        report["counts"]={k:sum(b["counts"][k] for b in report["blocks"].values())
-                          for k in ("assigned","attempted","completed","wins","failed","censored","invalid","unrun")}
-        report["maximum_declared_executions"]=3030
-        return report
+        experiment.evidence.finish()
+        return incomplete_report(experiment.report,str(exc))
+
+
+def incomplete_report(report,reason):
+    report.update(status="inconclusive",reason=reason)
+    report["counts"]={k:sum(b["counts"][k] for b in report["blocks"].values())
+                      for k in ("assigned","attempted","completed","wins","failed","censored","invalid","unrun")}
+    sealed=report["blocks"].get("sealed",{}).get("counts",{})
+    report["transfer_executed"]=sealed.get("attempted",0)>0
+    report["transfer_completed"]=sealed.get("completed",0)==288
+    report["reinferred_decisions"]=sum(a.get("reinferred_decisions",0) for b in report["blocks"].values() for a in b["attempts"])
+    report["maximum_declared_executions"]=3030
+    return report
 
 
 def main(argv=None):

@@ -7,10 +7,14 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest import mock
+import contextlib
+import io
 
 from test_lily_outcome_search import row
 
 
+@unittest.skipUnless(importlib.util.find_spec("numpy"),"memory search uses optional NumPy")
 class MemoryExperimentTests(unittest.TestCase):
     def setUp(self):
         self.assertIsNotNone(importlib.util.find_spec("scripts.bot_development.analysis.run_memory_learning"),
@@ -33,6 +37,102 @@ class MemoryExperimentTests(unittest.TestCase):
         self.assertEqual(self.r.execution_budget(False),dict(calibration=144,training=2304,open=160,transfer=0,diagnostics=0,total=2608))
         self.assertEqual(self.r.execution_budget(True)["total"],3030)
         with self.assertRaises(ValueError): self.r.schedule(ids[:-1]+[ids[0]],anchors)
+
+    def test_execution_boundary_rejects_other_parent_and_excess_workers(self):
+        for workers in (0,3,4,True):
+            with self.subTest(workers=workers),self.assertRaises(ValueError):
+                self.r.Experiment(Path('/tmp')/self.r.RUN_ID,{},"a"*64,{},workers=workers)
+        with self.assertRaises(ValueError):
+            self.r.Experiment(Path('/other-parent')/self.r.RUN_ID,{},"a"*64,{})
+
+    def test_pin_inventory_cannot_drop_history_or_substitute_archive(self):
+        self.assertTrue(hasattr(self.r,"verify_pin_inventory"),"explicit complete pin verifier missing")
+        old_decl=self.r.read(self.r.ROOT/"qa/lily-outcome-declaration.json")
+        frozen=old_decl["frozen_files_sha256"]|{n:self.r.motor.digest(self.r.ROOT/n) for n in self.r.NEW_SOURCES}
+        previous={n:self.r.motor.digest(self.r.ROOT/n) for n in self.r.PREVIOUS_FILES}
+        self.r.verify_pin_inventory(frozen,previous,old_decl)
+        for name in (next(iter(old_decl["frozen_files_sha256"])),next(iter(self.r.NEW_SOURCES))):
+            broken=dict(frozen)
+            del broken[name]
+            with self.assertRaises(ValueError): self.r.verify_pin_inventory(broken,previous,old_decl)
+        broken=dict(previous)
+        del broken['qa/lily-outcome-candidates.tar.gz']
+        with self.assertRaises(ValueError): self.r.verify_pin_inventory(frozen,broken,old_decl)
+        broken=dict(previous,**{'qa/lily-outcome-candidates.tar.gz':'aa'*32})
+        with self.assertRaises(ValueError): self.r.verify_pin_inventory(frozen,broken,old_decl)
+
+    def test_publication_prefix_keeps_interruption_but_rejects_contradiction_and_later_stage(self):
+        self.assertTrue(hasattr(self.r,"Evidence"),"prerequisite-ordered evidence inventory missing")
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)
+            expected={"selected":None}
+            path=root/"ranking.json"
+            partial=root/"ranking.json.partial"
+            partial.write_text('{"selected":')
+            evidence=self.r.Evidence(root)
+            with self.assertRaises(self.r.Incomplete): evidence.publication(path,expected)
+            evidence.finish()
+            partial.write_text('{"selected":"recurrent"}')
+            evidence=self.r.Evidence(root)
+            with self.assertRaises(ValueError) as caught: evidence.publication(path,expected)
+            self.assertNotIsInstance(caught.exception,self.r.Incomplete)
+            partial.write_text('{"selected":')
+            evidence=self.r.Evidence(root)
+            with self.assertRaises(self.r.Incomplete): evidence.publication(path,expected)
+            (root/"sealed").mkdir()
+            with self.assertRaisesRegex(ValueError,"unexpected"): evidence.finish()
+
+    def test_model_prefix_can_be_reported_without_accepting_changed_complete_bytes(self):
+        self.assertTrue(hasattr(self.r,"Evidence"),"prefix evidence is missing")
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)
+            path=root/"policy.py"
+            path.write_bytes(b'print(')
+            evidence=self.r.Evidence(root)
+            with self.assertRaises(self.r.Incomplete): evidence.model_bytes(path,b'print(1)\n')
+            evidence.finish()
+            path.write_bytes(b'print(2)\n')
+            with self.assertRaises(ValueError) as caught: self.r.Evidence(root).model_bytes(path,b'print(1)\n')
+            self.assertNotIsInstance(caught.exception,self.r.Incomplete)
+
+    def test_incomplete_summary_preserves_selection_and_transfer_facts_and_cli(self):
+        from scripts.bot_development.analysis import audit_memory_learning as audit
+        self.assertTrue(hasattr(audit,"incomplete_report"),"truthful partial summary missing")
+        for phase in ("calibration","sealed","original"):
+            blocks={phase:dict(counts=dict(assigned=2,attempted=1,completed=0,wins=0,failed=0,censored=1,invalid=0,unrun=1),
+                               attempts=[dict(status="censored",candidate_id="a",episode_id="e",reinferred_decisions=3),
+                                         dict(status="unrun",candidate_id="a",episode_id="f")])}
+            if phase=="original":
+                blocks["sealed"]=dict(counts=dict(assigned=288,attempted=288,completed=288,wins=200,failed=88,censored=0,invalid=0,unrun=0),attempts=[])
+            selected=None if phase=="calibration" else dict(selected="recurrent")
+            report=audit.incomplete_report(dict(blocks=blocks,selection=selected),"interrupted")
+            self.assertEqual(report["selection"],selected)
+            self.assertEqual(report["transfer_executed"],phase!="calibration")
+            self.assertEqual(report["transfer_completed"],phase=="original")
+            self.assertEqual(report["reinferred_decisions"],3)
+            with tempfile.TemporaryDirectory() as temp, mock.patch.object(audit,"reconstruct",return_value=report),contextlib.redirect_stdout(io.StringIO()):
+                target=Path(temp)/"report.json"
+                self.assertEqual(audit.main(['--run',temp,'--output',str(target)]),0)
+                self.assertEqual(json.loads(target.read_bytes())["selection"],selected)
+
+    def test_completed_block_model_inventory_does_not_change_with_later_refs(self):
+        from types import SimpleNamespace
+        from test_lily_recovery_evaluation import one_loss
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)
+            work=root/'fixture'
+            work.mkdir()
+            job,case,measured=one_loss(work)
+            ref=dict(artifact="v3",model_sha256="ab"*32,canonical_sha256="cd"*32,policy_sha256="ef"*32)
+            refs={"v3":ref}
+            bank=dict(role="test",sha256="00"*32,jobs={(job["episode_id"],"every_tick"):job})
+            raw=dict(status="complete",row=measured,process=None,raw={},reinferred_decisions=1)
+            block=dict(attempts=[raw],counts=self.r.old.counts_for([raw]))
+            instance=SimpleNamespace(output=root,audit=False,workers=2,binding={},edges={},starts={},report={"blocks":{}})
+            with mock.patch.object(self.r,"run_block",return_value=({"path":"fixture/block.json","sha256":"12"*32},{"v3":[measured]},block)),contextlib.redirect_stdout(io.StringIO()):
+                self.r.Experiment.block(instance,"calibration",bank,[job["episode_id"]],refs,"34"*32)
+            refs["recurrent"]=dict(ref,artifact="recurrent")
+            self.assertEqual(set(instance.report["blocks"]["calibration"]["models"]),{"v3"})
 
     def test_frozen_file_verifier_detects_bytes_and_indirection(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -152,6 +252,13 @@ class MemoryExperimentTests(unittest.TestCase):
             result=self.r.audit_partial_block(root,"calibration",bank,ids,{name:ref},binding,{})
             self.assertEqual(result["counts"],dict(assigned=2,attempted=1,completed=0,wins=0,failed=0,censored=1,invalid=0,unrun=1))
             self.assertEqual([r["status"] for r in result["attempts"]],["censored","unrun"])
+            self.assertEqual([r["episode_id"] for r in result["attempts"]],ids)
+            self.assertEqual([r["candidate_id"] for r in result["attempts"]],[name,name])
+            gap_path=directory/ledger[1]["work_dir"]
+            work.rename(gap_path)
+            with self.assertRaisesRegex(ValueError,"gap"):
+                self.r.audit_partial_block(root,"calibration",bank,ids,{name:ref},binding,{})
+            gap_path.rename(work)
             frames=[json.loads(x) for x in (work/"motor.jsonl").read_bytes().splitlines()]
             frames[1]["axes"][0]=.031
             (work/"motor.jsonl").write_text("".join(json.dumps(x)+"\n" for x in frames))

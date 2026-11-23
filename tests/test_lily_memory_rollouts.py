@@ -12,12 +12,15 @@ import sys
 import tempfile
 import unittest
 
-from bots.lily import memory_search, motor_memory
+from bots.lily import motor_memory
+if importlib.util.find_spec("numpy"):
+    from bots.lily import memory_search
 from test_lily_contact_motor import observation
 from test_lily_memory_motor import g4_model
 from test_lily_recovery_evaluation import one_loss, write_rows
 
 
+@unittest.skipUnless(importlib.util.find_spec("numpy"),"memory search uses optional NumPy")
 class MemoryRolloutTests(unittest.TestCase):
     def setUp(self):
         self.assertIsNotNone(importlib.util.find_spec("scripts.bot_development.analysis.memory_rollouts"),
@@ -122,6 +125,38 @@ class MemoryRolloutTests(unittest.TestCase):
             result = self.r.audit_attempt(a,work,case,policy,model)
             self.assertEqual(result["reinferred_decisions"],0)
             self.assertEqual(result["unverifiable_journal"],2)
+
+    def test_late_worker_failure_does_not_hide_conflicting_engine_terminal(self):
+        with tempfile.TemporaryDirectory() as temp:
+            a,work,case,policy,model,status=self.fixture(Path(temp))
+            status.update(engine_returncode=0,worker_returncode=7)
+            (work/"process.json").write_text(json.dumps(status))
+            (work/"engine.log").write_bytes(b"")
+            with self.assertRaisesRegex(ValueError,"terminal"):
+                self.r.audit_attempt(a,work,case,policy,model)
+
+    def test_incomplete_assigned_record_is_invalid_even_without_observations(self):
+        with tempfile.TemporaryDirectory() as temp:
+            a,work,case,policy,model,status=self.fixture(Path(temp))
+            for name in ("process.json","motor.jsonl","decisions.jsonl","start.json"):
+                (work/name).unlink()
+            (work/"engine.log").write_bytes(b"")
+            write_rows(work/"native.jsonl",[dict(event="assigned",sector=10)])
+            with self.assertRaisesRegex(ValueError,"assigned"):
+                self.r.audit_attempt(a,work,case,policy,model)
+
+    def test_legacy_control_mismatch_without_journal_or_terminal_is_invalid(self):
+        from test_lily_outcome_rollouts import RolloutTests
+        with tempfile.TemporaryDirectory() as temp:
+            a,work,case,policy,model,status=RolloutTests().fixture(Path(temp))
+            (work/"process.json").unlink()
+            (work/"decisions.jsonl").write_bytes(b"")
+            (work/"engine.log").write_bytes(b"")
+            native=[json.loads(x) for x in (work/"native.jsonl").read_bytes().splitlines()]
+            native[1]["axes"][0]=.05
+            write_rows(work/"native.jsonl",native[:-1])
+            with self.assertRaisesRegex(ValueError,"action_does_not_match_decision|mismatch"):
+                self.r.audit_attempt(a,work,case,policy,model)
 
     @unittest.skipUnless(hasattr(socket,"SOCK_SEQPACKET"),"Unix synchronous replay transport")
     def test_real_worker_emits_nine_byte_controls_and_state_journal(self):

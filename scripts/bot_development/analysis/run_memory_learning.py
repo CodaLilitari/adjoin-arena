@@ -18,12 +18,20 @@ from . import memory_rollouts as trial
 from .outcome_rollouts import ROOT,check,equal,file_record,motor,now,read,write
 
 RUN_ID = "lily-memory-learning-20261122-01"
+RUN_DIRECTORY = Path("/tmp")/RUN_ID
 EXPERIMENT = "lily-protected-memory-v1"
 DECLARATION = "qa/lily-memory-declaration.json"
 SPEC = "docs/superpowers/specs/2026-11-22-lily-memory-learning-design.md"
 PLAN = "docs/superpowers/plans/2026-11-22-lily-memory-learning.md"
 PRIOR_HEADER = "6884edf86455a97c1e2bb814bfdc95f442039b4a3dec5d18e079972439386c15"
 PRIOR_AUDIT = "cfbebdbea0101e1df447b2fc4d87c2e69f845f52360b893e355641f7d324a2c2"
+PREVIOUS_FILES = {
+    "qa/lily-outcome-declaration.json":"911ca8c8a3218334d117de8995ce88114f99ebde431c77500e894db196ac3b98",
+    "qa/lily-outcome-evaluation.json":PRIOR_AUDIT,
+    "qa/lily-outcome-candidates.tar.gz":"37d3f40886f253fb12b347238ad7081e2c9ea09608261815f75be217f79f5e49",
+    "qa/lily-outcome-build-inputs.tar.gz":"6c0cc363ca28040eaec778031bd154249152f1783483b8b56bf288ed9b9febb6",
+    "qa/lily-recovery-evaluation.json":"3c9ac2887e7d2a00736f5656280cb76be5009bb59f6f9b65506533812022a263",
+    "qa/lily-independent-motor.json":"a0eb0352ed6c69e56242a114ef2d601b12852bcf2eaf61584f95093dc577f9cf"}
 G4 = dict(model_sha256="af75dcd370fcc828c71075c40942712aeacbac8f7efccdf02b584da5350cecf6",
           canonical_sha256=memory.BASE_SHA256,policy_sha256="30ace86bb9f39221acf57b4b2f6abe11d4dab8e71d00dbc66d8e6586f15d9597")
 NEW_SOURCES = {SPEC,PLAN,"bots/lily/motor_memory.py","bots/lily/memory_search.py",
@@ -43,7 +51,7 @@ RECIPE = dict(
     transfer=dict(arms=["v3","g4","native","static","recurrent","no_history"],pool_net_min=4,positive_pool_positions_min=3,
                   lost_v3_shaft_max=0,lost_original_v3_shaft_max=0,historical_winners=24,
                   memory_net_min=1,memory_positive_positions_min=2,selection_locked=True),
-    execution=dict(workers_max=2,retries=0,initial_free_bytes_min=4*1024**3,physics_hz=150,max_physics_steps=9000,
+    execution=dict(workers_max=2,retries=0,canonical_output=str(RUN_DIRECTORY),initial_free_bytes_min=4*1024**3,physics_hz=150,max_physics_steps=9000,
                    required_dry_steps=38,hold_ticks=1,teacher=False,live_promotion=False))
 
 
@@ -57,6 +65,12 @@ def verify_files(root,files):
         check(isinstance(name,str) and not Path(name).is_absolute() and ".." not in Path(name).parts,"invalid frozen path")
         path = root/name
         check(path.is_file() and not path.is_symlink() and motor.digest(path)==digest,"changed frozen file: "+name)
+
+
+def verify_pin_inventory(frozen,previous_files,old_decl):
+    expected=old_decl["frozen_files_sha256"]|{name:motor.digest(ROOT/name) for name in NEW_SOURCES}
+    equal(frozen,expected,"complete inherited and new source pins")
+    equal(previous_files,PREVIOUS_FILES,"complete authenticated historical pins")
 
 
 def schedule(ids,anchors):
@@ -80,10 +94,10 @@ def make_declaration(commit,retained):
         frozen[name] = motor.digest(ROOT/name)
     for name,digest in frozen.items():
         equal(sha256(old.git_bytes(commit,name)).hexdigest(),digest,"uncommitted frozen source: "+name)
-    files = {name:motor.digest(ROOT/name) for name in (
-        "qa/lily-outcome-declaration.json","qa/lily-outcome-evaluation.json","qa/lily-outcome-candidates.tar.gz",
-        "qa/lily-outcome-build-inputs.tar.gz","qa/lily-recovery-evaluation.json","qa/lily-independent-motor.json")}
-    equal(files["qa/lily-outcome-evaluation.json"],PRIOR_AUDIT,"prior public outcome audit")
+    files = {name:motor.digest(ROOT/name) for name in PREVIOUS_FILES}
+    verify_pin_inventory(frozen,files,previous)
+    for name,digest in files.items():
+        equal(sha256(old.git_bytes(commit,name)).hexdigest(),digest,"source-committed historical input")
     anchors = [i for i in banks["development"]["ids"] if "-shaft-" in i]
     return dict(schema=1,experiment=EXPERIMENT,run_id=RUN_ID,created_at_utc=now(),implementation_commit=commit,
                 recipe=RECIPE,budget_without_selection=execution_budget(False),budget_with_selection=execution_budget(True),
@@ -113,6 +127,9 @@ def declaration(path,*,published=True):
     equal(decl["previous_header_sha256"],PRIOR_HEADER,"fixed previous header")
     equal(sha256((json.dumps(decl["previous_header"],indent=2)+"\n").encode()).hexdigest(),PRIOR_HEADER,"retained previous header bytes")
     previous,_,banks = old.declaration(ROOT/"qa/lily-outcome-declaration.json")
+    verify_pin_inventory(decl["frozen_files_sha256"],decl["previous_files_sha256"],previous)
+    for name,digest in decl["previous_files_sha256"].items():
+        equal(sha256(old.git_bytes(commit,name)).hexdigest(),digest,"historical input source commit binding")
     equal([decl["cases"],decl["diagnostics"]],[previous["cases"],previous["diagnostics"]],"unchanged assignment banks")
     equal(decl["fixture_sources"],old.fixture_sources(previous),"unchanged native fixture")
     equal([decl["v3"],decl["g4"]],[old.identity(old.PARENT),G4],"reference model identities")
@@ -219,7 +236,8 @@ def audit_block(output,label,bank,ids,refs,binding,edges):
     rebuilt=[]
     for assignment,recorded in zip(ledger,block["attempts"],strict=True):
         work=directory/assignment["work_dir"]
-        result=trial.audit_attempt(assignment,work,bank["cases"][assignment["job"]["case"]],*paths[assignment["candidate_id"]])
+        result=trial.audit_attempt(assignment,work,bank["cases"][assignment["job"]["case"]],*paths[assignment["candidate_id"]],
+                                   edge=edges.get(assignment["job"]["target_sector"]))
         equal(result,recorded,"memory receipt differs from raw evidence")
         rebuilt.append(result)
     equal(block["counts"],old.counts_for(rebuilt),"memory block totals")
@@ -233,47 +251,140 @@ class Incomplete(ValueError):
     """An independently checked prefix cannot support an experimental selection."""
 
 
-def audit_partial_block(output,label,bank,ids,refs,binding,edges):
+class Evidence:
+    """Consume prerequisites in order; reject every unconsumed file on interruption."""
+    def __init__(self,root):
+        self.root=root
+        self.seen={root}
+
+    def entry(self,path,directory=False):
+        check(not path.is_symlink(),"indirect evidence: "+path.name)
+        if not path.exists():
+            return False
+        check(path.is_dir() if directory else path.is_file(),"wrong evidence type: "+path.name)
+        self.seen.add(path)
+        return True
+
+    def directory(self,path):
+        if not self.entry(path,True):
+            raise Incomplete("missing directory: "+path.name)
+
+    def model_bytes(self,path,expected):
+        if not self.entry(path):
+            raise Incomplete("missing artifact: "+path.name)
+        actual=path.read_bytes()
+        if actual==expected:
+            return
+        check(len(actual)<len(expected) and expected.startswith(actual),"changed artifact bytes: "+path.name)
+        raise Incomplete("unfinished artifact: "+path.name)
+
+    def publication(self,path,expected):
+        partial=path.with_suffix(path.suffix+".partial")
+        has_partial=self.entry(partial)
+        if has_partial:
+            try:
+                available=legacy.prior.decode_censored_record(partial.read_bytes())
+            except EOFError:
+                available=None
+            if available is not None:
+                equal(available,expected,"contradictory partial publication: "+path.name)
+        if not self.entry(path):
+            raise Incomplete("unpublished receipt: "+path.name)
+        equal(read(path),expected,"reconstructed memory receipt: "+path.name)
+        if has_partial:
+            check(partial.read_bytes()==path.read_bytes(),"conflicting receipt publication: "+path.name)
+            raise Incomplete("unfinished publication: "+path.name)
+
+    def tree(self,path):
+        self.directory(path)
+        for child in sorted(path.iterdir()):
+            if child.is_dir() and not child.is_symlink():
+                self.tree(child)
+            else:
+                self.entry(child)
+
+    def finish(self):
+        def visit(parent):
+            for child in parent.iterdir():
+                check(child in self.seen and not child.is_symlink(),"unexpected evidence beyond completed prerequisite: "+str(child.relative_to(self.root)))
+                if child.is_dir():
+                    visit(child)
+        visit(self.root)
+
+
+def audit_partial_block(output,label,bank,ids,refs,binding,edges,*,evidence=None):
     directory=output/"blocks"/label
     models={name:old.identity(ref) if ref else None for name,ref in refs.items()}
     ledger=old.assignments(label,bank,ids,models,binding)
     names={a["work_dir"] for a in ledger}
+    evidence=evidence or Evidence(output)
+    def labeled(attempts):
+        from .audit_outcome_learning import public_attempt
+        return [dict(public_attempt(a,r),verified_controls=r.get("verified_controls",0)) for a,r in zip(ledger,attempts,strict=True)]
     if not directory.exists():
         attempts=[dict(status="unrun") for _ in ledger]
-        return dict(counts=old.counts_for(attempts),attempts=attempts)
+        return dict(counts=old.counts_for(attempts),attempts=labeled(attempts))
+    evidence.directory(directory)
     check(directory.is_dir() and not directory.is_symlink(),"indirect partial block")
     children={p.name:p for p in directory.iterdir()}
     check(children.keys() <= names|{"assignments.json","assignments.json.partial","block.json","block.json.partial"},"foreign partial block evidence")
-    if (directory/"assignments.json").exists():
-        equal(read(directory/"assignments.json"),ledger,"partial assignment ledger")
-    else:
+    try:
+        evidence.publication(directory/"assignments.json",ledger)
+    except Incomplete:
         check(not children.keys()&names,"attempt without complete assignment ledger")
-    for name in ("assignments.json","block.json"):
-        partial=directory/(name+".partial")
-        if partial.exists() and (directory/name).exists():
-            check(partial.read_bytes()==(directory/name).read_bytes(),"conflicting block publication")
+        attempts=[dict(status="unrun") for _ in ledger]
+        return dict(counts=old.counts_for(attempts),attempts=labeled(attempts))
     paths={name:check_model(output,ref) if ref else (None,None) for name,ref in refs.items()}
     attempts=[]
+    gap=False
     for assignment in ledger:
         work=directory/assignment["work_dir"]
         if not work.exists():
             attempts.append(dict(status="unrun"))
+            gap=True
             continue
-        result=trial.audit_attempt(assignment,work,bank["cases"][assignment["job"]["case"]],*paths[assignment["candidate_id"]])
+        check(not gap,"gap in attempt claim prefix")
+        evidence.directory(work)
+        try:
+            evidence.publication(work/"assignment.json",assignment)
+        except Incomplete:
+            check({p.name for p in work.iterdir()}<={"assignment.json","assignment.json.partial"},"actuation before complete attempt claim")
+            result=dict(status="censored",row=None,reason="unfinished_attempt_claim",process=None,reinferred_decisions=0,
+                        observed_native_terminal=None,raw={p.name:file_record(p) for p in work.iterdir()})
+            attempts.append(result)
+            gap=True
+            continue
+        result=trial.audit_attempt(assignment,work,bank["cases"][assignment["job"]["case"]],*paths[assignment["candidate_id"]],
+                                   edge=edges.get(assignment["job"]["target_sector"]))
+        evidence.tree(work)
         start=result.get("row") if result["status"]=="complete" else result.get("observed_start")
         if start is not None and edges:
             equal([start[k] for k in ("seed","origin_sha256","target_position")],edges[assignment["job"]["target_sector"]],"partial historical edge")
         attempts.append(result)
     counts=old.counts_for(attempts)
-    if (directory/"block.json").exists():
-        recorded=read(directory/"block.json")
-        equal(recorded["attempts"],attempts,"partial receipt differs from raw evidence")
-        equal(recorded["counts"],counts,"partial receipt denominator")
-        equal(recorded["assignments_sha256"],motor.digest(directory/"assignments.json"),"partial ledger binding")
-    return dict(counts=counts,attempts=attempts)
+    recorded=None
+    for filename in ("block.json","block.json.partial"):
+        path=directory/filename
+        if path.exists():
+            evidence.entry(path)
+            try:
+                item=legacy.prior.decode_censored_record(path.read_bytes())
+            except EOFError:
+                check(filename.endswith(".partial"),"truncated complete block receipt")
+                continue
+            check(isinstance(item,dict) and set(item)=={"assignments_sha256","counts","attempts","free_bytes_after"}
+                  and type(item["free_bytes_after"]) is int and item["free_bytes_after"]>=0,"partial block fields")
+            expected=dict(assignments_sha256=motor.digest(directory/"assignments.json"),counts=counts,attempts=attempts,
+                          free_bytes_after=item["free_bytes_after"])
+            equal(item,expected,"partial receipt differs from raw evidence")
+            if recorded is not None:
+                equal(item,recorded,"conflicting partial block receipt")
+            recorded=item
+    return dict(counts=counts,attempts=labeled(attempts))
 
 
 def run_block(output,label,bank,ids,refs,binding,edges,workers):
+    check(type(workers) is int and 1<=workers<=2,"memory execution supports at most two workers")
     paths={name:check_model(output,ref) if ref else (None,None) for name,ref in refs.items()}
     models={name:old.identity(ref) if ref else None for name,ref in refs.items()}
     ledger=old.assignments(label,bank,ids,models,binding)
@@ -288,7 +399,7 @@ def run_block(output,label,bank,ids,refs,binding,edges,workers):
         case=bank["cases"][a["job"]["case"]]
         policy,model=paths[a["candidate_id"]]
         trial.execute(a,work,case,output/"build/replay",output/"build/map.numeric",policy,model)
-        return trial.audit_attempt(a,work,case,policy,model)
+        return trial.audit_attempt(a,work,case,policy,model,edge=edges[a["job"]["target_sector"]])
     directory=output/"blocks"/label
     block=old.dispatch(directory,ledger,workers,attempt)
     verify_replay()
@@ -299,7 +410,11 @@ def run_block(output,label,bank,ids,refs,binding,edges,workers):
 
 class Experiment:
     def __init__(self,output,decl,digest,banks,*,audit=False,workers=2):
+        check(type(workers) is int and 1<=workers<=2,"memory execution supports one or two workers")
+        if not audit:
+            check(output.absolute()==RUN_DIRECTORY and output.resolve()==RUN_DIRECTORY,"expected single canonical memory run directory")
         self.output,self.decl,self.digest,self.banks,self.audit,self.workers=output,decl,digest,banks,audit,workers
+        self.evidence=Evidence(output) if audit else None
         previous=read(ROOT/"qa/lily-outcome-declaration.json")
         _,self.edges,self.winners=old.history(previous)
         self.models={}
@@ -311,7 +426,7 @@ class Experiment:
     def record(self,path,value):
         target=self.output/path
         if self.audit:
-            equal(read(target),value,"reconstructed memory receipt: "+path)
+            self.evidence.publication(target,value)
         else:
             write(target,value)
         return old.link(self.output,path)
@@ -319,8 +434,10 @@ class Experiment:
     def artifact(self,name,model_bytes,policy_bytes):
         policy,model=model_paths(self.output,name)
         if self.audit:
+            self.evidence.directory(model.parent)
+            self.evidence.model_bytes(model,model_bytes)
+            self.evidence.model_bytes(policy,policy_bytes)
             old.require_inventory(model.parent,set(),{"model.json","policy.py"})
-            check(model.read_bytes()==model_bytes and policy.read_bytes()==policy_bytes,"memory candidate lineage/export bytes")
         else:
             old.claim(model.parent)
             model.write_bytes(model_bytes)
@@ -338,16 +455,17 @@ class Experiment:
             directory=self.output/"blocks"/label
             stored=read(directory/"block.json") if (directory/"block.json").is_file() else None
             if stored is None or stored["counts"]["completed"]!=stored["counts"]["assigned"] or any(directory.glob("*.partial")):
-                partial=audit_partial_block(self.output,label,bank,ids,refs,binding,self.edges)
-                self.report["blocks"][label]=dict(role=bank["role"],models=refs,**partial)
+                partial=audit_partial_block(self.output,label,bank,ids,refs,binding,self.edges,evidence=self.evidence)
+                self.report["blocks"][label]=dict(role=bank["role"],models=deepcopy(refs),**partial)
                 raise Incomplete("unfinished block: "+label)
             receipt,rows,block=audit_block(self.output,label,bank,ids,refs,binding,self.edges)
+            self.evidence.tree(directory)
         else:
             receipt,rows,block=run_block(self.output,label,bank,ids,refs,binding,self.edges,self.workers)
         from .audit_outcome_learning import public_attempt
         ledger=old.assignments(label,bank,ids,{n:old.identity(r) if r else None for n,r in refs.items()},binding)
         attempts=[dict(public_attempt(a,r),verified_controls=r.get("verified_controls",r.get("reinferred_decisions",0))) for a,r in zip(ledger,block["attempts"],strict=True)]
-        self.report["blocks"][label]=dict(role=bank["role"],models=refs,receipt=receipt,counts=block["counts"],attempts=attempts)
+        self.report["blocks"][label]=dict(role=bank["role"],models=deepcopy(refs),receipt=receipt,counts=block["counts"],attempts=attempts)
         for group in rows.values():
             for row in group:
                 witness={k:row[k] for k in legacy.prior.START}
@@ -358,7 +476,7 @@ class Experiment:
 
     def header(self,retained=None):
         if not self.audit:
-            check(not self.output.exists() and self.output.name==RUN_ID and self.output.absolute()==self.output.resolve(),"run already claimed or noncanonical output")
+            check(not self.output.exists() and self.output.absolute()==self.output.resolve()==RUN_DIRECTORY,"run already claimed or noncanonical output")
             check(retained is not None,"retained fixture is required")
             equal(motor.digest(retained/"run.json"),PRIOR_HEADER,"retained input run")
             equal(old.tree_files(retained/"build"),self.decl["previous_header"]["build"]["files"],"retained build input inventory")
@@ -374,6 +492,11 @@ class Experiment:
                         fixture_sources=self.decl["fixture_sources"],**old.runtime())
             write(self.output/"run.json",header)
         header=read(self.output/"run.json")
+        if self.audit:
+            self.evidence.publication(self.output/"run.json",header)
+            self.evidence.tree(self.output/"build")
+            for name in ("models","blocks","rankings"):
+                self.evidence.directory(self.output/name)
         equal([header["schema"],header["run_id"],header["declaration_sha256"],header["implementation_commit"]],
               [1,RUN_ID,self.digest,self.decl["implementation_commit"]],"memory run header")
         equal(sha256(old.git_bytes(header["declaration_commit"],DECLARATION)).hexdigest(),self.digest,"published declaration commit")
@@ -449,9 +572,11 @@ class Experiment:
         shaft=[i for i in bank["ids"] if "-shaft-" in i]
         choice=search.select_open(rows,pool,shaft)
         selection=self.record("selection.json",dict(**self.binding,training=training,block=opened,checkpoints=refs,**choice))
+        self.report["selection"]=choice
         selected=choice["selected"]
         freeze=dict(**self.binding,selected=selected,model=refs[selected] if selected else None,selection=selection)
         self.record("freeze.json",freeze)
+        self.report["freeze"]=freeze
         self.report["selection"]=choice
         self.report["open_comparisons"]={"memory":memory_comparison(rows,bank["ids"]),
                                          **{n:{family:paired({n:[r for r in rows[n] if r["episode_id"] in ids],
@@ -496,6 +621,8 @@ class Experiment:
                     progress=(pool["net"]>=4 and pool["positions_with_positive_net"]>=3 and shaft["regressions"]==0 and not lost) if historical_reproduced else None)
 
     def finish(self,selected):
+        if self.audit:
+            self.evidence.finish()
         root_files={"run.json","calibration.json","training.json","selection.json","freeze.json"}
         if selected:
             root_files.add("evaluation.json")

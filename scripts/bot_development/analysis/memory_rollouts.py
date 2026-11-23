@@ -145,6 +145,41 @@ def journal_records(work,initial_hash):
     return rows
 
 
+def available_witnesses(work,job,case,edge=None):
+    """Validate complete identity records even if later streams never appeared."""
+    native=old.available_stream(work/"native.jsonl")
+    assigned=native[0] if native else None
+    if assigned is not None:
+        check(set(assigned)=={"event","sector","position","seed"} and assigned["event"]=="assigned"
+              and type(assigned["sector"]) is int and assigned["sector"]==job["target_sector"]
+              and type(assigned["seed"]) is int and 0<=assigned["seed"]<=0xffffffff,
+              "invalid assigned record")
+        memory.vector(assigned["position"],3)
+        if edge is not None:
+            equal([assigned["seed"],assigned["position"]],[edge[0],edge[2]],"assigned historical edge")
+    origin=old.prior.available_record((work/"start.json").read_bytes()) if (work/"start.json").exists() else None
+    if origin is not None:
+        check(set(origin)=={"wet_sector","wet_position"} and type(origin["wet_sector"]) is int
+              and origin["wet_sector"]==int(case["wet"]),"invalid origin record")
+        memory.vector(origin["wet_position"],3)
+        if edge is not None:
+            equal(motor.digest(work/"start.json"),edge[1],"historical origin witness")
+    frames=old.available_stream(work/"motor.jsonl")
+    if frames:
+        obs=frames[0]
+        motor.physical_record(obs)
+        equal([obs["event"],obs["tick"],obs["step"],obs["goal"]["sector"]],
+              ["observation",0,0,job["target_sector"]],"first observation identity")
+        if origin is not None:
+            motor.verify_start(obs,case,job["yaw_deg"],origin)
+        if edge is not None:
+            equal(obs["goal"]["position"],edge[2],"first observation historical goal")
+    if edge is None:
+        goal=assigned["position"] if assigned else frames[0]["goal"]["position"] if frames else None
+        edge=[assigned["seed"] if assigned else None,motor.digest(work/"start.json") if origin else None,goal]
+    return edge
+
+
 def replay_available(work,job,case,source):
     """Check every available journal/control, including tails with no terminal or journal."""
     session = Session(source,job["requested_hold_ms"])
@@ -232,9 +267,16 @@ def replay_available(work,job,case,source):
                 unverifiable_journal=len(journal)-reinferred,observed_native_terminal=end,observed_start=observed_start)
 
 
-def audit_attempt(assignment,work,case,policy,model):
+def audit_attempt(assignment,work,case,policy,model,*,edge=None):
+    edge=available_witnesses(work,assignment["job"],case,edge)
     if model is None or read(model).get("schema")!=3:
-        return old.audit_attempt(assignment,work,case,policy,model)
+        result=old.audit_attempt(assignment,work,case,policy,model)
+        if result["status"]=="censored":
+            from .audit_outcome_learning import interrupted_controls
+            verified,unavailable=interrupted_controls(assignment,work,case,(policy,model),edge,
+                                                      result.get("observed_native_terminal") is not None)
+            result.update(verified_controls=verified,unverifiable_controls=unavailable)
+        return result
     check(work.is_dir() and not work.is_symlink(),"missing or indirect memory attempt")
     raw = {p.name:file_record(p) for p in sorted(work.iterdir())}
     equal(read(work/"assignment.json"),assignment,"memory attempt claim")
@@ -254,6 +296,9 @@ def audit_attempt(assignment,work,case,policy,model):
         status = old.prior.available_record((work/"process.json.partial").read_bytes().rstrip())
     clean = status is not None and old.clean_process(status,False)
     available = replay_available(work,job,case,source)
+    if status is not None and status["engine_returncode"] in (0,1) and available["observed_native_terminal"] is not None:
+        equal(status["engine_returncode"],int(available["observed_native_terminal"]["terminal"]!="supported_dry"),
+              "memory terminal/known engine wait")
     if (work/"engine.log").exists() and any(line.startswith(b"STOCK FULL TICK") for line in (work/"engine.log").read_bytes().splitlines()):
         marker = old.prior.engine_code(work/"engine.log")
         if status is not None and status["engine_returncode"] in (0,1):

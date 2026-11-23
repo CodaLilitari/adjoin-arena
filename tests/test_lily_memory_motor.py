@@ -18,6 +18,7 @@ def g4_model():
         return json.load(archive.extractfile("models/g04-c11/model.json"))
 
 
+@unittest.skipUnless(importlib.util.find_spec("numpy"),"memory search uses optional NumPy")
 class MemoryMotorTests(unittest.TestCase):
     def setUp(self):
         for name in ("motor_memory", "memory_search"):

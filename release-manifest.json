@@ -368,6 +368,10 @@
       "mode": 420,
       "sha256": "64ca90748260205aeb27996e1cf68f4285d11cfc043f0f113db3d35a90d9b74d"
     },
+    "docs/reviews/2026-11-22-lily-memory-independent-review.md": {
+      "mode": 420,
+      "sha256": "9ea8e9dd013d303eba09ac746f9597b2ea0dc2cd0cc073c379a03bd987ffc927"
+    },
     "docs/reviews/2026-11-22-lily-outcome-independent-review.md": {
       "mode": 420,
       "sha256": "775bfb3aedc7637ad33f26c0095d1a044fde248f28f5f6c66d668183f75575d5"
@@ -458,7 +462,7 @@
     },
     "docs/superpowers/specs/2026-11-22-lily-memory-learning-design.md": {
       "mode": 420,
-      "sha256": "9299f5023c4b4707009942a631ff1d448114b364802e808fc450e96fa490c7a5"
+      "sha256": "17147c6fc93b151f3fa95d76ab55a3d8df058b1151b686e0492d57575ccd9873"
     },
     "docs/superpowers/specs/2026-11-22-lily-outcome-learning-design.md": {
       "mode": 420,
@@ -1676,6 +1680,10 @@
       "mode": 420,
       "sha256": "a0eb0352ed6c69e56242a114ef2d601b12852bcf2eaf61584f95093dc577f9cf"
     },
+    "qa/lily-memory-unit-tests.txt": {
+      "mode": 420,
+      "sha256": "06152ed9fade9087862cee977f4cef122c977dd40345b9f7aa6f793efb57142a"
+    },
     "qa/lily-motor-gate-addendum.json": {
       "mode": 420,
       "sha256": "3c99c789c0ae2b6effea1abee8924fbcb1f0d84f43cc93cdafcbc65ab33d892b"
@@ -1978,7 +1986,7 @@
     },
     "scripts/bot_development/analysis/audit_memory_learning.py": {
       "mode": 420,
-      "sha256": "13e0464e0d1deab73e2f870b0aa0bd90145fe9e2c01c0e41dd3f7f3ec0ba0296"
+      "sha256": "882075dddd8baebeb5e41ec0accc3e9e8badf55cff82034a767351aa6a288726"
     },
     "scripts/bot_development/analysis/audit_motor_failures.py": {
       "mode": 420,
@@ -2014,7 +2022,7 @@
     },
     "scripts/bot_development/analysis/memory_rollouts.py": {
       "mode": 420,
-      "sha256": "3620ed30dc5d49f549223902d1197317c58a8d0431f4c9e5843118c2261e0764"
+      "sha256": "191a03831ced3eb46a72f86caa3a89947730e52aace21366a6c9095f00ff5a6f"
     },
     "scripts/bot_development/analysis/outcome_build_inputs.py": {
       "mode": 420,
@@ -2034,7 +2042,7 @@
     },
     "scripts/bot_development/analysis/run_memory_learning.py": {
       "mode": 420,
-      "sha256": "e5587fa09024ba086faa72e6f5197577899683c8482ee3e12bb30cdaede8278c"
+      "sha256": "ef5d2fa540af2b1082e5ad0e617395ec963b9861a9c29f3c82bedc2f529ea5de"
     },
     "scripts/bot_development/analysis/run_outcome_learning.py": {
       "mode": 420,
@@ -2194,19 +2202,19 @@
     },
     "tests/test_lily_memory_experiment.py": {
       "mode": 420,
-      "sha256": "d8104dfab636ea3c4019b6d55662e41ee8c9978eae91b1d5e73afa54c5234259"
+      "sha256": "67827ab7225aa2cacb7874ce8da40e58ca69d99e87bea6035b3ba15698c732b0"
     },
     "tests/test_lily_memory_motor.py": {
       "mode": 420,
-      "sha256": "fda503573a10419dc84ca03f070c0634458d5a70237a0beb351b8296c881ba93"
+      "sha256": "11f57373b8ec0f085651a5c3d57f46a8f2b66ad1a6893d7386ed0f3189aeb388"
     },
     "tests/test_lily_memory_rollouts.py": {
       "mode": 420,
-      "sha256": "90ee9834a075efd86379b319a4aba0898d565661a54de166270220b9b4e0c5ac"
+      "sha256": "c1692ab0b5575747da878449517ec17444190f111658098eebd5809bd933bcd5"
     },
     "tests/test_lily_memory_search.py": {
       "mode": 420,
-      "sha256": "b6be90904b33f92593fb70025e1779b4d84f0e62af23f759435de32ecf8a489f"
+      "sha256": "27b4f3a31f119674f4128a082c60f3248a1a6d7156198adb977bf42a36232205"
     },
     "tests/test_lily_motor_model.py": {
       "mode": 420,
