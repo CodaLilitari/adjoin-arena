@@ -1,14 +1,14 @@
 # Adjoin Arena
 
-Adjoin Arena studies competitive JK multiplayer bots on stock game physics. It pairs headless simulation and trace analysis with 1Ãƒâ€” inspection, scripted tactics, and a local controller that a live coach can guide. The first experiment measures pacing parity in a single-actor Canyon Oasis replay. [Experiment and project design](docs/superpowers/plans/2026-11-24-adjoin-arena.md)
+Adjoin Arena studies competitive JK multiplayer bots on stock game physics. It supports a headless pacing experiment and recorded native two-player matches. The longer-term goal is a local policy that learns from scripted play and accepts guidance from a coach. [Experiment and project design](docs/superpowers/plans/2026-11-24-adjoin-arena.md)
 
 ## Starting revisions
 
 | Branch in this repository | Starting point |
 | --- | --- |
-| `source/pr1-foundation` | LilitariÃ¢â‚¬â„¢s competitive JKWeb foundation, `04d482e`. |
-| `source/pr2-adaptive-player` | LilitariÃ¢â‚¬â„¢s adaptive player, `a8e6bdf`. The initial `main` derives from this branch and includes the foundation. |
-| `source/pr3-tactics-movement` | RedÃ¢â‚¬â„¢s tactics and movement work, `f453778`. Its source overlay has a separate build procedure. |
+| `source/pr1-foundation` | Lilitari’s competitive JKWeb foundation, `04d482e`. |
+| `source/pr2-adaptive-player` | Lilitari’s adaptive player, `a8e6bdf`. The initial `main` derives from this branch and includes the foundation. |
+| `source/pr3-tactics-movement` | Red’s tactics and movement work, `f453778`. Its source overlay has a separate build procedure. |
 
 The sibling implementations have outstanding engine and browser integration work. Their original commits, notices and build receipts are retained. The server launchers, packages and updater described below belong to the inherited JK Cross Server baseline. Adjoin Arena has its own research history and has not issued a packaged release. Game files stay with their owners. [Source attribution](NOTICE.md)
 
@@ -26,21 +26,27 @@ The script builds one fixture and uses it for both modes. Use `--help` for the p
 
 ### First measured result
 
-The same Canyon Oasis water exit ran three times at 1Ãƒâ€” and three times uncapped on Ubuntu under WSL, using GCC 15.2.0 and the PR #2 web engine sources compiled as a native fixture. All six runs produced byte-identical start, input and state traces across 268 control ticks and 1,608 physics steps. The actor reached sector 10 with 100 health after 10.720 simulated seconds and 38 consecutive grounded steps.
+The same Canyon Oasis water exit ran three times at 1× and three times uncapped on Ubuntu under WSL, using GCC 15.2.0 and the PR #2 web engine sources compiled as a native fixture. All six runs produced byte-identical start, input and state traces across 268 control ticks and 1,608 physics steps. The actor reached sector 10 with 100 health after 10.720 simulated seconds and 38 consecutive grounded steps.
 
-Median elapsed time fell from 10.798 seconds (range 10.748Ã¢â‚¬â€œ11.453) to 0.667 seconds (range 0.617Ã¢â‚¬â€œ0.918), a **16.19Ãƒâ€” speedup for this single-actor case**. Timing includes process startup, initialization and trace output. The next experiment adds a host, two fighting peers and a 1Ãƒâ€” spectator recording. [Six-run receipt and source hashes](qa/adjoin-arena-m0-pool90.json)
+Median elapsed time fell from 10.798 seconds (range 10.748–11.453) to 0.667 seconds (range 0.617–0.918), a **16.19× speedup for this single-actor case**. Timing includes process startup, initialization and trace output. The two-player experiments below use ordinary 1× game speed. [Six-run receipt and source hashes](qa/adjoin-arena-m0-pool90.json)
 
 ## Two-player Canyon Oasis baseline
 
 A native dedicated host and two ordinary native bot clients played two 55-second, full-Force guns duels on stock Canyon Oasis. Both seats pursued the map's concussion rifle in each run. The sparse status reports and fire-input reports did not show either seat selecting or firing it. The first gear choices and the sectors, weapons and goals observed at 10 seconds differed across the two runs. [Comparison and input hashes](qa/adjoin-arena-native-duel-1x.json)
 
-Each run includes a 640Ã—360 native host follow-camera clip. The camera can intersect the followed player's body and obscure its actions. [Run and compare a duel](scripts/bot_development/legacy/README.md#repeat-a-native-canyon-oasis-duel)
+Each run includes a 640×360 native host follow-camera clip. The camera can intersect the followed player's body and obscure its actions. [Run and compare a duel](scripts/bot_development/legacy/README.md#repeat-a-native-canyon-oasis-duel)
 
 ### Controlled rifle opening
 
 A private test variant places each bot at a known stock start and restores its normal respawn mask immediately. Boba starts in sector 41 near the rifle alcove. Jan starts in sector 18. The game reports the local player's rifle inventory ten times per simulated second. A stationary host camera looks into the alcove from outside, giving an unobstructed view of the pickup.
 
-In two runs Boba's first rifle inventory gain appeared at 1.124 and 1.125 seconds on his local game clock. He later requested alternate fire in each run. The launcher's sequential joins gave him a head start: the rifle was already gone when the camera first reported both players present. These results qualify placement, acquisition and recording. Competitive scoring requires a shared start. [Controlled opening receipt](qa/adjoin-arena-controlled-opening.json)
+In two runs Boba's first rifle inventory gain appeared at 1.124 and 1.125 seconds on his local game clock. He later requested alternate fire in each run. The launcher joined the players in sequence. Boba had already collected the rifle when the camera first reported both players present. These results qualify placement, acquisition and recording. [Controlled opening receipt](qa/adjoin-arena-controlled-opening.json)
+
+### Shared start for the rifle opening
+
+The optional ready gate holds each player's position, facing and collision state at the assigned start until both clients report ready. Slot 1 broadcasts the release, and the host records a separate acknowledgement from each player. Both bots can still choose routes during the hold. Each player's pickup time is measured from its own local release.
+
+In two 1× runs, the host received the release acknowledgements 40 and 20 milliseconds apart. Boba first acquired the concussion rifle 9.418 and 9.792 simulated seconds after his release. Both times the first gear plans were already different during the hold. Boba chose the concussion rifle (map thing 29, sector 58), and Jan chose the repeater (map thing 34, sector 59). Jan had no recorded concussion rifle gain in either run. Boba started nearer the rifle. The runs establish a repeatable acquisition from his assigned seat. Measuring a tactical advantage requires other starts and opponents. A third run using the final launcher recorded the same opening choices and a Boba pickup at 9.690 seconds. [Two-run shared-start evidence](qa/adjoin-arena-ready-gate.json) · [Final launcher run](qa/adjoin-arena-ready-gate-cli.json)
 
 ## Inherited JK Cross Server documentation
 

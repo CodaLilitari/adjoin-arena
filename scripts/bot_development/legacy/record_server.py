@@ -217,7 +217,7 @@ async def session(command, env, output, port, prepared, launched, recording_dir,
             "receipt_sha256":hashlib.sha256(receipt_file.read_bytes()).hexdigest()}
 
 
-def boot_server(command, directory, env, log, repo, output, *, ipc_port=58471, recording_dir=None, camera="follow"):
+def boot_server(command, directory, env, log, repo, output, *, ipc_port=58471, recording_dir=None, camera="follow", line_buffered=False):
     global _thread, _completed
     if camera not in {"follow", "rifle-overlook"}:
         raise ValueError("Unsupported native observer camera")
@@ -245,7 +245,8 @@ def boot_server(command, directory, env, log, repo, output, *, ipc_port=58471, r
     # A late observer can finish cleanup after a timeout but cannot create a child.
     try:
         host_env, fds = prepared.result(timeout=PREPARE_TIMEOUT)
-        child = subprocess.Popen(command, cwd=directory, stdin=subprocess.DEVNULL, stdout=log,
+        launch_command = ["stdbuf", "-oL", *command] if line_buffered else command
+        child = subprocess.Popen(launch_command, cwd=directory, stdin=subprocess.DEVNULL, stdout=log,
                                  stderr=subprocess.STDOUT, env=host_env, pass_fds=fds,
                                  start_new_session=True)
     except BaseException as exc:

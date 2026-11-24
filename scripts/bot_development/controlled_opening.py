@@ -10,6 +10,7 @@ from manager.content import archive_index
 STOCK_GOB = "27a4b3642e0965753232f35b1e8e846c91df1eca1da77398b5efda66ca369a2e"
 STOCK_MAP = "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc"
 VARIANT_GOB = "9585f8c54df1e2c5fbe2645af56e9f635dcd572e5ef6aa896d278c902699320c"
+READY_GATE_GOB = "6b72d772a8a0cc61d84aff3811d4cc5b9d2039c1df055646e44bcb7131fdaab6"
 VARIANT_MAP = "704f786cc494e3593dcf18815247e678dbde9f0f53e09164300b1b7d81860ad8"
 COG = Path(__file__).with_name("arena_start.cog")
 LEVEL = "jkl/m10.jkl"
@@ -52,13 +53,15 @@ def read_entries(archive):
     return entries
 
 
-def build(archive, output):
+def build(archive, output, *, ready_gate=False):
     """Build in a new path. The source is an exact stock GOB owned by the caller."""
     if digest(archive.read_bytes()) != STOCK_GOB:
         raise ValueError("Unexpected stock episode")
     entries = read_entries(archive)
     entries[LEVEL] = patch_level(entries[LEVEL])
-    script = COG.read_bytes().replace(b"\r\n", b"\n").replace(b"\n", b"\r\n")
+    expected_gob = READY_GATE_GOB if ready_gate else VARIANT_GOB
+    source = COG.with_name("arena_ready_gate.cog") if ready_gate else COG
+    script = source.read_bytes().replace(b"\r\n", b"\n").replace(b"\n", b"\r\n")
     entries[SCRIPT] = script
 
     payload = bytearray(b"GOB " + struct.pack("<II", 20, 0))
@@ -69,14 +72,14 @@ def build(archive, output):
         payload.extend(content)
     struct.pack_into("<I", payload, 8, len(payload))
     payload.extend(index)
-    if digest(payload) != VARIANT_GOB or digest(entries[LEVEL]) != VARIANT_MAP:
+    if digest(payload) != expected_gob or digest(entries[LEVEL]) != VARIANT_MAP:
         raise ValueError("Derived content differs from the qualified start fixture")
     with output.open("xb") as stream:
         stream.write(payload)
     if read_entries(output) != entries:
         raise ValueError("Private episode readback differs from generated entries")
     return {"stock_gob_sha256": STOCK_GOB, "stock_jkl_sha256": STOCK_MAP,
-            "variant_gob_sha256": VARIANT_GOB, "variant_jkl_sha256": VARIANT_MAP,
+            "variant_gob_sha256": expected_gob, "variant_jkl_sha256": VARIANT_MAP,
             "cog_sha256": digest(script), "unchanged_entry_count": len(entries) - 2}
 
 

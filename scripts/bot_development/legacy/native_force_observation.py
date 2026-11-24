@@ -88,15 +88,18 @@ def stage(source, target):
                 dst.write(chunk)
 
 
-def boot(label, command, directory, env, output, recorder=None, repo=None, camera="follow"):
+def boot(label, command, directory, env, output, recorder=None, repo=None, camera="follow", line_buffered=False):
     path = output / (label + ".log")
     with path.open("xb") as log:
         if recorder is None:
+            if line_buffered:
+                command = ["stdbuf", "-oL", *command]
             child = subprocess.Popen(command, cwd=directory, stdin=subprocess.DEVNULL,
                                      stdout=log, stderr=subprocess.STDOUT, env=env,
                                      start_new_session=True)
         else:
-            child = recorder.boot_server(command, directory, env, log, repo, output, camera=camera)
+            child = recorder.boot_server(command, directory, env, log, repo, output, camera=camera,
+                                         line_buffered=line_buffered)
         CHILDREN[label] = child
     READERS[label] = path.open("rb")
 
@@ -289,17 +292,24 @@ def run(args, receipt, tmp):
         hashes[map_key] = hashlib.sha256(inp.read(entry["size"])).hexdigest()
     if hashes[map_key] != expected_hash:
         raise Failure("stock_map_hash_mismatch")
-    if args.controlled_opening:
+    if args.controlled_opening or args.ready_gate:
         # Build only in the clean private stage, before peers copy their data.
         sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
         import controlled_opening
         variant = gob.with_name("controlled-opening.gob")
-        receipt["opening_fixture"] = controlled_opening.build(gob, variant)
+        receipt["opening_fixture"] = controlled_opening.build(gob, variant, ready_gate=args.ready_gate)
         variant.replace(gob)
         hashes["jk1mp.gob"] = digest(gob)
         hashes[map_key] = receipt["opening_fixture"]["variant_jkl_sha256"]
         receipt["kind"] = "adjoin-arena-controlled-opening"
         args.opening = controlled_opening
+        if args.ready_gate:
+            import ready_gate
+            args.gate_verifier = ready_gate
+            receipt["kind"] = "adjoin-arena-ready-gate"
+            receipt["ready_gate_source_sha256"] = {
+                module: digest(Path(source.__file__)) for module, source in
+                (("controlled_opening.py", controlled_opening), ("ready_gate.py", ready_gate))}
     with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as sock:
         sock.bind(("127.0.0.1",0))
         port = sock.getsockname()[1]
@@ -320,7 +330,7 @@ def run(args, receipt, tmp):
             raise Failure(side+"_incorrect_profile")
         prepare_bot(server_dir,tmp/side,profiles[pid])
     boot("server",[str(server),*receipt["server_argv"]],server_dir,private_env(server_dir,server),
-         output, recorder=args.recorder, repo=repo, camera=args.camera)
+         output, recorder=args.recorder, repo=repo, camera=args.camera, line_buffered=args.ready_gate)
     before = time.monotonic()
     while not owns_udp(CHILDREN["server"].pid,port):
         check_liveness()
@@ -356,8 +366,8 @@ def run(args, receipt, tmp):
                         "-botSkin",p["model"],"-botSound",p["sound"]]
             bots[side]["argv"] = args_bot
             # Native COG diagnostics use stdout. Flush each line before shutdown.
-            command = ["stdbuf", "-oL", str(bot)] if args.controlled_opening else [str(bot)]
-            boot(side,[*command,*args_bot],directory,env,output)
+            boot(side,[str(bot),*args_bot],directory,env,output,
+                 line_buffered=args.controlled_opening or args.ready_gate)
             # Give each real client its own discovery / welcome cycle before the next.
             wait_start = time.monotonic()
             while not bots[side]["joined"]:
@@ -399,7 +409,10 @@ def main():
                         help="Require a private loopback-only network namespace and hash the tested inputs.")
     parser.add_argument("--record", action="store_true",
                         help="Capture the native host follow camera during an arena baseline.")
-    parser.add_argument("--controlled-opening", action="store_true",
+    scenario = parser.add_mutually_exclusive_group()
+    scenario.add_argument("--ready-gate", action="store_true",
+                          help="Hold both Canyon Oasis opening poses until both bot seats report ready.")
+    scenario.add_argument("--controlled-opening", action="store_true",
                         help="Use a private Canyon Oasis variant to set each bot's first spawn and observe rifle inventory.")
     parser.add_argument("--camera", choices=("follow", "rifle-overlook"),
                         help="Record the selected native camera (implies --record).")
@@ -410,8 +423,9 @@ def main():
         args.camera = "follow"
     if args.camera == "rifle-overlook" and args.map != "m10.jkl":
         parser.error("--camera rifle-overlook requires Canyon Oasis (--map m10.jkl)")
-    if args.controlled_opening and (not args.arena_baseline or args.map != "m10.jkl"):
-        parser.error("--controlled-opening requires --arena-baseline and --map m10.jkl")
+    if (args.controlled_opening or args.ready_gate) and (not args.arena_baseline or args.map != "m10.jkl"):
+        option = "--ready-gate" if args.ready_gate else "--controlled-opening"
+        parser.error(f"{option} requires --arena-baseline and --map m10.jkl")
     if args.record and not args.arena_baseline:
         parser.error("--record requires --arena-baseline")
     args.recorder = None
@@ -445,11 +459,17 @@ def main():
                             receipt["observer_receipt_sha256"] = evidence["receipt_sha256"]
                 finally:
                     shutdown()
-        if args.controlled_opening:
+        if args.controlled_opening or args.ready_gate:
             try:
                 receipt["opening_observations"] = args.opening.qualify(out, receipt["bots"])
             except (KeyError, IndexError, TypeError, ValueError) as error:
                 raise Failure("controlled_opening_observations_failed") from error
+        if args.ready_gate:
+            try:
+                receipt["ready_gate_observations"] = args.gate_verifier.qualify(out, receipt["opening_observations"])
+            except ValueError as error:
+                receipt["ready_gate_error"] = str(error)
+                raise Failure("ready_gate_observations_failed") from error
         code = 0
     except Failure as e:
         receipt["error"] = str(e)

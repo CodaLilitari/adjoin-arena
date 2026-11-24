@@ -1,0 +1,326 @@
+{
+  "schema": 1,
+  "result": "two seat-coordinated hold and release trials passed",
+  "scope": "Private controlled opening, two ordinary 1x native peers, one dedicated host. Logs and video observe actual game processing. Host ACK spread measures delivery, not equality of simulation ticks. Fire records are rate-limited intent, possession is polled, and position snapshots after release are sparse. No equal route length or contested action at the alcove is established.",
+  "stock_opening_inventory_bins_1_to_15": [
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    50,
+    0,
+    100,
+    400,
+    0
+  ],
+  "runs": [
+    {
+      "name": "ready-gate-seat-c",
+      "map_sha256": "704f786cc494e3593dcf18815247e678dbde9f0f53e09164300b1b7d81860ad8",
+      "episode_sha256": "6b72d772a8a0cc61d84aff3811d4cc5b9d2039c1df055646e44bcb7131fdaab6",
+      "cog_sha256": "9091f7c115823b72e2633f8d9324d1d972a56dd47076f4ffa75841a5c10e256f",
+      "launcher_sha256": "0f44cd6b98c10c044e0a9fd0157d521da514d7be92b7faca27aca28c57f41166",
+      "recorder_sha256": "0dc37a5df2f30eee9bfd122db4c4bba2d4151dbe505f1f0fd7e6b006ee536809",
+      "match_receipt_sha256": "850355f5d2fc8eedc74818d2bcd978a29191de657ab475840078cc26a5d219ad",
+      "observer_receipt_sha256": "8fdea2ab9eea4a88395dfa64bb75864b30f111ca45fb1fc22b783a626d51506d",
+      "native_log_sha256": {
+        "server.log": "96bfc005feb2ba2ddbc771036d48128ac41474bff5ff6f3fe9b28c853652bcda",
+        "dark.log": "039b3c50215a54eabc73193fb53b26b0ddb9987f413ac59c8496b7877e83ebe7",
+        "light.log": "f39222c88b0111ac988c53a8cf8e59c0c86308faeb84d2a6370867a984c241a4",
+        "force-trace.jsonl": "6a58a81fac817d0c86f98c271b8696b7f14eaa29ce59d288a455c1daf3946fae"
+      },
+      "go_seat": 1,
+      "go_level_time_seat1": 4.56,
+      "host_ready": [
+        [
+          "1",
+          "0.106000",
+          "4.390000"
+        ],
+        [
+          "2",
+          "0.103000",
+          "8.810000"
+        ]
+      ],
+      "host_observed_go_time": 8.85,
+      "host_acknowledgements": [
+        [
+          "1",
+          "1",
+          "4.560000",
+          "8.850000"
+        ],
+        [
+          "2",
+          "3",
+          "4.560000",
+          "8.890000"
+        ]
+      ],
+      "host_ack_spread_ms": 40,
+      "actors": {
+        "dark": {
+          "slot": 1,
+          "peer": 3,
+          "post_loadout_time": 0.106,
+          "local_release_time": 4.56,
+          "held_pulses": 44,
+          "max_held_position_drift": 0.0,
+          "max_held_facing_vector_delta": 0.0,
+          "held_violation_bits": 0,
+          "held_rifle": 0,
+          "sampled_held_native_force_states": 10,
+          "post_release_rifle_changes": [
+            [
+              0,
+              1,
+              13.978
+            ]
+          ],
+          "seconds_to_first_acquisition": 9.418,
+          "post_release_fire_input_records": 0,
+          "post_release_force_input_records": 1,
+          "post_release_position_samples": [
+            {
+              "bot_seconds": 10.0,
+              "sector": 54,
+              "position": [
+                2.962,
+                -0.136,
+                0.632
+              ]
+            },
+            {
+              "bot_seconds": 20.1,
+              "sector": 54,
+              "position": [
+                2.975,
+                -0.107,
+                -0.089
+              ]
+            },
+            {
+              "bot_seconds": 30.1,
+              "sector": 35,
+              "position": [
+                0.792,
+                -0.467,
+                -1.314
+              ]
+            }
+          ]
+        },
+        "light": {
+          "slot": 2,
+          "peer": 5,
+          "post_loadout_time": 0.103,
+          "local_release_time": 0.171,
+          "held_pulses": 1,
+          "max_held_position_drift": 0.0,
+          "max_held_facing_vector_delta": 0.0,
+          "held_violation_bits": 0,
+          "held_rifle": 0,
+          "sampled_held_native_force_states": 1,
+          "post_release_rifle_changes": [],
+          "seconds_to_first_acquisition": null,
+          "post_release_fire_input_records": 1,
+          "post_release_force_input_records": 3,
+          "post_release_position_samples": [
+            {
+              "bot_seconds": 10.0,
+              "sector": 24,
+              "position": [
+                -0.092,
+                3.901,
+                0.247
+              ]
+            },
+            {
+              "bot_seconds": 20.1,
+              "sector": 39,
+              "position": [
+                -3.206,
+                -3.956,
+                0.12
+              ]
+            }
+          ]
+        }
+      },
+      "stationary_video": {
+        "path": "native-rifle-overlook.mp4",
+        "sha256": "d3cf983cadc3fb62f4938cfc9603f6befe332364eabec80fff30bb53c50345f1",
+        "stream": {
+          "codec_name": "h264",
+          "width": 640,
+          "height": 360,
+          "duration": "32.201000",
+          "nb_frames": "162"
+        },
+        "max_pts_error_seconds": 0.000413291004951688,
+        "recorded_span": 32.19988656901114,
+        "longest_frame_gap": 0.20084564900025725,
+        "decoded_fully": true
+      },
+      "frame_hash_count": 61
+    },
+    {
+      "name": "ready-gate-seat-d",
+      "map_sha256": "704f786cc494e3593dcf18815247e678dbde9f0f53e09164300b1b7d81860ad8",
+      "episode_sha256": "6b72d772a8a0cc61d84aff3811d4cc5b9d2039c1df055646e44bcb7131fdaab6",
+      "cog_sha256": "9091f7c115823b72e2633f8d9324d1d972a56dd47076f4ffa75841a5c10e256f",
+      "launcher_sha256": "0f44cd6b98c10c044e0a9fd0157d521da514d7be92b7faca27aca28c57f41166",
+      "recorder_sha256": "0dc37a5df2f30eee9bfd122db4c4bba2d4151dbe505f1f0fd7e6b006ee536809",
+      "match_receipt_sha256": "b07456ad56e27cee0c4992215c76534c21e4f3b3b8fb40217c21fd06a21e2750",
+      "observer_receipt_sha256": "385b0a761744e92c05eaf28a5bbe5bb970b7a0f960b12ac271153ac1325fd5ce",
+      "native_log_sha256": {
+        "server.log": "fdaf5e1846b137aa2e422abd018ed169e4361bf6f9f8b0d5fc400acff65d9b2f",
+        "dark.log": "07ae2e4084bbf653b5a9f918a6945dcb485179e9534f65162ec7c79a630c8df4",
+        "light.log": "20917f5a8e02e28e2264129b4287be626dec7a0621cd6ee9a386a60d0da350e4",
+        "force-trace.jsonl": "2d2963d78e032c433ecb2edde4b11e8f346af8b852a42cecc198cb206358e4cd"
+      },
+      "go_seat": 1,
+      "go_level_time_seat1": 4.388,
+      "host_ready": [
+        [
+          "1",
+          "0.104000",
+          "4.470000"
+        ],
+        [
+          "2",
+          "0.103000",
+          "8.730000"
+        ]
+      ],
+      "host_observed_go_time": 8.77,
+      "host_acknowledgements": [
+        [
+          "1",
+          "1",
+          "4.388000",
+          "8.770000"
+        ],
+        [
+          "2",
+          "3",
+          "4.388000",
+          "8.790000"
+        ]
+      ],
+      "host_ack_spread_ms": 20,
+      "actors": {
+        "dark": {
+          "slot": 1,
+          "peer": 3,
+          "post_loadout_time": 0.104,
+          "local_release_time": 4.388,
+          "held_pulses": 42,
+          "max_held_position_drift": 0.0,
+          "max_held_facing_vector_delta": 0.0,
+          "held_violation_bits": 0,
+          "held_rifle": 0,
+          "sampled_held_native_force_states": 9,
+          "post_release_rifle_changes": [
+            [
+              0,
+              1,
+              14.18
+            ]
+          ],
+          "seconds_to_first_acquisition": 9.792,
+          "post_release_fire_input_records": 0,
+          "post_release_force_input_records": 1,
+          "post_release_position_samples": [
+            {
+              "bot_seconds": 10.0,
+              "sector": 54,
+              "position": [
+                2.96,
+                -0.132,
+                0.569
+              ]
+            },
+            {
+              "bot_seconds": 20.1,
+              "sector": 54,
+              "position": [
+                2.962,
+                -0.134,
+                -0.054
+              ]
+            },
+            {
+              "bot_seconds": 30.1,
+              "sector": 54,
+              "position": [
+                2.961,
+                -0.128,
+                0.91
+              ]
+            }
+          ]
+        },
+        "light": {
+          "slot": 2,
+          "peer": 5,
+          "post_loadout_time": 0.103,
+          "local_release_time": 0.171,
+          "held_pulses": 1,
+          "max_held_position_drift": 0.0,
+          "max_held_facing_vector_delta": 0.0,
+          "held_violation_bits": 0,
+          "held_rifle": 0,
+          "sampled_held_native_force_states": 1,
+          "post_release_rifle_changes": [],
+          "seconds_to_first_acquisition": null,
+          "post_release_fire_input_records": 0,
+          "post_release_force_input_records": 3,
+          "post_release_position_samples": [
+            {
+              "bot_seconds": 10.0,
+              "sector": 24,
+              "position": [
+                -0.092,
+                3.901,
+                0.247
+              ]
+            },
+            {
+              "bot_seconds": 20.1,
+              "sector": 39,
+              "position": [
+                -3.204,
+                -0.793,
+                0.123
+              ]
+            }
+          ]
+        }
+      },
+      "stationary_video": {
+        "path": "native-rifle-overlook.mp4",
+        "sha256": "d22a8968d96c53241e4eb044e8a3560b64bbe3cea1183904d6033e3b1b9360c3",
+        "stream": {
+          "codec_name": "h264",
+          "width": 640,
+          "height": 360,
+          "duration": "32.201000",
+          "nb_frames": "162"
+        },
+        "max_pts_error_seconds": 0.0004910619987636977,
+        "recorded_span": 32.20027862799179,
+        "longest_frame_gap": 0.20093544400879182,
+        "decoded_fully": true
+      },
+      "frame_hash_count": 68
+    }
+  ]
+}

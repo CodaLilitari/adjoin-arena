@@ -26,7 +26,7 @@
     },
     "README.md": {
       "mode": 420,
-      "sha256": "2b0779bf3ca2e209808f218449c38006c23f0cefb7a99fd5c578a5acd124a54f"
+      "sha256": "2aca86f431dacd41328b24d54dc2832dfa95e9e281f7242d0328991e2af27b8d"
     },
     "Start-Server.command": {
       "mode": 493,
@@ -1039,6 +1039,14 @@
     "qa/adjoin-arena-native-duel-1x.json": {
       "mode": 420,
       "sha256": "2729d40f7d9d5eaedae244abe8ed5d6f1a6aa6045a3d30179c7853cd0c2798c7"
+    },
+    "qa/adjoin-arena-ready-gate-cli.json": {
+      "mode": 420,
+      "sha256": "642dea16dad30dfbe27e3c753b196855ccee2d7743a1488baf4933ef3e5770ca"
+    },
+    "qa/adjoin-arena-ready-gate.json": {
+      "mode": 420,
+      "sha256": "ab1841dce3e43e6fde4c41f2f84d1e1e6eb1bd5f929f9c2d6a2a112b67d6f69c"
     },
     "qa/admin-browser-layout.json": {
       "mode": 420,
@@ -2168,6 +2176,10 @@
       "mode": 420,
       "sha256": "cb34ee277db47896879632fb745c42d03f7c134b799b6a4a61aa709ab8fc4525"
     },
+    "scripts/bot_development/arena_ready_gate.cog": {
+      "mode": 420,
+      "sha256": "dd23248318ac9b9292725bc132e3df4e7f11e5d003531add86337bae3b35801b"
+    },
     "scripts/bot_development/arena_start.cog": {
       "mode": 420,
       "sha256": "df3747533a372ba56e45e55b0c8255b2094fbf48c19db1b1f1ce99571c7ab4bb"
@@ -2198,15 +2210,15 @@
     },
     "scripts/bot_development/controlled_opening.py": {
       "mode": 420,
-      "sha256": "ea1d10f470ee2217d2594d11087a360d5696808583438e32c47005000d279b8c"
+      "sha256": "2a2a08adafc1af3fa6bc78665c77d49e1c1f54df94d9375c54f82803ef2cdefd"
     },
     "scripts/bot_development/legacy/README.md": {
       "mode": 420,
-      "sha256": "095852ab37d8b259649dfcb3e22e7536c841cd61abe231b00fb7daec98f63710"
+      "sha256": "a60219e4ab0da2014404ab47518692bc1ad227b047de48dfd79f94edc7b8bbcf"
     },
     "scripts/bot_development/legacy/native_force_observation.py": {
       "mode": 420,
-      "sha256": "0f44cd6b98c10c044e0a9fd0157d521da514d7be92b7faca27aca28c57f41166"
+      "sha256": "f5df34aa174cc78cc556a89408076f7291f6d23bb2c1f1a7b66150d52137d6cd"
     },
     "scripts/bot_development/legacy/rebuild_native_pair.py": {
       "mode": 420,
@@ -2214,11 +2226,15 @@
     },
     "scripts/bot_development/legacy/record_server.py": {
       "mode": 420,
-      "sha256": "01f0ace874f8ecab0f3d510e3da4a6775b846aacd093225732a7f17af9bf137b"
+      "sha256": "326d1b015c9e06093056745d01efe4dbaf3993303f66c80d778a68e27fa0feb2"
     },
     "scripts/bot_development/legacy/windows_force_bridge.py": {
       "mode": 420,
       "sha256": "0f6417e52dda599370a8fd3f262f282d571004e1f0ee5478da125a84b4860855"
+    },
+    "scripts/bot_development/ready_gate.py": {
+      "mode": 420,
+      "sha256": "ca9a5d57c45b14dc38f4169d0c48602c7a62723556047f74b779602e61cdc328"
     },
     "scripts/bot_development/verify/README.md": {
       "mode": 420,
@@ -2271,6 +2287,10 @@
     "tests/test_arena_controlled_opening.py": {
       "mode": 420,
       "sha256": "ab82ba0d77dd1ad48ca2b34ecb773a927912c50f7c3ef5c9f2a8f3c54b573e1f"
+    },
+    "tests/test_arena_ready_gate.py": {
+      "mode": 420,
+      "sha256": "b4dc976ea04836280ff558ba5a580186889146d1550956f8c62111767696cb3c"
     },
     "tests/test_arena_recorder_startup.py": {
       "mode": 420,

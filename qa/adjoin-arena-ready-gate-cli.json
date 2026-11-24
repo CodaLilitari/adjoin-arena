@@ -1,0 +1,184 @@
+{
+  "kind": "adjoin-arena-ready-gate",
+  "status": "live_join_and_loadout_verified",
+  "requested_map": "m10.jkl",
+  "requested_match_seconds": 22,
+  "both_joined_observation_wall_seconds": 22.08,
+  "pacing": "normal engine wall-clock",
+  "seed_control": "not assigned or observed",
+  "seat_order": [
+    "boba_fett",
+    "jan_ors"
+  ],
+  "launcher_sha256": "f5df34aa174cc78cc556a89408076f7291f6d23bb2c1f1a7b66150d52137d6cd",
+  "recorder_sha256": "326d1b015c9e06093056745d01efe4dbaf3993303f66c80d778a68e27fa0feb2",
+  "ready_gate_source_sha256": {
+    "controlled_opening.py": "2a2a08adafc1af3fa6bc78665c77d49e1c1f54df94d9375c54f82803ef2cdefd",
+    "ready_gate.py": "ca9a5d57c45b14dc38f4169d0c48602c7a62723556047f74b779602e61cdc328"
+  },
+  "launcher_input_sha256": {
+    "bots/profiles.json": "3756863cb46ee220f2c5bd03d6706ebce861677b2f58c125248e4462e2465c39",
+    "bots/run.py": "3d6e0a2b90303b01d917c7158414bc8ac81c568c8c21abc87461a35063b34691",
+    "bots/companion.py": "8bd9d420abd5a006b2477fb1a4a5f59c66bdc4d8532e54cd69187ccc269c077f",
+    "bots/settings.py": "12a0a981f6e0186462da58338e20502b2485aa75541cea6f531095959205c694",
+    "manager/config.py": "fdc2a130e1b29677808a675193961213a412803369a5652777f00744e7bbdfb4",
+    "manager/content.py": "d4dae8db1b658f0b545d476b2e324b39c79cee622fd7ac77d8ccc955ca7f7812",
+    "native/BOT_BUILD.json": "b06918b1287caa62ba15e86275230fae0965e41f0ca61db985313179cd62ba30",
+    "qa/bots-stock-map-audit.json": "5c4e68d22e75c99f3e5bb5d1257732d8e2a3749a872efa77653c294cfd748511",
+    "web_gateway/ipc.py": "25763a360f251c68c030e2245eedae31d629111eebbcd81ac9c49bada51d5f0c",
+    "manager/spectator.py": "9fb67f40576c7480c278fb1cd68ad17ccca484da4a5f91411f1b73f5dfce497b",
+    "manager/spectator_geometry.py": "e6a69654b78bf4d343ab5401fb9067457ca069c698652b0799f38bdce27d3544"
+  },
+  "sha256": {
+    "bin/bots-linux-x86_64/jk-bot-client": "d04f5106a3a0a3f123162e82a364bc98ec495ae8bd2fe89fb0f1b2461fc44fe3",
+    "bin/bots-linux-x86_64/libGameNetworkingSockets.so": "8246a869b1d72115ecc849309629aa1abbce0bf1a0f23cc70deaded98d82d8e9",
+    "native/bot-client.patch": "12fc518bdf29bd7322c4d69935f9be499ea3f829f25538bd1f66de0dc2ff4af6",
+    "bin/linux-x86_64/openjkdf2": "16944b47e2ceecf3f09cc2820af26372e2af8642057c2b0a963e353ff090c745",
+    "bin/linux-x86_64/libGameNetworkingSockets.so": "45797fcd310f0812af9f55354ff22663859ca68c2d8bb0005efb88a748c471e7",
+    "jk1mp.gob": "6b72d772a8a0cc61d84aff3811d4cc5b9d2039c1df055646e44bcb7131fdaab6",
+    "res1hi.gob": "6c6d51eca9c85dffe7dce9b449642a052f055352e3f817abf03b465da861aafd",
+    "res2.gob": "c75f7d5211bdd2e07a3af6a987c718037e8f0fd6909018ddb4327137bf3a7ebf",
+    "jkl/m10.jkl": "704f786cc494e3593dcf18815247e678dbde9f0f53e09164300b1b7d81860ad8"
+  },
+  "opening_fixture": {
+    "stock_gob_sha256": "27a4b3642e0965753232f35b1e8e846c91df1eca1da77398b5efda66ca369a2e",
+    "stock_jkl_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+    "variant_gob_sha256": "6b72d772a8a0cc61d84aff3811d4cc5b9d2039c1df055646e44bcb7131fdaab6",
+    "variant_jkl_sha256": "704f786cc494e3593dcf18815247e678dbde9f0f53e09164300b1b7d81860ad8",
+    "cog_sha256": "9091f7c115823b72e2633f8d9324d1d972a56dd47076f4ffa75841a5c10e256f",
+    "unchanged_entry_count": 21
+  },
+  "log_sha256": {
+    "server.log": "d0d9cfdd1896a9a458464e14e1ff5084e4d5af1c103db6806296fd4f2ec98484",
+    "dark.log": "c7091f26b046a11c69cfa622543aa3a56758d1be76171265ccc0af88c64486ae",
+    "light.log": "d94d1df4e46e06b49b88845e629779efe189fdfe2216072758786a5654aa05dd",
+    "force-trace.jsonl": "631297ee7d5dc1e2e49402dfee76aeb5af5f185314bf05e3c70fe7c30c3c9610"
+  },
+  "ready_gate_observations": {
+    "status": "qualified",
+    "gate_token": 4.49,
+    "coordinator_slot": 1,
+    "coordinator_ready": [
+      {
+        "slot": 1,
+        "sender_time_s": 0.104,
+        "observer_time_s": 0.104
+      },
+      {
+        "slot": 2,
+        "sender_time_s": 0.104,
+        "observer_time_s": 4.49
+      }
+    ],
+    "host_ready": [
+      {
+        "slot": 1,
+        "sender_time_s": 0.104,
+        "observer_time_s": 4.71
+      },
+      {
+        "slot": 2,
+        "sender_time_s": 0.104,
+        "observer_time_s": 9.07
+      }
+    ],
+    "host_go_time_s": 9.11,
+    "host_acknowledgements": [
+      {
+        "slot": 1,
+        "mask": 1,
+        "host_time_s": 9.11
+      },
+      {
+        "slot": 2,
+        "mask": 3,
+        "host_time_s": 9.13
+      }
+    ],
+    "host_log_sha256": "d0d9cfdd1896a9a458464e14e1ff5084e4d5af1c103db6806296fd4f2ec98484",
+    "owners": {
+      "dark": {
+        "slot": 1,
+        "net": 3,
+        "gate_token": 4.49,
+        "hold_time_s": 0.0,
+        "loadout_time_s": 0.104,
+        "release_time_s": 4.49,
+        "unlock_time_s": 4.49,
+        "held_samples": 43,
+        "held_native_force_state_samples": 9,
+        "owner_ready_reports": 9,
+        "pre_release_plans": [
+          {
+            "item": 29,
+            "bot_time_s": 0.0
+          }
+        ],
+        "sampled_position_delta": 0.0,
+        "sampled_facing_delta": 0.0,
+        "held_bad_bits": 0,
+        "restored_actor_bits": 0,
+        "restored_gravity": 1,
+        "restored_collision": 1,
+        "sampled_rifle_gains_after_release_s": [
+          9.69
+        ],
+        "first_rifle_gain_after_release_s": 9.69
+      },
+      "light": {
+        "slot": 2,
+        "net": 5,
+        "gate_token": 4.49,
+        "hold_time_s": 0.0,
+        "loadout_time_s": 0.104,
+        "release_time_s": 0.172,
+        "unlock_time_s": 0.172,
+        "held_samples": 1,
+        "held_native_force_state_samples": 1,
+        "owner_ready_reports": 1,
+        "pre_release_plans": [
+          {
+            "item": 34,
+            "bot_time_s": 0.0
+          }
+        ],
+        "sampled_position_delta": 0.0,
+        "sampled_facing_delta": 0.0,
+        "held_bad_bits": 0,
+        "restored_actor_bits": 0,
+        "restored_gravity": 1,
+        "restored_collision": 1,
+        "sampled_rifle_gains_after_release_s": [],
+        "first_rifle_gain_after_release_s": null
+      }
+    }
+  },
+  "schema": 1,
+  "options": [
+    "--map",
+    "m10.jkl",
+    "--duration",
+    "22",
+    "--arena-baseline",
+    "--ready-gate",
+    "--camera",
+    "rifle-overlook"
+  ],
+  "source_match_receipt_sha256": "22c117b177fcb55dafef444ae5989da54fff5354b6d2fd13812a33c78a4d66a3",
+  "observer_receipt_sha256": "7b811a4febf1232f54d3985c57d23ffb8ee253a3e6eb18cb909e20e6cbdd604c",
+  "video": {
+    "path": "native-rifle-overlook.mp4",
+    "sha256": "e413415f2582d4387dc5d9ad2976671fbb512a7d350b5576e4bf06ebac656f67",
+    "stream": {
+      "codec_name": "h264",
+      "width": 640,
+      "height": 360,
+      "duration": "28.201000",
+      "nb_frames": "142"
+    },
+    "max_pts_error_seconds": 0.0004990799896198439,
+    "recorded_span": 28.200085847012815,
+    "longest_frame_gap": 0.20290346200636122,
+    "decoded_fully": true
+  }
+}

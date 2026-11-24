@@ -135,3 +135,9 @@ unshare -Urn -- sh -c '
 ```
 
 The launcher verifies the owner's stock episode, builds a temporary variant in its private stage, and checks the expected derived episode and map hashes. The variant adds one local COG and references it in the level. The two peers read the same content. Read the opening_observations in the run receipt for the verified spawn coordinates, restored masks, and owner-side changes to inventory bin 9. The camera's timestamps use wall time; the inventory readbacks use each seat's game clock. Compare matching events within each clock domain. The stock-duel comparison command takes unmodified stock matches.
+
+### Release both players from the controlled starts
+
+Run the controlled rifle command above with `--ready-gate` in place of `--controlled-opening` and a fresh output directory. Keep `--camera rifle-overlook` to see the alcove. Omit the camera for an unrecorded run. The gate requires the Canyon Oasis arena baseline and writes its own temporary episode variant. Stock and ungated trials use their original launch options.
+
+After the stock loadout appears, each client signals that it is ready. The player in slot 1 broadcasts GO when it has seen both signals. Both clients restore control, gravity and collision, then acknowledge the same GO to the dedicated host. The result in `receipt.json` includes the players' local releases and both host acknowledgements. The bot planners run during the physical hold. For the time to first rifle acquisition, subtract the release timestamp from the first owner-side bin 9 gain on that same client's clock. The elapsed time between the host's two acknowledgements measures message arrival at the host.

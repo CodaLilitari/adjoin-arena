@@ -1,0 +1,242 @@
+# Adjoin Arena. Per-seat opening on stock starts, followed by ordinary respawns.
+flags=0x240
+
+symbols
+message startup
+message trigger
+message newplayer
+message pulse
+thing player                         local
+int slot=-1                          local
+int savedMask=0                      local
+int opening=0                        local
+int rifle=-1                         local
+int sample=0                         local
+int held=0 local
+int readyMask=0 local
+int opened=0 local
+int ackMask=0 local
+int oldActor=0 local
+int oldCollision=0 local
+int oldGravity=0 local
+int fromSlot=-1 local
+int gateSample=0 local
+int ready=0 local
+flex goSec=-1 local
+int seenTriggers=0 local
+int hostPulse=0 local
+int bad=0 local
+int k=0 local
+int oldAmmo=0 local
+int ammo=0 local
+int active=0 local
+flex maxDrift=0.0 local
+flex move=0.0 local
+vector home local
+vector facing local
+flex maxTurn=0.0 local
+
+end
+
+code
+startup:
+   player = GetLocalPlayerThing();
+   Print("GATE_SCRIPT_LOADED");
+   PrintInt(IsServer());
+   if (IsServer()) SetPulse(0.1);
+   slot = GetPlayerNum(player);
+   if ((slot != 1) && (slot != 2)) return;
+   savedMask = GetRespawnMask(player);
+   if (slot == 1) SetRespawnMask(player, 0xFFFFFFFD);
+   else SetRespawnMask(player, 0xFFFFFBFF);
+   opening = 1;
+   return;
+
+newplayer:
+   if ((slot != 1) && (slot != 2)) return;
+   if (GetSenderRef() != player) return;
+   if (opening == 1)
+   {
+      opening = 0;
+      held=1;
+      Print("GATE_SPAWN_INVENTORY");
+      for (k=1; k<=15; k=k+1) PrintFlex(GetInv(player,k));
+      home=GetThingPos(player);
+      facing=GetThingLVec(player);
+      oldActor=GetActorFlags(player) & 0x240000;
+      oldGravity=GetPhysicsFlags(player) & 0x1;
+      oldCollision=GetCollideType(player);
+      SetActorFlags(player,0x240000);
+      ClearPhysicsFlags(player,0x1);
+      StopThing(player);
+      SetCollideType(player,0);
+      oldAmmo=0;
+      for (k=1; k<=15; k=k+1) oldAmmo=oldAmmo+k*GetInv(player,k);
+      Print("GATE_HELD");
+      PrintInt(slot);
+      PrintFlex(GetLevelTime());
+      PrintVector(home);
+
+      SetRespawnMask(player, savedMask);
+      Print("ADJOIN_OPENING");
+      PrintInt(slot);
+      PrintInt(GetThingSector(player));
+      PrintVector(GetThingPos(player));
+      PrintInt(savedMask);
+      PrintInt(GetRespawnMask(player));
+      SetPulse(0.1);
+   }
+   else
+   {
+      Print("ADJOIN_RESPAWN");
+      PrintInt(slot);
+      PrintInt(GetThingSector(player));
+      PrintVector(GetThingPos(player));
+      PrintInt(GetRespawnMask(player));
+   }
+   rifle = GetInv(player, 9);
+   Print("ADJOIN_RIFLE_BASE");
+   PrintInt(rifle);
+   return;
+
+pulse:
+   if (IsServer())
+   {
+       hostPulse=hostPulse+1;
+       if((hostPulse % 20)==1)
+       {
+           Print("GATE_HOST_STATE");
+           PrintInt(GetNumPlayers());
+           PrintInt(readyMask);
+           PrintInt(ackMask);
+       }
+   }
+   if (held)
+   {
+      gateSample=gateSample+1;
+      move=VectorDist(home,GetThingPos(player));
+      if (move>maxDrift) maxDrift=move;
+      move=VectorDist(facing,GetThingLVec(player));
+      if (move>maxTurn) maxTurn=move;
+      ammo=0;
+      for (k=1; k<=15; k=k+1) ammo=ammo+k*GetInv(player,k);
+      if (ready && (ammo!=oldAmmo)) bad=bad|1;
+      if ((ready==0) && (GetCurWeapon(player)==2) && (GetInv(player,2)>0) && (GetInv(player,14)>=399) && (GetInv(player,9)==0))
+      {
+          ready=1;
+          oldAmmo=ammo;
+          Print("GATE_POST_LOADOUT");
+          PrintFlex(GetLevelTime());
+          for (k=1; k<=15; k=k+1) PrintFlex(GetInv(player,k));
+      }
+      for (k=21; k<=33; k=k+1) if (IsInvActivated(player,k)) bad=bad|2;
+      if (GetCollideType(player)!=0) bad=bad|4;
+      if ((GetActorFlags(player) & 0x240000)!=0x240000) bad=bad|8;
+      if (ready && ((gateSample % 5)==1))
+      {
+          Print("GATE_SEND_READY");
+          PrintInt(slot);
+          PrintInt(bad);
+          PrintFlex(maxDrift);
+          PrintFlex(maxTurn);
+          SendTrigger(GetPlayerThing(0),7312,7312,1,slot,GetLevelTime());
+          SendTrigger(-1,7312,7312,1,slot,GetLevelTime());
+      }
+   }
+   sample = GetInv(player, 9);
+   if (sample != rifle)
+   {
+      Print("ADJOIN_RIFLE_CHANGE");
+      PrintInt(rifle);
+      PrintInt(sample);
+      PrintFlex(GetLevelTime());
+      rifle = sample;
+   }
+   return;
+trigger:
+   if(seenTriggers<18)
+   {
+       seenTriggers=seenTriggers+1;
+       Print("GATE_TRIGGER_DIAG");
+       PrintInt(GetSourceRef());
+       PrintInt(GetPlayerNum(GetSenderRef()));
+       PrintInt(GetParam(0));
+       PrintInt(GetParam(1));
+       PrintInt(GetParam(2));
+   }
+   if ((GetSourceRef()!=7312) || (GetParam(0)!=7312)) return;
+   fromSlot=GetPlayerNum(GetSenderRef());
+   if ((GetParam(1)==1) && (IsServer() || (slot==1)))
+   {
+       if ((fromSlot!=1) && (fromSlot!=2)) return;
+       if (fromSlot!=GetParam(2)) return;
+       if (((fromSlot==1) && ((readyMask & 1)==0)) || ((fromSlot==2) && ((readyMask & 2)==0)))
+       {
+           Print("GATE_OBS_READY");
+           PrintInt(fromSlot);
+           PrintFlex(GetParam(3));
+           PrintFlex(GetLevelTime());
+       }
+       if (fromSlot==1) readyMask=readyMask|1;
+       if (fromSlot==2) readyMask=readyMask|2;
+       if ((readyMask==3) && (slot==1) && (opened==0) && (IsServer()==0))
+       {
+           opened=1;
+           Print("GATE_COORDINATOR_GO");
+           PrintInt(readyMask);
+           PrintFlex(GetLevelTime());
+           SendTrigger(-1,7312,7312,2,7312,GetLevelTime());
+       }
+       return;
+   }
+   if ((GetParam(1)==2) && IsServer() && (fromSlot==1) && (GetParam(2)==7312))
+   {
+       goSec=GetParam(3);
+       opened=1;
+       Print("GATE_HOST_GO_SEEN");
+       PrintInt(readyMask);
+       PrintFlex(goSec);
+       PrintFlex(GetLevelTime());
+       return;
+   }
+   if ((GetParam(1)==2) && ready && held && (fromSlot==1) && (GetParam(2)==7312))
+   {
+       Print("GATE_LOCAL_RELEASE");
+       PrintInt(slot);
+       PrintFlex(GetParam(3));
+       PrintFlex(GetLevelTime());
+       PrintInt(gateSample);
+       PrintInt(bad);
+       PrintFlex(maxDrift);
+       PrintFlex(maxTurn);
+       PrintVector(GetThingPos(player));
+       PrintInt(GetInv(player,9));
+       goSec=GetParam(3);
+       held=0;
+       ClearActorFlags(player,0x240000);
+       SetActorFlags(player,oldActor);
+       if (oldGravity) SetPhysicsFlags(player,oldGravity);
+       SetCollideType(player,oldCollision);
+       Print("GATE_UNLOCK_APPLIED");
+       PrintInt(slot);
+       PrintInt(GetActorFlags(player) & 0x240000);
+       PrintInt(GetPhysicsFlags(player) & 1);
+       PrintInt(GetCollideType(player));
+       PrintFlex(goSec);
+       PrintFlex(GetLevelTime());
+       SendTrigger(-1,7312,7312,3,slot,goSec);
+       return;
+   }
+   if ((GetParam(1)==3) && IsServer() && opened && (GetParam(3)==goSec) && (fromSlot==GetParam(2)))
+   {
+       if (fromSlot==1) ackMask=ackMask|1;
+       if (fromSlot==2) ackMask=ackMask|2;
+       Print("GATE_HOST_ACK");
+       PrintInt(fromSlot);
+       PrintInt(ackMask);
+       PrintFlex(GetParam(3));
+       PrintFlex(GetLevelTime());
+   }
+   return;
+
+end
