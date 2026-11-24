@@ -134,7 +134,7 @@ movement axes, the jump key and the two Force keys.
   percent. The Force Jump hold (upward speed 2.5 + hold, hold at most
   0.35 per rank) is then solved so the flight comes down on the landing
   node, at no more than 2.95 units a second, which costs under ten health.
-  Three flights at 94, 100 and 105 percent of the launch speed are swept
+  Three flights at 90, 100 and 109 percent of the launch speed are swept
   through the level and must all find the foothold with room to stop.
 - **Jumping.** The bot walks to the start of the run-up, brings up Force
   Speed if the plan needs it, stands and faces the line. The Force Jump key
@@ -153,6 +153,27 @@ players use: from the lower centre platform, Force Speed, a strafing sprint
 of 0.3 to 1 unit and a nearly full Force Jump, 2.1 to 2.7 units across and
 one unit up. It needs Force Jump rank three or four; lower ranks find no
 way in.
+
+**Margins.** Two of these jumps go from the temple doorways on Canyon
+Oasis up onto the low shelf (one unit up, half a unit of headroom) in
+front of the north alcove. Across the recorded matches the south one fell
+5 times in 65 and the north one 15 times in 111, each fall a two-unit drop
+into the canyon for about 33 health. The south jump's falls launched 7 to
+11 percent slow (after two frames of flight, as logged), where the sweep
+had still landed at 90 percent; it lands 0.13 past the shelf's lip, and a
+heading two degrees off already meets the corner of the shelf's opening.
+With `jump_margin` (default 1) a jump is kept only if a flight at 85
+percent of the launch speed, and for a Force Jump one at 93 percent with
+a tenth less lift (a hold the engine timed a few frames short), still lands.
+On Canyon Oasis that drops three of the nine dry jumps (the south shelf
+jump and two level ones that land just past a lip), finds one other, and
+keeps the north one. Most of the north jump's falls were not slow flights
+of a good plan: 9 of the 15 left at under 70 percent of the planned speed.
+In the one traced, the jumper was gripped during the run-up; the held
+Force Jump went off at its release with no speed, and the flight then
+pushed on toward the far side and off the edge. A launch below 70 percent of the planned speed now
+thrusts back instead and comes down where it took off; the leg rests for
+15 seconds (`event=fail why=slow-launch`).
 
 **Running off.** The same solver handles a ledge above water: walk or
 sprint off the lip and fall in, which costs no health because the engine
@@ -330,6 +351,156 @@ an item, within reach along the view. A stall that triggers recovery still
 presses once. Measured in the same match: 2 to 3 presses a minute, against
 30 and 63 for two bots with `blind_use=1`.
 
+## Level traps
+
+Four of the six stock multiplayer levels have traps a player springs from a
+switch. The bots knew none of them: they walked into them, and pressed
+their switches by accident whenever one stood in front of them as they
+pushed past.
+
+| Level | COG | Switch | Effect |
+|---|---|---|---|
+| Canyon Oasis | `00_lightning.cog` | one, beside the grated ramp | Arms the ramp: the next player onto it sets three emitters in the far wall firing Force Lightning (13 a bolt, 1.5 units) every half second until someone steps off. Pressed again, it disarms. |
+| Nar Shaddaa Loading Terminal | `m2_dettrap.cog` | four | Each throws eight thermal detonators (3 s fuse, 75 within 0.45) from four vents, then resets after about four seconds. |
+| Nar Shaddaa Loading Terminal | `m2_turrettrap.cog` | one | Four ceiling turrets fire five auto-aimed volleys over about nine seconds. |
+| Bespin Mining Station | `m4_reactorthrust.cog` | one, beside the reactor pad | Thrusts anyone in the reactor shaft straight up for one cycle of the hatches above. |
+| Blades of Death | `m5_fandamage.cog` | two | The fan takes 125 every half second from anyone in its pit; a switch stops it for 11.5 seconds. |
+
+Nar Shaddaa also has a force field (`m2_ffieldswitch.cog`) across the
+passage by the turret room, a gate rather than a trap; see Force fields
+below. The Valley of the Jedi Tower and Battleground Jedi have no traps.
+
+A trap is recognised by the symbol names of its COG, whose values the
+level gives every machine: the switch surfaces, the sectors it covers and
+the spots it fires from. On a client the COG's messages run on the server,
+so the COG's own variables never change there; the switch frames the
+server sets do reach every machine, and they say whether a trap is ready
+(frame 0) or live (frame 1; the fan runs at frame 0). Each bot logs
+`BOT_TRAP event=bind` for every trap it found, with the spot it would press
+the switch from, and `event=state` whenever a switch changes.
+
+- **Zones.** A trap's zone is its sectors (the ramp, the reactor shaft, the
+  fan pit) and what its emitters reach: inside a turret's or lightning
+  emitter's view cone and range with a clear line, or within 1.2 units of
+  where a detonator from each vent first meets the level (its throw is
+  flown with the template's speed, gravity and air drag).
+- **`trap_avoid`** (default 1). The graph nodes in a live trap's zone are
+  avoided, so routes and goals leave it alone while it is armed or
+  firing; the fan pit counts as live unless the bot saw the fan stop with
+  time to spare. A bot caught in one takes the cheapest way to the nearest
+  node outside every live zone (`event=escape`). A trap's switch is never
+  pressed just to get past, by the blocked-way press or by recovery.
+- **`trap_use`** (default 6) and **`trap_chance`** (default 0.6). Every
+  half second a bot not in the middle of a jump, a water exit or a
+  recovery looks for a ready trap with an opponent in its zone (for the
+  lightning, on the ramp or within 2.5 of it), no teammate there, the bot
+  itself clear of it, and the spot in front of the switch no more than
+  `trap_use` units of path away (a Force Jump leg counts its flight). Such
+  an opening is taken with `trap_chance`; one passed up is not looked at
+  again for four seconds. The lightning is an ambush as well: a bot passing
+  within 1.5 of its switch arms it with half that chance, and then leaves
+  it for 20 seconds. The bot routes to the spot (a fight keeps its aim on
+  the way), looks at the switch from the eye and presses use once, from
+  where the stock activation ray reaches. The switch frame changing is the
+  proof (`event=sprung`); the same trap is then left alone for 25 seconds.
+  Another player getting there first (`why=taken`), a press with no answer,
+  the way there growing half as long again (`why=too-far`: a struck jump
+  leg, no Force left for one, a fight that carried the bot off) or the
+  time running out ends the attempt (`event=abandon`, with how far from
+  the spot it was).
+- **`trap_disarm`** (default 1). The lightning stays armed until someone
+  presses the switch again. Once the ramp has stood armed ten seconds with
+  no opponent on it or within 2.5 of it, a bot takes it back down: from up
+  to 1.5 units of path away, plus one more for every ten seconds it has
+  stood armed, at most twice `trap_use` (6 after 45 seconds, 12 after about
+  two minutes on the defaults; the switch platform is a Force Jump up, so
+  most of the level is 6 to 16 units of path from it). A teammate by the
+  ramp has it taken down at once (within `trap_use`). No chance is
+  rolled; how long it has stood decides. The switch frame going back to 0
+  is the proof (`event=disarmed`), and the switch is then left alone for 25
+  seconds. The bots read the frame every 0.2 seconds, so whoever disarms
+  it, the ramp is part of their routes again within half a second.
+
+The fan is only kept clear of; stopping it opens nothing worth a run.
+`BOT_MOVE` counts `traps` sprung, `trap_disarms`, `trap_escapes`,
+`trap_open` (looks that found an opening at a switch), `trap_busy` (looks
+skipped) and `trap_nearest` (the shortest walk to such a switch);
+`BOT_TRAP event=open` logs one such opening per trap every ten seconds,
+with `purpose=spring` or `purpose=disarm`, and `event=hurt` damage taken
+inside a live zone.
+
+### Force fields
+
+Nar Shaddaa's field (`m2_ffieldswitch.cog`) closes a passage 4.8 units wide
+by the turret room. It is on from the start: the COG clears the movement
+flag of both faces' adjoins, so nothing passes, and touching it takes 5 to
+10 every quarter second. Each of its two switches turns it off, or on
+again: one up on the main side (surface 890, reached from the walkway a
+floor up) and one at the floor of the strip behind it (surface 939, beside
+the turret switch). A player spawn (thing 100) is in that strip. A bot that
+spawned there could reach only the strip's 23 graph nodes, and the turret
+switch was in reach of no one else. The field's state reaches every machine
+with the surface update, which carries the adjoin's flags, so a bot reads
+whether it is open directly (`BOT_TRAP event=state kind=field`, `cel=1`
+open).
+
+- **The graph.** When the traps are bound the field is learnt once, the
+  same whichever state it was in when the graph was built. No ordinary leg
+  goes through its face or passes the face's edge closer than a body's
+  breadth, and no leg ends at a node standing against it (a body there
+  touches the field while it is on). Up to sixteen gate legs cross it,
+  spread along it, shortest first: a gate leg joins a node on either side
+  straight through the face where the body clears the face's edges, with
+  floor just short of the face on both sides, and each half an ordinary
+  walk that stops short of it. Nar Shaddaa gets 20 gate legs, 10 each way
+  (`BOT_FIELD event=bind` and `event=gate`).
+- **`field_switch`** (default 1). An open field's gate leg is an ordinary
+  walk. While the field is on, a gate leg costs the walk from it to the
+  nearest switch on its side, the walk back, and a second to press it: 2
+  to 8 units from the strip, about 30 from the main side, where the switch
+  is a floor up and the sure way up goes round by the far end of the level
+  (the Force Jump legs up beside it are often refused on the spot). The
+  price is brought up to date every five seconds, so a struck jump leg or
+  the Force to make one counts. When a bot's route meets a gate that is
+  on, it goes to that side's switch first (`purpose=open`) and presses it
+  like a trap's switch. Once the field is seen open (`event=opened`) it
+  goes on to where it was headed. It never walks into the field while it
+  is on: on a gate leg it waits short of the face until the run starts
+  (`BOT_MOVE gate_wait`, in seconds). If the way to the switch grows half
+  as long again (and by 3 or more) while the bot is on it, it gives up
+  (`why=too-far`) rather than trek round the level. If that side's switch
+  cannot be worked (no route to it, a press with no answer, a run given
+  up), the field is a wall from that side for 15 seconds (`BOT_FIELD
+  event=no-switch`). A field someone else opens first is good news
+  (`why=taken`, with no rest). Field switches count as trap switches for
+  `trap_avoid`, so they are never pressed by accident. With `field_switch`
+  at 0, a field that is on is a wall.
+
+On the level's own geometry (the offline map probe), with the field on, a
+bot that spawned in the strip now reaches 567 of the 640 graph nodes
+through the strip's switch, against 23 before; the same 20 gate legs are
+built whether the field was on or off when the graph was built.
+`BOT_MOVE` counts `fields_opened`.
+
+Limits. A bot does not close the field behind it or use it to cut off an
+opponent, and a fight next to a field that is on can still brush it.
+Bespin's reactor pad is out of the way and saw no use in the trials.
+
+## Lips
+
+On Canyon Oasis's high walkway Red stood still for fifteen seconds with her
+feet on the lip of the platform by the lightning switch and her centre over
+the grated ramp 0.85 below. With no floor under the centre there was no hop
+to fall back on, every heading near the one she wanted ran off the lip, and
+the movement code gave up; her nearest graph node was the one down on the
+ramp, because only nodes in the centre's sector counted. With `lip_escape`
+(default 1) a bot that is standing with no floor under its centre takes the
+safe heading nearest the one it wants, even back from the edge, and routes
+start from the floor under its feet as well as from the centre's sector.
+On the same spot, replayed against the level's geometry, every wanted
+direction now steps back onto the platform, and the nearest node is the
+platform's own, 0.15 away. `BOT_MOVE` counts `lip_steps`.
+
 ## Confinement
 
 `Bot_Recovery` already handles a bot that cannot move. The new check handles
@@ -475,7 +646,7 @@ opponent like any other.
 
 ## Tactics
 
-`python -m bots.tactics list` prints the table: 50 named values with a
+`python -m bots.tactics list` prints the table: 57 named values with a
 default, a legacy value, and a range. The legacy column reproduces the
 behaviour before this change, so one build can play both.
 
@@ -708,6 +879,81 @@ rebuild, and refresh the build receipts in the usual way.
   running stop 9 to 15, no ordinary footing (in the air, wading, crouched) 4
   to 17, arriving at a jump, drop or lift leg 5 to 13. The edge was always
   found before any water or ledge drop beyond it.
+
+- Lips, traps and jump margins: the driver suite (88 groups, 3 of them
+  new) passes with the legacy values, with the new defaults and under the
+  sanitizers. The new groups cover a bot on a lip with its centre past the
+  edge (stepping back, the hop kept for a bot with floor under it, the
+  nearest node from the floor underfoot), a lightning trap found from its
+  COG symbols (spot in reach of the use ray, zone nodes, avoidance, walking
+  off an armed ramp, one press on an opponent's approach, the server's
+  frame as proof, legacy leaving it alone) and a detonator throw, and the
+  shelf jump refused 0.1 past its lip but kept 0.4 past it, with the slow
+  launch coming back down. The Canyon Oasis walkway perch, replayed against
+  the level's own geometry: every wanted direction now steps back onto the
+  platform (legacy: no movement in half of them).
+- Two eight-minute matches on Canyon Oasis, two bots on the new defaults
+  against two with `lip_escape`, `trap_avoid`, `trap_use` and
+  `jump_margin` off, profiles swapped (`trap_use` was 2.5 then): kills and
+  deaths 51/52 against 52/52; running jumps 11 landed and none fell for
+  the new group, 19 landed and 3 fell for the old; nobody sprang a trap.
+  With traps every bot's: on Nar Shaddaa, four bots with `trap_use` 8 and
+  `trap_chance` 1 for two minutes, a detonator switch and the turret switch
+  were each sprung once, from 0.33 and 0.10 away, each with an opponent in
+  its zone, and the others walked out of the turrets' cones. With
+  `trap_use` 4, a later 150 s check had one turret spring with two
+  opponents in the zone: one walked out, the other lost 38, 33 and 26
+  health to three volleys inside it. On Canyon Oasis with the eager values
+  two bots went for the lightning switch; one armed it and the other was
+  beaten to it. In the recording that goes with this (Red on `trap_use` 8
+  and `trap_chance` 1, three opponents on the previous release), Red armed
+  the ramp 38 seconds in. Off her screen Katarn died twice with no killer
+  named ("Bot_Katarn died"), once logged on the ramp at 0 health, and the
+  other two were logged on it at 22 and 4 health. Natural use is rare: on
+  the defaults, a 180 s four-bot check on Canyon Oasis had two attempts
+  that ran out of time in fights (the switch platform is reached from
+  below by a Force Jump), and a 200 s one, after the time allowed grew with
+  the walk, had none.
+- Trap disarm and the force field: the driver suite (90 groups, 2 of them
+  new) passes with the legacy values, with the new defaults and under the
+  sanitizers. One new group takes an armed ramp through being left alone
+  while new and while an opponent is near it, being taken down from
+  farther the longer it stands, the press with the frame as proof, the
+  ramp back in the routes within half a second, and legacy leaving it
+  armed. The other finds a force field from its COG (a switch and a spot
+  to press it from on each side), checks that no ordinary leg goes through
+  the face or ends against it and that one gate leg crosses each way, and
+  prices a gate while the field is on. It then takes a route through the
+  field to the switch on the bot's side, waits short of the face, presses,
+  goes on to the goal once the field is open, treats the field as a wall
+  when its switch cannot be worked, and has legacy treat it as a wall. On
+  Nar Shaddaa's own geometry (offline): 20 gate legs, the same whether the
+  field was on or off when the graph was built, and with the field on a
+  bot that spawned in the strip reaches 567 of the 640 nodes, against 23.
+- Live, five minutes each, four bots on the defaults. Nar Shaddaa, three
+  matches, each with the field opened once and then every bot through it
+  and back (11 to 15 of each bot's ten-second position samples were behind
+  it); no bot waited at the field. In the first, the field's price counted
+  only the way down from the switch above it: bots went for that switch
+  eight times, two runs timed out on the long way round the level, one
+  lost its route, one was beaten to it, three ended when the bot died or
+  the match did, and one opened it. With the way up priced too, the second had four runs,
+  one opening it and three given up as `too-far`, two of those from right
+  below the switch in the middle of the Force Jump up, when the bot looked
+  for the nearest node in the air. Runs now hold their way through a jump.
+  In the third, a bot that spawned in the strip opened the field from
+  inside within ten seconds, and the turret trap behind it, out of
+  everyone's reach before, was then sprung three times. Canyon Oasis: with
+  `trap_use` 8 and `trap_chance` 1, Boba Fett armed the ramp about eight
+  seconds in; it stood armed about 55 seconds, with opponents near it at
+  times, and then Katarn walked 6.4 units of path to the switch and
+  disarmed it with one press. On the defaults, one match before runs held
+  their way through a jump had nobody arm it in five minutes; the match
+  after had Boba Fett arm it in passing at 171 seconds, and it stood about
+  100 seconds, everyone 7 to 16 units of path from the switch, until Jan
+  Ors came within 6 and disarmed it. Every bot read each change. The reach
+  for taking it down was then allowed to grow past `trap_use`, to twice
+  it, which has not been run live.
 
 Read the table with care. Two groups on identical settings in one 240 s
 match differed by 0.48 against 0.63 in speed and 36% against 19% in time
