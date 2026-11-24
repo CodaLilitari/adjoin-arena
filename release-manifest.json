@@ -74,7 +74,7 @@
     },
     "bots/README.md": {
       "mode": 420,
-      "sha256": "ac618a9008a42b53c54a7af8c73f8633e9310242e1c38e6ae2dfcf6e22eecd7f"
+      "sha256": "bf5c5144b63199e049e14accedd10c5d0d5fbb60e7a5e235174829c81b371faf"
     },
     "bots/SOURCES.json": {
       "mode": 420,
@@ -118,7 +118,7 @@
     },
     "bots/tactics.py": {
       "mode": 420,
-      "sha256": "087142a9b42d1cfd8ad96a99d803f755d3d8375908e1522bb79146f6404d26f1"
+      "sha256": "6b2d5fcb2906defc899d6bd1e0ea3316c4d17fa8b8a7f71cf8b0f5815c9ae6c8"
     },
     "directplay/Makefile": {
       "mode": 420,
@@ -202,7 +202,7 @@
     },
     "docs/BOT_TACTICS.md": {
       "mode": 420,
-      "sha256": "8c4897b19a6981604cd66e585726b9efcb436dcf4ef3692512729317262e8a0c"
+      "sha256": "df6c7ffaa8150f39c9f0b336950ac6753373598b6eb1575801ac34bbd703345c"
     },
     "docs/BROWSER_SPECTATOR.md": {
       "mode": 420,
@@ -554,7 +554,7 @@
     },
     "native/bot-tactics.patch": {
       "mode": 420,
-      "sha256": "9f6c8960e55b0c705ccdb8bf098a389eed7b7d5f08914ab79ac946358af2ac84"
+      "sha256": "2a788b4dc021214ae5c6f3bbe97d9123dad31bac00ca0fa54c1e15b800cb427e"
     },
     "native/build.sh": {
       "mode": 493,
@@ -718,7 +718,7 @@
     },
     "native/tests/test_bot_plain_geometry.inc": {
       "mode": 420,
-      "sha256": "db6267301531fdf88f0c819019e73f1a208a985ca70a5c124463a831640bb2f0"
+      "sha256": "a09ebe3f224b5fe7b97d87a45ae3d65c59be679929d337592fd57793220bc79b"
     },
     "native/tests/test_bot_portal_collision.c": {
       "mode": 420,
@@ -734,7 +734,7 @@
     },
     "native/tests/test_bot_tactic_fixes.inc": {
       "mode": 420,
-      "sha256": "f77ab9a27fc9818579270fcbe07bc053773a36b6ee78e46703e540fccef2a5a4"
+      "sha256": "d7ba0402c026459cd3dba00f052292129fad07259d0e7d99f209ba2e6f3a5584"
     },
     "native/tests/test_bot_tactics.inc": {
       "mode": 420,
