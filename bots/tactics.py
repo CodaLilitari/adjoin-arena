@@ -76,6 +76,13 @@ TACTICS = (
     ("pull_on_move", 1.0, 0.0, 0.0, 1.0, "keep running through an item Force Pull and run onto the item as it flies in (0 or 1)"),
     ("pack_hunt", 1.0, 0.0, 0.0, 1.0, "find ways to dropped packs from the graph nodes nearest them, and reach packs on pool floors (0 or 1)"),
     ("pack_deny", 3.0, 0.0, 0.0, 20.0, "least worth of a dropped pack holding a loaded concussion rifle, rail detonator or repeater (0 = no floor)"),
+    ("lip_escape", 1.0, 0.0, 0.0, 1.0, "on a lip with the centre over a drop: route from the floor underfoot and step back rather than freeze"),
+    ("trap_avoid", 1.0, 0.0, 0.0, 1.0, "keep out of an armed or firing level trap's zone, walk out when caught, never press its switch by accident"),
+    ("trap_use", 6.0, 0.0, 0.0, 10.0, "longest walk (units of path) to a level trap's switch to spring it on an opponent (0 = never)"),
+    ("trap_chance", 0.6, 0.6, 0.0, 1.0, "chance a trap opening is taken"),
+    ("jump_margin", 1.0, 0.0, 0.0, 1.0, "accept a running jump only if a launch 15% slow (7% slow with less Force Jump lift) still lands; come back down from a launch far too slow"),
+    ("trap_disarm", 1.0, 0.0, 0.0, 1.0, "switch an armed lightning ramp back off once it has stood armed a while with no opponent near it, from farther the longer it stands (up to twice trap_use)"),
+    ("field_switch", 1.0, 0.0, 0.0, 1.0, "work a level's force field: a way through it while it is on costs the walk by that side's switch, which the bot presses before crossing; never walk into it while on"),
 )
 NAMES = tuple(row[0] for row in TACTICS)
 INDEX = {name: index for index, name in enumerate(NAMES)}
