@@ -42,16 +42,23 @@ test asserts it. A player with Always Run on gets the same thrust.
 
 ## Movement
 
-- **Run.** `Bot_Move` holds the run key only when the caller marked the
-  movement as open ground and a corridor check passes: continuous supported
-  floor with no drop, wall, water, thrust sector or other body for the whole
-  coasting distance at the speed about to be reached, plus a quarter unit.
-  Ice, water surfaces, crouching and unknown surface drag are walked.
-- **Where.** The route follower asks for a run only on plain walking legs,
-  and stops asking `run_brake` units before a jump, drop, lift, water edge,
-  the end of the route or a corner sharper than about 25 degrees. Jump and
-  water-exit timing therefore still start from close to walking speed.
-  Gunfight and saber movement asks for a run whenever the corridor allows.
+- **Run.** With `always_run` (default 1) the bot holds the run key on all
+  dry ground and walks only where a running bot could not stop short of
+  trouble. It looks one running stop ahead (the coast at the speed about to
+  be reached, plus a quarter unit) for a pit, a drop off a ledge of more than
+  0.28 units in all, water, a thrust sector or a floor that hurts. A wall, a
+  step up or another body ends the look instead, since running into them
+  costs nothing, and a ramp down is floor, not a drop. Ice, water surfaces,
+  crouching and unknown surface drag are walked. The legacy rule
+  (`always_run` 0) ran only where the whole body had a clear, drop-free
+  corridor for that distance, so any wall or step down ahead meant walking.
+- **Where.** The route follower runs corners and the end of a route, the bot
+  runs onto a pickup over the last span and toward a sound it investigates,
+  and fights run whenever the check allows. It still arrives walking at a
+  jump, drop or lift leg, stopping the run `run_brake` units before one, so
+  jump and water-exit timing still start from close to walking speed. The
+  legacy route follower also walked into corners sharper than about 25
+  degrees and the end of a route.
 - **Exact thrust.** The old axes pushed up to 10 degrees off the wanted
   direction whenever the body faced elsewhere, which is most of a fight.
   The new axes put the thrust exactly on the wanted line.
@@ -220,14 +227,62 @@ recording; that is only on the bot's own screen.
 
 Items answer Pull too: the item flies at the puller with gravity off.
 Keys, wrenches and CTF flags refuse it. With `item_pull` (default 2; 0 =
-never) a bot standing on dry ground with no enemy in sight pulls an item
-worth at least that much (the same value the planner gives it) from 0.75
-units out to just inside its reach. It stops, turns until the item is
-centred, holds Pull until the stock marker names that item, releases, and
-stands for up to 1.5 s to catch it. A wrong marker cancels through
-deselection; an item that was not caught rests ten seconds before another
-try; an enemy coming into view ends the pull. `BOT_PULL` lines record each
-item pull and each player pull's outcome.
+never) a bot on dry ground with no enemy in sight pulls an item worth at
+least that much (the same value the planner gives it) from 0.75 units out
+to just inside its reach. It turns until the item is centred, holds Pull
+until the stock marker names that item, and releases. A wrong marker cancels
+through deselection; an item that was not caught rests ten seconds before
+another try. `BOT_PULL` lines record each item pull and each player pull's
+outcome.
+
+Nothing in the stock power needs the puller to stand still. Its pulse picks
+the thing nearest the view centre in sight and in reach, and the release
+throws that thing at wherever the puller stands at that moment, at 3 units a
+second slowing under air drag, gravity off for 1.5 s. The legacy bot stopped
+for the whole pull and stood to catch the item, one to three seconds in the
+open each time. With `pull_on_move` (default 1) it runs at the item through
+the cast where that way is safe, so the item stays centred and in reach and
+comes in sooner, and otherwise keeps to its route; a pull under way may close
+right in or bounce over uneven ground. After the release it runs onto the
+item as it flies in, and where that way is not safe it waits, since the item
+is coming to the spot of the release. A fight that starts once the marker
+names the item no longer cancels the pull: the bot lets go at once, and its
+legs chase the item while its aim and its Force go to the fight. The legacy
+bot ended the pull for any enemy in view.
+
+## Dropped packs
+
+A player who dies leaves a backpack (`+backpack`) for 30 seconds holding
+every gun and all the ammunition they carried; health and shields stay
+behind. A pack has no route node. The planner finds where a bot can touch
+it, then a graph node from which a straight walk of at most 2 units reaches
+that spot. With trace logging on every bot (one `BOT_PACK` line each time a
+bot's verdict on a pack changes), two five-minute four-bot matches showed
+three things in the way:
+
+- **No way in.** The planner tried the four nodes nearest the bot, plus one
+  more each scan in rotation. Beside a ledge the nodes nearest the bot are
+  the ones below it, which never walk up to the pack; the right ones came
+  round once in up to 50 scans. 'No way in' was about half of all verdicts.
+  One pack with a repeater, a rail detonator and 500 energy sat on a ledge
+  for twenty seconds while four bots came within 2.5 to 7 units of it.
+  `pack_hunt` (default 1) tries the nodes nearest the pack first, eight a
+  scan, and keeps the touching spot and up to three ways in while the pack
+  lies still; a pack that moves starts over.
+- **Packs in water.** On a pool floor, the height at which the bot checks a
+  swimmer can touch the pack left the swimmer's body touching the floor;
+  floating just under the surface, the check started in the air above the
+  water. Both were taken for out of reach, among them a pack with a
+  concussion rifle, a rail detonator and 21 rail charges 0.4 units from a
+  bot. `pack_hunt` lifts the check clear of the floor, or makes it level with
+  or under a floating pack. A pack whose centre has sunk onto the floor
+  itself stays out of reach: the stock pickup needs a line of sight to the
+  pack's centre, and that line ends in the floor.
+- **Worth.** A pack was worth only what the bot lacked. To a bot holding a
+  concussion rifle with plenty of shots, a pack with another one was worth
+  its ammunition: 1, or 5 when nearly out. `pack_deny` (default 3) makes a
+  pack with a concussion rifle, rail detonator or repeater and a shot for it
+  worth at least 3: the ammunition, and nobody else arms himself from it.
 
 ## Mines and thermals
 
@@ -391,6 +446,13 @@ the old behaviour.
   preferred as a target and in the hunt. `BOT_GEAR event=loose` logs each
   pulled gun chased; in one eight-bot match there were eleven.
 
+Watching the latest recording, three more things stood out: the bots still
+walked much of the time, stood still to pull items, and seemed to pass up
+packs dropped by fallen opponents. The logs bore all three out; the answers
+are `always_run` (see [Movement](#movement)), `pull_on_move` (see
+[Force Pull](#force-pull)) and `pack_hunt` with `pack_deny` (see
+[Dropped packs](#dropped-packs)).
+
 Two earlier tactics came from the first recording:
 
 - `absorb_reserve` (default 1). The bot took Grip damage again and again
@@ -413,7 +475,7 @@ opponent like any other.
 
 ## Tactics
 
-`python -m bots.tactics list` prints the table: 46 named values with a
+`python -m bots.tactics list` prints the table: 50 named values with a
 default, a legacy value, and a range. The legacy column reproduces the
 behaviour before this change, so one build can play both.
 
@@ -583,6 +645,16 @@ rebuild, and refresh the build receipts in the usual way.
   them to pin a tactic whose change is deliberate: swim pricing in one graph
   with hand-set edge costs, the running-arc Force Jump model in two arc
   tests, and an armed bot in one pickup-value test.
+- Running, pulls on the move and packs: the driver suite (85 groups, 3 of
+  them new) passes with the legacy values, with the new defaults and under
+  the sanitizers. The new groups cover the running stop check (pit, wall,
+  step up, small and big steps down, footing), running onto a pickup, a
+  pull run through from cast to catch (waiting where the way is unsafe,
+  closing in, bouncing, letting go when a fight starts), the denial worth,
+  the way onto a pack on a shelf found from the node nearest it, and packs
+  on a pool floor and just under the surface. Two older groups now say
+  which they test: the item pull standing still, and the wall that ends a
+  run only under the legacy rule.
 - Three matches on Canyon Oasis with eight bots (16 minutes). Defaults
   against `legacy`, six minutes: 60 kills and 42 deaths against 40 and 58;
   3.0 s dead per death against 4.5; 80 seconds of firing while wet against
@@ -609,6 +681,33 @@ rebuild, and refresh the build receipts in the usual way.
   no bot picked it up. On m5, which has four of each, the bots barely move
   (fifty confinement escapes each in six minutes) and its heavy guns are
   unreachable to the planner, so it was no test.
+- Running, item pulls and packs. In the last recording's match the bots
+  ran 16 to 22 percent of the time they moved on foot. Four five-minute
+  matches on Canyon Oasis, two bots on the defaults against two with
+  `always_run`, `pull_on_move`, `pack_hunt` and `pack_deny` off, profiles
+  swapped between matches, trace logging on every bot:
+
+  | match | speed, new / old | running, share of time on foot | standing still | time wet | packs taken | kills / deaths |
+  | --- | --- | --- | --- | --- | --- | --- |
+  | 1 | 0.72 / 0.63 | 50-55% / 14-21% | 9% / 12% | 26% / 13% | 10 / 15 | 18/22 against 22/18 |
+  | 2 | 0.76 / 0.59 | 48-56% / 12-25% | 11% / 13% | 13% / 15% | 15 / 6 | 19/18 against 16/17 |
+  | 3 | 0.72 / 0.55 | 44-51% / 15-27% | 8% / 14% | 17% / 24% | 12 / 7 | 23/15 against 11/19 |
+  | 4 | 0.74 / 0.59 | 51-55% / 13-24% | 12% / 13% | 26% / 14% | 9 / 12 | 11/15 against 18/14 |
+
+  Over the four, kills and deaths are level (71/70 against 67/68). Among
+  the pack verdicts, 'no way in' came up once for the new group against 152
+  times for the old, and 'out of reach' 14 times against 40; after the fix
+  for packs floating under the surface (matches 2 to 4), five of the new
+  group's six were packs still moving. The new group went into water after
+  packs 18 times, for a rail detonator, a repeater or a concussion rifle;
+  the old group never could, and was wet less in two of the four matches.
+  Item pulls: the new group started 64 and caught 27, the old group started
+  127 and caught 47; a bot that runs reaches more items by touch. What still
+  keeps the new group walking, in seconds per bot per match (`run_no` in
+  `BOT_MOVE`, matches 3 and 4): a pit, ledge or water's edge within a
+  running stop 9 to 15, no ordinary footing (in the air, wading, crouched) 4
+  to 17, arriving at a jump, drop or lift leg 5 to 13. The edge was always
+  found before any water or ledge drop beyond it.
 
 Read the table with care. Two groups on identical settings in one 240 s
 match differed by 0.48 against 0.63 in speed and 36% against 19% in time
@@ -618,9 +717,13 @@ rule were real, and the kills are level. Nothing here shows the new
 defaults winning fights.
 
 Not established: any map but Canyon Oasis, any match with a human in it,
-Full Force play, and the presets' value. Running is used for under a quarter
-of the time on foot: the route follower only asks for it on straight
-stretches, and the runway check refuses nearly half of those requests.
+Full Force play, and the presets' value. With `always_run` the bots run
+about half the time they move on foot; the rest is near pits and water's
+edges, in the air, and arriving at jumps. Running has not made them fall
+into water more often in these matches (13 entries from walking legs
+against 22 in the first three), but nobody was trying to knock them in.
+Whether pulling on the move or the pack changes win fights is not
+measured: the kills above are level.
 The swim pre-check and the jump controller have no fixture test; their
 parts do. Twelve jumps is a small sample: nobody was shooting at most of
 them, a missed jump into that alcove is a two-unit fall, and there is no
