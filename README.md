@@ -1,14 +1,14 @@
 # Adjoin Arena
 
-Adjoin Arena studies competitive JK multiplayer bots on stock game physics. It pairs headless simulation and trace analysis with 1Ã— inspection, scripted tactics, and a local controller that a live coach can guide. The first experiment measures pacing parity in a single-actor Canyon Oasis replay. [Experiment and project design](docs/superpowers/plans/2026-11-24-adjoin-arena.md)
+Adjoin Arena studies competitive JK multiplayer bots on stock game physics. It pairs headless simulation and trace analysis with 1Ãƒâ€” inspection, scripted tactics, and a local controller that a live coach can guide. The first experiment measures pacing parity in a single-actor Canyon Oasis replay. [Experiment and project design](docs/superpowers/plans/2026-11-24-adjoin-arena.md)
 
 ## Starting revisions
 
 | Branch in this repository | Starting point |
 | --- | --- |
-| `source/pr1-foundation` | Lilitariâ€™s competitive JKWeb foundation, `04d482e`. |
-| `source/pr2-adaptive-player` | Lilitariâ€™s adaptive player, `a8e6bdf`. The initial `main` derives from this branch and includes the foundation. |
-| `source/pr3-tactics-movement` | Redâ€™s tactics and movement work, `f453778`. Its source overlay has a separate build procedure. |
+| `source/pr1-foundation` | LilitariÃ¢â‚¬â„¢s competitive JKWeb foundation, `04d482e`. |
+| `source/pr2-adaptive-player` | LilitariÃ¢â‚¬â„¢s adaptive player, `a8e6bdf`. The initial `main` derives from this branch and includes the foundation. |
+| `source/pr3-tactics-movement` | RedÃ¢â‚¬â„¢s tactics and movement work, `f453778`. Its source overlay has a separate build procedure. |
 
 The sibling implementations have outstanding engine and browser integration work. Their original commits, notices and build receipts are retained. The server launchers, packages and updater described below belong to the inherited JK Cross Server baseline. Adjoin Arena has its own research history and has not issued a packaged release. Game files stay with their owners. [Source attribution](NOTICE.md)
 
@@ -26,15 +26,21 @@ The script builds one fixture and uses it for both modes. Use `--help` for the p
 
 ### First measured result
 
-The same Canyon Oasis water exit ran three times at 1Ã— and three times uncapped on Ubuntu under WSL, using GCC 15.2.0 and the PR #2 web engine sources compiled as a native fixture. All six runs produced byte-identical start, input and state traces across 268 control ticks and 1,608 physics steps. The actor reached sector 10 with 100 health after 10.720 simulated seconds and 38 consecutive grounded steps.
+The same Canyon Oasis water exit ran three times at 1Ãƒâ€” and three times uncapped on Ubuntu under WSL, using GCC 15.2.0 and the PR #2 web engine sources compiled as a native fixture. All six runs produced byte-identical start, input and state traces across 268 control ticks and 1,608 physics steps. The actor reached sector 10 with 100 health after 10.720 simulated seconds and 38 consecutive grounded steps.
 
-Median elapsed time fell from 10.798 seconds (range 10.748â€“11.453) to 0.667 seconds (range 0.617â€“0.918), a **16.19Ã— speedup for this single-actor case**. Timing includes process startup, initialization and trace output. The next experiment adds a host, two fighting peers and a 1Ã— spectator recording. [Six-run receipt and source hashes](qa/adjoin-arena-m0-pool90.json)
+Median elapsed time fell from 10.798 seconds (range 10.748Ã¢â‚¬â€œ11.453) to 0.667 seconds (range 0.617Ã¢â‚¬â€œ0.918), a **16.19Ãƒâ€” speedup for this single-actor case**. Timing includes process startup, initialization and trace output. The next experiment adds a host, two fighting peers and a 1Ãƒâ€” spectator recording. [Six-run receipt and source hashes](qa/adjoin-arena-m0-pool90.json)
 
 ## Two-player Canyon Oasis baseline
 
 A native dedicated host and two ordinary native bot clients played two 55-second, full-Force guns duels on stock Canyon Oasis. Both seats pursued the map's concussion rifle in each run. The sparse status reports and fire-input reports did not show either seat selecting or firing it. The first gear choices and the sectors, weapons and goals observed at 10 seconds differed across the two runs. [Comparison and input hashes](qa/adjoin-arena-native-duel-1x.json)
 
-Each run includes a 640×360 native host follow-camera clip. The camera can intersect the followed player's body and obscure its actions. [Run and compare a duel](scripts/bot_development/legacy/README.md#repeat-a-native-canyon-oasis-duel)
+Each run includes a 640Ã—360 native host follow-camera clip. The camera can intersect the followed player's body and obscure its actions. [Run and compare a duel](scripts/bot_development/legacy/README.md#repeat-a-native-canyon-oasis-duel)
+
+### Controlled rifle opening
+
+A private test variant places each bot at a known stock start and restores its normal respawn mask immediately. Boba starts in sector 41 near the rifle alcove. Jan starts in sector 18. The game reports the local player's rifle inventory ten times per simulated second. A stationary host camera looks into the alcove from outside, giving an unobstructed view of the pickup.
+
+In two runs Boba's first rifle inventory gain appeared at 1.124 and 1.125 seconds on his local game clock. He later requested alternate fire in each run. The launcher's sequential joins gave him a head start: the rifle was already gone when the camera first reported both players present. These results qualify placement, acquisition and recording. Competitive scoring requires a shared start. [Controlled opening receipt](qa/adjoin-arena-controlled-opening.json)
 
 ## Inherited JK Cross Server documentation
 
@@ -115,7 +121,7 @@ for migration, recovery, multi-instance behavior, and publishing new releases.
 
 ## Host spectator view
 
-Open **Spectator view** in the existing control panel to follow a joined player or fly an invisible camera through walls and floors. It does not take a player slot, interact with the game, or change client checksums. Closing the view keeps the match running. The Linux implementation provides a 640 Ã— 360 view at up to five frames per second; see [controls, setup and compatibility limits](docs/SPECTATOR.md).
+Open **Spectator view** in the existing control panel to follow a joined player or fly an invisible camera through walls and floors. It does not take a player slot, interact with the game, or change client checksums. Closing the view keeps the match running. The Linux implementation provides a 640 Ãƒâ€” 360 view at up to five frames per second; see [controls, setup and compatibility limits](docs/SPECTATOR.md).
 
 **Image view** remains the default. The optional **Experimental geometry (WebGL 2)** view draws the observer's validated triangle stream in the browser. It shares the same camera and player roster. This first geometry profile uses vertex colours, with no textures and approximate transparency/effects; the server still prepares and renders the native scene. See [browser geometry setup and qualification](docs/BROWSER_SPECTATOR.md).
 
@@ -154,7 +160,7 @@ and JKWeb human clients keep their existing executables and connection routes.
 The panel's **Sabers only**, **Fists = peace**, and **Use Force powers** checkboxes
 can be applied during a match without restarting it. Bots seek useful pickups,
 choose weapons according to ammunition and range, and pursue stock CTF
-objectives. Supported content is stock **JK1MP and JK1CTF, ranks 0â€“8**; the
+objectives. Supported content is stock **JK1MP and JK1CTF, ranks 0Ã¢â‚¬â€œ8**; the
 implementation remains experimental. MotS bots, passwords and mods are outside
 this version's scope.
 

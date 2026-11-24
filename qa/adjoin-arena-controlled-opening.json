@@ -1,0 +1,187 @@
+{
+  "experiment": "Canyon Oasis controlled opening",
+  "scope": "Two real native peers on a dedicated native host at 1x. The staged private stock derivative changes the opening spawn choice and adds owner observations.",
+  "outcome": "Both trials reproduced the authored opening sectors, positions, and restored stock respawn masks. Bin 9 amounts are direct owner inventory observations, sampled every 0.1 seconds of level time.",
+  "limits": "Peers joined in sequence with no shared starting signal. The first seat could reach the rifle before the second joined. Times are relative to each owning player’s level clock. The match seed, projectile damage attribution, full-match parity and competitive advantage were not tested.",
+  "profiles": {
+    "dark": "Bot_BobaFett",
+    "light": "Bot_JanOrs"
+  },
+  "private_episode": {
+    "stock_gob_sha256": "27a4b3642e0965753232f35b1e8e846c91df1eca1da77398b5efda66ca369a2e",
+    "stock_jkl_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+    "variant_gob_sha256": "9585f8c54df1e2c5fbe2645af56e9f635dcd572e5ef6aa896d278c902699320c",
+    "variant_jkl_sha256": "704f786cc494e3593dcf18815247e678dbde9f0f53e09164300b1b7d81860ad8",
+    "cog_sha256": "f094c879898688be6429a4320a5a56e301075814459576437df5920a967bcdbe",
+    "unchanged_entry_count": 21
+  },
+  "software": {
+    "generator_and_log_reader_sha256": "c883963d736da3447a967361512c31163a5bc7e21cb2e064e0044e6b6eaa77b5",
+    "launcher_sha256": "0f44cd6b98c10c044e0a9fd0157d521da514d7be92b7faca27aca28c57f41166",
+    "recorder_sha256": "01f0ace874f8ecab0f3d510e3da4a6775b846aacd093225732a7f17af9bf137b",
+    "host_sha256": "16944b47e2ceecf3f09cc2820af26372e2af8642057c2b0a963e353ff090c745",
+    "peer_sha256": "d04f5106a3a0a3f123162e82a364bc98ec495ae8bd2fe89fb0f1b2461fc44fe3",
+    "offline_verified_generator_and_reader_sha256": "ea1d10f470ee2217d2594d11087a360d5696808583438e32c47005000d279b8c"
+  },
+  "trials": [
+    {
+      "trial": "integrated-overlook-a",
+      "shared_observation_seconds": 24,
+      "match_receipt_sha256": "47ce68a72ee661dda264a438485f7b6a9bcdc173c448509e94237a5ea3eb2314",
+      "peers": {
+        "dark": {
+          "slot": 1,
+          "net": 3,
+          "events": [
+            {
+              "kind": "opening",
+              "life_ordinal": 1,
+              "sector": 41,
+              "position": [
+                2.39995,
+                0.775153,
+                1.120114
+              ],
+              "mask_readback": 0,
+              "mask_before": 0
+            },
+            {
+              "kind": "life_initial_inventory",
+              "life_ordinal": 1,
+              "bin": 9,
+              "amount": 0
+            },
+            {
+              "kind": "sampled_inventory_change",
+              "life_ordinal": 1,
+              "bin": 9,
+              "previous": 0,
+              "current": 1,
+              "level_time_s": 1.124
+            },
+            {
+              "kind": "sampled_inventory_change",
+              "life_ordinal": 1,
+              "bin": 9,
+              "previous": 1,
+              "current": 0,
+              "level_time_s": 24.686001
+            }
+          ],
+          "log_sha256": "89a849a3d87b57f654cc7c014fe524661885cd975c3345bea2703e38f84951c3"
+        },
+        "light": {
+          "slot": 2,
+          "net": 5,
+          "events": [
+            {
+              "kind": "opening",
+              "life_ordinal": 1,
+              "sector": 18,
+              "position": [
+                2.3,
+                1.53494,
+                -0.879886
+              ],
+              "mask_readback": 0,
+              "mask_before": 0
+            },
+            {
+              "kind": "life_initial_inventory",
+              "life_ordinal": 1,
+              "bin": 9,
+              "amount": 0
+            }
+          ],
+          "log_sha256": "2549966a1f15c05e5254c843f845b8599b5aab9ca67565be42d30d8d8dfcc4f9"
+        }
+      },
+      "native_camera": {
+        "observer_receipt_sha256": "396c864d443e05c227f9993a1a6b1204f950cfe0bf684e604cef84e65038c194",
+        "sha256": "cbd5765cf92f0dd32f060805668b43e206cca61b22fc17a045bc681190349610",
+        "duration_s": 29.601,
+        "decoded_frames": 149
+      }
+    },
+    {
+      "trial": "integrated-overlook-b",
+      "shared_observation_seconds": 24,
+      "match_receipt_sha256": "ebb46ed1886e7ad5145cc2fce11bdf4e1d059a778d65f52d133fb435fe3f7fcf",
+      "peers": {
+        "dark": {
+          "slot": 1,
+          "net": 3,
+          "events": [
+            {
+              "kind": "opening",
+              "life_ordinal": 1,
+              "sector": 41,
+              "position": [
+                2.39995,
+                0.775153,
+                1.120114
+              ],
+              "mask_readback": 0,
+              "mask_before": 0
+            },
+            {
+              "kind": "life_initial_inventory",
+              "life_ordinal": 1,
+              "bin": 9,
+              "amount": 0
+            },
+            {
+              "kind": "sampled_inventory_change",
+              "life_ordinal": 1,
+              "bin": 9,
+              "previous": 0,
+              "current": 1,
+              "level_time_s": 1.125
+            },
+            {
+              "kind": "sampled_inventory_change",
+              "life_ordinal": 1,
+              "bin": 9,
+              "previous": 1,
+              "current": 0,
+              "level_time_s": 26.216999
+            }
+          ],
+          "log_sha256": "0ac3cb3c8ee219395f2c9b06f9d8487454ebda61201c280a8ccf54b4b232ca0a"
+        },
+        "light": {
+          "slot": 2,
+          "net": 5,
+          "events": [
+            {
+              "kind": "opening",
+              "life_ordinal": 1,
+              "sector": 18,
+              "position": [
+                2.3,
+                1.53494,
+                -0.879886
+              ],
+              "mask_readback": 0,
+              "mask_before": 0
+            },
+            {
+              "kind": "life_initial_inventory",
+              "life_ordinal": 1,
+              "bin": 9,
+              "amount": 0
+            }
+          ],
+          "log_sha256": "a5075371a9d3d1d48244cc090f35dce75f4aab022a9ea923b6fbe56b6d7a3af9"
+        }
+      },
+      "native_camera": {
+        "observer_receipt_sha256": "4cebe9dfc053a06adb77e2030cea2ae34a597964ac72c84dbc813f391fb75126",
+        "sha256": "677db2f03ab826883a8ee8da7df33519e7f30e792a8c4a68b05686236aacad90",
+        "duration_s": 28.601,
+        "decoded_frames": 144
+      }
+    }
+  ],
+  "verification": "The final reader additionally checks the order of the map load, native join and owner evidence, and reconciles observed life boundaries against native respawn notices. Re-reading both archived logs reproduced each original event exactly. Rebuilding reproduced the same private episode, map and COG."
+}

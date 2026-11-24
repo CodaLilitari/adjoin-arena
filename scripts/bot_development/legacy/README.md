@@ -120,3 +120,18 @@ python3 -B scripts/bot_development/analysis/native_duel.py \
 ```
 
 The host roster, each peer's join acknowledgement, native logs and video have separate evidence in the receipts. The clip starts after both players join and spans up to about 45 seconds. Actor positions in the client logs are rounded, usually ten seconds apart. The two client clocks start independently. An equipment plan records intent, a selected weapon records possession at a sample, and a fire-input report records a change of input mode. The engine suppresses repeated fire reports of the same mode. Health or shield decreases alone leave the attacker unidentified.
+
+### Record the controlled rifle opening
+
+Use the same native command and network namespace as the stock duel, with these additional flags. This example records both owners' inventory readbacks and the fixed host camera in a new private directory. GNU coreutils provides stdbuf, used to retain the COG's native console output.
+
+```sh
+unshare -Urn -- sh -c '
+  ip link set lo up || exit 1
+  exec python3 -B "$1/scripts/bot_development/legacy/native_force_observation.py" \
+    --repo "$1" --data "$2" --output "$3" --map m10.jkl --duration 24 \
+    --arena-baseline --controlled-opening --camera rifle-overlook
+' sh "$PWD" "$OWNED_JK" "$RUN_ROOT/opening"
+```
+
+The launcher verifies the owner's stock episode, builds a temporary variant in its private stage, and checks the expected derived episode and map hashes. The variant adds one local COG and references it in the level. The two peers read the same content. Read the opening_observations in the run receipt for the verified spawn coordinates, restored masks, and owner-side changes to inventory bin 9. The camera's timestamps use wall time; the inventory readbacks use each seat's game clock. Compare matching events within each clock domain. The stock-duel comparison command takes unmodified stock matches.

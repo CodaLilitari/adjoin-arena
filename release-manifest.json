@@ -26,7 +26,7 @@
     },
     "README.md": {
       "mode": 420,
-      "sha256": "936f7fa15c4ecbd7b35642f11143687b1727e1273069843fd0d6ea0bf7024f39"
+      "sha256": "2b0779bf3ca2e209808f218449c38006c23f0cefb7a99fd5c578a5acd124a54f"
     },
     "Start-Server.command": {
       "mode": 493,
@@ -1028,13 +1028,17 @@
       "mode": 420,
       "sha256": "57c7865853ce897d37b1931adbe5585dd77bda3096bdc6fa90e1a623679a8116"
     },
+    "qa/adjoin-arena-controlled-opening.json": {
+      "mode": 420,
+      "sha256": "51afaa9cbd7042833d83dd842bc4654721bed802b40132f614c615d97885d0f3"
+    },
     "qa/adjoin-arena-m0-pool90.json": {
       "mode": 420,
       "sha256": "74632f161afcf7056850b7459411ea1341826175bd8b39f832c8b69cb921ab4a"
     },
     "qa/adjoin-arena-native-duel-1x.json": {
       "mode": 420,
-      "sha256": "1e7cca803a0345d3d71b8f1abd9b3a05dd809dd9b9f886e259422567a0640869"
+      "sha256": "2729d40f7d9d5eaedae244abe8ed5d6f1a6aa6045a3d30179c7853cd0c2798c7"
     },
     "qa/admin-browser-layout.json": {
       "mode": 420,
@@ -2122,7 +2126,7 @@
     },
     "scripts/bot_development/analysis/native_duel.py": {
       "mode": 420,
-      "sha256": "4994d7d2d315cff5b1c45693cc52e550c7351465274f09afccd3a68389a1758e"
+      "sha256": "c804446d4f5d6a711ed26fdc28dece0da52848ab44e5350ad9e47f98f653c6fa"
     },
     "scripts/bot_development/analysis/outcome_build_inputs.py": {
       "mode": 420,
@@ -2164,6 +2168,10 @@
       "mode": 420,
       "sha256": "cb34ee277db47896879632fb745c42d03f7c134b799b6a4a61aa709ab8fc4525"
     },
+    "scripts/bot_development/arena_start.cog": {
+      "mode": 420,
+      "sha256": "df3747533a372ba56e45e55b0c8255b2094fbf48c19db1b1f1ce99571c7ab4bb"
+    },
     "scripts/bot_development/capture/README.md": {
       "mode": 420,
       "sha256": "20adab15e2e385b7cc9dcc8178ebf748649e8a6b6b5953419226a866ee7f93f9"
@@ -2188,13 +2196,17 @@
       "mode": 420,
       "sha256": "8369e8207b4e74375c9aa544254d8c26f81f12aff89fa4645ede520f380026dd"
     },
+    "scripts/bot_development/controlled_opening.py": {
+      "mode": 420,
+      "sha256": "ea1d10f470ee2217d2594d11087a360d5696808583438e32c47005000d279b8c"
+    },
     "scripts/bot_development/legacy/README.md": {
       "mode": 420,
-      "sha256": "f1a1005ed7614db93c099b5f4034ae2421f178c9f19fe3eec86dbad84777808d"
+      "sha256": "095852ab37d8b259649dfcb3e22e7536c841cd61abe231b00fb7daec98f63710"
     },
     "scripts/bot_development/legacy/native_force_observation.py": {
       "mode": 420,
-      "sha256": "dd7caa144db6b9b4e76729e1c3b42f7ff8e0672980ccf51fd0e1fdb2bc6d238a"
+      "sha256": "0f44cd6b98c10c044e0a9fd0157d521da514d7be92b7faca27aca28c57f41166"
     },
     "scripts/bot_development/legacy/rebuild_native_pair.py": {
       "mode": 420,
@@ -2202,7 +2214,7 @@
     },
     "scripts/bot_development/legacy/record_server.py": {
       "mode": 420,
-      "sha256": "44ac250ef6dff369dfa7ac649589a6e60f4affb497987a5d41da833e6d3c9be9"
+      "sha256": "01f0ace874f8ecab0f3d510e3da4a6775b846aacd093225732a7f17af9bf137b"
     },
     "scripts/bot_development/legacy/windows_force_bridge.py": {
       "mode": 420,
@@ -2251,6 +2263,18 @@
     "tests/spectator_fixture.js": {
       "mode": 420,
       "sha256": "3fff1142b424e1f394d824448525579526fec555c2dcaa46066f3a49820db112"
+    },
+    "tests/test_arena_camera_cli.py": {
+      "mode": 420,
+      "sha256": "3ac7f67bb9f8d41df73d4fa264a14ec1e1f8d0cba760748d3cb67226469a1e6a"
+    },
+    "tests/test_arena_controlled_opening.py": {
+      "mode": 420,
+      "sha256": "ab82ba0d77dd1ad48ca2b34ecb773a927912c50f7c3ef5c9f2a8f3c54b573e1f"
+    },
+    "tests/test_arena_recorder_startup.py": {
+      "mode": 420,
+      "sha256": "501d2e6fbb978259cd8b6c0c841cd7115e134894b798302b0c5f57b13c12df17"
     },
     "tests/test_authority.py": {
       "mode": 420,
@@ -2378,7 +2402,7 @@
     },
     "tests/test_native_duel.py": {
       "mode": 420,
-      "sha256": "53a99307b9bc1596754561207c239a937fd41cfa6500e7094d40a59e23fa791c"
+      "sha256": "c28d0a5ae84d1c01ad9b6d199eea0a9a4f397360fdad6cd773b85df0cf97fc7e"
     },
     "tests/test_pace_parity.py": {
       "mode": 420,

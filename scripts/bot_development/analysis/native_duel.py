@@ -119,17 +119,26 @@ def read_observer(directory, receipt, names):
         require(receipt["bots"][side]["joined"] == {"slot": player["slot"], "net": player["peer_id"]},
                 "Host and peer identity differ")
     clip = camera["video"]
-    require(clip["decoded_fully"] and sha(camera_path.with_name("native-follow.mp4")) == clip["sha256"],
+    mode = camera.get("camera", "follow")
+    require(mode in {"rifle-overlook", "follow"}, "Unknown native observer camera")
+    clip_path = camera_path.with_name(f"native-{mode}.mp4")
+    require(clip["decoded_fully"] and sha(clip_path) == clip["sha256"],
             "Unverified observer video")
     video = dict(sha256=clip["sha256"], frames=int(clip["stream"]["nb_frames"]),
                  seconds=number(clip["stream"]["duration"]), receipt_sha256=sha(camera_path))
-    followed = camera["followed"]
-    require(followed in players, "Follow camera identity missing from the host roster")
     frames = camera["captured"]
     require(len(frames) == video["frames"] and len(frames) >= 3, "Observer frame count mismatch")
     sectors = [frame["pose"]["sector"] for frame in frames if frame.get("pose")]
-    video.update(followed=followed["name"], valid_camera_poses=len(sectors),
-                 poses_in_rifle_sector=sectors.count(58), first_camera_sector=sectors[0] if sectors else None)
+    video.update(camera=mode, valid_camera_poses=len(sectors))
+    if mode == "follow":
+        followed = camera["followed"]
+        require(followed in players, "Follow camera identity missing from the host roster")
+        video.update(followed=followed["name"], poses_in_rifle_sector=sectors.count(58),
+                     first_camera_sector=sectors[0] if sectors else None)
+    else:
+        require(camera["overlook"]["settled_pose"]["sector"] == 41 and sectors and set(sectors) == {41},
+                "Rifle camera outside its measured observation sector")
+        video["station_sector"] = 41
     return roster, video
 
 
@@ -176,6 +185,7 @@ def read_run(directory):
     config = dict(registry=registry, peers=args_by_seat, bot_options=receipt["bot_options"], sha256=hashes,
                   launcher_sha256=receipt["launcher_sha256"], launcher_inputs=receipt["launcher_input_sha256"],
                   recorder_sha256=receipt.get("recorder_sha256"), render_environment=receipt.get("render_environment"),
+                  camera=video["camera"] if video else None,
                   requested_seconds=receipt["requested_match_seconds"])
     return dict(receipt_sha256=sha(file), logs_sha256=log_hashes, host_console_joins=joins,
                 host_roster=roster, video=video, seats=seats), config

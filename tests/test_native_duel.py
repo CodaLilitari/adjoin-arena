@@ -138,6 +138,19 @@ class DuelEvidenceTests(unittest.TestCase):
             self.assertEqual(report["host_console_joins"], ["Pilot"])
             self.assertEqual(report["host_roster"], ["Pilot", "Wing"])
             self.assertEqual(report["video"]["poses_in_rifle_sector"], 5)
+            stationary = json.loads(camera.read_text())
+            stationary["camera"] = "rifle-overlook"
+            stationary.pop("followed")
+            stationary["overlook"] = {"settled_pose":{"sector":41}}
+            for frame in stationary["captured"]:
+                frame["pose"]["sector"] = 41
+            camera.write_text(json.dumps(stationary))
+            r["observer_receipt_sha256"] = duel.sha(camera)
+            p.write_text(json.dumps(r))
+            movie = movie.rename(directory / "native-rifle-overlook.mp4")
+            report, _ = duel.read_run(root)
+            self.assertEqual(report["video"]["station_sector"], 41)
+            self.assertNotIn("followed",report["video"])
             movie.write_bytes(b"unexpected")
             with self.assertRaisesRegex(ValueError, "video"):
                 duel.read_run(root)
