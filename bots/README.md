@@ -58,7 +58,7 @@ Existing configurations remain **bots disabled** until explicitly enabled.
 | Add bots when the server starts | `bots_enabled` | `false` |
 | Selected characters | `bots_profiles` | `["boba_fett", "jan_ors"]` |
 | Sabers only | `bots_sabers_only` | `false` |
-| Fists = peace | `bots_fists_peace` | `true` |
+| Fists = peace | `bots_fists_peace` | `false` (taken out for now: bots ignore it) |
 | Use Force powers | `bots_force_enabled` | `true` |
 | Occasional character chat | `bots_taunts` | `true` |
 | Bot client executable | `bots_engine` | Empty: use the packaged client |
@@ -292,9 +292,12 @@ change it live, atomically replace the complete file with all four lines:
 ```ini
 version=1
 sabers_only=0
-fists_peace=1
+fists_peace=0
 force_enabled=1
 ```
+
+`fists_peace` is still read so older files stay valid, but bots currently
+ignore it: a player holding fists is fought like anyone else.
 
 Only `0` and `1` are accepted. A missing, partial, duplicate, or invalid setting
 preserves the last valid rules. Editing the server's JSON during a standalone
@@ -312,9 +315,10 @@ run that ends before all bots join also returns failure.
 Proposed in `native/bot-tactics.patch`; not yet in the packaged bot clients.
 See [Bot movement, tactics and the coach seat](../docs/BOT_TACTICS.md).
 
-With that overlay built in, 36 named values steer the planner and the
+With that overlay built in, 46 named values steer the planner and the
 movement code: what each heavy gun is worth, how much water costs, whether
-the bot runs, how long it may stay in one spot before it must go elsewhere.
+the bot runs, how long it may stay in one spot before it must go elsewhere,
+whether it fights its way out of water and keeps Force Speed up.
 `python3 -m bots.tactics list` prints them with their ranges and presets.
 
 - `python3 -m bots.tactics write PATH --preset NAME --set name=value` writes a

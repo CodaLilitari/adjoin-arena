@@ -62,6 +62,16 @@ TACTICS = (
     ("hazard_avoid", 1.0, 0.0, 0.0, 1.0, "keep clear of laid mines and resting grenades, in plans and on foot"),
     ("mines", 1.0, 0.0, 0.0, 1.0, "collect sequencer charges and lay proximity mines on item spots just taken"),
     ("thermals", 1.0, 0.0, 0.0, 1.0, "collect thermal detonators and throw them where guns serve badly"),
+    ("absorb_reserve", 1.0, 0.0, 0.0, 1.0, "keep mana to raise Absorb while it is down; answer Grip with Protection or Absorb first"),
+    ("turn_rate", 1800.0, 0.0, 0.0, 7200.0, "degrees a second the view may turn, through the mouse-look path; 0 = keyboard turn rate"),
+    ("jump_memory", 30.0, 0.0, 0.0, 600.0, "seconds a Jump or Force Jump leg that landed elsewhere, and its ledge, are set aside (0 = no memory)"),
+    ("quick_respawn", 1.0, 0.0, 0.0, 1.0, "respawn the moment the stock three-second death timer allows (0 or 1)"),
+    ("air_health", 0.0, 30.0, 0.0, 100.0, "below this health, head for air even with breath left (0 = breath alone decides)"),
+    ("swim_cost", 3.0, 1.0, 1.0, 10.0, "path cost of a leg swum under water per unit of length (1 = same as walking)"),
+    ("speed_upkeep", 1.0, 0.0, 0.0, 1.0, "keep Force Speed up on walking legs and in fights, past the Absorb reserve (0 or 1)"),
+    ("water_fight", 1.0, 0.0, 0.0, 1.0, "swim and climb out facing the fight and shooting; one swimmer per exit spot (0 or 1)"),
+    ("resupply", 1.0, 0.0, 0.0, 1.0, "collect pulled guns, put ammunition first when out of shots, prefer disarmed opponents (0 or 1)"),
+    ("fjump_standstill", 1.0, 0.0, 0.0, 1.0, "judge Force Jump legs as flown from a standstill, the way the bot flies them (0 or 1)"),
 )
 NAMES = tuple(row[0] for row in TACTICS)
 INDEX = {name: index for index, name in enumerate(NAMES)}
@@ -71,6 +81,7 @@ RANGES = {row[0]: (row[3], row[4]) for row in TACTICS}
 COMMIT_SECONDS = 8
 WIRE_PAIRS = 21
 RESET = 1
+RESET_LEGACY = 2
 
 # Starting points for a coach, not tuned results. Each lists only what
 # differs from the defaults and is sent with the reset flag, so the outcome
@@ -131,18 +142,34 @@ def resolve(preset=None, values=None, reset=False) -> tuple[bool, dict[str, floa
     merged.update(validate(values or {}))
     if not merged and not reset:
         raise ValueError("Give a preset, at least one value, or reset.")
-    if len(merged) > WIRE_PAIRS:
+    if len(wire(reset, merged)[1]) > WIRE_PAIRS:
         raise ValueError(f"At most {WIRE_PAIRS} values fit one command.")
     return reset, merged
 
 
+def wire(reset: bool, values: dict[str, float]) -> tuple[int, dict[str, float]]:
+    """Flags and the records that reach the same table in the fewest values.
+
+    A reset starts from the compiled defaults, or from the legacy column when
+    fewer of the wanted values differ from it.
+    """
+    if not reset:
+        return 0, dict(values)
+    wanted = dict(DEFAULTS)
+    wanted.update(values)
+    from_legacy = {name: wanted[name] for name in NAMES if wanted[name] != LEGACY[name]}
+    if len(from_legacy) < len(values):
+        return RESET_LEGACY, from_legacy
+    return RESET, dict(values)
+
+
 def encode(reset: bool, values: dict[str, float]) -> bytes:
     """Command payload after the 8-byte deadline: flags, count, records."""
-    checked = validate(values)
+    flags, checked = wire(reset, validate(values))
     if len(checked) > WIRE_PAIRS or (not checked and not reset):
         raise ValueError("Nothing to send, or too many values for one command.")
     records = b"".join(struct.pack("<Bf", INDEX[name], checked[name]) for name in sorted(checked, key=INDEX.get))
-    return bytes((RESET if reset else 0, len(checked))) + records
+    return bytes((flags, len(checked))) + records
 
 
 def table(preset=None, values=None) -> dict[str, float]:
