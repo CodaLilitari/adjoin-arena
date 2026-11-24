@@ -120,7 +120,7 @@ static void test_companion_tactics(void)
     tactics_command(23,0,1); tactic(0,BT_COUNT,1); submit(35); ack(21,1,23);
     tactics_command(24,0,2); tactic(0,BT_VALUE_CONC,20); tactic(1,BT_VALUE_CONC,21); submit(40); ack(21,1,24);
     tactics_command(25,0,1); frame[29]=2; tactic(0,BT_VALUE_CONC,20); submit(35); ack(21,1,25);
-    tactics_command(26,2,1); tactic(0,BT_VALUE_CONC,20); submit(35); ack(21,1,26);
+    tactics_command(26,4,1); tactic(0,BT_VALUE_CONC,20); submit(35); ack(21,1,26);
     tactics_command(27,0,0); submit(30); ack(21,1,27);
     float nan; uint32_t quiet=0x7fc00000u; memcpy(&nan,&quiet,4);
     tactics_command(28,0,1); tactic(0,BT_VALUE_CONC,nan); submit(35); ack(21,1,28);
@@ -144,12 +144,20 @@ static void test_companion_tactics(void)
     bot.now+=BOT_TACTICS_COMMIT_SECONDS+0.1f;
     tactics_command(34,1,0); submit(30); ack(21,0,34);
     assert(BT(VALUE_RAIL)==rail);
+    /* Bit 1 restores the legacy column instead; both bits at once are refused. */
+    bot.now+=BOT_TACTICS_COMMIT_SECONDS+0.1f;
+    tactics_command(35,3,1); tactic(0,BT_VALUE_CONC,20); submit(35); ack(21,1,35);
+    tactics_command(36,2,0); submit(30); ack(21,0,36);
+    for (int i=0;i<BT_COUNT;i++) assert(tactics.value[i]==botTacticSpecs[i].legacy);
+    bot.now+=BOT_TACTICS_COMMIT_SECONDS+0.1f;
+    tactics_command(37,1,0); submit(30); ack(21,0,37);
+    assert(BT(VALUE_RAIL)==rail && BT(RUN)==run);
     /* The largest request fits the receipt cache; one more record does not. */
     bot.now+=BOT_TACTICS_COMMIT_SECONDS+0.1f;
-    tactics_command(35,0,BOT_TACTICS_WIRE_PAIRS);
+    tactics_command(38,0,BOT_TACTICS_WIRE_PAIRS);
     for (int i=0;i<BOT_TACTICS_WIRE_PAIRS;i++) tactic(i,i,botTacticSpecs[i].legacy);
-    submit(30+5*BOT_TACTICS_WIRE_PAIRS); ack(21,0,35);
-    tactics_command(36,0,BOT_TACTICS_WIRE_PAIRS+1);
+    submit(30+5*BOT_TACTICS_WIRE_PAIRS); ack(21,0,38);
+    tactics_command(39,0,BOT_TACTICS_WIRE_PAIRS+1);
     for (int i=0;i<=BOT_TACTICS_WIRE_PAIRS;i++) tactic(i,i,botTacticSpecs[i].legacy);
     submit(35+5*BOT_TACTICS_WIRE_PAIRS); assert(!receive(2) && "an oversized frame is ignored");
     puts("PASS companion tactics merge, commitment window, receipts, strict rejection, reset flag and adjustment between lives");

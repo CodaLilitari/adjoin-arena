@@ -221,9 +221,11 @@ static int RouteStep(SithThing *self,flex_t x,int position)
 
 static void test_tactic_route_run(void)
 {
+    /* The body turn is read from the keyboard axes here. */
+    flex_t turnRate=BT(TURN_RATE); BT(TURN_RATE)=0;
     SithThing self; SithPlayer own;
     testPlainActive=1; plainEdge=plainWall=1e9f; plainGround.flags=0; plainLand.flags=0;
-    jkBot_Configure("Route_Test","ky.3do"); TacticsUse(0); bot.now=5;
+    jkBot_Configure("Route_Test","ky.3do"); TacticsUse(0); bot.now=5; BT(TURN_RATE)=0;
     PlainSelf(&self,&own);
     bot.world=NULL; bot.graphDone=1; bot.nNodes=5;
     RouteNode(0,0,0); RouteNode(1,1,0); RouteNode(2,2,0); RouteNode(3,3,0); RouteNode(4,3.5f,0);
@@ -264,6 +266,7 @@ static void test_tactic_route_run(void)
     TacticsUse(1); bot.boostedAt=0;
     assert(!RouteStep(&self,0.1f,0) && bot.boostedAt==0 && fabsf(bot.axes[INPUT_FUNC_TURN])<0.01f);
     testPlainActive=0;
+    BT(TURN_RATE)=turnRate;
     puts("PASS route follower runs open straights, walks into jumps, corners and lift landings, and turns the body only for the diagonal");
 }
 
@@ -299,6 +302,7 @@ static void test_tactic_water(void)
     bot.nodes[2].nEdges=1; bot.nodes[2].edges[0]=(BotEdge){3,2.7f,BOT_ROUTE_SWIM};
     WaterItem(items,0,"powercell",2);
     own.aItems[SITHBIN_REPEATER].amount=1; own.aItems[SITHBIN_REPEATER].state=SITHINVENTORY_ITEM_AVAILABLE;
+    own.aItems[SITHBIN_POWER].amount=25; /* low on shots, but not out */
     /* Before: a cheap power cell and plain curiosity both pull the bot under. */
     TacticsUse(1);
     Bot_PathDistances(&self,0,distance,parent); assert(fabsf(distance[2]-2.6f)<0.0005f);
@@ -316,6 +320,10 @@ static void test_tactic_water(void)
     bot.nodes[2].item=-1; bot.goal=2; bot.goalSetAt=bot.now; Bot_Plan(&self);
     assert(bot.goal==1 && "the bot no longer dives just to look");
     bot.nodes[2].item=0;
+    /* Out of shots, the same cell is ammunition for the only real gun held. */
+    own.aItems[SITHBIN_POWER].amount=0;
+    assert(Bot_Starved(&self) && Bot_GearValue(&self,0)==12.0f);
+    own.aItems[SITHBIN_POWER].amount=25; assert(!Bot_Starved(&self));
     /* A missing concussion rifle on the bottom is still worth the swim. */
     world.numThings=1; world.numThingsLoaded=2; WaterItem(items,1,"concrifle",3); bot.nodes[3].item=1;
     assert(Bot_GearValue(&self,1)==18.0f && Bot_GoalPickup(&self,&bot.nodes[3])==18.0f);
@@ -367,6 +375,11 @@ static void test_tactic_swim(void)
     /* Any way from a bank into water is priced, whatever the edge is called;
        a way in that wasted a dive is priced out until the memory lapses. */
     Bot_PathDistances(&self,0,distance,parent); assert(fabsf(distance[2]-6.6f)<0.0005f);
+    /* swim_cost: the stroke is slow, so a leg under water costs three times its length. */
+    bot.nodes[2].nEdges=1; bot.nodes[2].edges[0]=(BotEdge){3,0.7f,BOT_ROUTE_SWIM};
+    Bot_PathDistances(&self,0,distance,parent); assert(fabsf(distance[3]-(6.6f+0.7f+1.4f))<0.0005f);
+    BT(SWIM_COST)=1; Bot_PathDistances(&self,0,distance,parent); assert(fabsf(distance[3]-7.3f)<0.0005f);
+    BT(SWIM_COST)=3; bot.nodes[2].nEdges=0;
     assert(!Bot_CrossingFailed(&land,&pool));
     Bot_RememberCrossing(&land,&pool); assert(Bot_CrossingFailed(&land,&pool) && !Bot_CrossingFailed(&pool,&land));
     Bot_PathDistances(&self,0,distance,parent); assert(fabsf(distance[2]-56.6f)<0.0005f);
@@ -391,7 +404,12 @@ static void test_tactic_swim(void)
     self.actorParams.endurance=9000; assert(!Bot_NeedsAir(&self));
     self.actorParams.endurance=17500; assert(Bot_NeedsAir(&self));
     self.actorParams.endurance=0; nav.waterSince=bot.now-17.5f; assert(Bot_NeedsAir(&self));
-    nav.waterSince=bot.now-9.5f; self.actorParams.health=25; assert(Bot_NeedsAir(&self)); self.actorParams.health=100;
+    /* air_health: being hurt is not being out of breath; a hurt bot routes to
+       health by the plan, and the surface heals nothing. */
+    nav.waterSince=bot.now-9.5f; self.actorParams.health=25;
+    assert(!Bot_NeedsAir(&self) && "hurt but breathing: keep going");
+    BT(AIR_HEALTH)=30; assert(Bot_NeedsAir(&self) && "the old rule is the coach's to restore");
+    BT(AIR_HEALTH)=0; self.actorParams.health=100;
     BT(CROSSING_SECONDS)=0; assert(Bot_Breath()==8.0f && Bot_NeedsAir(&self)); BT(CROSSING_SECONDS)=17;
     bot.crossing=0; self.actorParams.endurance=9000; assert(Bot_NeedsAir(&self)); self.actorParams.endurance=0;
     /* Steep legs are swum by looking along them and pushing forward. */
