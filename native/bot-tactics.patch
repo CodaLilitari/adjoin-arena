@@ -1,5 +1,5 @@
 diff --git a/src/AI/jkBot.c b/src/AI/jkBot.c
-index d59f677..069f053 100644
+index d59f677..f8947db 100644
 --- a/src/AI/jkBot.c
 +++ b/src/AI/jkBot.c
 @@ -38,13 +38,30 @@
@@ -95,7 +95,7 @@ index d59f677..069f053 100644
 +        /* always_run: seconds walked, by reason: footing, no floor ahead
 +           (pit, ledge, water's edge), water ahead, a ledge drop ahead, and
 +           arriving at a jump, drop or lift leg. */
-+        flex_t runNo[5]; int runWhy, braking;
++        flex_t runNo[5], trapNearest, gateWait; int runWhy, braking, lipSteps, trapsSprung, trapEscapes, trapBusy, trapOpen, trapsDisarmed, fieldsOpened;
 +        flex_t thermalHeld, aimError, aimTime, onTarget, wetFire, speedUp;
 +        flex_t heavy, heavyUnsafe;
 +    } tele;
@@ -169,7 +169,7 @@ index d59f677..069f053 100644
      /* A committed traversal owns the heading. Combat still measures the
         physical aim error for weapon and Force eligibility on this frame. */
      if (!combat || !bot.routeAim) {
-@@ -380,15 +472,134 @@ static int Bot_SafeDirection(SithThing *self, rdVector3 direction, int allowDrop
+@@ -380,15 +472,144 @@ static int Bot_SafeDirection(SithThing *self, rdVector3 direction, int allowDrop
      return Bot_GroundCorridor(self,direction,allowDrop,lookahead,0,blockedAt);
  }
  
@@ -260,6 +260,10 @@ index d59f677..069f053 100644
 +    return BT_ON(ALWAYS_RUN) ? Bot_RunSafe(self,desired,diagonal) : Bot_RunClear(self,desired,1,diagonal);
 +}
 +
++/* The surface the last Bot_UseTarget met, if it met one. */
++static SithSurface *botUseSurface;
++static int Bot_TrapButton(const SithSurface *surface);
++
 +/* The stock activate test, without its side effects: from the eye, along
 +   the view, moveSize+0.1 ahead, a COG-linked surface or a captured thing
 +   that is not an item or a weapon. */
@@ -275,12 +279,15 @@ index d59f677..069f053 100644
 +        eye.x+=self->actorParams.eyeOffset.x; eye.y+=self->actorParams.eyeOffset.y; eye.z+=self->actorParams.eyeOffset.z;
 +    }
 +    SithSector *sector=Bot_SectorAt(&eye,self->sector);
++    botUseSurface=NULL;
 +    if (!sector) return 0;
 +    int found=0;
 +    sithCollision_SearchForCollisions(sector,self,&eye,&look,self->moveSize+0.1f,0.025f,RAYCAST_2);
 +    SithCollision *hit;
 +    while ((hit=sithCollision_PopStack())) {
-+        if ((hit->type&SITHCOLLISION_WORLD) && hit->surface && (hit->surface->flags&SITH_SURFACE_COG_LINKED)) { found=1; break; }
++        if ((hit->type&SITHCOLLISION_WORLD) && hit->surface && (hit->surface->flags&SITH_SURFACE_COG_LINKED)) {
++            botUseSurface=hit->surface; found=1; break;
++        }
 +        if ((hit->type&SITHCOLLISION_THING) && hit->pThingCollided && hit->pThingCollided->type!=SITH_THING_ITEM &&
 +            hit->pThingCollided->type!=SITH_THING_WEAPON && (hit->pThingCollided->flags&SITH_TF_CAPTURED)) { found=1; break; }
 +    }
@@ -299,13 +306,16 @@ index d59f677..069f053 100644
      if (!Bot_SafeDirection(self,desired,allowDrop,len,&blocked)) {
          Bot_ObserveBlock(self,desired);
 -        if (bot.now>=bot.nextUse) { bot.keys[INPUT_FUNC_ACTIVATE]=1; bot.nextUse=bot.now+0.8f; }
-+        if (bot.now>=bot.nextUse && (BT_ON(BLIND_USE) || Bot_UseTarget(self))) {
++        int ahead=bot.now>=bot.nextUse && (!BT_ON(BLIND_USE) || BT_ON(TRAP_AVOID)) && Bot_UseTarget(self);
++        /* trap_avoid: a trap's switch is never pressed just to get past. */
++        if (bot.now>=bot.nextUse && (BT_ON(BLIND_USE) || ahead) &&
++            !(BT_ON(TRAP_AVOID) && ahead && Bot_TrapButton(botUseSurface))) {
 +            bot.keys[INPUT_FUNC_ACTIVATE]=1; bot.nextUse=bot.now+0.8f; bot.tele.uses++;
 +        }
          /* Steer around players/props without blind strafing over ledges. */
          int found=0;
          static const flex_t angles[]={0.45f,-0.45f,0.85f,-0.85f};
-@@ -397,6 +608,7 @@ static void Bot_Move(SithThing *self, rdVector3 desired, int allowDrop)
+@@ -397,25 +618,61 @@ static void Bot_Move(SithThing *self, rdVector3 desired, int allowDrop)
              rdVector3 side={desired.x*cosf(a)-desired.y*sinf(a),desired.x*sinf(a)+desired.y*cosf(a),0};
              if (Bot_SafeDirection(self,side,0,len,&blocked)) { desired=side; found=1; break; }
          }
@@ -313,8 +323,23 @@ index d59f677..069f053 100644
          if (!found) {
              rdVector3 p=self->position, floor; SithSector *sector;
              p.z+=0.10f;
-@@ -406,16 +618,40 @@ static void Bot_Move(SithThing *self, rdVector3 desired, int allowDrop)
-             return;
+-            if (self->attach_flags && bot.now>=bot.nextJump && Bot_Floor(p,self->sector,0.4f,&floor,&sector)) {
++            int underfoot=Bot_Floor(p,self->sector,0.4f,&floor,&sector);
++            if (self->attach_flags && bot.now>=bot.nextJump && underfoot) {
+                 bot.keys[INPUT_FUNC_JUMP]=1; bot.nextJump=bot.now+1.5f;
+             }
+-            return;
++            /* lip_escape: standing on a lip with the centre over a drop,
++               there is no floor to jump from either. Take the safe heading
++               nearest the wanted one, even back from the edge. */
++            if (!(BT_ON(LIP_ESCAPE) && self->attach_flags && !underfoot)) return;
++            for (int i=1;i<=8 && !found;i++) for (int sign=-1;sign<=1 && !found;sign+=2) {
++                flex_t a=sign*i*(flex_t)(M_PI/8);
++                rdVector3 side={desired.x*cosf(a)-desired.y*sinf(a),desired.x*sinf(a)+desired.y*cosf(a),0};
++                if (Bot_SafeDirection(self,side,0,len,&blocked)) { desired=side; found=1; }
++            }
++            if (!found) return;
++            bot.tele.lipSteps++;
          }
      }
 -    bot.axes[INPUT_FUNC_FORWARD]=Bot_Clamp(Bot_Dot(desired,self->orient.lvec),-0.65f,1.0f);
@@ -339,7 +364,8 @@ index d59f677..069f053 100644
  
  #include "AI/jkBotForce.inc"
 +#include "AI/jkBotOrdnance.inc"
-+
+ 
+-static void Bot_ContinueWaterExit(SithThing *self)
 +/* water_fight: a heavy gun kicks its shooter back 80 force units. Hold it
 +   through the run-up and the jump, and while the swimmer has all but
 +   settled on the launch spot; any other gun, or any other moment, fires. */
@@ -351,13 +377,12 @@ index d59f677..069f053 100644
 +        Bot_Horizontal(off)<0.06f && Bot_Horizontal(self->physicsParams.vel)<0.15f;
 +    return nav.waterExitPhase==1 || nav.waterExitPhase==2 || settling;
 +}
- 
--static void Bot_ContinueWaterExit(SithThing *self)
++
 +static void Bot_ContinueWaterExit(SithThing *self,SithThing *target)
  {
      /* Finish or cancel existing powers through the ordinary Force controls.
         A required look-away or held key takes precedence over the jump. */
-@@ -424,7 +660,22 @@ static void Bot_ContinueWaterExit(SithThing *self)
+@@ -424,7 +681,22 @@ static void Bot_ContinueWaterExit(SithThing *self)
          nav.waterExitUntil=0; bot.goal=-1; bot.nextPlan=0;
          return;
      }
@@ -380,7 +405,7 @@ index d59f677..069f053 100644
  }
  
  /* Equipment goals keep a stock thing identity and a verified contact, never
-@@ -468,6 +719,7 @@ static flex_t Bot_EquipmentValue(SithThing *self,int index)
+@@ -468,6 +740,7 @@ static flex_t Bot_EquipmentValue(SithThing *self,int index)
      if (!item || item->type!=SITH_THING_ITEM || !Bot_SectorSafe(item->sector) ||
          (item->flags&(SITH_TF_DISABLED|SITH_TF_DEAD))) return 0;
      if (Bot_LivePack(item)) return Bot_PackValue(self,item);
@@ -388,7 +413,7 @@ index d59f677..069f053 100644
      BotPickupKind k=Bot_PickupType(item);
      if (k.kind==BOT_ITEM_WEAPON && (k.bin==SITHBIN_BRYARPISTOL || k.bin==SITHBIN_LIGHTSABER)) return 0;
      if (k.kind==BOT_ITEM_AMMO && !Bot_UsesAmmo(self,k.bin)) return 0;
-@@ -483,6 +735,15 @@ static flex_t Bot_EquipmentValue(SithThing *self,int index)
+@@ -483,6 +756,15 @@ static flex_t Bot_EquipmentValue(SithThing *self,int index)
      return value;
  }
  
@@ -404,7 +429,7 @@ index d59f677..069f053 100644
  static int Bot_EquipmentSpan(SithThing *self,BotNode *from,BotNode *to)
  {
      flex_t d=Bot_Distance(from->pos,to->pos);
-@@ -503,6 +764,14 @@ static int Bot_AtEquipment(SithThing *self,SithThing *item)
+@@ -503,6 +785,14 @@ static int Bot_AtEquipment(SithThing *self,SithThing *item)
      return Bot_Distance(self->position,item->position)<0.025f;
  }
  
@@ -419,7 +444,7 @@ index d59f677..069f053 100644
  static void Bot_ClearEquipment(const char *reason)
  {
      if (bot.armItem && bot.traceForce)
-@@ -589,6 +858,115 @@ static void Bot_CheckGearDive(SithThing *self)
+@@ -589,6 +879,115 @@ static void Bot_CheckGearDive(SithThing *self)
      Bot_ReturnFromDive("air-return");
  }
  
@@ -535,7 +560,7 @@ index d59f677..069f053 100644
  static void Bot_FindEquipment(SithThing *self)
  {
      BotEquipmentRank racks[BOT_EQUIP_PROBES]={0},packs[BOT_EQUIP_PROBES+1]={0};
-@@ -601,17 +979,17 @@ static void Bot_FindEquipment(SithThing *self)
+@@ -601,17 +1000,17 @@ static void Bot_FindEquipment(SithThing *self)
      bot.armNext=bot.now+0.75f;
      for (int i=0;i<bot.nNodes;i++) {
          BotNode *node=&bot.nodes[i]; SithThing *item=Bot_NavThing(node->item);
@@ -556,7 +581,7 @@ index d59f677..069f053 100644
          /* Keep a real graph route even when the nearest four apparent
             shortcuts prove to be in disconnected rooms. */
          if (cost<1e19f && i!=start) {
-@@ -622,13 +1000,20 @@ static void Bot_FindEquipment(SithThing *self)
+@@ -622,13 +1021,20 @@ static void Bot_FindEquipment(SithThing *self)
          if (cost>=1e19f) continue;
          Bot_RankEquipment(racks,i,value/(1.0f+0.28f*cost));
      }
@@ -582,7 +607,7 @@ index d59f677..069f053 100644
          Bot_RankPackProbe(packs,i,value/(1.0f+0.28f*Bot_Distance(here.pos,item->position)),bot.armPackProbe);
      }
      Bot_RotatePackProbe(packs,&bot.armPackProbe);
-@@ -640,28 +1025,50 @@ static void Bot_FindEquipment(SithThing *self)
+@@ -640,28 +1046,50 @@ static void Bot_FindEquipment(SithThing *self)
          int walk=Bot_EquipmentSpan(self,&here,node);
          if (!walk && (start<0 || start==i || distance[i]>=1e19f)) continue;
          flex_t cost=walk ? Bot_Distance(here.pos,node->pos) : distance[i]+Bot_Distance(here.pos,bot.nodes[start].pos);
@@ -638,7 +663,7 @@ index d59f677..069f053 100644
                  if (candidate==start && !Bot_EquipmentSpan(self,&here,&bot.nodes[start])) continue;
                  if (!Bot_EquipmentSpan(self,&bot.nodes[candidate],&end)) continue;
                  approach=candidate;
-@@ -670,10 +1077,24 @@ static void Bot_FindEquipment(SithThing *self)
+@@ -670,10 +1098,24 @@ static void Bot_FindEquipment(SithThing *self)
              }
              if (approach<0) continue;
          }
@@ -665,7 +690,7 @@ index d59f677..069f053 100644
      if (index<0) { Bot_ClearEquipment("no-route"); return; }
      SithThing *item=Bot_NavThing(index);
      const BotGoalPaths *chosen=safe!=&all && Bot_OptionalSupply(self,item) ? safe : &all;
-@@ -683,8 +1104,15 @@ static void Bot_FindEquipment(SithThing *self)
+@@ -683,8 +1125,15 @@ static void Bot_FindEquipment(SithThing *self)
      } else if (direct && bot.armItem && !bot.armDirect) Bot_ClearEquipment("final-leg");
      if (bot.traceForce && (bot.armItem!=index+1 || bot.armNode!=anchor+1 || bot.armDirect!=direct))
          fprintf(stderr,"BOT_GEAR name=%s t=%.2f event=plan item=%d guid=%u signature=%u pack=%d anchor=%d direct=%d\n",
@@ -682,7 +707,7 @@ index d59f677..069f053 100644
      bot.armNode=anchor+1; bot.armItem=index+1; bot.armDirect=direct;
      bot.armGuid=item->guid; bot.armSignature=item->signature; bot.armPosition=item->position;
      bot.armContact=contact; nav.pursuitNet=0;
-@@ -698,7 +1126,7 @@ static int Bot_ArmingMove(SithThing *self,flex_t enemyDistance)
+@@ -698,7 +1147,7 @@ static int Bot_ArmingMove(SithThing *self,flex_t enemyDistance)
          (!self->attach_flags && !(self->sector->flags&SITH_SECTOR_UNDERWATER))) return 0;
      SithThing *item=Bot_NavThing(bot.armItem-1);
      if (bot.armItem && (!item || item->guid!=bot.armGuid || item->signature!=bot.armSignature ||
@@ -691,7 +716,7 @@ index d59f677..069f053 100644
          (Bot_DeferSupplyApproaches(self) && Bot_OnDeferredCrossing() && Bot_OptionalSupply(self,item))))
          Bot_ClearEquipment("state-or-contact");
      else if (item && Bot_AtEquipment(self,item)) {
-@@ -710,7 +1138,7 @@ static int Bot_ArmingMove(SithThing *self,flex_t enemyDistance)
+@@ -710,7 +1159,7 @@ static int Bot_ArmingMove(SithThing *self,flex_t enemyDistance)
      if (!bot.armItem) return 0;
      /* Reach the transient pack by its checked final span before the ordinary
         graph follower retires the approach node at its arrival radius. */
@@ -700,7 +725,7 @@ index d59f677..069f053 100644
          Bot_Distance(self->position,bot.nodes[bot.armNode-1].pos)<0.22f) {
          BotNode here={.pos=self->position,.sector=self->sector};
          if (Bot_EquipmentSpan(self,&here,&bot.armContact)) {
-@@ -734,6 +1162,13 @@ static int Bot_ArmingMove(SithThing *self,flex_t enemyDistance)
+@@ -734,6 +1183,13 @@ static int Bot_ArmingMove(SithThing *self,flex_t enemyDistance)
              bot.axes[INPUT_FUNC_FORWARD]=0.4f*Bot_Dot(direction,self->orient.lvec);
              bot.axes[INPUT_FUNC_SLIDE]=0.4f*Bot_Dot(direction,self->orient.rvec);
          }
@@ -714,7 +739,7 @@ index d59f677..069f053 100644
          bot.followingRoute=1; bot.routeMode=swim ? BOT_ROUTE_SWIM : BOT_ROUTE_WALK;
          if (swim) { bot.routeAim=1; Bot_Aim(self,to,0); }
          return 1;
-@@ -744,7 +1179,7 @@ static int Bot_ArmingMove(SithThing *self,flex_t enemyDistance)
+@@ -744,7 +1200,7 @@ static int Bot_ArmingMove(SithThing *self,flex_t enemyDistance)
  static flex_t Bot_EngagementForward(int melee,flex_t distance)
  {
      if (!companion.policy.mode)
@@ -723,7 +748,7 @@ index d59f677..069f053 100644
      flex_t range=companion.policy.range;
      if (!range) {
          if (companion.policy.mode==CP_RECOVER) range=4.0f;
-@@ -780,13 +1215,23 @@ static void Bot_Combat(SithThing *self, SithThing *target)
+@@ -780,13 +1236,23 @@ static void Bot_Combat(SithThing *self, SithThing *target)
              routed=bot.goal>=0 || bot.routeAim;
          }
      }
@@ -748,7 +773,7 @@ index d59f677..069f053 100644
      Bot_TryCombatJump(self,target);
      Bot_FireGunShot(self,target,weapon,&shot,error,distance);
      Bot_ForceTick(self,target,error);
-@@ -800,9 +1245,11 @@ static void Bot_Combat(SithThing *self, SithThing *target)
+@@ -800,9 +1266,11 @@ static void Bot_Combat(SithThing *self, SithThing *target)
      if (h>0.001f) {
          d.x/=h; d.y/=h; d.z=0;
          flex_t forward=Bot_EngagementForward(melee,distance);
@@ -762,7 +787,7 @@ index d59f677..069f053 100644
          Bot_Move(self,move,0);
      }
  }
-@@ -840,18 +1287,161 @@ static void Bot_Recovery(SithThing *self)
+@@ -840,18 +1308,165 @@ static void Bot_Recovery(SithThing *self)
      /* Charge only the route actually driven across this failed interval.
         Movement on the deadline frame still belongs to recovery. */
      if (node>=0 && bot.routeStallTime+0.001f>=(recovering ? 1.5f : 2.0f)) {
@@ -775,7 +800,9 @@ index d59f677..069f053 100644
      bot.recoverySide=(Bot_Random()&1u) ? 1 : -1; bot.nextRecovery=bot.now+1.5f;
      bot.goal=-1; bot.routeCount=0; bot.nextPlan=0;
 -    bot.keys[INPUT_FUNC_ACTIVATE]=1;
-+    bot.keys[INPUT_FUNC_ACTIVATE]=1; bot.tele.uses++;
++    if (!(BT_ON(TRAP_AVOID) && Bot_UseTarget(self) && Bot_TrapButton(botUseSurface))) {
++        bot.keys[INPUT_FUNC_ACTIVATE]=1; bot.tele.uses++;
++    }
      if (self->attach_flags && bot.now>=bot.nextJump) {
          bot.keys[INPUT_FUNC_JUMP]=1; bot.nextJump=bot.now+1.5f;
      }
@@ -924,13 +951,17 @@ index d59f677..069f053 100644
 +    }
 +}
 +
++#include "AI/jkBotTraps.inc"
++
  int jkBot_IsEnabled(void) { return bot.enabled; }
  
  /* Opt-in receipt from this client's own inventory. Bit zero denotes Jump (bin 21). */
-@@ -882,8 +1472,9 @@ void jkBot_Configure(const char *name, const char *skin)
+@@ -881,9 +1496,10 @@ static void Bot_TraceForce(SithThing *self)
+ void jkBot_Configure(const char *name, const char *skin)
  {
      (void)skin;
-     memset(&bot,0,sizeof(bot)); memset(&nav,0,sizeof(nav)); bot.enabled=1;
+-    memset(&bot,0,sizeof(bot)); memset(&nav,0,sizeof(nav)); bot.enabled=1;
++    memset(&bot,0,sizeof(bot)); memset(&nav,0,sizeof(nav)); bot.enabled=1; bot.tele.trapNearest=1e20f;
 +    Bot_ConfigureTactics();
      Companion_Configure();
 -    bot.fistsPeace=bot.forceEnabled=1;
@@ -938,7 +969,7 @@ index d59f677..069f053 100644
      bot.competitiveForce=jkBotLoadout_Style(getenv("JK_BOT_FORCE_STYLE"))==JKBOT_STYLE_COMPETITIVE;
      bot.forceBin=bot.forceTarget=bot.forceEffectBin=bot.forceEffectTarget=-1;
      const char *elite=getenv("JK_BOT_ELITE");
-@@ -899,6 +1490,7 @@ void jkBot_Configure(const char *name, const char *skin)
+@@ -899,6 +1515,7 @@ void jkBot_Configure(const char *name, const char *skin)
      if (!bot.random) bot.random=1;
      bot.goal=bot.targetSlot=-1;
      Bot_ReloadBehavior();
@@ -946,7 +977,7 @@ index d59f677..069f053 100644
  }
  
  void jkBot_OnJoined(void)
-@@ -908,6 +1500,8 @@ void jkBot_OnJoined(void)
+@@ -908,6 +1525,8 @@ void jkBot_OnJoined(void)
      Companion_ResetPlan();
      bot.joined=1; bot.world=NULL; bot.now=bot.nextForceTrace=bot.nextSpeedProbe=0;
      bot.tracedFireMode=-1; bot.nextFireTrace=0; bot.nextLog=10.0f;
@@ -955,7 +986,7 @@ index d59f677..069f053 100644
      bot.targetSlot=-1; bot.goal=-1; bot.routeCount=bot.routePos=0;
      bot.wasDead=0; bot.nextScan=bot.nextPlan=bot.nextSelect=0;
      bot.forceBin=bot.forceTarget=bot.forceEffectBin=bot.forceEffectTarget=-1; bot.nextForce=bot.forceUntil=0;
-@@ -916,10 +1510,24 @@ void jkBot_OnJoined(void)
+@@ -916,10 +1535,24 @@ void jkBot_OnJoined(void)
      memset(bot.previous,0,sizeof(bot.previous)); memset(bot.presses,0,sizeof(bot.presses));
  }
  
@@ -980,7 +1011,7 @@ index d59f677..069f053 100644
      memset(bot.presses,0,sizeof(bot.presses));
      if (!bot.enabled || !bot.joined || !sithNet_isMulti || (g_submodeFlags&8) ||
          !sithWorld_g_pCurrentWorld || !sithPlayer_g_pLocalPlayerThing || !sithPlayer_g_pLocalPlayer) return;
-@@ -931,6 +1539,9 @@ void jkBot_Tick(flex_t dt)
+@@ -931,6 +1564,9 @@ void jkBot_Tick(flex_t dt)
      bot.physicsStep=bot.frameDt;
  #endif
      if (bot.now>=bot.nextBehavior) Bot_ReloadBehavior();
@@ -990,7 +1021,7 @@ index d59f677..069f053 100644
      SithThing *self=sithPlayer_g_pLocalPlayerThing;
      if (self->type!=SITH_THING_PLAYER || !self->sector || !self->actorParams.pPlayer) return;
      Bot_TraceForce(self);
-@@ -940,12 +1551,16 @@ void jkBot_Tick(flex_t dt)
+@@ -940,12 +1576,17 @@ void jkBot_Tick(flex_t dt)
          Companion_NewWorld();
          memset(bot.peers,0,sizeof(bot.peers));
          bot.forceBin=bot.forceTarget=bot.forceEffectBin=bot.forceEffectTarget=-1;
@@ -998,6 +1029,7 @@ index d59f677..069f053 100644
          bot.armNode=bot.armItem=bot.armDirect=0; bot.armNext=0;
          nav.combatJumpUntil=nav.nextCombatJump=0; nav.combatJumpAirborne=0;
 +        memset(bot.crossings,0,sizeof(bot.crossings)); bot.entryFrom=bot.entryTo=bot.airReturn=0; bot.crossing=0;
++        memset(&traps,0,sizeof(traps));
          Bot_BuildNodes(self); bot.progressPos=self->position; bot.stuckAt=bot.now;
          bot.nextRecovery=bot.routeStallTime=0;
      }
@@ -1007,7 +1039,7 @@ index d59f677..069f053 100644
      Bot_ObservePeers(self);
      int dead=(self->flags&SITH_TF_DEAD)!=0 || self->actorParams.health<=0;
      Companion_Tick(self,dead);
-@@ -956,14 +1571,13 @@ void jkBot_Tick(flex_t dt)
+@@ -956,21 +1597,22 @@ void jkBot_Tick(flex_t dt)
      bot.previousHealth=self->actorParams.health;
      if (dead) {
          if (!bot.wasDead) { Bot_ResetHearing(); bot.deadAt=bot.now; bot.targetSlot=-1; bot.goal=-1; }
@@ -1024,15 +1056,16 @@ index d59f677..069f053 100644
              bot.armNode=bot.armItem=bot.armDirect=0; bot.armNext=0;
              nav.combatJumpUntil=nav.nextCombatJump=0; nav.combatJumpAirborne=0;
              nav.hadBreathDebt=nav.diveEscape=0; nav.diveOverflowUntil=0;
-@@ -971,6 +1585,7 @@ void jkBot_Tick(flex_t dt)
+             memset(nav.failedDives,0,sizeof(nav.failedDives));
              memset(&nav.supplyApproach,0,sizeof(nav.supplyApproach));
              bot.goal=-1; bot.routeCount=0; bot.nextPlan=0; bot.targetSlot=-1;
++            traps.use=traps.phase=traps.presses=0; traps.exitNode=-1;
              bot.progressPos=self->position; bot.stuckAt=bot.now;
 +            bot.confine.count=bot.confine.next=bot.confine.strikes=0;
              fprintf(stderr,"BOT_RESPAWN name=%s health=%.1f\n",bot.name,(double)self->actorParams.health);
              fflush(stderr);
          }
-@@ -981,11 +1596,13 @@ void jkBot_Tick(flex_t dt)
+@@ -981,12 +1623,18 @@ void jkBot_Tick(flex_t dt)
          bot.followingRoute=bot.routeAim=0; bot.routeMode=-1;
          if (bot.armItem && !Bot_EquipmentMode()) Bot_ClearEquipment("mode");
          Bot_CheckGearDive(self);
@@ -1043,14 +1076,21 @@ index d59f677..069f053 100644
 +        Bot_ScanHazards(self);
          SithThing *target=Bot_UpdateTarget(self);
 -        if (nav.waterExitUntil>0) Bot_ContinueWaterExit(self);
+-        else if (target) Bot_Combat(self,target);
++        /* A run to a trap's switch owns the legs; at the switch, the view too. */
++        int trap=nav.waterExitUntil>0 ? 0 : Bot_TrapTick(self);
 +        if (nav.waterExitUntil>0) Bot_ContinueWaterExit(self,target);
-         else if (target) Bot_Combat(self,target);
++        else if (trap==2) Bot_SelectWeapon(self,2.0f);
++        else if (target) { Bot_Combat(self,target); if (trap==1) Bot_TrapLegs(self); }
++        else if (trap==1) { Bot_SelectWeapon(self,2.0f); Bot_TrapLegs(self); Bot_ForceTick(self,NULL,180.0f); }
          else {
              Bot_SelectWeapon(self,2.0f);
-@@ -994,8 +1611,11 @@ void jkBot_Tick(flex_t dt)
+             if (bot.nextRecovery>0 || nav.combatJumpUntil>bot.now || Bot_ObjectiveUrgent(self) || Bot_SupplyOrder() ||
+@@ -994,8 +1642,12 @@ void jkBot_Tick(flex_t dt)
                  Bot_Navigate(self);
              Bot_ForceTick(self,NULL,180.0f);
          }
++        if (nav.waterExitUntil<=0) Bot_TrapEscape(self);
 +        Bot_OrdnanceTick(self,target);
 +        Bot_Confinement(self);
          Bot_Recovery(self);
@@ -1059,11 +1099,11 @@ index d59f677..069f053 100644
      }
      Companion_Publish(self,dead);
      bot.wasDead=dead;
-@@ -1013,6 +1633,26 @@ void jkBot_Tick(flex_t dt)
+@@ -1013,6 +1665,28 @@ void jkBot_Tick(flex_t dt)
              (double)Bot_Max(0,bot.nextRecovery-bot.now),nav.waterExitUntil>0 ? nav.waterExitPhase : -1,
              nav.waterExitFrom,nav.waterExitTo,bot.keys[INPUT_FUNC_JUMP],bot.keys[INPUT_FUNC_DUCK],
              (unsigned)self->physicsParams.flags,(double)bot.frameDt,(unsigned)self->actorParams.endurance);
-+        fprintf(stderr,"BOT_MOVE name=%s t=%.1f alive=%.1f wet=%.1f on_foot=%.1f run_wanted=%.1f run=%.1f diagonal=%.1f run_refused=%.1f swim_pitched=%.1f crossing=%d confined=%d dodges=%d air_fire=%.1f uses=%d conc_shell=%d conc_shell_dist=%.2f conc_beam=%d conc_beam_dist=%.2f pulls=%d disarms=%d pull_cancels=%d item_pulls=%d item_caught=%d heavy=%.1f heavy_unsafe=%.1f heavy_switch=%d mines=%d hazard_nodes=%d thermals=%d thermal_held=%.1f thermal_noarc=%d grips=%d aim_err=%.1f aim_time=%.1f on_target=%.1f jump_misses=%d wet_fire=%.1f exit_yields=%d speed_up=%.1f loose=%d speed_no=%.1f,%.1f,%.1f,%.1f,%.1f,%.1f run_no=%.1f,%.1f,%.1f,%.1f,%.1f\n",
++        fprintf(stderr,"BOT_MOVE name=%s t=%.1f alive=%.1f wet=%.1f on_foot=%.1f run_wanted=%.1f run=%.1f diagonal=%.1f run_refused=%.1f swim_pitched=%.1f crossing=%d confined=%d dodges=%d air_fire=%.1f uses=%d conc_shell=%d conc_shell_dist=%.2f conc_beam=%d conc_beam_dist=%.2f pulls=%d disarms=%d pull_cancels=%d item_pulls=%d item_caught=%d heavy=%.1f heavy_unsafe=%.1f heavy_switch=%d mines=%d hazard_nodes=%d thermals=%d thermal_held=%.1f thermal_noarc=%d grips=%d aim_err=%.1f aim_time=%.1f on_target=%.1f jump_misses=%d wet_fire=%.1f exit_yields=%d speed_up=%.1f loose=%d speed_no=%.1f,%.1f,%.1f,%.1f,%.1f,%.1f run_no=%.1f,%.1f,%.1f,%.1f,%.1f lip_steps=%d traps=%d trap_escapes=%d trap_open=%d trap_busy=%d trap_nearest=%.1f trap_disarms=%d fields_opened=%d gate_wait=%.1f\n",
 +            bot.name,(double)bot.now,(double)bot.tele.alive,(double)bot.tele.wet,(double)bot.tele.steps,
 +            (double)bot.tele.wanted,(double)bot.tele.fast,(double)bot.tele.diagonal,(double)bot.tele.blocked,
 +            (double)bot.tele.pitched,bot.crossing,bot.confine.strikes,bot.dodges,(double)bot.tele.airFire,bot.tele.uses,
@@ -1076,17 +1116,19 @@ index d59f677..069f053 100644
 +            (double)bot.tele.wetFire,bot.tele.exitYields,(double)bot.tele.speedUp,bot.tele.loose,
 +            (double)bot.tele.speedNo[0],(double)bot.tele.speedNo[1],(double)bot.tele.speedNo[2],(double)bot.tele.speedNo[3],(double)bot.tele.speedNo[4],(double)bot.tele.speedNo[5],
 +            (double)bot.tele.runNo[0],(double)bot.tele.runNo[1],(double)bot.tele.runNo[2],(double)bot.tele.runNo[3],
-+            (double)bot.tele.runNo[4]);
++            (double)bot.tele.runNo[4],bot.tele.lipSteps,bot.tele.trapsSprung,bot.tele.trapEscapes,bot.tele.trapOpen,bot.tele.trapBusy,
++            (double)(bot.tele.trapNearest<1e19f ? bot.tele.trapNearest : -1.0f),bot.tele.trapsDisarmed,bot.tele.fieldsOpened,(double)bot.tele.gateWait);
 +        bot.tele.alive=bot.tele.wet=bot.tele.steps=bot.tele.wanted=bot.tele.fast=bot.tele.diagonal=bot.tele.blocked=bot.tele.pitched=bot.tele.airFire=0; bot.dodges=0; bot.tele.uses=0;
 +        bot.tele.conc[0]=bot.tele.conc[1]=0; bot.tele.concDist[0]=bot.tele.concDist[1]=0;
 +        bot.tele.pulls=bot.tele.disarms=bot.tele.pullCancels=bot.tele.itemPulls=bot.tele.itemCaught=bot.tele.heavySwitch=0;
 +        bot.tele.heavy=bot.tele.heavyUnsafe=0; bot.tele.mines=bot.tele.hazardNodes=bot.tele.thermals=bot.tele.thermalNoArc=bot.tele.grips=0; bot.tele.thermalHeld=0;
 +        bot.tele.aimError=bot.tele.aimTime=bot.tele.onTarget=0; bot.tele.jumpMisses=0;
-+        bot.tele.wetFire=bot.tele.speedUp=0; bot.tele.exitYields=bot.tele.loose=0; memset(bot.tele.speedNo,0,sizeof(bot.tele.speedNo)); memset(bot.tele.runNo,0,sizeof(bot.tele.runNo));
++        bot.tele.wetFire=bot.tele.speedUp=0; bot.tele.exitYields=bot.tele.loose=0; memset(bot.tele.speedNo,0,sizeof(bot.tele.speedNo)); memset(bot.tele.runNo,0,sizeof(bot.tele.runNo)); bot.tele.lipSteps=bot.tele.trapsSprung=bot.tele.trapEscapes=bot.tele.trapOpen=bot.tele.trapBusy=0; bot.tele.trapNearest=1e20f;
++        bot.tele.trapsDisarmed=bot.tele.fieldsOpened=0; bot.tele.gateWait=0;
          fflush(stderr);
      }
  }
-@@ -1022,6 +1662,15 @@ flex_t jkBot_GetAxis(int functionId)
+@@ -1022,6 +1696,15 @@ flex_t jkBot_GetAxis(int functionId)
      return functionId>=0 && functionId<INPUT_FUNC_MAX ? bot.axes[functionId] : 0.0f;
  }
  
@@ -1885,7 +1927,7 @@ index 3761a38..f70fabf 100644
      return 1;
  }
 diff --git a/src/AI/jkBotNavigate.inc b/src/AI/jkBotNavigate.inc
-index 7a4d61a..d0fe0b7 100644
+index 7a4d61a..e8898c1 100644
 --- a/src/AI/jkBotNavigate.inc
 +++ b/src/AI/jkBotNavigate.inc
 @@ -55,6 +55,20 @@ static int Bot_NavDirectMove(SithThing *self, rdVector3 target, int swim)
@@ -2108,7 +2150,7 @@ index 7a4d61a..d0fe0b7 100644
  static int Bot_StartForceJump(SithThing *self,BotNode *landing,flex_t flight,flex_t hold)
  {
      if (!Bot_RequestForce(self,SITHBIN_F_JUMP,hold,-1)) return 0;
-@@ -391,6 +536,44 @@ static int Bot_ApproachShore(SithThing *self,const BotNode *bank)
+@@ -391,6 +536,45 @@ static int Bot_ApproachShore(SithThing *self,const BotNode *bank)
      return 1;
  }
  
@@ -2127,6 +2169,7 @@ index 7a4d61a..d0fe0b7 100644
 +            if (bot.nodes[a].edges[k].to==b) { mode=bot.nodes[a].edges[k].drop; break; }
 +        rdVector3 leg=Bot_Sub(bot.nodes[b].pos,bot.nodes[a].pos);
 +        flex_t length=Bot_Horizontal(leg);
++        if (mode==BOT_ROUTE_GATE) mode=BOT_ROUTE_WALK; /* an open field is walked */
 +        if (mode!=BOT_ROUTE_WALK || nav.liftForNode[b] || length<0.001f ||
 +            leg.x*heading.x+leg.y*heading.y<0.9f*length) break;
 +        heading.x=leg.x/length; heading.y=leg.y/length; total+=length;
@@ -2144,7 +2187,7 @@ index 7a4d61a..d0fe0b7 100644
 +        int a=bot.route[i-1], b=bot.route[i], mode=-1;
 +        for (int k=0;k<bot.nodes[a].nEdges;k++)
 +            if (bot.nodes[a].edges[k].to==b) { mode=bot.nodes[a].edges[k].drop; break; }
-+        if (mode!=BOT_ROUTE_WALK || nav.liftForNode[b]) return 1;
++        if ((mode!=BOT_ROUTE_WALK && mode!=BOT_ROUTE_GATE) || nav.liftForNode[b]) return 1;
 +        total+=Bot_Horizontal(Bot_Sub(bot.nodes[b].pos,bot.nodes[a].pos));
 +    }
 +    return 0;
@@ -2153,7 +2196,7 @@ index 7a4d61a..d0fe0b7 100644
  static void Bot_Navigate(SithThing *self)
  {
      bot.followingRoute=1;
-@@ -400,7 +583,7 @@ static void Bot_Navigate(SithThing *self)
+@@ -400,7 +584,7 @@ static void Bot_Navigate(SithThing *self)
              (self->sector->flags&SITH_SECTOR_UNDERWATER)) nav.combatJumpUntil=0;
          else {
              bot.axes[INPUT_FUNC_SLIDE]=bot.axes[INPUT_FUNC_FORWARD]=0;
@@ -2162,7 +2205,7 @@ index 7a4d61a..d0fe0b7 100644
              return; /* Keep actual gun aim available through the ballistic coast. */
          }
      }
-@@ -422,6 +605,7 @@ static void Bot_Navigate(SithThing *self)
+@@ -422,6 +606,7 @@ static void Bot_Navigate(SithThing *self)
                 the stock script decides whether there is a takeoff. */
              if (bot.forceBin==SITHBIN_F_JUMP) bot.forceUntil=bot.now;
              nav.forceJumpPending=0; bot.goal=-1; bot.routeCount=0; bot.nextPlan=0;
@@ -2170,7 +2213,7 @@ index 7a4d61a..d0fe0b7 100644
              return;
          }
          if (!self->attach_flags && bot.now>=nav.forceChargeUntil) {
-@@ -431,11 +615,11 @@ static void Bot_Navigate(SithThing *self)
+@@ -431,11 +616,11 @@ static void Bot_Navigate(SithThing *self)
              bot.axes[INPUT_FUNC_FORWARD]=bot.axes[INPUT_FUNC_SLIDE]=0;
              Bot_Aim(self,nav.jumpTarget,0); return;
          } else {
@@ -2184,7 +2227,7 @@ index 7a4d61a..d0fe0b7 100644
          else {
              bot.routeAim=1;
              Bot_Aim(self,nav.jumpTarget,0);
-@@ -478,7 +662,7 @@ static void Bot_Navigate(SithThing *self)
+@@ -478,7 +663,7 @@ static void Bot_Navigate(SithThing *self)
          }
          bot.routePos++;
          if (bot.routePos>=bot.routeCount) {
@@ -2193,7 +2236,7 @@ index 7a4d61a..d0fe0b7 100644
              bot.goal=-1; bot.nextPlan=0; nav.liftWaitAt=0; return;
          }
          nodeIndex=bot.route[bot.routePos]; node=&bot.nodes[nodeIndex];
-@@ -486,6 +670,8 @@ static void Bot_Navigate(SithThing *self)
+@@ -486,6 +671,8 @@ static void Bot_Navigate(SithThing *self)
      }
      int mode=BOT_ROUTE_WALK;
      int from=(bot.routePos>0) ? bot.route[bot.routePos-1] : Bot_Nearest(self);
@@ -2202,9 +2245,19 @@ index 7a4d61a..d0fe0b7 100644
      if (from>=0) for (int i=0;i<bot.nodes[from].nEdges;i++) {
          BotEdge *edge=&bot.nodes[from].edges[i];
          if (edge->to==nodeIndex) { mode=edge->drop; break; }
-@@ -509,9 +695,19 @@ static void Bot_Navigate(SithThing *self)
+@@ -508,10 +695,29 @@ static void Bot_Navigate(SithThing *self)
+         BotNode actual={.pos=self->position,.sector=self->sector}; int drop=0;
          if (Bot_Walkable(&actual,node,&drop) && !drop) mode=BOT_ROUTE_WALK;
      }
++    if (mode==BOT_ROUTE_GATE) {
++        /* A force field is walked through once it is open and never walked
++           into while it is on. While the run to its switch is being set up,
++           wait short of it; with no way to open it, plan again. */
++        flex_t gate=from>=0 ? Bot_GateCost(from,nodeIndex) : -1.0f;
++        if (gate<0) { bot.goal=-1; bot.routeCount=bot.routePos=0; bot.nextPlan=0; return; }
++        if (gate>0) { bot.tele.gateWait+=bot.frameDt; return; }
++        mode=BOT_ROUTE_WALK;
++    }
      bot.routeMode=mode;
 +    if (mode==BOT_ROUTE_RUNJUMP && from>=0 && Bot_RunJumpMove(self,from,nodeIndex)) return;
      bot.routeAim=mode==BOT_ROUTE_JUMP || mode==BOT_ROUTE_FORCEJUMP || mode==BOT_ROUTE_WATER_EXIT;
@@ -2222,7 +2275,7 @@ index 7a4d61a..d0fe0b7 100644
      Bot_Aim(self,aim,0);
      if (mode==BOT_ROUTE_WATER_EXIT && from>=0) {
          if (bot.forceBin>=0 || bot.forceAvoid || bot.forceCancel) return;
-@@ -520,9 +716,37 @@ static void Bot_Navigate(SithThing *self)
+@@ -520,9 +726,37 @@ static void Bot_Navigate(SithThing *self)
              nav.waterExitFrom=from; nav.waterExitTo=nodeIndex;
              nav.waterExitPhase=0; nav.waterExitUntil=bot.now+4.0f;
              Bot_ExitWaterMove(self);
@@ -2261,7 +2314,7 @@ index 7a4d61a..d0fe0b7 100644
      if (Bot_EnterWater(self,node,mode,from)) return;
      if (mode==BOT_ROUTE_SWIM || mode==BOT_ROUTE_WATER_ENTRY || (self->sector->flags&SITH_SECTOR_UNDERWATER)) {
          /* Dijkstra omits the start anchor. At a portal the actual swimmer
-@@ -551,14 +775,64 @@ static void Bot_Navigate(SithThing *self)
+@@ -551,14 +785,64 @@ static void Bot_Navigate(SithThing *self)
                  Bot_NavDirectMove(self,bot.nodes[from].pos,1);
                  return;
              }
@@ -2327,7 +2380,7 @@ index 7a4d61a..d0fe0b7 100644
      if (mode==BOT_ROUTE_FORCEJUMP && from>=0 && (self->attach_flags&(SITH_ATTACH_SURFACE|SITH_ATTACH_THINGFACE)) && bot.now>=bot.nextJump) {
          BotNode actual=*node; actual.pos=self->position; actual.sector=self->sector;
          flex_t duration, hold, horizontal=Bot_Horizontal(d);
-@@ -568,7 +842,7 @@ static void Bot_Navigate(SithThing *self)
+@@ -568,7 +852,7 @@ static void Bot_Navigate(SithThing *self)
              bot.axes[INPUT_FUNC_FORWARD]=bot.axes[INPUT_FUNC_SLIDE]=0;
              nav.waitUntil=bot.now+0.3f;
              if (Bot_Horizontal(self->physicsParams.vel)>0.12f) return;
@@ -2336,7 +2389,7 @@ index 7a4d61a..d0fe0b7 100644
              return;
          }
          if (!bot.forceEnabled || sithInventory_GetInventory(self,SITHBIN_FORCEMANA)<20) {
-@@ -584,8 +858,18 @@ static void Bot_Navigate(SithThing *self)
+@@ -584,8 +868,18 @@ static void Bot_Navigate(SithThing *self)
              Bot_Jumpable(&actual,node,&duration)) {
              bot.keys[INPUT_FUNC_JUMP]=1; bot.nextJump=bot.now+duration+0.5f;
              nav.jumpTarget=node->pos; nav.jumpStarted=bot.now; nav.jumpUntil=bot.now+duration+0.4f;
@@ -2356,15 +2409,20 @@ index 7a4d61a..d0fe0b7 100644
      Bot_Move(self,d,mode==BOT_ROUTE_DROP && self->actorParams.health>=30);
  }
 diff --git a/src/AI/jkBotNavigation.inc b/src/AI/jkBotNavigation.inc
-index 6d82309..1952f72 100644
+index 6d82309..9cffe02 100644
 --- a/src/AI/jkBotNavigation.inc
 +++ b/src/AI/jkBotNavigation.inc
-@@ -7,7 +7,14 @@
+@@ -7,7 +7,19 @@
  #include <stdlib.h>
  #include "Primitives/rdModel3.h"
  
 -enum { BOT_ROUTE_WALK, BOT_ROUTE_DROP, BOT_ROUTE_JUMP, BOT_ROUTE_SWIM, BOT_ROUTE_LIFT, BOT_ROUTE_FORCEJUMP, BOT_ROUTE_WATER_ENTRY, BOT_ROUTE_WATER_EXIT };
-+enum { BOT_ROUTE_WALK, BOT_ROUTE_DROP, BOT_ROUTE_JUMP, BOT_ROUTE_SWIM, BOT_ROUTE_LIFT, BOT_ROUTE_FORCEJUMP, BOT_ROUTE_WATER_ENTRY, BOT_ROUTE_WATER_EXIT, BOT_ROUTE_RUNJUMP };
++enum { BOT_ROUTE_WALK, BOT_ROUTE_DROP, BOT_ROUTE_JUMP, BOT_ROUTE_SWIM, BOT_ROUTE_LIFT, BOT_ROUTE_FORCEJUMP, BOT_ROUTE_WATER_ENTRY, BOT_ROUTE_WATER_EXIT, BOT_ROUTE_RUNJUMP,
++       BOT_ROUTE_GATE /* a walk through a level's force field (jkBotTraps.inc) */ };
++/* What a gate leg adds to a path now: 0 open, the walk by the switch on
++   this side while the field is on, or below 0 when it cannot be crossed. */
++static flex_t Bot_GateCost(int from,int to);
++static int Bot_FieldBlocks(int from,int to);
 +/* A jump released at running speed, solved when the graph is built. */
 +typedef struct {
 +    int from,to,speedRank,jumpRank;
@@ -2375,7 +2433,7 @@ index 6d82309..1952f72 100644
  enum { BOT_OBJECTIVE_NONE, BOT_OBJECTIVE_JOIN, BOT_OBJECTIVE_CAPTURE,
         BOT_OBJECTIVE_RETURN, BOT_OBJECTIVE_RECOVER, BOT_OBJECTIVE_ESCORT,
         BOT_OBJECTIVE_DEFEND, BOT_OBJECTIVE_INTERCEPT, BOT_OBJECTIVE_AIR };
-@@ -33,8 +40,20 @@ typedef struct BotDiveFailure {
+@@ -33,8 +45,20 @@ typedef struct BotDiveFailure {
  } BotDiveFailure;
  
  typedef struct BotPickupKind { int kind, bin, ammo; flex_t cap; } BotPickupKind;
@@ -2396,12 +2454,12 @@ index 6d82309..1952f72 100644
  static struct {
      int ctf, flag[2], base[2], mark[2], requestedTeam;
      int objective, objectiveThing, objectiveTeam, objectiveValid;
-@@ -50,8 +69,20 @@ static struct {
+@@ -50,8 +74,20 @@ static struct {
      unsigned char unavailable[BOT_NODES];
      flex_t waterSince, waitUntil, liftWaitAt, jumpUntil, jumpStarted, nextObjectiveLog;
      flex_t jumpVelocity, maxRunSpeed;
 +    BotRunJump runEdges[BOT_RUNJUMPS];
-+    int runCount, runCursor, runPhase, runFrom, runTo, runAir, runHeld, runLogged, runFlight, runActive;
++    int runCount, runCursor, runPhase, runFrom, runTo, runAir, runHeld, runLogged, runFlight, runActive, runSalvage;
 +    flex_t runUntil, runSeen, runRelease, runHealth, runSpedAt, runSwim;
      int forceJumpKnown, forceJumpPending;
      flex_t combatJumpUntil, nextCombatJump;
@@ -2417,7 +2475,7 @@ index 6d82309..1952f72 100644
      int combatJumpAirborne;
      int hadBreathDebt, diveEscape, diveBank;
      flex_t diveBankUntil, diveOverflowUntil;
-@@ -65,12 +96,14 @@ static struct {
+@@ -65,12 +101,14 @@ static struct {
      int waterExitFrom, waterExitTo, waterExitPhase, seekingSurface;
      rdVector3 waterExitStart;
      flex_t waterExitUntil;
@@ -2432,7 +2490,7 @@ index 6d82309..1952f72 100644
  } nav;
  
  static int Bot_NameIs(const char *a, const char *b)
-@@ -149,11 +182,19 @@ static SithThing *Bot_FlagCarrier(int team)
+@@ -149,11 +187,19 @@ static SithThing *Bot_FlagCarrier(int team)
  static int Bot_ObjectiveCarrier(SithThing *thing)
  { return thing && nav.ctf && (Bot_FlagCarrier(1)==thing || Bot_FlagCarrier(2)==thing); }
  
@@ -2454,7 +2512,7 @@ index 6d82309..1952f72 100644
  }
  
  static int Bot_ObjectiveUrgent(SithThing *self)
-@@ -165,7 +206,7 @@ static int Bot_ObjectiveUrgent(SithThing *self)
+@@ -165,7 +211,7 @@ static int Bot_ObjectiveUrgent(SithThing *self)
  }
  
  static int Bot_NavigationWaiting(SithThing *self)
@@ -2463,7 +2521,7 @@ index 6d82309..1952f72 100644
  
  static const char *Bot_ItemName(SithThing *item)
  {
-@@ -261,10 +302,26 @@ static int Bot_PickupContactAt(SithThing *self,SithThing *item,rdVector3 probe,
+@@ -261,10 +307,26 @@ static int Bot_PickupContactAt(SithThing *self,SithThing *item,rdVector3 probe,
  {
      probe.z+=BOT_FOOT_HEIGHT+0.02f;
      SithSector *sector=Bot_SectorAt(&probe,item->sector);
@@ -2490,7 +2548,7 @@ index 6d82309..1952f72 100644
          if (Bot_SectorAt(&pos,sector)!=sector) return 0;
      } else if (!Bot_Floor(probe,sector,0.45f,&pos,&sector)) return 0;
      if (sector==covered || !sithIntersect_IsSphereInSector(&pos,self->moveSize,sector) ||
-@@ -356,11 +413,42 @@ static int Bot_LivePack(const SithThing *item)
+@@ -356,11 +418,42 @@ static int Bot_LivePack(const SithThing *item)
             !(item->flags&(SITH_TF_DISABLED|SITH_TF_DESTROYED|SITH_TF_DEAD));
  }
  
@@ -2534,7 +2592,7 @@ index 6d82309..1952f72 100644
          !(self->moveSize>0 && pack->collideSize>0)) return 0;
      flex_t reach=self->moveSize+pack->collideSize;
      if (!(reach<=0.5f)) return 0;
-@@ -740,7 +828,9 @@ static int Bot_FullForceJump(BotNode *a,BotNode *b,flex_t charge,flex_t *seconds
+@@ -740,7 +833,9 @@ static int Bot_FullForceJump(BotNode *a,BotNode *b,flex_t charge,flex_t *seconds
      rdVector3 delta=Bot_Sub(b->pos,a->pos);
      flex_t length=Bot_Horizontal(delta);
      const int unsafe=SITH_SECTOR_UNDERWATER|SITH_SECTOR_USETHRUST|SITH_SECTOR_NOGRAVITY;
@@ -2545,7 +2603,7 @@ index 6d82309..1952f72 100644
          !Bot_SectorSafe(a->sector) || !Bot_SectorSafe(b->sector) ||
          ((a->sector->flags|b->sector->flags)&unsafe)) return 0;
      flex_t dt=bot.physicsStep,control=Bot_Max(dt,bot.frameDt);
-@@ -789,6 +879,18 @@ static int Bot_ForceJumpProfile(BotNode *a, BotNode *b, int rank, flex_t *durati
+@@ -789,6 +884,18 @@ static int Bot_ForceJumpProfile(BotNode *a, BotNode *b, int rank, flex_t *durati
         Prefer the small jump; taller verified routes need a stronger rank
         and a longer ordinary key hold. Avoid the <.15 tap-to-maximum rule. */
      if (rank<1 || rank>4) return 0;
@@ -2564,7 +2622,7 @@ index 6d82309..1952f72 100644
      flex_t highDuration;
      if (Bot_ArcClear(a,b,2.75f,0.95f,0.65f,1,duration) &&
          Bot_ArcClear(a,b,2.85f,0.95f,0.65f,1,&highDuration)) {
-@@ -841,6 +943,7 @@ static int Bot_WaterEntry(const BotNode *a, const BotNode *b)
+@@ -841,6 +948,7 @@ static int Bot_WaterEntry(const BotNode *a, const BotNode *b)
  
  #include "AI/jkBotWaterExit.inc"
  
@@ -2572,7 +2630,7 @@ index 6d82309..1952f72 100644
  static int Bot_EdgeMode(int from, int to)
  {
      BotNode *a=&bot.nodes[from], *b=&bot.nodes[to];
-@@ -889,16 +992,18 @@ static int Bot_EdgeMode(int from, int to)
+@@ -889,16 +997,21 @@ static int Bot_EdgeMode(int from, int to)
      return -1;
  }
  
@@ -2582,8 +2640,11 @@ index 6d82309..1952f72 100644
  {
      BotNode *node=&bot.nodes[from];
 -    if (node->nEdges>=BOT_EDGES) return;
-+    if (node->nEdges>=(mode==BOT_ROUTE_RUNJUMP ? BOT_EDGES : BOT_PLAIN_EDGES)) return;
++    /* Running jumps and force-field gates may take the reserved slots. */
++    if (node->nEdges>=(mode==BOT_ROUTE_RUNJUMP || mode==BOT_ROUTE_GATE ? BOT_EDGES : BOT_PLAIN_EDGES)) return;
      for (int i=0;i<node->nEdges;i++) if (node->edges[i].to==to) return;
++    /* Only a gate leg goes through a force field. */
++    if (mode!=BOT_ROUTE_GATE && Bot_FieldBlocks(from,to)) return;
      BotEdge *edge=&node->edges[node->nEdges++];
      edge->to=to; edge->drop=mode;
      edge->cost=Bot_Distance(node->pos,bot.nodes[to].pos)+
@@ -2593,7 +2654,7 @@ index 6d82309..1952f72 100644
      bot.graphEdges++;
  }
  
-@@ -930,8 +1035,8 @@ static void Bot_BuildGraphStep(void)
+@@ -930,8 +1043,8 @@ static void Bot_BuildGraphStep(void)
                  candidates[k]=j; distances[k]=distance; break;
              }
          }
@@ -2604,7 +2665,7 @@ index 6d82309..1952f72 100644
                  int j=candidates[rank+group*BOT_CANDIDATES/2];
                  if (j<0) continue;
                  int mode=Bot_EdgeMode(i,j);
-@@ -985,12 +1090,68 @@ static flex_t Bot_PackUtility(SithThing *self,SithThing *pack,int *restocksOwned
+@@ -985,12 +1098,68 @@ static flex_t Bot_PackUtility(SithThing *self,SithThing *pack,int *restocksOwned
              best=Bot_Max(best,usable*(have<guns[i].cap*0.15f ? 5.0f : 1.0f));
          }
      }
@@ -2673,7 +2734,7 @@ index 6d82309..1952f72 100644
  static flex_t Bot_ItemValue(SithThing *self, int itemIndex)
  {
      if (itemIndex<0 || itemIndex>=Bot_ThingCount()) return 0;
-@@ -1015,28 +1176,30 @@ static flex_t Bot_ItemValue(SithThing *self, int itemIndex)
+@@ -1015,28 +1184,30 @@ static flex_t Bot_ItemValue(SithThing *self, int itemIndex)
      flex_t quantity=pickup.bin ? sithInventory_GetInventory(self,pickup.bin) : 0;
      switch (pickup.kind) {
          case BOT_ITEM_WEAPON:
@@ -2719,7 +2780,7 @@ index 6d82309..1952f72 100644
              break;
          case BOT_ITEM_HEALTH:
              if (self->actorParams.health<100) value=self->actorParams.health<40 ? 16.0f : 5.0f;
-@@ -1128,6 +1291,14 @@ static int Bot_WetDestination(const BotNode *node)
+@@ -1128,6 +1299,14 @@ static int Bot_WetDestination(const BotNode *node)
      return (sector->flags&SITH_SECTOR_UNDERWATER)!=0;
  }
  
@@ -2734,13 +2795,33 @@ index 6d82309..1952f72 100644
  static int Bot_UsesAmmo(SithThing *self,int bin)
  {
      if (bin==SITHBIN_ENERGY) return sithInventory_GetInventory(self,SITHBIN_BRYARPISTOL)>0 ||
-@@ -1282,9 +1453,22 @@ static void Bot_SearchPaths(SithThing *self,int start,flex_t *distance,int *pare
+@@ -1166,9 +1345,13 @@ static int Bot_NearestApproach(SithThing *self,int defer)
+ {
+     int best=-1;
+     flex_t distance=1e20f;
++    /* lip_escape: the centre can hang over a drop into another sector while
++       the feet stand on this floor; its nodes are as near as the centre's. */
++    SithSector *underfoot=BT_ON(LIP_ESCAPE) && (self->attach_flags&SITH_ATTACH_SURFACE) && self->attachedSurface ?
++        self->attachedSurface->pSector : NULL;
+     for (int pass=0;pass<2 && best<0;pass++) for (int i=0;i<bot.nNodes;i++) {
+         BotNode *n=&bot.nodes[i];
+-        if (!pass && n->sector!=self->sector) continue;
++        if (!pass && n->sector!=self->sector && n->sector!=underfoot) continue;
+         if (pass && defer && (n->sector->flags&SITH_SECTOR_UNDERWATER) &&
+             Bot_ApproachDeferred(Bot_ApproachBank(self),n->sector)) continue;
+         flex_t d=Bot_Distance(n->pos,self->position);
+@@ -1282,9 +1465,27 @@ static void Bot_SearchPaths(SithThing *self,int start,flex_t *distance,int *pare
              if (defer && e->drop==BOT_ROUTE_WATER_ENTRY && Bot_ApproachDeferred(n->sector,bot.nodes[e->to].sector)) continue;
              if (e->drop==BOT_ROUTE_DROP && self->actorParams.health<30) continue;
              if (e->drop==BOT_ROUTE_FORCEJUMP && !forceJump) continue;
 +            if (e->drop==BOT_ROUTE_RUNJUMP && !Bot_RunJumpUsable(self,v,e->to)) continue;
 +            if ((e->drop==BOT_ROUTE_FORCEJUMP || e->drop==BOT_ROUTE_JUMP) && Bot_JumpFailed(v,e->to)) continue;
              flex_t d=distance[v]+e->cost;
++            if (e->drop==BOT_ROUTE_GATE) {
++                flex_t gate=Bot_GateCost(v,e->to);
++                if (gate<0) continue;
++                d+=gate;
++            }
              if (bot.nodes[e->to].avoidUntil>bot.now) d+=50.0f;
 +            else if (nav.nHazards && Bot_EdgeHazard(n->pos,bot.nodes[e->to].pos)) d+=50.0f;
 +            /* Any step from dry ground into water, whether a jump in or a wade. */
@@ -2757,7 +2838,7 @@ index 6d82309..1952f72 100644
              if (d<distance[e->to]) {
                  distance[e->to]=d; parent[e->to]=v;
                  if (positions[e->to]<0) { positions[e->to]=count; heap[count++]=e->to; }
-@@ -1388,7 +1572,7 @@ static int Bot_ObjectiveNode(SithThing *self, const flex_t *distance)
+@@ -1388,7 +1589,7 @@ static int Bot_ObjectiveNode(SithThing *self, const flex_t *distance)
  static int Bot_ElitePursuit(SithThing *self,int start,const flex_t *distance,int *slot)
  {
      if (!bot.elite || nav.objective!=BOT_OBJECTIVE_NONE || self->actorParams.health<40 ||
@@ -2766,7 +2847,7 @@ index 6d82309..1952f72 100644
      int best=-1;
      flex_t lowest=1e20f;
      for (unsigned i=0;i<jkPlayer_maxPlayers && i<JKPLAYER_NUM_INFOS;i++) {
-@@ -1401,6 +1585,7 @@ static int Bot_ElitePursuit(SithThing *self,int start,const flex_t *distance,int
+@@ -1401,6 +1602,7 @@ static int Bot_ElitePursuit(SithThing *self,int start,const flex_t *distance,int
                  nav.liftForNode[j] || distance[j]>=1e19f) continue;
              flex_t remaining=Bot_Distance(n->pos,t->position);
              flex_t cost=distance[j]+remaining*2.0f;
@@ -2774,7 +2855,7 @@ index 6d82309..1952f72 100644
              if (companion.policy.net && companion.policy.net==jkPlayer_playerInfos[i].playerNetId &&
                  companion.policy.guid==t->guid && companion.policy.signature==t->signature) cost*=0.60f;
              if (cost<lowest) { lowest=cost; best=j; *slot=(int)i; }
-@@ -1465,11 +1650,13 @@ static void Bot_Plan(SithThing *self)
+@@ -1465,11 +1667,13 @@ static void Bot_Plan(SithThing *self)
      /* Keep an unreached goal even after it becomes the nearest start node. */
      if (goal<0 && pursuit<0 && !oldPursuit && bot.goal>=0 && bot.goal<bot.nNodes) {
          BotNode *prior=&bot.nodes[bot.goal];
@@ -2792,7 +2873,7 @@ index 6d82309..1952f72 100644
              goal=bot.goal; chosen=paths;
          }
      }
-@@ -1479,7 +1666,7 @@ static void Bot_Plan(SithThing *self)
+@@ -1479,7 +1683,7 @@ static void Bot_Plan(SithThing *self)
          flex_t best=-1e20f,backupScore=-1e20f;
          int backup=-1;
          if (pursuit>=0) {
@@ -2801,7 +2882,7 @@ index 6d82309..1952f72 100644
          }
          for (int i=0;i<bot.nNodes;i++) {
              BotNode *n=&bot.nodes[i];
-@@ -1487,7 +1674,8 @@ static void Bot_Plan(SithThing *self)
+@@ -1487,7 +1691,8 @@ static void Bot_Plan(SithThing *self)
                  (Bot_Distance(self->position,n->pos)<0.20f &&
                   (!Bot_PickupNeedsContact(self,n) || Bot_ItemValue(self,n->item)<=0.05f))) continue;
              flex_t unseen=Bot_Clamp((bot.now-n->visited)/30.0f,0.0f,1.0f);
@@ -2811,7 +2892,7 @@ index 6d82309..1952f72 100644
              const BotGoalPaths *paths=safe!=&all && Bot_OptionalPatrolNode(self,n,pickup) ? safe : &all;
              if (paths->distance[i]>=1e19f) {
                  /* If this crossing is the only way to move, keep a dry
-@@ -1504,7 +1692,7 @@ static void Bot_Plan(SithThing *self)
+@@ -1504,7 +1709,7 @@ static void Bot_Plan(SithThing *self)
                  flex_t separation=Bot_Distance(n->pos,companion.pursuitAt);
                  value+=(4.0f+3.0f*companion.policy.risk)/(0.5f+separation);
              }
@@ -3196,10 +3277,10 @@ index 0000000..4e46fb8
 +}
 diff --git a/src/AI/jkBotRunJump.inc b/src/AI/jkBotRunJump.inc
 new file mode 100644
-index 0000000..6b8a70d
+index 0000000..42b456c
 --- /dev/null
 +++ b/src/AI/jkBotRunJump.inc
-@@ -0,0 +1,716 @@
+@@ -0,0 +1,735 @@
 +/* Copyright (c) 2026 Coda Lilitari. SPDX-License-Identifier: MIT */
 +/* Running jumps: a jump released at running speed keeps that speed through
 +   the air (the stock Force Jump script adds its upward velocity to the
@@ -3379,6 +3460,13 @@ index 0000000..6b8a70d
 +        flex_t vz=force ? 2.5f+hold : self->actorParams.jumpSpeed;
 +        if (!RunJump_Sweep(self,a,b,speed,vz,thrust) || !RunJump_Sweep(self,a,b,0.90f*speed,vz,thrust) ||
 +            !RunJump_Sweep(self,a,b,1.09f*speed,vz,thrust)) continue;
++        /* jump_margin: on Canyon Oasis's ledge jumps the live launches that
++           fell came out 7 to 11 percent slow, where this sweep still landed
++           at 10 percent, and a Force Jump's lift is its key's hold, which
++           the engine times from one frame to another. A launch 15 percent
++           slow, or 7 percent slow with a tenth less lift, must still land. */
++        if (BT_ON(JUMP_MARGIN) && (!RunJump_Sweep(self,a,b,0.85f*speed,vz,thrust) ||
++            (force && !RunJump_Sweep(self,a,b,0.93f*speed,vz-0.1f,thrust)))) continue;
 +        plan->speed=speed; plan->hold=hold; plan->runway=runway; plan->sprint=sprint; plan->seconds=seconds;
 +        plan->boost=boost; plan->sped=sped; plan->force=force;
 +        return 1;
@@ -3692,7 +3780,7 @@ index 0000000..6b8a70d
 +    fprintf(stderr,"BOT_RUNJUMP name=%s t=%.2f event=fail why=%s from=%d to=%d phase=%d pos=%.2f,%.2f,%.2f health=%.0f\n",
 +        bot.name,(double)bot.now,why,plan->from,plan->to,nav.runPhase,
 +        (double)self->position.x,(double)self->position.y,(double)self->position.z,(double)self->actorParams.health);
-+    nav.runPhase=0; nav.runFrom=nav.runTo=nav.runActive=0;
++    nav.runPhase=0; nav.runFrom=nav.runTo=nav.runActive=nav.runSalvage=0;
 +    bot.goal=-1; bot.routeCount=bot.routePos=0; bot.nextPlan=0;
 +}
 +
@@ -3799,7 +3887,7 @@ index 0000000..6b8a70d
 +static int Bot_RunJumpMove(SithThing *self,int from,int nodeIndex)
 +{
 +    if (nav.runFrom!=from+1 || nav.runTo!=nodeIndex+1 || bot.now-nav.runSeen>0.6f) {
-+        nav.runFrom=from+1; nav.runTo=nodeIndex+1; nav.runPhase=0; nav.runActive=0;
++        nav.runFrom=from+1; nav.runTo=nodeIndex+1; nav.runPhase=0; nav.runActive=0; nav.runSalvage=0;
 +        nav.runUntil=bot.now+7.0f; nav.runAir=nav.runLogged=0;
 +    }
 +    BotRunJump *plan=nav.runPhase>0 && nav.runActive>0 && nav.runActive<=nav.runCount ? &nav.runEdges[nav.runActive-1]
@@ -3807,7 +3895,7 @@ index 0000000..6b8a70d
 +    if (plan && plan->dive && (self->sector->flags&SITH_SECTOR_UNDERWATER)) return 0; /* in the water: the swim takes over */
 +    if (!plan) {
 +        /* Nothing solved for the speed the bot has right now. */
-+        nav.runPhase=0; nav.runFrom=nav.runTo=nav.runActive=0;
++        nav.runPhase=0; nav.runFrom=nav.runTo=nav.runActive=nav.runSalvage=0;
 +        bot.goal=-1; bot.routeCount=bot.routePos=0; bot.nextPlan=0;
 +        return 1;
 +    }
@@ -3901,13 +3989,25 @@ index 0000000..6b8a70d
 +        if (!grounded) {
 +            if (!nav.runLogged) {
 +                nav.runLogged=1; nav.runFlight=(int)(plan-nav.runEdges)+1; nav.runHealth=self->actorParams.health;
++                flex_t pace=Bot_Dot(self->physicsParams.vel,direction);
 +                fprintf(stderr,"BOT_RUNJUMP name=%s t=%.2f event=launch from=%d to=%d pace=%.2f wanted=%.2f up=%.2f pos=%.2f,%.2f late=%.2f\n",
-+                    bot.name,(double)bot.now,from,nodeIndex,(double)Bot_Dot(self->physicsParams.vel,direction),(double)plan->speed,
++                    bot.name,(double)bot.now,from,nodeIndex,(double)pace,(double)plan->speed,
 +                    (double)self->physicsParams.vel.z,(double)self->position.x,(double)self->position.y,(double)(bot.now-nav.runRelease));
++                /* jump_margin: gripped, blocked or knocked during the run-up,
++                   the held Force Jump still goes off when its key is let go.
++                   Far too slow to reach, come back down where it took off
++                   instead of drifting off the edge toward the far side. */
++                nav.runSalvage=BT_ON(JUMP_MARGIN) && !plan->dive && pace<0.7f*plan->speed;
++            }
++            if (nav.runSalvage) {
++                rdVector3 back=Bot_Sub(a->pos,self->position); back.z=0;
++                if (Bot_Horizontal(back)>0.04f) Bot_ThrustAxes(self,back,0);
++                return 1;
 +            }
 +            Bot_ThrustAxes(self,direction,plan->boost); return 1;
 +        }
 +        nav.runLogged=0;
++        if (nav.runSalvage) { nav.runSalvage=0; RunJump_Fail(self,plan,"slow-launch",15.0f); return 1; }
 +        if (fabsf(self->position.z-b->pos.z)>0.25f || Bot_Horizontal(Bot_Sub(b->pos,self->position))>0.9f) { RunJump_Fail(self,plan,"missed",60.0f); return 1; }
 +        nav.runPhase=4;
 +    }
@@ -3918,10 +4018,10 @@ index 0000000..6b8a70d
 +}
 diff --git a/src/AI/jkBotTactics.inc b/src/AI/jkBotTactics.inc
 new file mode 100644
-index 0000000..7481a8b
+index 0000000..92ee2f0
 --- /dev/null
 +++ b/src/AI/jkBotTactics.inc
-@@ -0,0 +1,295 @@
+@@ -0,0 +1,319 @@
 +/* Named, bounded tactic values for the ordinary-input bot; see jkBot.c for license.
 + *
 + * A tactic is a number the planner or the movement code reads on every
@@ -4058,7 +4158,31 @@ index 0000000..7481a8b
 +    /* Least worth of a dropped pack holding a concussion rifle, a rail \
 +       detonator or a repeater with a shot for it, even with each of them \
 +       in hand: its ammo, and keeping it from whoever comes for it next. */ \
-+    X(PACK_DENY,        "pack_deny",         3.0f,  0.0f, 0.0f,  20.0f)
++    X(PACK_DENY,        "pack_deny",         3.0f,  0.0f, 0.0f,  20.0f) \
++    /* Feet on a lip, centre over a drop: start routes from the floor \
++       underfoot, and with no safe heading near the wanted one take the \
++       nearest safe heading instead of standing frozen at the edge. */ \
++    X(LIP_ESCAPE,       "lip_escape",        1.0f,  0.0f, 0.0f,   1.0f) \
++    /* Level traps (jkBotTraps.inc): keep out of an armed or firing trap's \
++       zone, walk out of one when caught in it, and never press a trap's \
++       switch just to get past. */ \
++    X(TRAP_AVOID,       "trap_avoid",        1.0f,  0.0f, 0.0f,   1.0f) \
++    /* The longest walk to a trap's switch, in units of path, for springing \
++       it on an opponent in its zone; 0 never springs one. */ \
++    X(TRAP_USE,         "trap_use",          6.0f,  0.0f, 0.0f,  10.0f) \
++    /* The chance an opening is taken: traps are used now and then. */ \
++    X(TRAP_CHANCE,      "trap_chance",       0.6f,  0.6f, 0.0f,   1.0f) \
++    /* Accept a running jump only if a launch 15 percent slow (or 7 percent \
++       slow with a tenth less Force Jump lift) would still land. */ \
++    X(JUMP_MARGIN,      "jump_margin",       1.0f,  0.0f, 0.0f,   1.0f) \
++    /* Switch an armed lightning ramp back off once it has stood armed a \
++       while with no opponent near it. The longer it stands armed, the \
++       farther a bot walks to do it, up to twice trap_use. */ \
++    X(TRAP_DISARM,      "trap_disarm",       1.0f,  0.0f, 0.0f,   1.0f) \
++    /* Work a level's force field: a way through it while it is on costs \
++       the walk to the switch on that side, the bot presses that switch \
++       before crossing, and it never walks into the field while it is on. */ \
++    X(FIELD_SWITCH,     "field_switch",      1.0f,  0.0f, 0.0f,   1.0f)
 +
 +enum {
 +#define X(id,name,initial,legacy,low,high) BT_##id,
@@ -4216,6 +4340,957 @@ index 0000000..7481a8b
 +    tactics.lockedUntil=bot.now+BOT_TACTICS_COMMIT_SECONDS;
 +    Bot_TacticsApply(values,"companion");
 +    return 0;
++}
+diff --git a/src/AI/jkBotTraps.inc b/src/AI/jkBotTraps.inc
+new file mode 100644
+index 0000000..088e84d
+--- /dev/null
++++ b/src/AI/jkBotTraps.inc
+@@ -0,0 +1,945 @@
++/* Level traps: the switch-sprung hazards of the stock multiplayer levels.
++ *
++ *   Canyon Oasis     00_lightning.cog: the switch arms the grated ramp. The
++ *                    next player to step onto it sets three emitters firing
++ *                    Force Lightning (13 a bolt, 1.5 units) every half
++ *                    second until someone steps off. Pressed again, it
++ *                    disarms.
++ *   Nar Shaddaa      m2_dettrap.cog: each of four switches throws eight
++ *                    thermal detonators (3 s fuse, 75 within 0.45) from four
++ *                    spots, then resets. m2_turrettrap.cog: four ceiling
++ *                    turrets fire five auto-aimed volleys.
++ *                    m2_ffieldswitch.cog: a force field across the passage
++ *                    by the turret room, on at the start. While it is on
++ *                    nothing passes it and touching it takes 5 to 10 a
++ *                    quarter second. A switch on either side turns it off
++ *                    or on again.
++ *   Bespin           m4_reactorthrust.cog: the reactor switch thrusts anyone
++ *                    in the reactor shaft straight up for a door cycle.
++ *   Blades of Death  m5_fandamage.cog: the fan takes 125 a half second from
++ *                    anyone in its pit unless a switch has stopped it, for
++ *                    11.5 s. Only kept clear of; it has nothing to spring.
++ *
++ * A trap is recognised by the symbol names of its COG, whose values the
++ * level gives every machine. On a client a level COG's messages run on the
++ * server, so the COG's own variables never change here. The switch frames
++ * the server sets do reach every machine (SetWallCel synchronises the
++ * surface), and they say whether a trap is ready (frame 0) or live (frame 1;
++ * the fan runs at frame 0). A force field's state arrives the same way: the
++ * surface update carries its adjoin's flags, and the field is open while
++ * they allow movement. trap_avoid keeps a bot out of a live trap's zone,
++ * walks it out of one it is caught in and stops it pressing a trap's switch
++ * by accident. trap_use lets it spring one now and then: an opponent in the
++ * zone, no teammate there, the bot clear of it and the switch a short walk
++ * away. trap_disarm has a bot switch an armed ramp back off once it has
++ * stood armed a while with no opponent near it. field_switch prices a way
++ * through a field that is on as the walk by the switch on that side, sends
++ * the bot to press it first, and keeps it from walking into the field.
++ * Pressing a switch is the stock use key, from where a player stands.
++ */
++
++#define BOT_TRAPS 12
++#define BOT_TRAP_POINTS 4
++#define BOT_TRAP_REST 25.0f
++/* An ambush gets this long before anyone takes it back down. */
++#define BOT_TRAP_SETTLE 10.0f
++#define BOT_FIELDS 4
++#define BOT_GATES 64
++#define BOT_GATE_PAIRS 2048
++
++enum { BOT_TRAP_LIGHTNING=1, BOT_TRAP_DETONATORS, BOT_TRAP_TURRETS, BOT_TRAP_REACTOR, BOT_TRAP_FAN, BOT_TRAP_FIELD };
++static const char *const botTrapKinds[]={"none","lightning","detonators","turrets","reactor","fan","field"};
++/* What a run to a switch is for, and what it is called once done. */
++enum { BOT_TRAP_SPRING, BOT_TRAP_DISARM, BOT_TRAP_OPEN };
++static const char *const botTrapPurposes[]={"spring","disarm","open"};
++static const char *const botTrapDone[]={"sprung","disarmed","opened"};
++
++typedef struct BotTrap {
++    int kind, cog, button, button2, sector[2], points;
++    rdVector3 point[BOT_TRAP_POINTS], facing[BOT_TRAP_POINTS];
++    SithSector *pointSector[BOT_TRAP_POINTS];
++    flex_t reach, cone, offTime;
++    rdVector3 aim;          /* the switch's centre, for the activation ray */
++    BotNode stand;          /* where a player stands to press it */
++    int standNode, usable, zoneNodes;
++    int cel, changed, live; /* switch frame last read, whether a change was seen */
++    int field, side;        /* a field's switch: which field, and which side of it */
++    flex_t celSince, nextTry, nextOpenLog;
++} BotTrap;
++
++/* A force field: its two faces (one each way through the same opening),
++   the plane of the first, whose normal points to its own sector's side. */
++typedef struct BotField {
++    int surface[2], gates, hugging, through, against; /* graph changes, for the log */
++    rdVector3 center, normal;
++    flex_t failedUntil[2]; /* per side: no switch run from there until then */
++} BotField;
++/* A gate leg through a field, the side of its start (1 along the normal)
++   and the walk by that side's switch while the field is on. */
++typedef struct BotGate { int from, to, field, side; flex_t detour; } BotGate;
++
++static struct {
++    BotTrap list[BOT_TRAPS];
++    uint16_t zone[BOT_NODES];
++    BotField fields[BOT_FIELDS];
++    BotGate gates[BOT_GATES];
++    unsigned char gateNode[BOT_NODES];
++    int count, bound, use, phase, presses, exitNode, purpose, startCel;
++    int nFields, nGates, blockGates; /* 1: closed gates are walls, 2: every gate is */
++    int resumeGoal;                  /* where a run to open a field was headed */
++    flex_t nextScan, nextConsider, nextEscape, until, pressedAt, routeAt, health, nextGateCheck, resumeSetAt;
++    flex_t dist, nextDetours;        /* the run's walk when it began; when gate prices are next brought up to date */
++} traps;
++
++static SithCogSymbol *Bot_CogSymbol(sithCog *cog,const char *name)
++{
++#ifndef COG_CRC32_SYMBOL_NAMES
++    if (!cog || !cog->pSymbolTable || !cog->pSymbolTable->aSymbols) return NULL;
++    SithCogSymbolTable *table=cog->pSymbolTable;
++    for (uint32_t i=0;i<table->numUsedSymbols && i<table->tableSize;i++) {
++        SithCogSymbol *symbol=&table->aSymbols[i];
++        if (symbol->pName && Bot_NameIs(symbol->pName,name)) return symbol;
++    }
++#else
++    (void)cog; (void)name;
++#endif
++    return NULL;
++}
++static flex_t Bot_CogFlex(sithCog *cog,const char *name,flex_t otherwise)
++{
++    SithCogSymbol *symbol=Bot_CogSymbol(cog,name);
++    if (symbol && symbol->val.type==SITHCOG_VALUE_FLOAT) return (flex_t)symbol->val.dataAsFloat[0];
++    if (symbol && symbol->val.type==SITHCOG_VALUE_INT) return (flex_t)symbol->val.data[0];
++    return otherwise;
++}
++static int Bot_CogSurface(sithCog *cog,const char *name)
++{
++    int i=Bot_CogReference(cog,name);
++    return i>=0 && i<bot.world->numSurfaces ? i : -1;
++}
++static int Bot_CogSector(sithCog *cog,const char *name)
++{
++    int i=Bot_CogReference(cog,name);
++    return i>=0 && i<bot.world->numSectors ? i : -1;
++}
++
++/* Open while both faces let a body through. */
++static int Bot_FieldOpen(const BotField *f)
++{
++    for (int k=0;k<2;k++) {
++        const SithSurface *s=&bot.world->surfaces[f->surface[k]];
++        if (!s->pAdjoin || !(s->pAdjoin->flags&SITHSURF_ADJOIN_ALLOW_MOVEMENT)) return 0;
++    }
++    return 1;
++}
++
++/* A trap's switch frame; a field's "frame" is 1 while it is open. */
++static int Bot_TrapCel(const BotTrap *t)
++{
++    if (t->kind==BOT_TRAP_FIELD) return Bot_FieldOpen(&traps.fields[t->field]);
++    if (t->button<0) return 0;
++    return bot.world->surfaces[t->button].surfaceInfo.face.wallCel==1 ? 1 : 0;
++}
++
++static int Bot_TrapButton(const SithSurface *surface)
++{
++    if (!surface || !bot.world) return 0;
++    for (int i=0;i<traps.count;i++) {
++        const BotTrap *t=&traps.list[i];
++        if ((t->button>=0 && surface==&bot.world->surfaces[t->button]) ||
++            (t->button2>=0 && surface==&bot.world->surfaces[t->button2])) return 1;
++    }
++    return 0;
++}
++
++/* How far a point on a face's plane lies inside all of its edges
++   (negative outside). Stock faces are convex. */
++static flex_t Bot_FaceInside(SithSurface *s,rdVector3 p)
++{
++    rdFace *face=&s->surfaceInfo.face;
++    rdVector3 n=face->normal, c;
++    if (face->numVertices<3 || !Bot_FaceCenter(s,&c)) return -1e20f;
++    flex_t least=1e20f;
++    for (unsigned int j=0;j<face->numVertices;j++) {
++        rdVector3 v0=bot.world->aVertices[face->vertexPosIdx[j]];
++        rdVector3 v1=bot.world->aVertices[face->vertexPosIdx[(j+1)%face->numVertices]];
++        rdVector3 e=Bot_Sub(v1,v0), m={n.y*e.z-n.z*e.y,n.z*e.x-n.x*e.z,n.x*e.y-n.y*e.x};
++        flex_t len=Bot_Len(m);
++        if (len<1e-6f) continue;
++        m.x/=len; m.y/=len; m.z/=len;
++        if (Bot_Dot(Bot_Sub(c,v0),m)<0) { m.x=-m.x; m.y=-m.y; m.z=-m.z; }
++        flex_t d=Bot_Dot(Bot_Sub(p,v0),m);
++        if (d<least) least=d;
++    }
++    return least;
++}
++
++static flex_t Bot_FieldSide(const BotField *f,rdVector3 p)
++{ return Bot_Dot(Bot_Sub(p,f->center),f->normal); }
++
++/* Where a straight leg meets a field's plane, and how far inside its face. */
++static int Bot_FieldCross(const BotField *f,rdVector3 a,rdVector3 b,rdVector3 *at,flex_t *inside)
++{
++    flex_t sa=Bot_FieldSide(f,a), sb=Bot_FieldSide(f,b);
++    if ((sa>0)==(sb>0) || fabsf(sa-sb)<1e-6f) return 0;
++    *at=Bot_Mix(a,b,sa/(sa-sb));
++    *inside=Bot_FaceInside(&bot.world->surfaces[f->surface[0]],*at);
++    return 1;
++}
++
++/* A leg goes through a field where it meets the face, or passes its edge
++   closer than a body's breadth. */
++static flex_t Bot_FieldReach(void)
++{
++    const SithThing *self=sithPlayer_g_pLocalPlayerThing;
++    return self && self->moveSize>=0.02f && self->moveSize<=0.25f ? self->moveSize : 0.065f;
++}
++static int Bot_FieldBlocks(int from,int to)
++{
++    for (int i=0;i<traps.nFields;i++) {
++        rdVector3 at; flex_t inside;
++        if (Bot_FieldCross(&traps.fields[i],bot.nodes[from].pos,bot.nodes[to].pos,&at,&inside) && inside>-Bot_FieldReach()) return 1;
++    }
++    return 0;
++}
++
++static flex_t Bot_GateCost(int from,int to)
++{
++    for (int g=0;g<traps.nGates;g++) {
++        const BotGate *gate=&traps.gates[g];
++        if (gate->from!=from || gate->to!=to) continue;
++        const BotField *f=&traps.fields[gate->field];
++        if (traps.blockGates>1) return -1;
++        if (Bot_FieldOpen(f)) return 0;
++        /* On: a walk by this side's switch first, unless a run is already
++           under way or the switch could not be worked lately. */
++        if (traps.blockGates || traps.use || !BT_ON(FIELD_SWITCH) || gate->detour>=1e19f ||
++            bot.now<f->failedUntil[gate->side>0 ? 0 : 1]) return -1;
++        return gate->detour;
++    }
++    return -1;
++}
++
++/* Where a stock +grenade2 thrown from a spot first meets the level: its
++   template velocity turned by the spot's orientation, gravity and air drag,
++   in 20 ms steps. */
++static int Bot_TrapThrow(SithThing *self,SithThing *spot,const SithThing *grenade,rdVector3 *landing,SithSector **where)
++{
++    rdVector3 v0=grenade ? grenade->physicsParams.vel : (rdVector3){0,2.0f,1.5f};
++    flex_t drag=grenade && grenade->physicsParams.airDrag>0 ? grenade->physicsParams.airDrag : 0.8f;
++    rdVector3 v={spot->orient.rvec.x*v0.x+spot->orient.lvec.x*v0.y+spot->orient.uvec.x*v0.z,
++                 spot->orient.rvec.y*v0.x+spot->orient.lvec.y*v0.y+spot->orient.uvec.y*v0.z,
++                 spot->orient.rvec.z*v0.x+spot->orient.lvec.z*v0.y+spot->orient.uvec.z*v0.z};
++    rdVector3 p=spot->position;
++    SithSector *sector=spot->sector;
++    flex_t g=bot.world->gravity>0 ? bot.world->gravity : 4.0f, dt=0.02f;
++    for (int i=0;i<250 && sector;i++) {
++        rdVector3 next={p.x+v.x*dt,p.y+v.y*dt,p.z+v.z*dt};
++        if (!Bot_Clear(self,sector,p,next,0.015f,1)) { *landing=p; *where=sector; return 1; }
++        p=next; sector=Bot_SectorAt(&p,sector);
++        v.x-=v.x*drag*dt; v.y-=v.y*drag*dt; v.z-=v.z*drag*dt+g*dt;
++    }
++    return 0;
++}
++
++/* Inside a trap's zone: its sectors, and within reach of a point (a
++   detonator's landing, or an emitter's cone) with a clear line to it. */
++static int Bot_TrapHolds(SithThing *self,const BotTrap *t,rdVector3 pos,SithSector *sector)
++{
++    for (int k=0;k<2;k++) if (sector && t->sector[k]>=0 && sector==&bot.world->aSectors[t->sector[k]]) return 1;
++    for (int k=0;k<t->points;k++) {
++        rdVector3 d=Bot_Sub(pos,t->point[k]);
++        flex_t h=Bot_Horizontal(d), len=Bot_Len(d);
++        if (len>t->reach) continue;
++        if (t->kind==BOT_TRAP_DETONATORS) {
++            if (fabsf(d.z)>0.6f) continue;
++        } else {
++            /* An auto-aimed emitter takes what lies inside its view cone. */
++            rdVector3 f=t->facing[k];
++            flex_t fh=Bot_Horizontal(f);
++            if (len<0.02f || fh<0.01f || h<0.001f) continue;
++            if ((d.x*f.x+d.y*f.y)/(h*fh)<cosf(t->cone) || fabsf(atan2f(d.z,h))>t->cone) continue;
++        }
++        if (t->pointSector[k] && Bot_Clear(self,t->pointSector[k],t->point[k],pos,0,1)) return 1;
++    }
++    return 0;
++}
++
++static int Bot_TrapNear(const BotTrap *t,int bit,rdVector3 pos,flex_t range)
++{
++    (void)t;
++    for (int n=0;n<bot.nNodes;n++)
++        if ((traps.zone[n]&bit) && Bot_Distance(bot.nodes[n].pos,pos)<range) return 1;
++    return 0;
++}
++
++/* A spot in front of a wall switch with floor under it, from which the
++   stock activation ray (eye along the view, moveSize+0.1 long) meets the
++   switch, and the nearest graph node that walks onto it. */
++static int Bot_TrapStand(SithThing *self,BotTrap *t)
++{
++    SithSurface *s=&bot.world->surfaces[t->button];
++    rdVector3 n=s->surfaceInfo.face.normal, c;
++    flex_t nh=Bot_Horizontal(n);
++    if (!Bot_FaceCenter(s,&c) || nh<0.85f) return 0;
++    n.x/=nh; n.y/=nh; n.z=0;
++    t->aim=c;
++    flex_t reach=self->moveSize+0.1f-0.015f;
++    for (flex_t back=self->collideSize+0.02f;back<=reach && !t->usable;back+=0.02f) {
++        rdVector3 p={c.x+n.x*back,c.y+n.y*back,c.z+0.02f}, floor, out;
++        SithSector *sector;
++        if (!Bot_Floor(p,s->pSector,0.6f,&floor,&sector)) continue;
++        rdVector3 eye=floor; eye.z+=self->actorParams.eyeOffset.z;
++        if (Bot_Distance(eye,c)>reach) continue;
++        out=floor; out.x+=n.x*0.12f; out.y+=n.y*0.12f;
++        if (!Bot_Clear(self,sector,out,floor,self->collideSize*0.85f,1)) continue;
++        t->stand=(BotNode){.pos=floor,.sector=sector,.item=-1};
++        t->usable=1;
++    }
++    if (!t->usable) return 0;
++    int best=-1;
++    flex_t nearest=1.2f;
++    for (int i=0;i<bot.nNodes;i++) {
++        BotNode *node=&bot.nodes[i];
++        flex_t d=Bot_Distance(node->pos,t->stand.pos);
++        int drop=0;
++        if (d>=nearest || nav.liftForNode[i] || (node->sector->flags&SITH_SECTOR_UNDERWATER)) continue;
++        if (d>0.03f && (!Bot_Walkable(node,&t->stand,&drop) || drop)) continue;
++        best=i; nearest=d;
++    }
++    t->standNode=best;
++    t->usable=best>=0;
++    return t->usable;
++}
++
++/* Recognise one level COG as a trap by its symbol names. */
++static int Bot_BindTrap(SithThing *self,int index,BotTrap *t)
++{
++    sithCog *cog=&bot.world->aCogs[index];
++    memset(t,0,sizeof(*t));
++    t->cog=index; t->button=t->button2=-1; t->sector[0]=t->sector[1]=-1; t->standNode=-1; t->cel=-1;
++    if (Bot_CogSymbol(cog,"fan_sc") && Bot_CogSymbol(cog,"ghost_fan")) {
++        t->kind=BOT_TRAP_FAN; t->sector[0]=Bot_CogSector(cog,"fan_sc");
++        t->button=Bot_CogSurface(cog,"switch1"); t->button2=Bot_CogSurface(cog,"switch2");
++        t->offTime=Bot_CogFlex(cog,"fan_offtime",11.5f);
++        return t->sector[0]>=0 && t->button>=0;
++    }
++    if (Bot_CogSymbol(cog,"sector0") && Bot_CogSymbol(cog,"door0") && Bot_CogSymbol(cog,"thrustspeed")) {
++        t->kind=BOT_TRAP_REACTOR; t->sector[0]=Bot_CogSector(cog,"sector0"); t->sector[1]=Bot_CogSector(cog,"sector1");
++        t->button=Bot_CogSurface(cog,"switch");
++        return t->sector[0]>=0 && t->button>=0;
++    }
++    if (Bot_CogSymbol(cog,"turret1") && Bot_CogSymbol(cog,"ghost1")) {
++        static const char *ghosts[]={"ghost1","ghost2","ghost3","ghost4"};
++        t->kind=BOT_TRAP_TURRETS; t->button=Bot_CogSurface(cog,"switch");
++        /* Bolts fly far; the auto-aim takes only what its view cone holds. */
++        t->reach=6.0f; t->cone=Bot_CogFlex(cog,"autoaimxfov",90.0f)*0.5f/BOT_DEG;
++        for (int k=0;k<4;k++) {
++            SithThing *ghost=Bot_NavThing(Bot_CogReference(cog,ghosts[k]));
++            if (!ghost || !ghost->sector) continue;
++            t->pointSector[t->points]=ghost->sector;
++            t->point[t->points]=ghost->position; t->facing[t->points++]=ghost->orient.lvec;
++        }
++        return t->button>=0 && t->points>0;
++    }
++    if (Bot_CogSymbol(cog,"tdg1") && Bot_CogSymbol(cog,"switch")) {
++        static const char *spots[]={"tdg1","tdg2","tdg3","tdg4"};
++        t->kind=BOT_TRAP_DETONATORS; t->button=Bot_CogSurface(cog,"switch");
++        /* The blast reaches 0.45; a detonator thrown from a vent bounces
++           off its edges and rolls on after landing. */
++        t->reach=1.2f;
++        int tpl=Bot_CogReference(cog,"proj_tpl");
++        SithThing *grenade=tpl>=0 && tpl<bot.world->numThingTemplates ? &bot.world->aThingTemplates[tpl] : NULL;
++        if (grenade && grenade->type!=SITH_THING_WEAPON) grenade=NULL;
++        for (int k=0;k<4;k++) {
++            SithThing *spot=Bot_NavThing(Bot_CogReference(cog,spots[k]));
++            rdVector3 landing; SithSector *where;
++            if (!spot || !spot->sector || !Bot_TrapThrow(self,spot,grenade,&landing,&where)) continue;
++            t->pointSector[t->points]=where; t->point[t->points++]=landing;
++        }
++        return t->button>=0 && t->points>0;
++    }
++    if (Bot_CogSymbol(cog,"zapsector") && Bot_CogSymbol(cog,"switch0")) {
++        static const char *ghosts[]={"ghost0","ghost1","ghost2"};
++        t->kind=BOT_TRAP_LIGHTNING; t->sector[0]=Bot_CogSector(cog,"zapsector");
++        t->button=Bot_CogSurface(cog,"switch0");
++        /* +force_lightning reaches 1.5; the emitters auto-aim within 60. */
++        t->reach=1.5f; t->cone=Bot_CogFlex(cog,"autoaimxfov",60.0f)*0.5f/BOT_DEG;
++        for (int k=0;k<3;k++) {
++            SithThing *ghost=Bot_NavThing(Bot_CogReference(cog,ghosts[k]));
++            if (!ghost || !ghost->sector) continue;
++            t->pointSector[t->points]=ghost->sector;
++            t->point[t->points]=ghost->position; t->facing[t->points++]=ghost->orient.lvec;
++        }
++        return t->sector[0]>=0 && t->button>=0;
++    }
++    return 0;
++}
++
++static void Bot_TrapBindLog(const BotTrap *t,int index)
++{
++    const BotNode *beside=t->standNode>=0 ? &bot.nodes[t->standNode] : NULL;
++    fprintf(stderr,"BOT_TRAP name=%s event=bind map=%s trap=%d kind=%s cog=%d switch=%d cel=%d stand=%.3f,%.3f,%.3f stand_sector=%d node=%d node_pos=%.3f,%.3f,%.3f node_sector=%d usable=%d zone_nodes=%d points=%d",
++        bot.name,bot.world->map_jkl_fname,index,botTrapKinds[t->kind],t->cog,t->button,t->cel,
++        (double)t->stand.pos.x,(double)t->stand.pos.y,(double)t->stand.pos.z,t->stand.sector ? (int)t->stand.sector->id : -1,
++        t->standNode,beside ? (double)beside->pos.x : 0.0,beside ? (double)beside->pos.y : 0.0,beside ? (double)beside->pos.z : 0.0,
++        beside ? (int)beside->sector->id : -1,t->usable,t->zoneNodes,t->points);
++    for (int k=0;k<t->points;k++) fprintf(stderr," p%d=%.2f,%.2f,%.2f",k,(double)t->point[k].x,(double)t->point[k].y,(double)t->point[k].z);
++    if (t->kind==BOT_TRAP_FIELD) fprintf(stderr," field=%d side=%d",t->field,t->side);
++    fprintf(stderr,"\n");
++}
++
++/* One side of a gate leg, walked on its own side of the face. */
++static int Bot_GateHalf(BotNode *a,BotNode *b)
++{
++    int drop=0;
++    if (Bot_Horizontal(Bot_Sub(b->pos,a->pos))<0.03f) return fabsf(b->pos.z-a->pos.z)<0.1f;
++    return Bot_WalkableSpan(a,b,&drop,0.001f) && !drop;
++}
++
++/* Whether a straight leg from node i to node j could be walked through a
++   field's face if it were off: the body clears the face's edges where the
++   leg meets it, there is floor just short of the face on either side, and
++   each half is an ordinary walk that stops short of the face. */
++static int Bot_GateWalk(BotField *f,int i,int j,flex_t r,int *forward,int *backward)
++{
++    BotNode *a=&bot.nodes[i], *b=&bot.nodes[j], near[2];
++    rdVector3 at; flex_t inside;
++    *forward=*backward=0;
++    if (!Bot_FieldCross(f,a->pos,b->pos,&at,&inside) || inside<r+0.01f) return 0;
++    for (int k=0;k<2;k++) {
++        flex_t off=k ? -(r+0.02f) : r+0.02f;
++        rdVector3 p={at.x+f->normal.x*off,at.y+f->normal.y*off,at.z+0.04f};
++        SithSector *sector=NULL;
++        memset(&near[k],0,sizeof(near[k]));
++        if (!Bot_Floor(p,(k ? b : a)->sector,0.6f,&near[k].pos,&sector)) return 0;
++        near[k].sector=sector; near[k].item=-1;
++    }
++    if (fabsf(near[0].pos.z-near[1].pos.z)>BOT_STEP_UP) return 0;
++    *forward=Bot_GateHalf(a,&near[0]) && Bot_GateHalf(&near[1],b);
++    *backward=Bot_GateHalf(b,&near[1]) && Bot_GateHalf(&near[0],a);
++    return *forward || *backward;
++}
++
++static void Bot_GateAdd(int field,int from,int to,int side)
++{
++    BotNode *node=&bot.nodes[from];
++    int before=node->nEdges;
++    if (traps.nGates>=BOT_GATES) return;
++    Bot_AddEdge(from,to,BOT_ROUTE_GATE);
++    if (node->nEdges==before) return;
++    traps.gates[traps.nGates++]=(BotGate){.from=from,.to=to,.field=field,.side=side,.detour=1e20f};
++    traps.gateNode[from]=1; traps.fields[field].gates++;
++}
++
++typedef struct { int i, j; flex_t length; } BotGatePair;
++static int Bot_GatePairOrder(const void *a,const void *b)
++{
++    flex_t x=((const BotGatePair*)a)->length, y=((const BotGatePair*)b)->length;
++    return x<y ? -1 : x>y;
++}
++
++/* The graph learns the field once. No ordinary leg goes through its face,
++   none ends against it (a body there touches the field while it is on),
++   and a few gate legs cross it, spread along it, shortest first. */
++static void Bot_BuildGates(SithThing *self,int field)
++{
++    BotField *f=&traps.fields[field];
++    SithSurface *face=&bot.world->surfaces[f->surface[0]];
++    flex_t r=self->moveSize>=0.02f && self->moveSize<=0.25f ? self->moveSize : 0.065f, clear=r+0.03f;
++    static flex_t side[BOT_NODES];
++    static unsigned char hugs[BOT_NODES];
++    static BotGatePair pairs[BOT_GATE_PAIRS];
++    for (int i=0;i<bot.nNodes;i++) {
++        rdVector3 p=bot.nodes[i].pos;
++        side[i]=Bot_FieldSide(f,p);
++        rdVector3 onto={p.x-f->normal.x*side[i],p.y-f->normal.y*side[i],p.z-f->normal.z*side[i]};
++        hugs[i]=fabsf(side[i])<clear && Bot_FaceInside(face,onto)>-r;
++        f->hugging+=hugs[i];
++    }
++    for (int i=0;i<bot.nNodes;i++) {
++        BotNode *a=&bot.nodes[i];
++        for (int k=0;k<a->nEdges;k++) {
++            int j=a->edges[k].to; rdVector3 at; flex_t inside;
++            if (j<0 || j>=bot.nNodes) continue;
++            int through=Bot_FieldCross(f,a->pos,bot.nodes[j].pos,&at,&inside) && inside>-r;
++            if (!through && !hugs[j]) continue;
++            memmove(&a->edges[k],&a->edges[k+1],(size_t)(a->nEdges-k-1)*sizeof(a->edges[0]));
++            a->nEdges--; k--;
++            if (through) f->through++; else f->against++;
++        }
++    }
++    int count=0;
++    for (int i=0;i<bot.nNodes && count<BOT_GATE_PAIRS;i++) {
++        if (side[i]<clear || side[i]>1.5f || nav.liftForNode[i] || (bot.nodes[i].sector->flags&SITH_SECTOR_UNDERWATER)) continue;
++        for (int j=0;j<bot.nNodes && count<BOT_GATE_PAIRS;j++) {
++            if (side[j]>-clear || side[j]<-1.5f || nav.liftForNode[j] || (bot.nodes[j].sector->flags&SITH_SECTOR_UNDERWATER)) continue;
++            rdVector3 d=Bot_Sub(bot.nodes[j].pos,bot.nodes[i].pos);
++            if (Bot_Horizontal(d)>2.0f || fabsf(d.z)>BOT_STEP_UP) continue;
++            pairs[count++]=(BotGatePair){i,j,Bot_Len(d)};
++        }
++    }
++    qsort(pairs,(size_t)count,sizeof(pairs[0]),Bot_GatePairOrder);
++    rdVector3 crossed[16]; int used=0;
++    for (int p=0;p<count && used<16 && traps.nGates+2<=BOT_GATES;p++) {
++        int i=pairs[p].i, j=pairs[p].j, forward, backward, near=0;
++        rdVector3 at; flex_t inside;
++        if (!Bot_FieldCross(f,bot.nodes[i].pos,bot.nodes[j].pos,&at,&inside)) continue;
++        for (int k=0;k<used && !near;k++) near=Bot_Distance(crossed[k],at)<0.4f;
++        if (near || !Bot_GateWalk(f,i,j,r,&forward,&backward)) continue;
++        crossed[used++]=at;
++        if (forward) Bot_GateAdd(field,i,j,1);
++        if (backward) Bot_GateAdd(field,j,i,-1);
++    }
++}
++
++/* Recognise a force field's COG: two switches and the field's two faces. */
++static int Bot_BindField(SithThing *self,int index)
++{
++    sithCog *cog=&bot.world->aCogs[index];
++    if (!Bot_CogSymbol(cog,"damsurf") || !Bot_CogSymbol(cog,"damsurf2") || !Bot_CogSymbol(cog,"switch") ||
++        traps.nFields>=BOT_FIELDS) return 0;
++    BotField *f=&traps.fields[traps.nFields];
++    memset(f,0,sizeof(*f));
++    f->surface[0]=Bot_CogSurface(cog,"damsurf"); f->surface[1]=Bot_CogSurface(cog,"damsurf2");
++    if (f->surface[0]<0 || f->surface[1]<0) return 0;
++    SithSurface *s=&bot.world->surfaces[f->surface[0]];
++    if (!s->pAdjoin || !bot.world->surfaces[f->surface[1]].pAdjoin || !Bot_FaceCenter(s,&f->center)) return 0;
++    f->normal=s->surfaceInfo.face.normal;
++    if (fabsf(f->normal.z)>0.5f) return 0; /* a wall of light, not a floor */
++    int field=traps.nFields++;
++    Bot_BuildGates(self,field);
++    static const char *switches[]={"switch","switch1"};
++    for (int k=0;k<2 && traps.count<BOT_TRAPS;k++) {
++        BotTrap *t=&traps.list[traps.count];
++        memset(t,0,sizeof(*t));
++        t->kind=BOT_TRAP_FIELD; t->cog=index; t->field=field; t->button2=-1;
++        t->sector[0]=t->sector[1]=-1; t->standNode=-1;
++        if ((t->button=Bot_CogSurface(cog,switches[k]))<0) continue;
++        if (Bot_TrapStand(self,t)) t->side=Bot_FieldSide(f,t->stand.pos)>0 ? 1 : -1;
++        t->cel=Bot_TrapCel(t); t->celSince=bot.now;
++        Bot_TrapBindLog(t,traps.count);
++        traps.count++;
++    }
++    fprintf(stderr,"BOT_FIELD name=%s event=bind map=%s field=%d cog=%d faces=%d,%d open=%d center=%.3f,%.3f,%.3f normal=%.2f,%.2f,%.2f legs_through=%d legs_against=%d hugging_nodes=%d gates=%d\n",
++        bot.name,bot.world->map_jkl_fname,field,index,f->surface[0],f->surface[1],Bot_FieldOpen(f),
++        (double)f->center.x,(double)f->center.y,(double)f->center.z,
++        (double)f->normal.x,(double)f->normal.y,(double)f->normal.z,f->through,f->against,f->hugging,f->gates);
++    return 1;
++}
++
++/* What crossing a field that is on costs from each gate's side: there and
++   back to that side's nearest switch, and a moment to press it. Kept up to
++   date every few seconds: a struck jump leg or the Force to make one can
++   change the way to a switch a floor up. */
++static void Bot_GateDetours(SithThing *self,int log)
++{
++    static flex_t back[BOT_NODES], there[BOT_NODES];
++    static int parent[BOT_NODES];
++    for (int g=0;g<traps.nGates;g++) traps.gates[g].detour=1e20f;
++    traps.blockGates=2;
++    for (int i=0;i<traps.count;i++) {
++        const BotTrap *t=&traps.list[i];
++        if (t->kind!=BOT_TRAP_FIELD || !t->usable) continue;
++        /* The way up to a switch a floor up is not the way back down:
++           price both, each start once. */
++        flex_t step=Bot_Distance(bot.nodes[t->standNode].pos,t->stand.pos);
++        Bot_PathDistances(self,t->standNode,back,parent);
++        for (int g=0;g<traps.nGates;g++) {
++            const BotGate *gate=&traps.gates[g];
++            int seen=0;
++            if (gate->field!=t->field || gate->side!=t->side || back[gate->from]>=1e19f) continue;
++            for (int h=0;h<g && !seen;h++) seen=traps.gates[h].from==gate->from && traps.gates[h].field==gate->field;
++            if (seen) continue;
++            Bot_PathDistances(self,gate->from,there,parent);
++            if (there[t->standNode]>=1e19f) continue;
++            flex_t detour=there[t->standNode]+back[gate->from]+2.0f*step+1.0f;
++            for (int h=g;h<traps.nGates;h++) {
++                BotGate *same=&traps.gates[h];
++                if (same->from==gate->from && same->field==gate->field && detour<same->detour) same->detour=detour;
++            }
++        }
++    }
++    traps.blockGates=0;
++    traps.nextDetours=bot.now+5.0f;
++    for (int g=0;g<traps.nGates && log;g++) {
++        const BotGate *gate=&traps.gates[g];
++        const BotNode *a=&bot.nodes[gate->from], *b=&bot.nodes[gate->to];
++        fprintf(stderr,"BOT_FIELD name=%s event=gate field=%d from=%d to=%d side=%d from_pos=%.3f,%.3f,%.3f to_pos=%.3f,%.3f,%.3f detour=%.2f\n",
++            bot.name,gate->field,gate->from,gate->to,gate->side,(double)a->pos.x,(double)a->pos.y,(double)a->pos.z,
++            (double)b->pos.x,(double)b->pos.y,(double)b->pos.z,(double)(gate->detour<1e19f ? gate->detour : -1.0f));
++    }
++}
++
++static void Bot_BindTraps(SithThing *self)
++{
++    traps.bound=1; traps.count=0; traps.exitNode=-1; traps.nFields=traps.nGates=0;
++    memset(traps.zone,0,sizeof(traps.zone)); memset(traps.gateNode,0,sizeof(traps.gateNode));
++    for (int i=0;i<bot.world->numCogs && traps.count<BOT_TRAPS;i++) {
++        if (Bot_BindField(self,i)) continue;
++        BotTrap *t=&traps.list[traps.count];
++        if (!Bot_BindTrap(self,i,t)) continue;
++        int bit=1<<traps.count;
++        for (int n=0;n<bot.nNodes;n++)
++            if (Bot_TrapHolds(self,t,bot.nodes[n].pos,bot.nodes[n].sector)) { traps.zone[n]|=(uint16_t)bit; t->zoneNodes++; }
++        if (t->kind!=BOT_TRAP_FAN && Bot_TrapStand(self,t) && Bot_TrapHolds(self,t,t->stand.pos,t->stand.sector))
++            t->usable=0;
++        t->cel=Bot_TrapCel(t); t->celSince=bot.now;
++        Bot_TrapBindLog(t,traps.count);
++        traps.count++;
++    }
++    if (traps.nGates) Bot_GateDetours(self,1);
++    fflush(stderr);
++}
++
++static int Bot_TrapZoneLive(int node)
++{
++    for (int i=0;i<traps.count;i++) if (traps.list[i].live && (traps.zone[node]&(1<<i))) return 1;
++    return 0;
++}
++
++/* Read the switches, keep out of live zones. */
++static void Bot_TrapScan(SithThing *self)
++{
++    if (!traps.bound) {
++        if (!bot.graphDone) return;
++        Bot_BindTraps(self);
++    }
++    if (bot.now<traps.nextScan) return;
++    traps.nextScan=bot.now+0.2f;
++    if (traps.nGates && bot.now>=traps.nextDetours && !traps.use) Bot_GateDetours(self,0);
++    for (int i=0;i<traps.count;i++) {
++        BotTrap *t=&traps.list[i];
++        int cel=Bot_TrapCel(t);
++        if (cel!=t->cel) {
++            t->cel=cel; t->celSince=bot.now; t->changed=1;
++            fprintf(stderr,"BOT_TRAP name=%s event=state trap=%d kind=%s cel=%d\n",bot.name,i,botTrapKinds[t->kind],cel);
++            fflush(stderr);
++        }
++        /* The fan is safe only while it is seen stopped, with time to spare.
++           A field is live (dangerous to touch) while it is on. */
++        t->live=t->kind==BOT_TRAP_FAN ? !(cel==1 && t->changed && bot.now-t->celSince<t->offTime-2.5f) :
++            t->kind==BOT_TRAP_FIELD ? !cel : cel==1;
++        if (!t->live || !BT_ON(TRAP_AVOID)) continue;
++        for (int n=0;n<bot.nNodes;n++)
++            if ((traps.zone[n]&(1<<i)) && bot.nodes[n].avoidUntil<bot.now+0.5f) Bot_AvoidNode(&bot.nodes[n],0.5f);
++    }
++}
++
++/* Opponents a trap would catch: in its zone, or for the lightning within
++   2.5 of the ramp and likely onto it soon. A teammate there rules it out. */
++static int Bot_TrapCatches(SithThing *self,const BotTrap *t,int index,int *friendly)
++{
++    int caught=0;
++    *friendly=0;
++    for (unsigned i=0;i<jkPlayer_maxPlayers && i<JKPLAYER_NUM_INFOS;i++) {
++        SithPlayer *p=&jkPlayer_playerInfos[i]; SithThing *other=p->pLocalPlayer;
++        if (!(p->flags&1) || !p->playerNetId || !other || other==self || other->type!=SITH_THING_PLAYER || !other->sector ||
++            (other->flags&(SITH_TF_DEAD|SITH_TF_DISABLED|SITH_TF_DESTROYED)) || other->actorParams.health<=0) continue;
++        int inside=Bot_TrapHolds(self,t,other->position,other->sector) ||
++            (t->kind==BOT_TRAP_LIGHTNING && Bot_TrapNear(t,1<<index,other->position,2.5f));
++        if (!inside) continue;
++        if (Bot_EnemyAllowed(self,(int)i)) caught++;
++        else if (!Bot_EnemyBase(self,(int)i)) *friendly=1;
++    }
++    return caught;
++}
++
++/* After a field is opened, the bot goes on to where it was headed; the
++   planner keeps that goal while it is still worth it. */
++static void Bot_TrapResume(void)
++{
++    bot.goal=traps.resumeGoal; bot.goalSetAt=traps.resumeSetAt;
++    bot.routeCount=bot.routePos=0; bot.nextPlan=bot.armNext=0;
++}
++
++/* End a run to a switch. A failed run rests that switch; a field whose
++   switch failed is a wall from that side for a while. */
++static void Bot_TrapEnd(const char *why,int failed)
++{
++    if (traps.use && why) {
++        BotTrap *t=&traps.list[traps.use-1];
++        SithThing *self=sithPlayer_g_pLocalPlayerThing;
++        if (failed) {
++            t->nextTry=bot.now+12.0f;
++            if (t->kind==BOT_TRAP_FIELD) traps.fields[t->field].failedUntil[t->side>0 ? 0 : 1]=bot.now+15.0f;
++        }
++        fprintf(stderr,"BOT_TRAP name=%s event=abandon trap=%d kind=%s purpose=%s why=%s presses=%d phase=%d left=%.2f\n",
++            bot.name,traps.use-1,botTrapKinds[t->kind],botTrapPurposes[traps.purpose],why,traps.presses,traps.phase,
++            self ? (double)Bot_Distance(self->position,t->stand.pos) : -1.0);
++        fflush(stderr);
++    }
++    if (traps.use && traps.purpose==BOT_TRAP_OPEN && !failed) Bot_TrapResume();
++    else if (traps.use) { bot.goal=-1; bot.routeCount=bot.routePos=0; bot.nextPlan=0; }
++    traps.use=traps.phase=traps.presses=0;
++}
++
++/* A committed traversal finishes first; a Force cast or a pull does not
++   stop the bot choosing where to go next. */
++static int Bot_TrapBusy(SithThing *self)
++{
++    return !(self->attach_flags&SITH_ATTACH_SURFACE) || (self->sector->flags&SITH_SECTOR_UNDERWATER) ||
++        nav.runPhase || nav.forceJumpPending || nav.jumpUntil>bot.now || nav.waterExitUntil>0 ||
++        nav.seekingSurface || nav.combatJumpUntil>bot.now || bot.nextRecovery>0 || bot.armDirect || nav.liftWaitAt;
++}
++
++/* Commit to a run: the route to the switch is set. */
++static void Bot_TrapBegin(int chosen,int purpose,flex_t dist,int victims)
++{
++    BotTrap *t=&traps.list[chosen];
++    traps.use=chosen+1; traps.phase=traps.presses=0; traps.purpose=purpose; traps.startCel=Bot_TrapCel(t); traps.dist=dist;
++    /* Paths price a Force Jump leg at its flight, and fights slow the way. */
++    traps.until=bot.now+4.0f+dist*2.0f; traps.routeAt=bot.now+1.0f;
++    bot.nextPlan=bot.now+1.0f; bot.armNext=traps.until;
++    if (bot.armItem) Bot_ClearEquipment("trap");
++    fprintf(stderr,"BOT_TRAP name=%s event=go trap=%d kind=%s purpose=%s dist=%.2f victims=%d\n",
++        bot.name,chosen,botTrapKinds[t->kind],botTrapPurposes[purpose],(double)dist,victims);
++    fflush(stderr);
++}
++
++static void Bot_TrapConsider(SithThing *self)
++{
++    if (!(BT(TRAP_USE)>0) || traps.use || bot.now<traps.nextConsider || !traps.count) return;
++    traps.nextConsider=bot.now+0.5f;
++    if (Bot_TrapBusy(self)) { bot.tele.trapBusy++; return; }
++    static flex_t distance[BOT_NODES];
++    static int parent[BOT_NODES];
++    int start=-1, chosen=-1, victims=0, purpose=BOT_TRAP_SPRING;
++    flex_t best=1e20f;
++    for (int i=0;i<traps.count;i++) {
++        BotTrap *t=&traps.list[i];
++        int friendly, caught, disarm=0;
++        if (!t->usable || t->kind==BOT_TRAP_FIELD || bot.now<t->nextTry) continue;
++        if (t->kind==BOT_TRAP_LIGHTNING && t->cel==1) {
++            if (!BT_ON(TRAP_DISARM)) continue;
++            disarm=1;
++        } else if (t->live || t->cel!=0) continue;
++        caught=Bot_TrapCatches(self,t,i,&friendly);
++        flex_t reach;
++        if (disarm) {
++            /* Armed and waiting: an opponent near the ramp keeps it that way.
++               Left a while, it is taken down by whoever passes, from farther
++               the longer it stands (twice trap_use at most, after about two
++               minutes); a teammate by the ramp wants it off now. */
++            flex_t armed=bot.now-t->celSince;
++            if (caught || (!friendly && armed<BOT_TRAP_SETTLE)) continue;
++            reach=friendly ? BT(TRAP_USE) : Bot_Min(2.0f*BT(TRAP_USE),1.5f+armed/10.0f);
++        } else {
++            /* The lightning is an ambush: armed in passing, it waits for the
++               next opponent onto the ramp. */
++            int passing=!caught && t->kind==BOT_TRAP_LIGHTNING &&
++                Bot_Distance(self->position,t->stand.pos)<1.5f;
++            if ((!caught && !passing) || friendly) continue;
++            reach=passing ? Bot_Min(BT(TRAP_USE),1.5f) : BT(TRAP_USE);
++        }
++        if (Bot_TrapHolds(self,t,self->position,self->sector)) continue;
++        if (start<0) {
++            if ((start=Bot_Nearest(self))<0) return;
++            traps.blockGates=1; Bot_PathDistances(self,start,distance,parent); traps.blockGates=0;
++            bot.tele.trapOpen++;
++        }
++        flex_t d=distance[t->standNode]+Bot_Distance(bot.nodes[t->standNode].pos,t->stand.pos);
++        if (d<bot.tele.trapNearest) bot.tele.trapNearest=d;
++        if (bot.now>=t->nextOpenLog) {
++            t->nextOpenLog=bot.now+10.0f;
++            fprintf(stderr,"BOT_TRAP name=%s event=open trap=%d kind=%s purpose=%s victims=%d dist=%.2f reach=%.2f start=%d stand_node=%d\n",
++                bot.name,i,botTrapKinds[t->kind],botTrapPurposes[disarm ? BOT_TRAP_DISARM : BOT_TRAP_SPRING],caught,
++                (double)(d<1e19f ? d : -1.0f),(double)reach,start,t->standNode);
++            fflush(stderr);
++        }
++        if (d>reach || d>=best) continue;
++        best=d; chosen=i; victims=caught; purpose=disarm ? BOT_TRAP_DISARM : BOT_TRAP_SPRING;
++    }
++    if (chosen<0) return;
++    BotTrap *t=&traps.list[chosen];
++    /* trap_chance: an opening is taken now and then, not every time; an
++       ambush laid in passing half as often. Taking one down is not left
++       to chance: how long it has stood armed already decides. */
++    if (purpose==BOT_TRAP_SPRING && Bot_Unit()>BT(TRAP_CHANCE)*(victims ? 1.0f : 0.5f)) {
++        t->nextTry=bot.now+(victims ? 4.0f : 20.0f); return;
++    }
++    if (!Bot_SetRoute(start,t->standNode,parent)) return;
++    Bot_TrapBegin(chosen,purpose,best,victims);
++}
++
++/* The first force-field gate on the route ahead that is shut, if any. */
++static int Bot_RouteGate(SithThing *self)
++{
++    if (bot.goal<0 || bot.routePos>=bot.routeCount) return -1;
++    for (int k=bot.routePos-1;k+1<bot.routeCount;k++) {
++        int from=k>=0 ? bot.route[k] : -1, to=bot.route[k+1];
++        if (k<0) {
++            /* The first leg starts at the node nearest the bot, as the
++               route follower reads it. */
++            int gated=0;
++            for (int g=0;g<traps.nGates && !gated;g++) gated=traps.gates[g].to==to;
++            if (gated) from=Bot_Nearest(self);
++        }
++        if (from<0 || !traps.gateNode[from]) continue;
++        for (int g=0;g<traps.nGates;g++) {
++            const BotGate *gate=&traps.gates[g];
++            if (gate->from==from && gate->to==to && !Bot_FieldOpen(&traps.fields[gate->field])) return g;
++        }
++    }
++    return -1;
++}
++
++/* field_switch: a route through a field that is on goes by the switch on
++   this side of it first. */
++static void Bot_FieldConsider(SithThing *self)
++{
++    if (!BT_ON(FIELD_SWITCH) || !traps.nGates || traps.use || bot.now<traps.nextGateCheck) return;
++    traps.nextGateCheck=bot.now+0.25f;
++    int g=Bot_RouteGate(self);
++    if (g<0 || Bot_TrapBusy(self)) return;
++    const BotGate *gate=&traps.gates[g];
++    BotField *f=&traps.fields[gate->field];
++    static flex_t distance[BOT_NODES];
++    static int parent[BOT_NODES];
++    int start=Bot_Nearest(self), chosen=-1, goal=bot.goal;
++    flex_t best=1e20f, goalSetAt=bot.goalSetAt;
++    if (start<0) return; /* no anchor this moment: look again shortly */
++    traps.blockGates=1; Bot_PathDistances(self,start,distance,parent); traps.blockGates=0;
++    for (int i=0;i<traps.count;i++) {
++        const BotTrap *t=&traps.list[i];
++        if (t->kind!=BOT_TRAP_FIELD || t->field!=gate->field || t->side!=gate->side ||
++            !t->usable || bot.now<t->nextTry) continue;
++        flex_t d=distance[t->standNode]+Bot_Distance(bot.nodes[t->standNode].pos,t->stand.pos);
++        if (d<best) { best=d; chosen=i; }
++    }
++    if (chosen<0 || best>=1e19f || !Bot_SetRoute(start,traps.list[chosen].standNode,parent)) {
++        /* No switch to be reached from here: the field is a wall a while. */
++        f->failedUntil[gate->side>0 ? 0 : 1]=bot.now+15.0f;
++        bot.goal=-1; bot.routeCount=bot.routePos=0; bot.nextPlan=0;
++        fprintf(stderr,"BOT_FIELD name=%s event=no-switch field=%d side=%d start=%d\n",bot.name,gate->field,gate->side,start);
++        fflush(stderr);
++        return;
++    }
++    traps.resumeGoal=goal; traps.resumeSetAt=goalSetAt;
++    Bot_TrapBegin(chosen,BOT_TRAP_OPEN,best,0);
++}
++
++/* The legs of a run to a switch: follow the route to the node beside it. */
++static void Bot_TrapLegs(SithThing *self)
++{
++    if (!traps.use || traps.phase) return;
++    BotTrap *t=&traps.list[traps.use-1];
++    /* A jump, a Force Jump's charge or flight, or a water exit on the way
++       finishes before the way is looked at again: in the air the nearest
++       node can be anywhere. */
++    int committed=nav.forceJumpPending || nav.jumpUntil>bot.now || nav.runPhase || nav.waterExitUntil>0 ||
++        !(self->attach_flags&SITH_ATTACH_SURFACE);
++    if (!committed && (bot.goal!=t->standNode || bot.routePos>=bot.routeCount || bot.now>=traps.routeAt)) {
++        static flex_t distance[BOT_NODES];
++        static int parent[BOT_NODES];
++        int start=Bot_Nearest(self);
++        if (start>=0) { traps.blockGates=1; Bot_PathDistances(self,start,distance,parent); traps.blockGates=0; }
++        if (start<0 || distance[t->standNode]>=1e19f || !Bot_SetRoute(start,t->standNode,parent)) {
++            Bot_TrapEnd("no-route",1); return;
++        }
++        /* The way there grew well past the walk the run was taken on: a
++           jump leg struck, no Force left for one, or a fight carried the
++           bot off. Not worth the trek. */
++        if (distance[t->standNode]>traps.dist+3.0f && distance[t->standNode]>1.5f*traps.dist) {
++            Bot_TrapEnd("too-far",1); return;
++        }
++        traps.routeAt=bot.now+1.0f;
++    }
++    bot.nextPlan=bot.now+0.5f;
++    Bot_Navigate(self);
++}
++
++/* 0: no trap run. 1: on the way to a switch; the run owns the legs and a
++   fight keeps the view. 2: at the switch; the run owns legs and view. */
++static int Bot_TrapTick(SithThing *self)
++{
++    Bot_TrapScan(self);
++    if (!traps.use) Bot_FieldConsider(self);
++    if (!traps.use) Bot_TrapConsider(self);
++    if (!traps.use) return 0;
++    BotTrap *t=&traps.list[traps.use-1];
++    int cel=Bot_TrapCel(t);
++    /* Someone else got there first. A field someone opened is good news. */
++    if (traps.phase<2 && cel!=traps.startCel) { Bot_TrapEnd("taken",traps.purpose!=BOT_TRAP_OPEN); return 0; }
++    if (bot.now>traps.until) { Bot_TrapEnd("timeout",1); return 0; }
++    if (traps.phase==2) {
++        if (cel!=traps.startCel) {
++            t->nextTry=bot.now+(traps.purpose==BOT_TRAP_OPEN ? 4.0f : BOT_TRAP_REST);
++            if (traps.purpose==BOT_TRAP_DISARM) bot.tele.trapsDisarmed++;
++            else if (traps.purpose==BOT_TRAP_OPEN) bot.tele.fieldsOpened++;
++            else bot.tele.trapsSprung++;
++            fprintf(stderr,"BOT_TRAP name=%s event=%s trap=%d kind=%s presses=%d\n",
++                bot.name,botTrapDone[traps.purpose],traps.use-1,botTrapKinds[t->kind],traps.presses);
++            fflush(stderr);
++            if (traps.purpose==BOT_TRAP_OPEN) Bot_TrapResume();
++            else { bot.goal=-1; bot.routeCount=bot.routePos=0; bot.nextPlan=0; }
++            traps.use=traps.phase=traps.presses=0;
++            return 0;
++        }
++        if (bot.now-traps.pressedAt>1.2f) {
++            if (traps.presses>=2) { Bot_TrapEnd("no-response",1); return 0; }
++            traps.phase=1;
++        }
++    }
++    rdVector3 delta=Bot_Sub(t->stand.pos,self->position);
++    flex_t h=Bot_Horizontal(delta);
++    if (!traps.phase) {
++        int beside=h<0.5f || Bot_Distance(self->position,bot.nodes[t->standNode].pos)<0.2f;
++        if (!beside || fabsf(delta.z)>0.3f || !(self->attach_flags&SITH_ATTACH_SURFACE) ||
++            !Bot_Clear(self,self->sector,self->position,t->stand.pos,self->collideSize*0.8f,0)) return 1;
++        traps.phase=1;
++    }
++    /* Look at the switch from the eye and step onto the spot. */
++    rdVector3 aim=Bot_Sub(t->aim,self->actorParams.eyeOffset);
++    flex_t error=Bot_Aim(self,aim,0);
++    if (h>0.03f && !Bot_NavDirectMove(self,t->stand.pos,0)) Bot_Move(self,delta,0);
++    if (traps.phase==1 && error<8.0f && !bot.previous[INPUT_FUNC_ACTIVATE] &&
++        Bot_UseTarget(self) && botUseSurface==&bot.world->surfaces[t->button]) {
++        bot.keys[INPUT_FUNC_ACTIVATE]=1; bot.tele.uses++;
++        traps.phase=2; traps.pressedAt=bot.now; traps.presses++;
++        fprintf(stderr,"BOT_TRAP name=%s event=press trap=%d kind=%s purpose=%s\n",
++            bot.name,traps.use-1,botTrapKinds[t->kind],botTrapPurposes[traps.purpose]);
++        fflush(stderr);
++    }
++    return 2;
++}
++
++/* Caught in a live zone: take the cheapest way to the nearest node outside
++   every live zone. Committed jumps and water exits finish first. */
++static void Bot_TrapEscape(SithThing *self)
++{
++    if (!BT_ON(TRAP_AVOID) || traps.phase || !traps.count) return;
++    const BotTrap *caught=NULL;
++    for (int i=0;i<traps.count && !caught;i++)
++        if (traps.list[i].live && Bot_TrapHolds(self,&traps.list[i],self->position,self->sector)) caught=&traps.list[i];
++    flex_t health=self->actorParams.health, lost=traps.health-health;
++    traps.health=health;
++    if (caught && lost>0.5f) {
++        fprintf(stderr,"BOT_TRAP name=%s event=hurt trap=%d kind=%s lost=%.1f health=%.1f\n",bot.name,
++            (int)(caught-traps.list),botTrapKinds[caught->kind],(double)lost,(double)health);
++        fflush(stderr);
++    }
++    if (!caught) { traps.exitNode=-1; return; }
++    if (!(self->attach_flags&SITH_ATTACH_SURFACE) || nav.runPhase || nav.forceJumpPending ||
++        nav.jumpUntil>bot.now || nav.waterExitUntil>0) return;
++    if (traps.exitNode<0 || bot.goal!=traps.exitNode || bot.now>=traps.nextEscape) {
++        static flex_t distance[BOT_NODES];
++        static int parent[BOT_NODES];
++        traps.nextEscape=bot.now+0.6f;
++        int start=Bot_Nearest(self), best=-1;
++        if (start<0) return;
++        traps.blockGates=1; Bot_PathDistances(self,start,distance,parent); traps.blockGates=0;
++        for (int n=0;n<bot.nNodes;n++)
++            if (distance[n]<1e19f && !Bot_TrapZoneLive(n) && (best<0 || distance[n]<distance[best])) best=n;
++        if (best<0 || !Bot_SetRoute(start,best,parent)) return;
++        if (traps.exitNode<0) {
++            bot.tele.trapEscapes++;
++            fprintf(stderr,"BOT_TRAP name=%s event=escape trap=%d kind=%s cost=%.2f\n",bot.name,
++                (int)(caught-traps.list),botTrapKinds[caught->kind],(double)distance[best]);
++            fflush(stderr);
++        }
++        traps.exitNode=best;
++    }
++    bot.nextPlan=bot.now+0.5f;
++    Bot_Navigate(self);
 +}
 diff --git a/src/Devices/sithControl.c b/src/Devices/sithControl.c
 index 9f3b141..0eea280 100644
