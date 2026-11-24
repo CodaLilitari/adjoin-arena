@@ -54,6 +54,14 @@ TACTICS = (
     ("swim_pitch", 1.0, 0.0, 0.0, 1.0, "swim steep legs by looking along them and pushing forward"),
     ("run_jump", 1.0, 0.0, 0.0, 1.0, "cross gaps with a jump released at a sprint, using Force Speed and Force Jump"),
     ("dodge_jump", 1.0, 0.0, 0.0, 1.0, "hop over an incoming rocket or charge with a short Force Jump"),
+    ("blind_use", 0.0, 1.0, 0.0, 1.0, "press use whenever blocked (1), or only with a switch, door or usable thing in front (0)"),
+    ("water_slip", 1.0, 0.0, 0.0, 1.0, "in water on a leg meant for dry ground, replan instead of hopping at the surface"),
+    ("conc_alt_range", 1.4, 99.0, 0.0, 99.0, "concussion rifle: beam (alt fire) inside this range, shell beyond it; 99 = old beam-first"),
+    ("heavy_hold", 1.0, 0.0, 0.0, 1.0, "keep a heavy gun in hand through a moment without a safe shot"),
+    ("item_pull", 2.0, 0.0, 0.0, 99.0, "Force Pull items worth at least this much from where the bot stands; 0 = never"),
+    ("hazard_avoid", 1.0, 0.0, 0.0, 1.0, "keep clear of laid mines and resting grenades, in plans and on foot"),
+    ("mines", 1.0, 0.0, 0.0, 1.0, "collect sequencer charges and lay proximity mines on item spots just taken"),
+    ("thermals", 1.0, 0.0, 0.0, 1.0, "collect thermal detonators and throw them where guns serve badly"),
 )
 NAMES = tuple(row[0] for row in TACTICS)
 INDEX = {name: index for index, name in enumerate(NAMES)}
