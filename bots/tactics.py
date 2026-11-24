@@ -72,6 +72,10 @@ TACTICS = (
     ("water_fight", 1.0, 0.0, 0.0, 1.0, "swim and climb out facing the fight and shooting; one swimmer per exit spot (0 or 1)"),
     ("resupply", 1.0, 0.0, 0.0, 1.0, "collect pulled guns, put ammunition first when out of shots, prefer disarmed opponents (0 or 1)"),
     ("fjump_standstill", 1.0, 0.0, 0.0, 1.0, "judge Force Jump legs as flown from a standstill, the way the bot flies them (0 or 1)"),
+    ("always_run", 1.0, 0.0, 0.0, 1.0, "run on all dry ground, corners and pickups included; walk only short of a pit, ledge, water or hurtful floor (0 or 1)"),
+    ("pull_on_move", 1.0, 0.0, 0.0, 1.0, "keep running through an item Force Pull and run onto the item as it flies in (0 or 1)"),
+    ("pack_hunt", 1.0, 0.0, 0.0, 1.0, "find ways to dropped packs from the graph nodes nearest them, and reach packs on pool floors (0 or 1)"),
+    ("pack_deny", 3.0, 0.0, 0.0, 20.0, "least worth of a dropped pack holding a loaded concussion rifle, rail detonator or repeater (0 = no floor)"),
 )
 NAMES = tuple(row[0] for row in TACTICS)
 INDEX = {name: index for index, name in enumerate(NAMES)}

@@ -315,10 +315,11 @@ run that ends before all bots join also returns failure.
 Proposed in `native/bot-tactics.patch`; not yet in the packaged bot clients.
 See [Bot movement, tactics and the coach seat](../docs/BOT_TACTICS.md).
 
-With that overlay built in, 46 named values steer the planner and the
+With that overlay built in, 50 named values steer the planner and the
 movement code: what each heavy gun is worth, how much water costs, whether
 the bot runs, how long it may stay in one spot before it must go elsewhere,
-whether it fights its way out of water and keeps Force Speed up.
+whether it fights its way out of water and keeps Force Speed up, whether it
+pulls items on the run, and how it goes after dropped packs.
 `python3 -m bots.tactics list` prints them with their ranges and presets.
 
 - `python3 -m bots.tactics write PATH --preset NAME --set name=value` writes a
