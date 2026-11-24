@@ -18,6 +18,7 @@ int32_t sithNet_tickrate=16;
 SithThing *sithPlayer_g_pLocalPlayerThing;
 flex_t sithTime_g_secGameTime;
 static int testLOS=1;
+static SithThing *testGrenade;
 static SithInventoryType testInventoryTypes[SITHBIN_NUMBINS];
 static int corridorMode, queryDepth, pendingHit;
 static flex_t corridorCeiling=-0.05f;
@@ -121,6 +122,7 @@ SithThing *sithTemplate_GetTemplate(const char *name)
     if (testCombatArena && !strcmp(name,"+concblast2")) return &testConcBeam;
     if (testCombatArena && !strcmp(name,"+concbullet")) return &testConcProjectile;
     if (testCombatArena && !strcmp(name,"+raildet")) return &testRailProjectile;
+    if (testGrenade && !strcmp(name,"+grenade1")) return testGrenade;
     return NULL;
 }
 #include "test_bot_behavior.inc"

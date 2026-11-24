@@ -499,6 +499,31 @@ static void test_tactic_runjump(void)
     puts("PASS running jump: sprint speed from rest, drag-limited flight, solved Force Jump hold, rank and landing-speed limits, plan per Force Speed state, planner gate and legacy off");
 }
 
+static void test_tactic_use(void)
+{
+    SithThing self; SithPlayer own;
+    testPlainActive=1; plainEdge=0.15f; plainWall=1e9f; plainGround.flags=0;
+    jkBot_Configure("Use_Test","ky.3do"); TacticsUse(0); bot.now=5;
+    PlainSelf(&self,&own);
+    /* Every press plays the stock use animation. Blocked by a ledge with
+       nothing in front to use: no press. */
+    bot.nextUse=0; PlainMove(&self,0,0,0);
+    assert(!bot.keys[INPUT_FUNC_ACTIVATE] && fabsf(bot.axes[INPUT_FUNC_SLIDE])>0.1f && "steers aside without using");
+    /* A switch on the wall in reach: press, then not again for 0.8 s. */
+    plainEdge=1e9f; plainWall=0.12f; plainGround.flags=SITH_SURFACE_COG_LINKED;
+    assert(Bot_UseTarget(&self));
+    PlainMove(&self,0,0,0); assert(bot.keys[INPUT_FUNC_ACTIVATE]);
+    bot.now+=0.5f; PlainMove(&self,0,0,0); assert(!bot.keys[INPUT_FUNC_ACTIVATE]);
+    /* A plain wall: nothing to use. */
+    plainGround.flags=0; bot.now+=1.0f; assert(!Bot_UseTarget(&self));
+    PlainMove(&self,0,0,0); assert(!bot.keys[INPUT_FUNC_ACTIVATE]);
+    /* Legacy presses whenever blocked. */
+    TacticsUse(1); plainWall=1e9f; plainEdge=0.15f; bot.nextUse=0;
+    PlainMove(&self,0,0,0); assert(bot.keys[INPUT_FUNC_ACTIVATE]);
+    TacticsUse(0); plainEdge=plainWall=1e9f; plainGround.flags=0; testPlainActive=0;
+    puts("PASS use only with a switch or usable thing in reach; a blocked path alone presses nothing; legacy presses blind");
+}
+
 static void test_tactic_confinement(void)
 {
     static SithSector land,pool;
@@ -566,6 +591,133 @@ static void test_tactic_confinement(void)
     puts("PASS confinement window, doubling and widening escapes, legitimate holds, quiet reset, wet escape to air and legacy off");
 }
 
+/* Ordnance: a laid charge or a resting grenade is a hazard the planner
+   steers around and the bot steps away from; a charge in hand is laid as a
+   proximity mine on a guarded item spot just taken. */
+static void test_tactic_ordnance(void)
+{
+    static SithWorld world; static SithThing things[3]; static SithThing blast;
+    SithThing self; SithPlayer own;
+    int seq=SITHBIN_SEQUENCER_CHARGE, select=INPUT_FUNC_SELECT1+SITHBIN_SEQUENCER_CHARGE-1;
+    testPlainActive=1; plainEdge=plainWall=1e9f; plainGround.flags=0;
+    jkBot_Configure("Mine_Test","ky.3do"); TacticsUse(0); bot.now=5; jkPlayer_maxPlayers=0;
+    PlainSelf(&self,&own); sithPlayer_g_pLocalPlayerThing=&self;
+    memset(things,0,sizeof(things)); memset(&blast,0,sizeof(blast));
+    blast.type=SITH_THING_EXPLOSION; blast.explosionParams.range=0.6f;
+    bot.world=sithWorld_g_pCurrentWorld=&world; world.aThings=things; world.numThings=0; world.numThingsLoaded=1;
+    bot.graphDone=1; bot.nNodes=3;
+    for (int i=0;i<3;i++) {
+        memset(&bot.nodes[i],0,sizeof(bot.nodes[i]));
+        bot.nodes[i].pos=(rdVector3){i*1.0f,0,BOT_FOOT_HEIGHT}; bot.nodes[i].sector=&plainLand; bot.nodes[i].item=-1;
+    }
+    /* A charge someone laid at node 1: a mine (sixty seconds of life). */
+    SithThing *mine=&things[0];
+    mine->type=SITH_THING_WEAPON; mine->sector=&plainLand; mine->position=bot.nodes[1].pos;
+    mine->weaponParams.pExplosionTemplate=&blast; mine->msecLifeLeft=59000; mine->collideSize=0.01f;
+    BotHazard h; assert(Bot_HazardOf(mine,&h) && h.mine && h.trigger==0.30f && !h.own);
+    mine->physicsParams.vel.x=2; assert(!Bot_HazardOf(mine,&h) && "in flight is the dodge's business");
+    mine->physicsParams.vel.x=0;
+    nav.nextHazardScan=0; Bot_ScanHazards(&self);
+    assert(nav.nHazards==1 && bot.nodes[1].avoidUntil>bot.now && bot.nodes[0].avoidUntil<=bot.now);
+    assert(Bot_EdgeHazard(bot.nodes[0].pos,bot.nodes[2].pos) && "a leg across the mine");
+    assert(!Bot_EdgeHazard(bot.nodes[0].pos,(rdVector3){0,2,BOT_FOOT_HEIGHT}));
+    /* Standing beside it: step clear. Far from it: nothing to do. */
+    self.position=(rdVector3){0.75f,0,BOT_FOOT_HEIGHT}; memset(bot.axes,0,sizeof(bot.axes));
+    assert(Bot_EscapeHazard(&self) && bot.axes[INPUT_FUNC_FORWARD]<-0.1f && "backs away along -x");
+    self.position=bot.nodes[0].pos; assert(!Bot_EscapeHazard(&self));
+    /* A thermal on its fuse is avoided by its blast, for the fuse. */
+    mine->msecLifeLeft=2000; assert(Bot_HazardOf(mine,&h) && !h.mine && fabsf(h.fuse-2)<0.001f);
+    TacticsUse(1); nav.nextHazardScan=0; Bot_ScanHazards(&self); assert(nav.nHazards==0 && "legacy ignores them");
+    TacticsUse(0); mine->type=SITH_THING_FREE; nav.nextHazardScan=0; Bot_ScanHazards(&self); assert(!nav.nHazards);
+    for (int i=0;i<3;i++) bot.nodes[i].avoidUntil=0;
+    puts("PASS laid mines and fused grenades: hazards for plans, legs and footing; flight and the legacy table excluded");
+
+    /* Taking a shield that respawns, with charges in hand: lay a mine there. */
+    SithThing *shield=&things[1];
+    shield->type=SITH_THING_ITEM; shield->sector=&plainLand; shield->guid=77; strcpy(shield->aName,"shieldrecharge");
+    shield->itemParams.secRespawnInterval=30; shield->position=self.position;
+    world.numThings=1; world.numThingsLoaded=2;
+    own.aItems[seq].amount=2; own.aItems[seq].state=SITHINVENTORY_ITEM_AVAILABLE; own.curWeaponID=SITHBIN_BRYARPISTOL;
+    memset(bot.keys,0,sizeof(bot.keys));
+    assert(!Bot_MineTick(&self,NULL) && nav.watchItem==2);
+    shield->flags|=SITH_TF_DISABLED;               /* picked up */
+    assert(Bot_MineTick(&self,NULL) && nav.minePhase==1 && bot.keys[select]);
+    assert(Bot_SelectWeapon(&self,2)==SITHBIN_BRYARPISTOL && "laying owns the selection");
+    memcpy(bot.previous,bot.keys,sizeof(bot.keys)); memset(bot.keys,0,sizeof(bot.keys));
+    own.curWeaponID=seq; bot.now+=0.3f; assert(Bot_MineTick(&self,NULL) && nav.minePhase==2);
+    bot.now+=0.2f; assert(Bot_MineTick(&self,NULL)); assert(nav.minePhase==2);
+    bot.now+=0.3f; assert(Bot_MineTick(&self,NULL) && nav.minePhase==3 && bot.keys[INPUT_FUNC_FIRE2] && !bot.keys[INPUT_FUNC_FIRE1]);
+    own.aItems[seq].amount=1; bot.now+=0.1f;
+    assert(!Bot_MineTick(&self,NULL) && !nav.minePhase && bot.tele.mines==1 && Bot_OwnMines()==1);
+    puts("PASS a charge in hand is laid as a mine on a guarded item spot just taken: select, raise, secondary, counted");
+
+    /* Not in a fight, not without a fresh pickup, not in the legacy table. */
+    shield->flags=0; nav.watchItem=0; Bot_MineTick(&self,NULL); shield->flags|=SITH_TF_DISABLED;
+    SithThing enemy={0}; testLOS=1;
+    assert(!Bot_MineTick(&self,&enemy) && !nav.minePhase && "a visible enemy comes first");
+    bot.now+=2; assert(!Bot_MineTick(&self,NULL) && !nav.minePhase && "the spot is stale");
+    TacticsUse(1); shield->flags=0; nav.watchItem=0; Bot_MineTick(&self,NULL); assert(!nav.watchItem);
+    TacticsUse(0); memset(nav.ownMines,0,sizeof(nav.ownMines)); nav.minePhase=0; nav.watchItem=0;
+    bot.world=sithWorld_g_pCurrentWorld=NULL; sithPlayer_g_pLocalPlayerThing=NULL; testPlainActive=0;
+    puts("PASS no mine in a fight, from a stale spot, or with the legacy table");
+}
+
+/* Thermals: the throw is flown as the engine flies it, held for the range
+   and released along the arc that lands by the target. */
+static void test_tactic_thermal(void)
+{
+    static SithWorld world; static SithThing grenade, blast;
+    SithThing self, target; SithPlayer own, foe; jkPlayerInfo remote={0}; rdModel3 gun={0};
+    int det=SITHBIN_THERMAL_DETONATOR;
+    testPlainActive=1; plainEdge=plainWall=1e9f; plainGround.flags=0; plainSolidFloor=1;
+    jkBot_Configure("Thermal_Test","ky.3do"); TacticsUse(0); bot.now=5; bot.fistsPeace=0; bot.elite=1;
+    PlainSelf(&self,&own); PlainSelf(&target,&foe); sithPlayer_g_pLocalPlayerThing=&self;
+    memset(&world,0,sizeof(world)); world.gravity=4.0f; bot.world=sithWorld_g_pCurrentWorld=&world;
+    memset(&blast,0,sizeof(blast)); blast.type=SITH_THING_EXPLOSION; blast.explosionParams.range=0.45f;
+    memset(&grenade,0,sizeof(grenade)); grenade.type=SITH_THING_WEAPON; grenade.moveSize=0.0149f;
+    grenade.weaponParams.flags=SITH_WF_FACEHITEXPLODE|SITH_WF_THINGHITEXPLODE; grenade.weaponParams.pExplosionTemplate=&blast;
+    grenade.physicsParams.vel=(rdVector3){0,2.0f,1.5f}; grenade.physicsParams.airDrag=0.8f;
+    grenade.physicsParams.flags=SITH_PF_USEGRAVITY; testGrenade=&grenade;
+    /* The solver flies it: a 1.6 s hold reaches two units on the flat. */
+    BotArc arc=Bot_ThermalArc(&self,(rdVector3){2,0,0.02f},1.6f);
+    assert(arc.ok && arc.miss<0.27f && fabsf(arc.impact.x-2)<0.27f && arc.flight>0.5f && arc.flight<1.5f);
+    arc=Bot_ThermalArc(&self,(rdVector3){3,0,0.02f},0.7f); assert(!arc.ok && "the shortest hold falls short");
+    arc=Bot_ThermalArc(&self,(rdVector3){0.4f,0,0.02f},1.0f); assert(!arc.ok && "never at its own feet");
+    puts("PASS thermal arcs are flown as the engine flies them: the hold sets the reach, never at the thrower's feet");
+
+    /* A target standing still at 2.2 units, in view. */
+    target.position=(rdVector3){2.2f,0,BOT_FOOT_HEIGHT}; target.playerInfo=&remote; remote.rd_thing.model3=&gun;
+    strcpy(gun.filename,"strg.3do"); target.guid=55; target.signature=3;
+    jkPlayer_maxPlayers=2; jkPlayer_playerInfos[1].flags=1; jkPlayer_playerInfos[1].playerNetId=55;
+    jkPlayer_playerInfos[1].pLocalPlayer=&target; testLOS=1;
+    own.aItems[det].amount=2; own.aItems[det].state=SITHINVENTORY_ITEM_AVAILABLE; own.curWeaponID=SITHBIN_BRYARPISTOL;
+    memset(bot.keys,0,sizeof(bot.keys)); memset(bot.previous,0,sizeof(bot.previous));
+    TacticsUse(1); assert(!Bot_ThermalTick(&self,&target) && "legacy never throws");
+    TacticsUse(0);
+    target.physicsParams.vel.y=1.2f; assert(!Bot_ThermalWorth(&self,&target) && "a fast target in the open: guns");
+    target.physicsParams.vel.y=0; assert(Bot_ThermalWorth(&self,&target));
+    assert(Bot_ThermalTick(&self,&target) && nav.thermalPhase==1 && bot.keys[INPUT_FUNC_SELECT1+det-1]);
+    assert(Bot_SelectWeapon(&self,2)==SITHBIN_BRYARPISTOL && "the throw owns the selection");
+    own.curWeaponID=det; memset(bot.keys,0,sizeof(bot.keys));
+    bot.now+=0.1f; assert(Bot_ThermalTick(&self,&target) && nav.thermalPhase==1);
+    bot.now+=0.5f; assert(Bot_ThermalTick(&self,&target) && nav.thermalPhase==2 && bot.keys[INPUT_FUNC_FIRE1]);
+    flex_t hold=nav.thermalHold; assert(hold>=0.7f && hold<2.0f);
+    /* Held for the planned time; turned onto the arc; then released. */
+    bot.now+=hold*0.5f; assert(Bot_ThermalTick(&self,&target) && bot.keys[INPUT_FUNC_FIRE1]);
+    self.actorParams.headPYR.x=nav.thermalArc.pitch; bot.now+=hold*0.5f+0.01f;
+    assert(Bot_ThermalTick(&self,&target) && !bot.keys[INPUT_FUNC_FIRE1] && nav.thermalPhase==3);
+    assert(Bot_Distance(nav.thermalArc.impact,target.position)<0.45f);
+    own.aItems[det].amount=1; bot.now+=0.1f;
+    assert(!Bot_ThermalTick(&self,&target) && !nav.thermalPhase && bot.tele.thermals==1);
+    /* Five seconds before the next, and none at close quarters. */
+    own.curWeaponID=SITHBIN_BRYARPISTOL; bot.now+=1; assert(!Bot_ThermalTick(&self,&target));
+    bot.now+=5; target.position.x=1.0f; assert(!Bot_ThermalTick(&self,&target) && !nav.thermalPhase);
+    puts("PASS a thermal is thrown at a still target in reach: select, hold for the range, turn onto the arc, release");
+    testGrenade=NULL; plainSolidFloor=0; testPlainActive=0; jkPlayer_maxPlayers=0;
+    memset(&jkPlayer_playerInfos[1],0,sizeof(jkPlayer_playerInfos[1]));
+    bot.world=sithWorld_g_pCurrentWorld=NULL; sithPlayer_g_pLocalPlayerThing=NULL;
+}
+
 static void test_bot_tactics(void)
 {
     /* Earlier groups leave peers that pointed into their own stack frames. */
@@ -577,5 +729,8 @@ static void test_bot_tactics(void)
     test_tactic_water();
     test_tactic_swim();
     test_tactic_runjump();
+    test_tactic_use();
+    test_tactic_ordnance();
+    test_tactic_thermal();
     test_tactic_confinement();
 }

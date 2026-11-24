@@ -277,8 +277,17 @@ static void test_bot_navigation(void)
     assert(Bot_ItemValue(&self,3)==0);
     strcpy(templates[0].aName,"m5railgun"); strcpy(model.filename,"rldp.3do"); items[0].renderData.model3=&model;
     assert(Bot_ItemValue(&self,0)>=7); bot.sabersOnly=1; assert(Bot_ItemValue(&self,0)==0); bot.sabersOnly=0;
+    /* Thermals and charges: never collected under the legacy table; a few
+       to throw and lay with thermals and mines on. */
+    flex_t thermals=BT(THERMALS), mines=BT(MINES); BT(THERMALS)=BT(MINES)=0;
     strcpy(templates[0].aName,"detonator"); assert(Bot_ItemValue(&self,0)==0);
     strcpy(templates[0].aName,"seqcharge"); assert(Bot_ItemValue(&self,0)==0);
+    BT(THERMALS)=BT(MINES)=1;
+    assert(Bot_ItemValue(&self,0)==2.5f);
+    strcpy(templates[0].aName,"detonator"); assert(Bot_ItemValue(&self,0)==2.0f);
+    own.aItems[SITHBIN_THERMAL_DETONATOR].amount=4; assert(Bot_ItemValue(&self,0)==0);
+    own.aItems[SITHBIN_THERMAL_DETONATOR].amount=0; BT(THERMALS)=thermals; BT(MINES)=mines;
+    strcpy(templates[0].aName,"seqcharge");
     puts("PASS stock pickup need scoring, saber-only/Force gates and inherited model aliases");
     items[1].flags=SITH_TF_DISABLED; items[1].itemParams.secRespawnInterval=30;
     assert(Bot_ItemValue(&self,1)==0); bot.now=37;

@@ -2,6 +2,7 @@
    and a wall stands at plainWall, both measured along +x. */
 static int testPlainActive;
 static flex_t plainEdge=1e9f, plainWall=1e9f;
+static int plainSolidFloor; /* slanted rays meet the floor too (thrown grenades) */
 static SithSector plainLand, plainPool;
 static SithSurface plainGround;
 
@@ -22,5 +23,9 @@ static int TestPlainCollision(const rdVector3 *from,const rdVector3 *direction,
         return 1;
     }
     if (Bot_Max(from->x,end.x)+radius>plainWall) { hit->hitNorm.x=-1; return 1; }
+    if (plainSolidFloor && direction->z<0 && end.z-radius<0 && from->z-radius>=0) {
+        hit->distance=(from->z-radius)/-direction->z; hit->hitNorm.z=1;
+        return 1;
+    }
     return 0;
 }
