@@ -54,7 +54,7 @@ class RegistryTests(unittest.TestCase):
             self.assertTrue(reset)
             self.assertEqual(merged, values)
             self.assertEqual(tactics.validate(values), values)
-            self.assertLessEqual(len(values), tactics.WIRE_PAIRS)
+            self.assertLessEqual(len(tactics.wire(True, values)[1]), tactics.WIRE_PAIRS)
         legacy = tactics.table("legacy")
         self.assertEqual(legacy, tactics.LEGACY)
         for name in ("run", "exact_thrust", "strafe_run", "confine_seconds", "water_entry_cost", "dive_min_value"):
@@ -85,6 +85,12 @@ class RegistryTests(unittest.TestCase):
         records = [struct.unpack_from("<Bf", payload, 2 + 5 * i) for i in range(2)]
         self.assertEqual(records, [(tactics.INDEX["value_conc"], 20.0), (tactics.INDEX["gun_far"], 3.5)])
         self.assertEqual(tactics.encode(True, {}), bytes((1, 0)))
+        # The legacy table has more values off the defaults than one command
+        # carries; it is sent as a reset to the legacy column.
+        self.assertGreater(len(tactics.PRESETS["legacy"]), tactics.WIRE_PAIRS)
+        self.assertEqual(tactics.encode(True, tactics.PRESETS["legacy"]), bytes((2, 0)))
+        near = dict(tactics.PRESETS["legacy"], run=1.0)
+        self.assertEqual(tactics.encode(True, near), bytes((2, 1)) + struct.pack("<Bf", tactics.INDEX["run"], 1.0))
         with self.assertRaises(ValueError):
             tactics.encode(False, {})
 
