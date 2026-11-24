@@ -88,12 +88,16 @@ def stage(source, target):
                 dst.write(chunk)
 
 
-def boot(label, command, directory, env, output):
+def boot(label, command, directory, env, output, recorder=None, repo=None):
     path = output / (label + ".log")
     with path.open("xb") as log:
-        CHILDREN[label] = subprocess.Popen(command, cwd=directory, stdin=subprocess.DEVNULL,
-                                            stdout=log, stderr=subprocess.STDOUT, env=env,
-                                            start_new_session=True)
+        if recorder is None:
+            child = subprocess.Popen(command, cwd=directory, stdin=subprocess.DEVNULL,
+                                     stdout=log, stderr=subprocess.STDOUT, env=env,
+                                     start_new_session=True)
+        else:
+            child = recorder.boot_server(command, directory, env, log, repo, output)
+        CHILDREN[label] = child
     READERS[label] = path.open("rb")
 
 
@@ -242,9 +246,23 @@ def run(args, receipt, tmp):
     def git(*words):
         return subprocess.check_output(["git","-C",str(repo),*words],stderr=subprocess.DEVNULL,
                                        timeout=5,text=True).strip()
-    receipt.update(commit=git("rev-parse","HEAD"), branch=git("rev-parse","--abbrev-ref","HEAD"),
-                   source_tree_clean=not bool(git("status","--porcelain","--untracked-files=no")),
-                   platform={"python":platform.python_version(),"glibc":platform.libc_ver()[1]},
+    if args.arena_baseline:
+        interfaces = sorted(name for _, name in socket.if_nameindex())
+        if interfaces != ["lo"]:
+            raise Failure("arena_baseline_requires_isolated_loopback_network_namespace")
+        receipt.update(kind="adjoin-arena-native-duel", network_interfaces=interfaces,
+                       pacing="normal engine wall-clock", seed_control="not assigned or observed",
+                       seat_order=list(LABELS.values()), launcher_sha256=digest(Path(__file__)))
+        paths = ("bots/profiles.json", "bots/run.py", "bots/companion.py", "bots/settings.py", "manager/config.py",
+                 "manager/content.py", "native/BOT_BUILD.json", "qa/bots-stock-map-audit.json")
+        if args.recorder:
+            paths += ("web_gateway/ipc.py", "manager/spectator.py", "manager/spectator_geometry.py")
+            receipt["recorder_sha256"] = digest(Path(args.recorder.__file__))
+        receipt["launcher_input_sha256"] = {name: digest(repo / name) for name in paths}
+    else:
+        receipt.update(commit=git("rev-parse","HEAD"), branch=git("rev-parse","--abbrev-ref","HEAD"),
+                       source_tree_clean=not bool(git("status","--porcelain","--untracked-files=no")))
+    receipt.update(platform={"python":platform.python_version(),"glibc":platform.libc_ver()[1]},
                    render_environment=FLAGS, bot_options={"taunts":False,"team":0,
                        "force_style":"competitive","trace_force":True})
     bot, server = repo / BOT, repo / SERVER
@@ -290,7 +308,8 @@ def run(args, receipt, tmp):
         if (profiles[pid]["force_side"],profiles[pid]["force_style"]) != (side,"competitive"):
             raise Failure(side+"_incorrect_profile")
         prepare_bot(server_dir,tmp/side,profiles[pid])
-    boot("server",[str(server),*receipt["server_argv"]],server_dir,private_env(server_dir,server),output)
+    boot("server",[str(server),*receipt["server_argv"]],server_dir,private_env(server_dir,server),
+         output, recorder=args.recorder, repo=repo)
     before = time.monotonic()
     while not owns_udp(CHILDREN["server"].pid,port):
         check_liveness()
@@ -363,7 +382,17 @@ def main():
         parser.add_argument("--"+key,type=Path,required=True)
     parser.add_argument("--map", choices=STOCK_MAPS, default="m2.jkl")
     parser.add_argument("--duration",type=int,default=75,choices=range(1,121),metavar="1..120")
+    parser.add_argument("--arena-baseline", action="store_true",
+                        help="Require a private loopback-only network namespace and hash the tested inputs.")
+    parser.add_argument("--record", action="store_true",
+                        help="Capture the native host follow camera during an arena baseline.")
     args = parser.parse_args()
+    if args.record and not args.arena_baseline:
+        parser.error("--record requires --arena-baseline")
+    args.recorder = None
+    if args.record:
+        import record_server
+        args.recorder = record_server
     os.umask(0o077)
     for sig in (signal.SIGTERM,signal.SIGINT,signal.SIGHUP):
         signal.signal(sig,lambda num,frame:STOP.append(num))
@@ -381,7 +410,16 @@ def main():
             try:
                 run(args,receipt,Path(temp))
             finally:
-                shutdown()
+                try:
+                    if args.recorder:
+                        receipt["match_status"] = receipt["status"]
+                        evidence = args.recorder.finish()
+                        if evidence:
+                            receipt["observer_status"] = evidence["status"]
+                            receipt["observer_receipt"] = "spectator/observer-receipt.json"
+                            receipt["observer_receipt_sha256"] = evidence["receipt_sha256"]
+                finally:
+                    shutdown()
         code = 0
     except Failure as e:
         receipt["error"] = str(e)
@@ -399,6 +437,13 @@ def main():
         receipt["status"] = "failed"
     for row in receipt.get("bots",{}).values():
         row.pop("previous",None)
+    if args.arena_baseline and made_output:
+        receipt["log_sha256"] = {}
+        for name in ("server.log","dark.log","light.log","force-trace.jsonl"):
+            log = args.output / name
+            if log.is_file():
+                with log.open("rb") as stream:
+                    receipt["log_sha256"][name] = hashlib.file_digest(stream, "sha256").hexdigest()
     receipt["elapsed_wall_seconds"] = round(time.monotonic()-START,2)
     if made_output:
         with (args.output/"receipt.json").open("x",encoding="ascii") as f:

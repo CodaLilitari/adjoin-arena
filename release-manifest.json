@@ -26,7 +26,7 @@
     },
     "README.md": {
       "mode": 420,
-      "sha256": "8fa3a28fe7d43d2219ccf1a9279911f9f70b5738c8eb9d67485054437f39276b"
+      "sha256": "936f7fa15c4ecbd7b35642f11143687b1727e1273069843fd0d6ea0bf7024f39"
     },
     "Start-Server.command": {
       "mode": 493,
@@ -1031,6 +1031,10 @@
     "qa/adjoin-arena-m0-pool90.json": {
       "mode": 420,
       "sha256": "74632f161afcf7056850b7459411ea1341826175bd8b39f832c8b69cb921ab4a"
+    },
+    "qa/adjoin-arena-native-duel-1x.json": {
+      "mode": 420,
+      "sha256": "1e7cca803a0345d3d71b8f1abd9b3a05dd809dd9b9f886e259422567a0640869"
     },
     "qa/admin-browser-layout.json": {
       "mode": 420,
@@ -2116,6 +2120,10 @@
       "mode": 420,
       "sha256": "191a03831ced3eb46a72f86caa3a89947730e52aace21366a6c9095f00ff5a6f"
     },
+    "scripts/bot_development/analysis/native_duel.py": {
+      "mode": 420,
+      "sha256": "4994d7d2d315cff5b1c45693cc52e550c7351465274f09afccd3a68389a1758e"
+    },
     "scripts/bot_development/analysis/outcome_build_inputs.py": {
       "mode": 420,
       "sha256": "215cbe5635a8fe355d94e43002a3bce090e6f5f6c3acfc9a2aa45682ae279501"
@@ -2182,15 +2190,19 @@
     },
     "scripts/bot_development/legacy/README.md": {
       "mode": 420,
-      "sha256": "3a1db69025ef7c23bf014b5ce964746df6dfca5f1e8e6e931dd6a55c948e531e"
+      "sha256": "f1a1005ed7614db93c099b5f4034ae2421f178c9f19fe3eec86dbad84777808d"
     },
     "scripts/bot_development/legacy/native_force_observation.py": {
       "mode": 420,
-      "sha256": "ea33d4f449e52af241f6d169ed0d3ab70ecf9a7b5a270a6a589a874be977b3cd"
+      "sha256": "dd7caa144db6b9b4e76729e1c3b42f7ff8e0672980ccf51fd0e1fdb2bc6d238a"
     },
     "scripts/bot_development/legacy/rebuild_native_pair.py": {
       "mode": 420,
       "sha256": "9bf017473577126e0267a37b8c8e665ec93bb55357bea956cd9d3898cd49e2a9"
+    },
+    "scripts/bot_development/legacy/record_server.py": {
+      "mode": 420,
+      "sha256": "44ac250ef6dff369dfa7ac649589a6e60f4affb497987a5d41da833e6d3c9be9"
     },
     "scripts/bot_development/legacy/windows_force_bridge.py": {
       "mode": 420,
@@ -2363,6 +2375,10 @@
     "tests/test_manager.py": {
       "mode": 420,
       "sha256": "57cddaf0b67eff37f942a015917cc067a595dba544c4e742d6e7c4dbb8f728dc"
+    },
+    "tests/test_native_duel.py": {
+      "mode": 420,
+      "sha256": "53a99307b9bc1596754561207c239a937fd41cfa6500e7094d40a59e23fa791c"
     },
     "tests/test_pace_parity.py": {
       "mode": 420,

@@ -102,3 +102,21 @@ sources and reproduced the packaged native executable byte for byte:
 CLI parsing, embedded WSL program compilation, literal argument transport,
 allowlisted archive creation, digest rejection and malformed-response handling
 were checked locally. The ported Windows bridge was not rerun as a live WSL match.
+
+## Repeat a native Canyon Oasis duel
+
+Use Linux or WSL2 with the packaged native runtime's libraries. Recording also needs ffmpeg and ffprobe with H.264 support. The launcher runs one dedicated host and two native clients using an owned JK installation and the shipped bot profiles. Give each run a new output directory on a native Linux filesystem outside Git. The private network namespace needs unshare and iproute2.
+
+```sh
+for run in stock-duel-a stock-duel-b; do
+  unshare -Urn -- sh -c '
+    ip link set lo up || exit 1
+    exec python3 -B "$1/scripts/bot_development/legacy/native_force_observation.py" \
+      --repo "$1" --data "$2" --output "$3" --map m10.jkl --duration 55 --arena-baseline --record
+  ' sh "$PWD" "$OWNED_JK" "$RUN_ROOT/$run" || exit 1
+done
+python3 -B scripts/bot_development/analysis/native_duel.py \
+  --first "$RUN_ROOT/stock-duel-a" --repeat "$RUN_ROOT/stock-duel-b" --output "$RUN_ROOT/comparison.json"
+```
+
+The host roster, each peer's join acknowledgement, native logs and video have separate evidence in the receipts. The clip starts after both players join and spans up to about 45 seconds. Actor positions in the client logs are rounded, usually ten seconds apart. The two client clocks start independently. An equipment plan records intent, a selected weapon records possession at a sample, and a fire-input report records a change of input mode. The engine suppresses repeated fire reports of the same mode. Health or shield decreases alone leave the attacker unidentified.
