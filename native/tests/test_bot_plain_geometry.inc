@@ -4,6 +4,10 @@
 static int testPlainActive;
 static flex_t plainEdge=1e9f, plainWall=1e9f, plainShelf=1e9f, plainShelfZ;
 static int plainSolidFloor; /* slanted rays meet the floor too (thrown grenades) */
+static SithSurface *plainWallSurface; /* what the wall at plainWall is, when it is a switch */
+/* A force field across the ground at x=plainField: while it is on, nothing
+   whose swept body touches the plane gets through; switched off, it is air. */
+static flex_t plainField=1e9f; static int plainFieldOn;
 static SithSector plainLand, plainPool;
 static SithSurface plainGround;
 
@@ -41,11 +45,20 @@ static int TestPlainCollision(const rdVector3 *from,const rdVector3 *direction,
             return 1;
         }
         flex_t floor=from->x>=plainShelf ? plainShelfZ : 0;
-        if (from->x>=plainEdge || from->z<floor || end.z>floor) return 0;
+        /* A shelf past the edge stands across a gap. */
+        if ((from->x>=plainEdge && from->x<plainShelf) || from->z<floor || end.z>floor) return 0;
         hit->distance=from->z-floor; hit->hitNorm.z=1;
         return 1;
     }
-    if (Bot_Max(from->x,end.x)+radius>plainWall) { hit->hitNorm.x=-1; return 1; }
+    if (plainFieldOn && Bot_Min(from->x,end.x)-radius<plainField && Bot_Max(from->x,end.x)+radius>plainField) {
+        hit->distance=0; hit->hitNorm.x=from->x<plainField ? -1 : 1;
+        return 1;
+    }
+    if (Bot_Max(from->x,end.x)+radius>plainWall) {
+        hit->hitNorm.x=-1;
+        if (plainWallSurface) hit->surface=plainWallSurface;
+        return 1;
+    }
     if (plainShelf<1e8f) {
         /* Sample the swept body against the shelf's face and top. */
         int steps=(int)ceilf(distance/0.005f);

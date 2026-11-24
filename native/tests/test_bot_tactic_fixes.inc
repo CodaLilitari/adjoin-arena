@@ -654,6 +654,392 @@ static void test_fix_pack_hunt(void)
     puts("PASS dropped packs: a heavy gun is worth fetching to deny it, the way in is found from the nodes nearest the pack and kept, and a pack on a pool floor can be reached");
 }
 
+static void test_fix_lip_escape(void)
+{
+    SithThing self; SithPlayer own;
+    testPlainActive=1; plainEdge=plainWall=plainShelf=1e9f; plainShelfZ=0; plainGround.flags=0; plainLand.flags=0;
+    plainPool.flags=0;
+    PlainSelf(&self,&own);
+    jkBot_Configure("LipEscape_Test","ky.3do"); TacticsUse(0); bot.now=5;
+    /* Feet on the lip, centre 0.057 past the edge of the floor (x<0), as Red
+       stood on the Canyon Oasis walkway over the lightning ramp. Only
+       headings within about 30 degrees of straight back are safe. */
+    plainEdge=0; self.position=(rdVector3){0.057f,0,BOT_FOOT_HEIGHT};
+    PlainFace(&self,(flex_t)(M_PI/2));
+    rdVector3 along={0,1,0};
+    memset(bot.axes,0,sizeof(bot.axes)); memset(bot.keys,0,sizeof(bot.keys)); bot.nextJump=0;
+    Bot_Move(&self,along,0);
+    rdVector3 thrust=PlainThrust(&self);
+    assert(thrust.x<-0.05f && !bot.keys[INPUT_FUNC_JUMP] && bot.tele.lipSteps==1 && "stepped back onto the floor");
+    TacticsUse(1);
+    memset(bot.axes,0,sizeof(bot.axes)); memset(bot.keys,0,sizeof(bot.keys)); bot.nextJump=0;
+    Bot_Move(&self,along,0);
+    assert(bot.axes[INPUT_FUNC_FORWARD]==0 && bot.axes[INPUT_FUNC_SLIDE]==0 && !bot.keys[INPUT_FUNC_JUMP] &&
+           "legacy: frozen on the lip");
+    TacticsUse(0);
+    /* A blocked bot with floor under it still hops as before. */
+    self.position=(rdVector3){-0.5f,0,BOT_FOOT_HEIGHT}; plainWall=-0.4f;
+    memset(bot.axes,0,sizeof(bot.axes)); memset(bot.keys,0,sizeof(bot.keys)); bot.nextJump=0;
+    Bot_Move(&self,(rdVector3){1,0,0},0);
+    assert(bot.keys[INPUT_FUNC_JUMP] && bot.axes[INPUT_FUNC_FORWARD]==0 && bot.axes[INPUT_FUNC_SLIDE]==0 &&
+           "facing a wall with floor underfoot: the hop, not a turn away");
+    plainWall=1e9f;
+    /* Routes start from the floor underfoot: the centre is in another sector
+       (plainPool here) whose node lies a metre away below the lip. */
+    self.position=(rdVector3){0.057f,0,BOT_FOOT_HEIGHT}; self.sector=&plainPool;
+    bot.nNodes=2;
+    RouteNode(0,-0.08f,0); RouteNode(1,1.0f,0.3f); bot.nodes[1].sector=&plainPool;
+    assert(Bot_Nearest(&self)==0);
+    TacticsUse(1); assert(Bot_Nearest(&self)==1 && "legacy: the centre's sector only"); TacticsUse(0);
+    self.sector=&plainLand; bot.nNodes=0; plainEdge=1e9f; bot.tele.lipSteps=0; testPlainActive=0;
+    puts("PASS lip escape: a bot on a lip with its centre over a drop steps back onto the floor and routes from the floor underfoot; legacy froze");
+}
+
+/* Canyon Oasis in miniature: a 0.1 switch on the wall at x=1, its centre
+   0.17 up, facing -x (the lightning switch stands 0.175 over its floor);
+   00_lightning.cog as the level gives it, with the switch, the ramp and no
+   ghosts. Nodes 0..2 lead along dry ground to the switch; 3..5 lie on the
+   ramp, sector 1. */
+static SithWorld trapWorld; static SithSector trapSectors[2]; static SithSurface trapSurfaces[1];
+static rdVector3 trapVertices[4]; static int32_t trapCorners[4]={0,1,2,3};
+static SithCogSymbol trapSymbols[5]; static SithCogSymbolTable trapTable; static sithCog trapCogs[1];
+static SithSurface *LightningWorld(SithThing *self,SithPlayer *own,const char *name)
+{
+    testPlainActive=1; plainEdge=plainShelf=1e9f; plainWall=1.0f; plainShelfZ=0; plainGround.flags=0; plainLand.flags=0;
+    PlainSelf(self,own);
+    jkBot_Configure(name,"ky.3do"); TacticsUse(0); bot.now=10; bot.forceBin=-1;
+    BT(TRAP_CHANCE)=1;
+    self->actorParams.eyeOffset=(rdVector3){0,0,0.037f};
+    memset(&trapWorld,0,sizeof(trapWorld)); memset(trapSectors,0,sizeof(trapSectors)); memset(trapSurfaces,0,sizeof(trapSurfaces));
+    memset(&traps,0,sizeof(traps)); memset(&nav,0,sizeof(nav));
+    bot.world=sithWorld_g_pCurrentWorld=&trapWorld; sithPlayer_g_pLocalPlayerThing=self;
+    trapWorld.aSectors=trapSectors; trapWorld.numSectors=2; trapSectors[0].id=0; trapSectors[1].id=1; trapWorld.gravity=4;
+    trapVertices[0]=(rdVector3){1,-0.05f,0.12f}; trapVertices[1]=(rdVector3){1,0.05f,0.12f};
+    trapVertices[2]=(rdVector3){1,0.05f,0.22f}; trapVertices[3]=(rdVector3){1,-0.05f,0.22f};
+    trapWorld.aVertices=trapVertices; trapWorld.numVertices=4; trapWorld.surfaces=trapSurfaces; trapWorld.numSurfaces=1;
+    SithSurface *button=&trapSurfaces[0];
+    button->flags=SITH_SURFACE_COG_LINKED|SITH_SURFACE_HAS_COLLISION; button->pSector=&plainLand;
+    button->surfaceInfo.face.numVertices=4; button->surfaceInfo.face.vertexPosIdx=trapCorners;
+    button->surfaceInfo.face.normal=(rdVector3){-1,0,0};
+    plainWallSurface=button;
+    static const char *names[]={"switch0","zapsector","ghost0","ghost1","ghost2"};
+    static const int values[]={0,1,-1,-1,-1};
+    for (int i=0;i<5;i++) {
+        memset(&trapSymbols[i],0,sizeof(trapSymbols[i])); trapSymbols[i].pName=(char*)names[i];
+        trapSymbols[i].val.type=SITHCOG_VALUE_INT; trapSymbols[i].val.data[0]=values[i];
+    }
+    memset(&trapTable,0,sizeof(trapTable)); trapTable.aSymbols=trapSymbols; trapTable.tableSize=trapTable.numUsedSymbols=5;
+    memset(trapCogs,0,sizeof(trapCogs)); trapCogs[0].pSymbolTable=&trapTable; trapWorld.aCogs=trapCogs; trapWorld.numCogs=1;
+    bot.nNodes=6; bot.graphDone=1;
+    RouteNode(0,0,0); RouteNode(1,0.45f,0); RouteNode(2,0.85f,0);
+    RouteNode(3,0,1.0f); RouteNode(4,0.4f,1.0f); RouteNode(5,0.8f,1.0f);
+    for (int i=3;i<6;i++) bot.nodes[i].sector=&trapSectors[1];
+    static const int links[][2]={{0,1},{1,2},{0,3},{3,4},{4,5}};
+    for (int i=0;i<5;i++) { RouteEdge(links[i][0],links[i][1],BOT_ROUTE_WALK); RouteEdge(links[i][1],links[i][0],BOT_ROUTE_WALK); }
+    return button;
+}
+
+/* The bot faces the switch from its spot, looking up at the switch's centre. */
+static void TrapPressPose(SithThing *self,const BotTrap *trap,flex_t yaw)
+{
+    self->position=trap->stand.pos; PlainFace(self,yaw);
+    self->actorParams.headPYR.x=atan2f(0.17f-(BOT_FOOT_HEIGHT+0.037f),0.085f)*BOT_DEG;
+    memset(bot.keys,0,sizeof(bot.keys)); memset(bot.previous,0,sizeof(bot.previous));
+}
+
+static void TrapOpponent(SithThing *enemy,SithSector *sector,rdVector3 position)
+{
+    memset(enemy,0,sizeof(*enemy));
+    enemy->type=SITH_THING_PLAYER; enemy->sector=sector; enemy->position=position; enemy->actorParams.health=100;
+    jkPlayer_maxPlayers=2; memset(jkPlayer_playerInfos,0,sizeof(jkPlayer_playerInfos));
+    jkPlayer_playerInfos[1].flags=1; jkPlayer_playerInfos[1].playerNetId=33; jkPlayer_playerInfos[1].pLocalPlayer=enemy;
+}
+
+static void test_fix_traps(void)
+{
+    static SithThing things[1];
+    SithThing self, enemy; SithPlayer own;
+    SithSurface *button=LightningWorld(&self,&own,"Traps_Test");
+    SithSector *sectors=trapSectors;
+    Bot_TrapScan(&self);
+    BotTrap *trap=&traps.list[0];
+    assert(traps.count==1 && trap->kind==BOT_TRAP_LIGHTNING && trap->usable && trap->standNode==2);
+    assert(fabsf(trap->stand.pos.x-0.915f)<0.011f && fabsf(trap->stand.pos.z-BOT_FOOT_HEIGHT)<0.001f &&
+           "close enough for the 0.165 use ray from the eye");
+    assert(trap->zoneNodes==3 && traps.zone[4]==1 && !traps.zone[1]);
+    assert(Bot_TrapButton(button) && !Bot_TrapButton(&plainGround));
+    /* Armed: the ramp's nodes are avoided; a bot on it walks off. */
+    button->surfaceInfo.face.wallCel=1; bot.now+=0.3f; Bot_TrapScan(&self);
+    assert(trap->live && bot.nodes[4].avoidUntil>bot.now && bot.nodes[1].avoidUntil<=bot.now);
+    self.position=bot.nodes[4].pos; self.sector=&sectors[1]; bot.nextPlan=0;
+    Bot_TrapEscape(&self);
+    assert(traps.exitNode==0 && bot.goal==0 && bot.tele.trapEscapes==1);
+    /* Disarmed, with an opponent on the ramp and the switch 0.9 away: go. */
+    button->surfaceInfo.face.wallCel=0; bot.now+=0.6f; Bot_TrapScan(&self); assert(!trap->live);
+    self.position=bot.nodes[0].pos; self.sector=&plainLand; bot.goal=-1; bot.routeCount=bot.routePos=0;
+    TrapOpponent(&enemy,&sectors[1],bot.nodes[5].pos);
+    traps.nextConsider=0;
+    assert(Bot_TrapTick(&self)==1 && traps.use==1 && !traps.phase && bot.goal==2 && traps.purpose==BOT_TRAP_SPRING);
+    /* At the spot, looking at the switch: one press of the use key. */
+    TrapPressPose(&self,trap,0);
+    assert(Bot_TrapTick(&self)==2 && traps.phase==2 && traps.presses==1 && bot.keys[INPUT_FUNC_ACTIVATE]);
+    /* The server sets the frame: sprung, and left alone for a while. */
+    button->surfaceInfo.face.wallCel=1; bot.now+=0.1f;
+    assert(Bot_TrapTick(&self)==0 && !traps.use && bot.tele.trapsSprung==1 && trap->nextTry>bot.now+20);
+    /* Already armed: nothing to spring, whoever is on the ramp. */
+    traps.nextConsider=0; trap->nextTry=0; bot.now+=0.3f;
+    assert(Bot_TrapTick(&self)==0 && !traps.use);
+    /* A Nar Shaddaa detonator thrown from 0.5 up, facing +x, lands ahead. */
+    plainSolidFloor=1; plainWall=1e9f;
+    SithThing *spot=&things[0]; memset(spot,0,sizeof(*spot));
+    spot->position=(rdVector3){0,0,0.5f}; spot->sector=&plainLand;
+    spot->orient.lvec=(rdVector3){1,0,0}; spot->orient.rvec=(rdVector3){0,-1,0}; spot->orient.uvec=(rdVector3){0,0,1};
+    rdVector3 landing; SithSector *where=NULL;
+    assert(Bot_TrapThrow(&self,spot,NULL,&landing,&where) && where==&plainLand);
+    assert(landing.x>0.9f && landing.x<2.0f && fabsf(landing.y)<0.001f && landing.z<0.05f);
+    plainSolidFloor=0;
+    /* Legacy: bound, but neither kept clear of nor sprung. */
+    TacticsUse(1); memset(&traps,0,sizeof(traps)); button->surfaceInfo.face.wallCel=0;
+    for (int i=0;i<6;i++) bot.nodes[i].avoidUntil=0;
+    self.position=bot.nodes[0].pos; bot.goal=-1; bot.routeCount=0; bot.now+=1;
+    assert(Bot_TrapTick(&self)==0 && traps.count==1 && !traps.use);
+    button->surfaceInfo.face.wallCel=1; bot.now+=0.3f; Bot_TrapScan(&self);
+    assert(traps.list[0].live && bot.nodes[4].avoidUntil<=bot.now);
+    TacticsUse(0);
+    plainWallSurface=NULL; plainWall=1e9f; jkPlayer_maxPlayers=0; memset(jkPlayer_playerInfos,0,sizeof(jkPlayer_playerInfos));
+    memset(&traps,0,sizeof(traps)); bot.nNodes=0; bot.goal=-1; bot.routeCount=0; bot.tele.trapsSprung=bot.tele.trapEscapes=0;
+    bot.world=sithWorld_g_pCurrentWorld=NULL; sithPlayer_g_pLocalPlayerThing=NULL; testPlainActive=0;
+    puts("PASS level traps: a lightning switch is found by its COG, its armed ramp is kept clear of and walked off, it is sprung on an opponent from a spot the use ray reaches, a detonator throw lands ahead; legacy leaves traps alone");
+}
+
+/* trap_disarm: an armed ramp is not avoided all match. */
+static void test_fix_trap_disarm(void)
+{
+    SithThing self, enemy; SithPlayer own;
+    SithSurface *button=LightningWorld(&self,&own,"Disarm_Test");
+    Bot_TrapScan(&self);
+    BotTrap *trap=&traps.list[0];
+    assert(traps.count==1 && trap->usable && trap->standNode==2);
+    /* Armed in an ambush: the ramp is kept clear of, and the ambush gets
+       its time before anyone takes it down. */
+    button->surfaceInfo.face.wallCel=1; bot.now+=0.3f; Bot_TrapScan(&self);
+    assert(trap->live && bot.nodes[4].avoidUntil>bot.now);
+    self.position=bot.nodes[0].pos; self.sector=&plainLand;
+    traps.nextConsider=0; bot.now+=3.0f;
+    assert(Bot_TrapTick(&self)==0 && !traps.use && "a fresh ambush is left alone");
+    /* An opponent near the ramp keeps it armed however long it stands. */
+    TrapOpponent(&enemy,&plainLand,(rdVector3){0.2f,0.6f,BOT_FOOT_HEIGHT});
+    traps.nextConsider=0; bot.now+=60.0f;
+    assert(Bot_TrapTick(&self)==0 && !traps.use && bot.nodes[4].avoidUntil>bot.now);
+    /* A minute on with nobody near it: the bot walks back and switches it off. */
+    jkPlayer_maxPlayers=0; traps.nextConsider=0; bot.now+=0.6f;
+    assert(Bot_TrapTick(&self)==1 && traps.use==1 && traps.purpose==BOT_TRAP_DISARM && traps.startCel==1 && bot.goal==2);
+    TrapPressPose(&self,trap,0);
+    assert(Bot_TrapTick(&self)==2 && traps.phase==2 && bot.keys[INPUT_FUNC_ACTIVATE]);
+    /* The server clears the frame: disarmed, and within half a second the
+       ramp is part of the routes again. */
+    button->surfaceInfo.face.wallCel=0; bot.now+=0.25f;
+    assert(Bot_TrapTick(&self)==0 && !traps.use && bot.tele.trapsDisarmed==1 && !bot.tele.trapsSprung && !trap->live);
+    assert(trap->nextTry>bot.now+20 && "and it is not armed again straight away");
+    bot.now+=0.5f; Bot_TrapScan(&self);
+    assert(bot.nodes[4].avoidUntil<=bot.now);
+    /* Armed 20 s, a switch almost 4 away is past the 3.5 reach; at 50 s it is not. */
+    button->surfaceInfo.face.wallCel=1; bot.now+=0.3f; Bot_TrapScan(&self); trap->nextTry=0;
+    self.position=(rdVector3){-3.2f,0,BOT_FOOT_HEIGHT}; RouteNode(6,-3.0f,0);
+    RouteEdge(6,0,BOT_ROUTE_WALK); RouteEdge(0,6,BOT_ROUTE_WALK); bot.nNodes=7;
+    traps.nextConsider=0; bot.now+=20.0f;
+    assert(Bot_TrapTick(&self)==0 && !traps.use);
+    traps.nextConsider=0; bot.now+=30.0f;
+    assert(Bot_TrapTick(&self)==1 && traps.purpose==BOT_TRAP_DISARM && "farther, the longer it stands");
+    Bot_TrapEnd(NULL,0);
+    /* Legacy: an armed ramp stays armed. */
+    BT(TRAP_DISARM)=0; traps.nextConsider=0; bot.now+=0.6f; bot.goal=-1;
+    assert(Bot_TrapTick(&self)==0 && !traps.use);
+    TacticsUse(0);
+    plainWallSurface=NULL; plainWall=1e9f; jkPlayer_maxPlayers=0; memset(jkPlayer_playerInfos,0,sizeof(jkPlayer_playerInfos));
+    memset(&traps,0,sizeof(traps)); bot.nNodes=0; bot.goal=-1; bot.routeCount=0; bot.tele.trapsDisarmed=0;
+    bot.world=sithWorld_g_pCurrentWorld=NULL; sithPlayer_g_pLocalPlayerThing=NULL; testPlainActive=0;
+    puts("PASS trap disarm: an armed ramp is left a while and kept armed while an opponent is near it, then switched off from farther the longer it stands, and walked again within half a second; legacy leaves it armed");
+}
+
+/* Nar Shaddaa's force field in miniature: its face on the plane x=1 (y -1
+   to 1, z 0 to 1.2), on at the start; a switch on the near side at
+   x=-0.5 facing +x and one on the far side on the wall at x=2 facing -x,
+   as m2_ffieldswitch.cog gives them. Nodes 0..2 lie on the near side,
+   3..5 on the far side; node 6 stands against the field. */
+static void test_fix_field(void)
+{
+    static SithWorld world; static SithSurface surfaces[4]; static SithSurfaceAdjoin adjoins[2];
+    static rdVector3 vertices[12];
+    static int32_t faceA[4]={0,1,2,3}, faceB[4]={3,2,1,0}, farButton[4]={4,5,6,7}, nearButton[4]={8,9,10,11};
+    static SithCogSymbol symbols[4]; static SithCogSymbolTable table; static sithCog cogs[1];
+    SithThing self; SithPlayer own;
+    testPlainActive=1; plainEdge=plainShelf=1e9f; plainWall=2.0f; plainField=1.0f; plainFieldOn=1;
+    plainShelfZ=0; plainGround.flags=0; plainLand.flags=0;
+    PlainSelf(&self,&own);
+    jkBot_Configure("Field_Test","ky.3do"); TacticsUse(0); bot.now=10; bot.forceBin=-1;
+    self.actorParams.eyeOffset=(rdVector3){0,0,0.037f};
+    memset(&world,0,sizeof(world)); memset(surfaces,0,sizeof(surfaces)); memset(adjoins,0,sizeof(adjoins));
+    memset(&traps,0,sizeof(traps)); memset(&nav,0,sizeof(nav));
+    bot.world=sithWorld_g_pCurrentWorld=&world; sithPlayer_g_pLocalPlayerThing=&self;
+    world.aSectors=&plainLand; world.numSectors=1; world.gravity=4;
+    vertices[0]=(rdVector3){1,-1,0}; vertices[1]=(rdVector3){1,1,0}; vertices[2]=(rdVector3){1,1,1.2f}; vertices[3]=(rdVector3){1,-1,1.2f};
+    vertices[4]=(rdVector3){2,-0.05f,0.12f}; vertices[5]=(rdVector3){2,0.05f,0.12f};
+    vertices[6]=(rdVector3){2,0.05f,0.22f}; vertices[7]=(rdVector3){2,-0.05f,0.22f};
+    vertices[8]=(rdVector3){-0.5f,0.05f,0.12f}; vertices[9]=(rdVector3){-0.5f,-0.05f,0.12f};
+    vertices[10]=(rdVector3){-0.5f,-0.05f,0.22f}; vertices[11]=(rdVector3){-0.5f,0.05f,0.22f};
+    world.aVertices=vertices; world.numVertices=12; world.surfaces=surfaces; world.numSurfaces=4;
+    int32_t *corners[4]={faceA,faceB,farButton,nearButton};
+    static const rdVector3 normals[4]={{-1,0,0},{1,0,0},{-1,0,0},{1,0,0}};
+    for (int i=0;i<4;i++) {
+        surfaces[i].pSector=&plainLand; surfaces[i].surfaceInfo.face.numVertices=4;
+        surfaces[i].surfaceInfo.face.vertexPosIdx=corners[i]; surfaces[i].surfaceInfo.face.normal=normals[i];
+        if (i>=2) surfaces[i].flags=SITH_SURFACE_COG_LINKED|SITH_SURFACE_HAS_COLLISION;
+    }
+    /* On: seen but not passable, as the COG's startup leaves it. */
+    surfaces[0].pAdjoin=&adjoins[0]; surfaces[1].pAdjoin=&adjoins[1];
+    adjoins[0].flags=adjoins[1].flags=SITHSURF_ADJOIN_VISIBLE;
+    plainWallSurface=&surfaces[2];
+    static const char *names[]={"switch","switch1","damsurf","damsurf2"};
+    static const int values[]={3,2,0,1};
+    for (int i=0;i<4;i++) {
+        memset(&symbols[i],0,sizeof(symbols[i])); symbols[i].pName=(char*)names[i];
+        symbols[i].val.type=SITHCOG_VALUE_INT; symbols[i].val.data[0]=values[i];
+    }
+    memset(&table,0,sizeof(table)); table.aSymbols=symbols; table.tableSize=table.numUsedSymbols=4;
+    memset(cogs,0,sizeof(cogs)); cogs[0].pSymbolTable=&table; world.aCogs=cogs; world.numCogs=1;
+    bot.nNodes=7; bot.graphDone=1;
+    RouteNode(0,-0.4f,0); RouteNode(1,0.2f,0); RouteNode(2,0.8f,0);
+    RouteNode(3,1.25f,0); RouteNode(4,1.6f,0); RouteNode(5,1.9f,0); RouteNode(6,0.97f,0.5f);
+    /* 2-3 is a leg built while the field was off: it goes through the face. */
+    static const int links[][2]={{0,1},{1,2},{3,4},{4,5},{2,3}};
+    for (int i=0;i<5;i++) { RouteEdge(links[i][0],links[i][1],BOT_ROUTE_WALK); RouteEdge(links[i][1],links[i][0],BOT_ROUTE_WALK); }
+    RouteEdge(2,6,BOT_ROUTE_WALK); RouteEdge(6,1,BOT_ROUTE_WALK);
+    Bot_TrapScan(&self);
+    BotTrap *nearSwitch=&traps.list[0], *farSwitch=&traps.list[1];
+    assert(traps.nFields==1 && traps.count==2 && nearSwitch->kind==BOT_TRAP_FIELD && farSwitch->kind==BOT_TRAP_FIELD);
+    assert(nearSwitch->usable && nearSwitch->standNode==0 && nearSwitch->side==1 && nearSwitch->cel==0);
+    assert(farSwitch->usable && farSwitch->standNode==5 && farSwitch->side==-1);
+    assert(Bot_TrapButton(&surfaces[2]) && Bot_TrapButton(&surfaces[3]) && !Bot_TrapButton(&surfaces[0]));
+    /* No ordinary leg goes through the face or ends against it; one gate
+       leg each way crosses it. */
+    for (int i=0;i<bot.nNodes;i++) for (int k=0;k<bot.nodes[i].nEdges;k++) {
+        const BotEdge *e=&bot.nodes[i].edges[k];
+        assert(e->to!=6 && "nothing ends against the field");
+        if ((bot.nodes[i].pos.x<1)!=(bot.nodes[e->to].pos.x<1)) assert(e->drop==BOT_ROUTE_GATE);
+    }
+    assert(traps.nGates==2 && traps.fields[0].gates==2 && traps.fields[0].hugging==1);
+    assert(Bot_GateCost(2,3)>3.3f && Bot_GateCost(2,3)<3.6f && "there and back to the near switch, and the press");
+    assert(Bot_GateCost(3,2)>2.2f && Bot_GateCost(3,2)<2.5f && Bot_GateCost(1,2)<0);
+    assert(Bot_FieldBlocks(1,4) && !Bot_FieldBlocks(0,1));
+    int before=bot.nodes[1].nEdges; Bot_AddEdge(1,4,BOT_ROUTE_WALK); assert(bot.nodes[1].nEdges==before);
+    /* On: from the far side the way to node 1 goes by the far switch. */
+    static flex_t distance[BOT_NODES]; static int parent[BOT_NODES];
+    self.position=bot.nodes[4].pos;
+    Bot_PathDistances(&self,4,distance,parent);
+    assert(distance[1]>3.6f && distance[1]<3.9f && parent[2]==3);
+    assert(Bot_SetRoute(4,1,parent) && bot.routeCount==3 && bot.route[0]==3);
+    /* Waiting at the field on the gate leg, not walking into it. */
+    bot.routePos=1; bot.nextPlan=1e9f; self.position=bot.nodes[3].pos; bot.frameDt=0.02f; bot.tele.gateWait=0;
+    memset(bot.axes,0,sizeof(bot.axes));
+    Bot_Navigate(&self);
+    assert(bot.goal==1 && bot.routePos==1 && bot.axes[INPUT_FUNC_FORWARD]==0 && bot.tele.gateWait>0);
+    /* The route meets the field while it is on: go to the far switch first. */
+    bot.routePos=0; self.position=bot.nodes[4].pos;
+    assert(Bot_TrapTick(&self)==2 && traps.use==2 && traps.purpose==BOT_TRAP_OPEN && traps.startCel==0 && bot.goal==5);
+    assert(Bot_GateCost(3,2)<0 && "no gate plans while a run is under way");
+    TrapPressPose(&self,farSwitch,0);
+    assert(Bot_TrapTick(&self)==2 && traps.phase==2 && bot.keys[INPUT_FUNC_ACTIVATE]);
+    /* The server lets the field go: open, the run ends and the bot plans again. */
+    adjoins[0].flags|=SITHSURF_ADJOIN_ALLOW_MOVEMENT; adjoins[1].flags|=SITHSURF_ADJOIN_ALLOW_MOVEMENT; plainFieldOn=0;
+    bot.now+=0.25f;
+    assert(Bot_TrapTick(&self)==0 && !traps.use && bot.tele.fieldsOpened==1 && farSwitch->cel==1);
+    assert(bot.goal==1 && !bot.routeCount && "on to where it was headed");
+    assert(Bot_GateCost(3,2)==0 && Bot_GateCost(2,3)==0);
+    Bot_PathDistances(&self,4,distance,parent);
+    assert(fabsf(distance[1]-1.4f)<0.01f && "straight through");
+    /* Open, the gate leg is an ordinary walk. */
+    assert(Bot_SetRoute(4,1,parent));
+    bot.routePos=1; bot.nextPlan=1e9f; self.position=bot.nodes[3].pos; bot.tele.gateWait=0;
+    Bot_Navigate(&self);
+    assert(bot.goal==1 && bot.routeMode==BOT_ROUTE_WALK && bot.tele.gateWait==0);
+    /* No switch that side can be worked: the field is a wall from there a while. */
+    adjoins[0].flags=adjoins[1].flags=SITHSURF_ADJOIN_VISIBLE; plainFieldOn=1; bot.now+=0.3f; Bot_TrapScan(&self);
+    farSwitch->nextTry=bot.now+30; Bot_PathDistances(&self,4,distance,parent);
+    self.position=bot.nodes[4].pos; assert(Bot_SetRoute(4,1,parent)); bot.routePos=0; traps.nextGateCheck=0;
+    assert(Bot_TrapTick(&self)==0 && !traps.use && bot.goal==-1 && Bot_GateCost(3,2)<0 && Bot_GateCost(2,3)>0);
+    Bot_PathDistances(&self,4,distance,parent);
+    assert(distance[1]>=1e19f);
+    /* Legacy: a field that is on is a wall, and no switch is pressed. */
+    TacticsUse(1); traps.fields[0].failedUntil[1]=0; farSwitch->nextTry=0;
+    Bot_PathDistances(&self,4,distance,parent);
+    assert(distance[1]>=1e19f && Bot_GateCost(3,2)<0);
+    TacticsUse(0); Bot_PathDistances(&self,4,distance,parent); assert(Bot_SetRoute(4,1,parent));
+    TacticsUse(1); bot.routePos=0; traps.nextGateCheck=0; self.position=bot.nodes[4].pos;
+    assert(Bot_TrapTick(&self)==0 && !traps.use);
+    bot.routePos=1; bot.nextPlan=1e9f; self.position=bot.nodes[3].pos;
+    Bot_Navigate(&self);
+    assert(bot.goal==-1 && "legacy drops a route through a field that is on");
+    TacticsUse(0);
+    plainWallSurface=NULL; plainWall=plainField=1e9f; plainFieldOn=0;
+    memset(&traps,0,sizeof(traps)); bot.nNodes=0; bot.goal=-1; bot.routeCount=0; bot.tele.fieldsOpened=0; bot.tele.gateWait=0;
+    bot.world=sithWorld_g_pCurrentWorld=NULL; sithPlayer_g_pLocalPlayerThing=NULL; testPlainActive=0;
+    puts("PASS force field: its COG gives two switches and the field's faces, no ordinary leg goes through it or ends against it, a gate leg crosses it, a route through it while it is on goes by the switch on that side and waits short of the field, the press opens it and the gate is walked; with no switch to work it is a wall a while; legacy treats it as a wall");
+}
+
+static void test_fix_jump_margin(void)
+{
+    static SithWorld world; static SithThing items[1];
+    SithThing self; SithPlayer own;
+    testPlainActive=1; plainEdge=plainWall=plainShelf=1e9f; plainShelfZ=0; plainGround.flags=0; plainLand.flags=0;
+    PlainSelf(&self,&own);
+    jkBot_Configure("JumpMargin_Test","ky.3do"); TacticsUse(0); bot.now=5; bot.elite=1;
+    self.actorParams.jumpSpeed=1.5f; self.physicsParams.airDrag=0.5f;
+    bot.world=sithWorld_g_pCurrentWorld=&world; world.gravity=4.0f; world.aThings=items; world.numThings=0; world.numThingsLoaded=1;
+    bot.physicsStep=1.0f/30.0f; bot.frameDt=1.0f/30.0f; bot.forceEnabled=1;
+    /* A ledge 1.0 up across a gap, as on Canyon Oasis: floor ends at 0.4,
+       the ledge starts at 2.3. Landing 0.1 past its lip, a launch 15
+       percent slow meets the face: refused. 0.4 past it, kept. */
+    plainEdge=0.4f; plainShelf=2.3f; plainShelfZ=1.0f;
+    BotNode a={.pos={0,0,BOT_FOOT_HEIGHT},.sector=&plainLand,.item=-1};
+    BotNode close={.pos={2.4f,0,1.0f+BOT_FOOT_HEIGHT},.sector=&plainLand,.item=-1}, deep=close;
+    deep.pos.x=2.7f;
+    BotRunJump plan={0};
+    assert(!Bot_RunJumpSolve(&self,&a,&close,4,4,&plan));
+    assert(Bot_RunJumpSolve(&self,&a,&deep,4,4,&plan) && plan.force);
+    TacticsUse(1); BT(RUN_JUMP)=1;
+    assert(Bot_RunJumpSolve(&self,&a,&close,4,4,&plan) && "legacy took the lip landing");
+    TacticsUse(0);
+    plainEdge=plainShelf=1e9f; plainShelfZ=0;
+    /* Gripped through the run-up, the held Force Jump still went off with
+       no speed: come back down at the take-off, not toward the far side,
+       and leave the leg alone a short while. */
+    bot.nNodes=2; RouteNode(0,0,0); RouteNode(1,2.4f,0);
+    memset(nav.runEdges,0,sizeof(nav.runEdges)); nav.runCount=1;
+    nav.runEdges[0]=(BotRunJump){.from=0,.to=1,.speedRank=4,.jumpRank=4,.speed=2.3f,.hold=1.2f,.runway=0.45f,.sprint=0.33f,.force=1};
+    nav.runFrom=1; nav.runTo=2; nav.runPhase=2; nav.runActive=1; nav.runSeen=bot.now; nav.runUntil=bot.now+5;
+    nav.runLogged=0; nav.runSalvage=0; nav.runRelease=bot.now-0.05f;
+    PlainFace(&self,0); self.attach_flags=0; self.position=(rdVector3){0.15f,0,0.45f};
+    self.physicsParams.vel=(rdVector3){0.3f,0,2.8f};
+    memset(bot.axes,0,sizeof(bot.axes));
+    assert(Bot_RunJumpMove(&self,0,1) && nav.runSalvage && PlainThrust(&self).x<-0.1f);
+    self.attach_flags=SITH_ATTACH_SURFACE; self.physicsParams.vel=(rdVector3){0,0,0};
+    assert(Bot_RunJumpMove(&self,0,1) && !nav.runSalvage && !nav.runPhase &&
+           fabsf(nav.runEdges[0].failedUntil-(bot.now+15))<0.01f);
+    /* At speed, the flight still pushes on toward the ledge. */
+    nav.runFrom=1; nav.runTo=2; nav.runPhase=2; nav.runActive=1; nav.runSeen=bot.now; nav.runLogged=0;
+    nav.runEdges[0].failedUntil=0; self.attach_flags=0; self.physicsParams.vel=(rdVector3){2.2f,0,2.8f};
+    memset(bot.axes,0,sizeof(bot.axes));
+    assert(Bot_RunJumpMove(&self,0,1) && !nav.runSalvage && PlainThrust(&self).x>0.1f);
+    TacticsUse(1); nav.runLogged=0; self.physicsParams.vel=(rdVector3){0.3f,0,2.8f}; memset(bot.axes,0,sizeof(bot.axes));
+    assert(Bot_RunJumpMove(&self,0,1) && !nav.runSalvage && PlainThrust(&self).x>0.1f && "legacy pushes on regardless");
+    TacticsUse(0);
+    nav.runPhase=nav.runFrom=nav.runTo=nav.runActive=0; nav.runCount=0; bot.nNodes=0;
+    self.attach_flags=SITH_ATTACH_SURFACE; bot.forceEnabled=0;
+    bot.world=sithWorld_g_pCurrentWorld=NULL; testPlainActive=0;
+    puts("PASS jump margin: a ledge landing just past its lip is refused unless a launch 15 percent slow still lands; a launch far too slow comes back down at the take-off; legacy pushes on");
+}
+
 static void test_bot_tactic_fixes(void)
 {
     jkPlayer_maxPlayers=0; memset(jkPlayer_playerInfos,0,sizeof(jkPlayer_playerInfos));
@@ -667,4 +1053,9 @@ static void test_bot_tactic_fixes(void)
     test_fix_always_run();
     test_fix_pull_on_move();
     test_fix_pack_hunt();
+    test_fix_lip_escape();
+    test_fix_traps();
+    test_fix_trap_disarm();
+    test_fix_field();
+    test_fix_jump_margin();
 }
