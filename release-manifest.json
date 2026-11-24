@@ -74,7 +74,7 @@
     },
     "bots/README.md": {
       "mode": 420,
-      "sha256": "bf5c5144b63199e049e14accedd10c5d0d5fbb60e7a5e235174829c81b371faf"
+      "sha256": "e23c2b501408e01fc371237529adad4de0694d15b4c9a3e3aa839bf6b9e35d10"
     },
     "bots/SOURCES.json": {
       "mode": 420,
@@ -118,7 +118,7 @@
     },
     "bots/tactics.py": {
       "mode": 420,
-      "sha256": "6b2d5fcb2906defc899d6bd1e0ea3316c4d17fa8b8a7f71cf8b0f5815c9ae6c8"
+      "sha256": "a83980d690d82a58ba921594d86939a4012c669cdc01dbc03e31a4efaa40d16b"
     },
     "directplay/Makefile": {
       "mode": 420,
@@ -190,7 +190,7 @@
     },
     "docs/BOTS_BEHAVIOR.md": {
       "mode": 420,
-      "sha256": "643da5f5369291edebf8d91559311cb1ac9df98ff906034c23efe249c6870a75"
+      "sha256": "3a2789d2755bab604058cca62795083a3770257c1e3deab98620d91428d16c73"
     },
     "docs/BOTS_CONTINUATION.md": {
       "mode": 420,
@@ -202,7 +202,7 @@
     },
     "docs/BOT_TACTICS.md": {
       "mode": 420,
-      "sha256": "df6c7ffaa8150f39c9f0b336950ac6753373598b6eb1575801ac34bbd703345c"
+      "sha256": "2910487db6a24ae66f18528950c6bd8c11d37970416b3a167f68cbea7fc36850"
     },
     "docs/BROWSER_SPECTATOR.md": {
       "mode": 420,
@@ -215,6 +215,10 @@
     "docs/COMPANION.md": {
       "mode": 420,
       "sha256": "98f5cdf2b762fea85d7b97bc21521c7901522dc81fe5ecd49f5b40e94d907267"
+    },
+    "docs/HANDOFF_CODA.md": {
+      "mode": 420,
+      "sha256": "4b8bfc7805bdd8794241597f1ac1c1f6201fca57a053afd97073847fc72e2bdb"
     },
     "docs/NETWORKING.md": {
       "mode": 420,
@@ -554,7 +558,7 @@
     },
     "native/bot-tactics.patch": {
       "mode": 420,
-      "sha256": "2a788b4dc021214ae5c6f3bbe97d9123dad31bac00ca0fa54c1e15b800cb427e"
+      "sha256": "0e409e379d0e6f088d9ddf469aaac54dc301e0111ce0ce08c5823d210f1857aa"
     },
     "native/build.sh": {
       "mode": 493,
@@ -666,7 +670,7 @@
     },
     "native/tests/test_bot_altfire.inc": {
       "mode": 420,
-      "sha256": "2a2dc2540e2c6a41a050eb1ddd5948f0d15405f1cd6d90b5aa9965c9818e6f8a"
+      "sha256": "b678adb326d7688495350018aba0c4fac566769083be68b6a097d341e6c95ada"
     },
     "native/tests/test_bot_behavior.inc": {
       "mode": 420,
@@ -718,7 +722,7 @@
     },
     "native/tests/test_bot_plain_geometry.inc": {
       "mode": 420,
-      "sha256": "a09ebe3f224b5fe7b97d87a45ae3d65c59be679929d337592fd57793220bc79b"
+      "sha256": "e6d45f16f8c2825659f01334f8dce0895257f3820b944cd2c1a200f74337248b"
     },
     "native/tests/test_bot_portal_collision.c": {
       "mode": 420,
@@ -734,7 +738,7 @@
     },
     "native/tests/test_bot_tactic_fixes.inc": {
       "mode": 420,
-      "sha256": "d7ba0402c026459cd3dba00f052292129fad07259d0e7d99f209ba2e6f3a5584"
+      "sha256": "2e9a62b5b3c8408fab23439ce1dd86392a34d983dadd9910bdcd2f10879aae80"
     },
     "native/tests/test_bot_tactics.inc": {
       "mode": 420,
