@@ -1,0 +1,225 @@
+{
+  "schema": 1,
+  "scope": "single native stock-water actor",
+  "status": "passed",
+  "case": {
+    "case": "pool-90",
+    "origin": "41",
+    "wet": "44",
+    "dry": "10",
+    "start_sector": "42",
+    "x": "-1.946",
+    "y": "1.935",
+    "z": "-.276",
+    "control_dt": ".040",
+    "flags": "cb4f",
+    "health": "100",
+    "endurance_ms": "15480",
+    "pitch": "2.9",
+    "vertical_speed": ".001",
+    "yaw_offsets": "0"
+  },
+  "yaw": 0,
+  "samples_per_mode": 3,
+  "timing": "fresh process start to exit, excluding build, comparison and hashing",
+  "cases_sha256": "2ae401185bdeb36944ea15fcebc72d42098920c779e424b4778dd7f9a5c0a67e",
+  "expected_landing": {
+    "case": "pool-90",
+    "yaw_deg": 0,
+    "baseline_dry_s": 10.8,
+    "corrected_first_breath_s": 1.96,
+    "hp_at_first_breath": 100,
+    "corrected_dry_s": 10.72,
+    "hp_at_dry": 100,
+    "dry_sector": 10
+  },
+  "reference_sha256": "2824f9a4d612335d4536ca68fc38bb0135b57f0984fdff3f73753bb24d5039c6",
+  "samples": [
+    {
+      "mode": "1x",
+      "sample": 1,
+      "directory": "1x-1",
+      "wall_seconds": 10.797929934997228,
+      "return_code": 0,
+      "canonical_pace_sha256": "565b9a349ec670f4d60a8490333f935ee37e8cf78ba43c931346d8e8d952b446",
+      "control_ticks": 268,
+      "physics_steps": 1608,
+      "sim_seconds": 10.72,
+      "terminal": "supported_dry",
+      "seed": 899934569,
+      "trace_sha256": {
+        "start.json": "96d89a3d9779cb6d84f97d38fc4f1db50358c9590f0d535a7164854eb9b6f9c8",
+        "motor.jsonl": "600ef80cf426f32c223884b3eed75a6514760b5a91d7bd3e7478dda35ca7a2b7",
+        "native.jsonl": "a17c7345a9593ec084b4ca106ddd00f56a40371dbd8601cde033435baea0e0be",
+        "pace.jsonl": "78667b6c129105d147b8575c18a5f349a398cd2afdb7409283009e0984786224"
+      }
+    },
+    {
+      "mode": "1x",
+      "sample": 2,
+      "directory": "1x-2",
+      "wall_seconds": 10.747819080002955,
+      "return_code": 0,
+      "canonical_pace_sha256": "565b9a349ec670f4d60a8490333f935ee37e8cf78ba43c931346d8e8d952b446",
+      "control_ticks": 268,
+      "physics_steps": 1608,
+      "sim_seconds": 10.72,
+      "terminal": "supported_dry",
+      "seed": 899934569,
+      "trace_sha256": {
+        "start.json": "96d89a3d9779cb6d84f97d38fc4f1db50358c9590f0d535a7164854eb9b6f9c8",
+        "motor.jsonl": "600ef80cf426f32c223884b3eed75a6514760b5a91d7bd3e7478dda35ca7a2b7",
+        "native.jsonl": "a17c7345a9593ec084b4ca106ddd00f56a40371dbd8601cde033435baea0e0be",
+        "pace.jsonl": "78667b6c129105d147b8575c18a5f349a398cd2afdb7409283009e0984786224"
+      }
+    },
+    {
+      "mode": "1x",
+      "sample": 3,
+      "directory": "1x-3",
+      "wall_seconds": 11.452710810001008,
+      "return_code": 0,
+      "canonical_pace_sha256": "565b9a349ec670f4d60a8490333f935ee37e8cf78ba43c931346d8e8d952b446",
+      "control_ticks": 268,
+      "physics_steps": 1608,
+      "sim_seconds": 10.72,
+      "terminal": "supported_dry",
+      "seed": 899934569,
+      "trace_sha256": {
+        "start.json": "96d89a3d9779cb6d84f97d38fc4f1db50358c9590f0d535a7164854eb9b6f9c8",
+        "motor.jsonl": "600ef80cf426f32c223884b3eed75a6514760b5a91d7bd3e7478dda35ca7a2b7",
+        "native.jsonl": "a17c7345a9593ec084b4ca106ddd00f56a40371dbd8601cde033435baea0e0be",
+        "pace.jsonl": "78667b6c129105d147b8575c18a5f349a398cd2afdb7409283009e0984786224"
+      }
+    },
+    {
+      "mode": "uncapped",
+      "sample": 1,
+      "directory": "uncapped-1",
+      "wall_seconds": 0.6668709880032111,
+      "return_code": 0,
+      "canonical_pace_sha256": "565b9a349ec670f4d60a8490333f935ee37e8cf78ba43c931346d8e8d952b446",
+      "control_ticks": 268,
+      "physics_steps": 1608,
+      "sim_seconds": 10.72,
+      "terminal": "supported_dry",
+      "seed": 899934569,
+      "trace_sha256": {
+        "start.json": "96d89a3d9779cb6d84f97d38fc4f1db50358c9590f0d535a7164854eb9b6f9c8",
+        "motor.jsonl": "600ef80cf426f32c223884b3eed75a6514760b5a91d7bd3e7478dda35ca7a2b7",
+        "native.jsonl": "a17c7345a9593ec084b4ca106ddd00f56a40371dbd8601cde033435baea0e0be",
+        "pace.jsonl": "78667b6c129105d147b8575c18a5f349a398cd2afdb7409283009e0984786224"
+      }
+    },
+    {
+      "mode": "uncapped",
+      "sample": 2,
+      "directory": "uncapped-2",
+      "wall_seconds": 0.6168160660017747,
+      "return_code": 0,
+      "canonical_pace_sha256": "565b9a349ec670f4d60a8490333f935ee37e8cf78ba43c931346d8e8d952b446",
+      "control_ticks": 268,
+      "physics_steps": 1608,
+      "sim_seconds": 10.72,
+      "terminal": "supported_dry",
+      "seed": 899934569,
+      "trace_sha256": {
+        "start.json": "96d89a3d9779cb6d84f97d38fc4f1db50358c9590f0d535a7164854eb9b6f9c8",
+        "motor.jsonl": "600ef80cf426f32c223884b3eed75a6514760b5a91d7bd3e7478dda35ca7a2b7",
+        "native.jsonl": "a17c7345a9593ec084b4ca106ddd00f56a40371dbd8601cde033435baea0e0be",
+        "pace.jsonl": "78667b6c129105d147b8575c18a5f349a398cd2afdb7409283009e0984786224"
+      }
+    },
+    {
+      "mode": "uncapped",
+      "sample": 3,
+      "directory": "uncapped-3",
+      "wall_seconds": 0.9180158270028187,
+      "return_code": 0,
+      "canonical_pace_sha256": "565b9a349ec670f4d60a8490333f935ee37e8cf78ba43c931346d8e8d952b446",
+      "control_ticks": 268,
+      "physics_steps": 1608,
+      "sim_seconds": 10.72,
+      "terminal": "supported_dry",
+      "seed": 899934569,
+      "trace_sha256": {
+        "start.json": "96d89a3d9779cb6d84f97d38fc4f1db50358c9590f0d535a7164854eb9b6f9c8",
+        "motor.jsonl": "600ef80cf426f32c223884b3eed75a6514760b5a91d7bd3e7478dda35ca7a2b7",
+        "native.jsonl": "a17c7345a9593ec084b4ca106ddd00f56a40371dbd8601cde033435baea0e0be",
+        "pace.jsonl": "78667b6c129105d147b8575c18a5f349a398cd2afdb7409283009e0984786224"
+      }
+    }
+  ],
+  "build": {
+    "mode": "compiled",
+    "geometry_sha256": "b566073b9b7781f057e27ed06ef90ab46392ac0b68e1312bb488fbcce8fca62d",
+    "source_hashes": {
+      "src/AI/jkBot.c": "6913e05c649a625da9f15352ad62eca21f42d65158ba3501b64162c5e0774425",
+      "src/AI/jkBot.h": "47652fc419857c8c24bc0d4913b43dfe5f1a58ce5062c06f3b719400d02456b2",
+      "src/AI/jkBotBehavior.h": "59ff972747fb3aa9514fae11c003e803da8b40f1e42b68801db969414a2416df",
+      "src/AI/jkBotBehavior.inc": "f28ddaf54328b1ea8a6242902e268648b089fbf6b655f9657a006460a0cce559",
+      "src/AI/jkBotCombat.inc": "4800acb98786f311b10433f9f2893a688012714a26a0f71ecd908f9933c70cca",
+      "src/AI/jkBotCompanion.inc": "d4f43db307bbf4df2cd9669daff5d2a4f5a56660a83e236b2e070252cb082d7f",
+      "src/AI/jkBotForce.inc": "2c2eda4730e608785a36867c7982c4c4b75ff08ff607ff35c7eaf9e1c620494f",
+      "src/AI/jkBotHearing.inc": "fe85aa4d9c940086e504d39e981550130acaae397479f09bcce6ef1bad087d1c",
+      "src/AI/jkBotLily.inc": "6180fa6af33530350ca86934f0b4ae9acca8036b115175d38a2cf3d43210c85c",
+      "src/AI/jkBotLoadout.h": "aab6d025bb9ec2c431beb2d6bd559992b664e9ce075fcaa9c1103ae9ed5dcdc1",
+      "src/AI/jkBotNavigate.inc": "34f621368b9626ca7c771f58c0b4c381bb9afd0f9298fc5ca27fdca8018487fa",
+      "src/AI/jkBotNavigation.inc": "7fffa3f3e1afa5cf051372f960707c5b057d7cae4763061bb27693690079051e",
+      "src/AI/jkBotPersona.c": "618f31f58e45a13d89b5dc0493233d446d5eaeada681bd0de758a155a50d578d",
+      "src/AI/jkBotPersona.h": "e193097d937ed22400fe84d86a1e9e7f18884cc2be876fb1540627bee96e0bfb",
+      "src/AI/jkBotWaterExit.inc": "2d1b36d679222c48936b8d4e920991da87fda6e536010e783ea54232dc241383",
+      "src/Devices/sithControl.c": "39002df35df8661cad1c2d17f7384c1161210fd565dfd3ebd4a1386945811c25",
+      "src/Engine/sithCollision.c": "ac54301bdf0da274af87ff6c8d20e6905c5688f92984f0f5d7321ea0235d4c63",
+      "src/Engine/sithIntersect.c": "d502c7b34c7de70e99bcc33591ebd4f58ed664344e2521287b2d96a76b751b56",
+      "src/Engine/sithPhysics.c": "6118961946b086216ec74ec03b535fc7228285cbd19c3f4855addb8aa544fa4d",
+      "src/Gameplay/sithPlayerActions.c": "e1b82ca0c0aa4c3f5279094512cda9f1634552f5906bd1f72acdc9f47ee60afe",
+      "src/General/stdMath.c": "ed3f12a57d4454ad8731ba94a68f42c5f983631e5540da7649cd4488a7c75995",
+      "src/Primitives/rdMath.c": "b3587b90480a02df9178779f424441f6111d87da470a8e17bb72fd5ad026539a",
+      "src/Primitives/rdMatrix.c": "0f0889fd0c9ce05fb768062061d4435b1df455fd6e16d629ea84e435581d1658",
+      "src/Primitives/rdVector.c": "097638a3da4264865ed16e95a486f85a69c415c12c17781e3bcf2a0802a9edca",
+      "src/World/sithActor.c": "5eb70a77dda095f0762314c50fb3dce89aaccb73cccc1e87fcdf3528465889f5",
+      "src/World/sithSector.c": "0a6e9cb0113e2d602a5550ceb7c2ffd203e81d6b385099729cede2edbb3e3e17",
+      "src/World/sithThing.c": "c349b7847ef6c8d640bbf280e3091ea300099f850d8eec1ef903b0b461b4cc49"
+    },
+    "policy_hash": "309090528f3e2c2a114ad31baa653168cab1c92decd3baf6e736d1719e8e6ee9",
+    "executable_sha256": "92d5527364d5b870f00ef8598b43a8ddcbdde66cf1109585dce8db0720d6a27c",
+    "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc"
+  },
+  "fixture_sha256": {
+    "stock_water_replay/bank_drive.inc": "55dca3292ad52cea75930e547f0e5ddaace3d5b11f881ed73e75880552907a38",
+    "stock_water_replay/bank_trace.inc": "84f26269a3a6f95571fc483f09035315d37ca8b86dda7702014844b46741624d",
+    "stock_water_replay/independent_motor.inc": "3dd78b15afcc6470ff900d343fcdd51e53b3b2e069f98de77541b62b94119e27",
+    "stock_water_replay/pace_trace.inc": "ee2eaa1f49c289e419847679d9e70bb3c33d3a3d1519d2dea4eeb67802cdcee3",
+    "stock_water_replay/recovery.inc": "bc1a2ff725f77f6ad5aa3f2d2923948026dc18814d4e93dcd22053db84f6af8b",
+    "stock_water_replay/replay_loop.inc": "9d8d63ce75843fb37bbf1197c821a7f00b35f8cd2062a686030bdd925bd23b53",
+    "stock_water_replay/replay_trace.inc": "4088dfbc2192e0dac247dd1057ce7186c8fe87e27cdae9e1528992e85d9b729d",
+    "stock_water_replay/bank_oracle.h": "4539e0e38349c2166b965287f879790e520bf8f205240d0d1fb42dd59c5f618b",
+    "stock_water_replay/replay.c": "7f875e149125aeb4dbe2b45213b8a880a2c68205ace525162f5072ef4fcad1ae",
+    "stock_water_replay/run.py": "54ec53e4387e7b817eae6b98d10ed7b69486b7056ec173b14dcc7ba40b2619ee",
+    "stock_water_replay/collect_motor.py": "9b898eaffd000be8d89fcc382cd6b18426aef30618000ab721cb7e81fcaeef4c",
+    "stock_water_replay/evaluate_motor.py": "59d475b45b455b087c176827761dcacddff7199e2ad8feb113de775b4c8c2789",
+    "stock_water_replay/evaluate_bank.py": "bfd164fe3d80f64808f36ecd9f37adde13bc78cf9248c0bc69f607ee03636f41",
+    "stock_water_replay/geometry.py": "22757770f5347d5cfc29f4cc83361d711d391841cf02f34a8e6c4a394901b0d6",
+    "stock_water_replay/pace_parity.py": "3dd4f5def2fb60bf1a962218d213f2737adbcb2ae04bd3457660c5e3778f6fa4",
+    "test_bot_portal_collision.c": "be057767830a7b52bd102edc5b24b11f5c4ffc6d93996d2c655548390a06af06"
+  },
+  "timings": {
+    "1x": {
+      "median": 10.797929934997228,
+      "minimum": 10.747819080002955,
+      "maximum": 11.452710810001008,
+      "samples": 3
+    },
+    "uncapped": {
+      "median": 0.6668709880032111,
+      "minimum": 0.6168160660017747,
+      "maximum": 0.9180158270028187,
+      "samples": 3
+    }
+  },
+  "median_speedup": 16.19193236660227,
+  "minimum_observed_ratio": 11.707662072769422,
+  "acceleration": "observed",
+  "trajectory_parity": "passed"
+}

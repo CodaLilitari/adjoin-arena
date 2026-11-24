@@ -1,4 +1,36 @@
-# JK Cross Server
+# Adjoin Arena
+
+Adjoin Arena studies competitive JK multiplayer bots on stock game physics. It pairs headless simulation and trace analysis with 1× inspection, scripted tactics, and a local controller that a live coach can guide. The first experiment measures pacing parity in a single-actor Canyon Oasis replay. [Experiment and project design](docs/superpowers/plans/2026-11-24-adjoin-arena.md)
+
+## Starting revisions
+
+| Branch in this repository | Starting point |
+| --- | --- |
+| `source/pr1-foundation` | Lilitari’s competitive JKWeb foundation, `04d482e`. |
+| `source/pr2-adaptive-player` | Lilitari’s adaptive player, `a8e6bdf`. The initial `main` derives from this branch and includes the foundation. |
+| `source/pr3-tactics-movement` | Red’s tactics and movement work, `f453778`. Its source overlay has a separate build procedure. |
+
+The sibling implementations have outstanding engine and browser integration work. Their original commits, notices and build receipts are retained. The server launchers, packages and updater described below belong to the inherited JK Cross Server baseline. Adjoin Arena has its own research history and has not issued a packaged release. Game files stay with their owners. [Source attribution](NOTICE.md)
+
+## Run the pacing experiment
+
+Use Linux, the patched engine source and native build described in the [stock-water fixture guide](native/tests/stock_water_replay/README.md), and your own Canyon Oasis JKL. Supply a new directory outside Git for the physical traces and timing receipt. This example runs the same committed start three times per mode.
+
+```sh
+python3 native/tests/stock_water_replay/pace_parity.py \
+  --source "$PATCHED_SOURCE" --build "$NATIVE_BUILD" --map "$OWNED_JKL" \
+  --case pool-90 --yaw 0 --samples 3 --output "$EXTERNAL_OUTPUT"
+```
+
+The script builds one fixture and uses it for both modes. Use `--help` for the prebuilt fixture option. Timing covers process start to exit, including initialization and trace output. The large traces and owned map stay outside Git.
+
+### First measured result
+
+The same Canyon Oasis water exit ran three times at 1× and three times uncapped on Ubuntu under WSL, using GCC 15.2.0 and the PR #2 web engine sources compiled as a native fixture. All six runs produced byte-identical start, input and state traces across 268 control ticks and 1,608 physics steps. The actor reached sector 10 with 100 health after 10.720 simulated seconds and 38 consecutive grounded steps.
+
+Median elapsed time fell from 10.798 seconds (range 10.748–11.453) to 0.667 seconds (range 0.617–0.918), a **16.19× speedup for this single-actor case**. Timing includes process startup, initialization and trace output. The next experiment adds a host, two fighting peers and a 1× spectator recording. [Six-run receipt and source hashes](qa/adjoin-arena-m0-pool90.json)
+
+## Inherited JK Cross Server documentation
 
 A dedicated JKDF2 / Mysteries of the Sith host with a small browser control panel and server-side adapters for original DirectPlay, native OpenJKDF2, and the published JKDF2Web client.
 

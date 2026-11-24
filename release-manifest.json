@@ -6,7 +6,7 @@
     },
     ".gitattributes": {
       "mode": 420,
-      "sha256": "3ffefae306c520527c4a38dca632c1185ea7c1363dd30d327ade930945dd0084"
+      "sha256": "30be8eb343c84345a5182efaf2fbd587515be0d68c248fa51fd0e893ad693a46"
     },
     ".gitignore": {
       "mode": 420,
@@ -26,7 +26,7 @@
     },
     "README.md": {
       "mode": 420,
-      "sha256": "6e40c6c68859e6f3c771e698aeaf434661f17608b945205dfcdaddf2ce3d8066"
+      "sha256": "8fa3a28fe7d43d2219ccf1a9279911f9f70b5738c8eb9d67485054437f39276b"
     },
     "Start-Server.command": {
       "mode": 493,
@@ -452,6 +452,10 @@
       "mode": 420,
       "sha256": "98a2e6d16e42e949159941ae01839582f6a853722bddacbeb43ba08348e621fe"
     },
+    "docs/superpowers/plans/2026-11-24-adjoin-arena.md": {
+      "mode": 420,
+      "sha256": "8db85727f6447ca191080e559741d6df16113c15ab14dda527f9ea4d822075d3"
+    },
     "docs/superpowers/specs/2026-10-28-browser-spectator-design.md": {
       "mode": 420,
       "sha256": "2b344376d42cc9926b18715dd2c1afd55fbfcc934f075cd2c68ed60c60f558f5"
@@ -872,6 +876,14 @@
       "mode": 420,
       "sha256": "82ebf0a395037210d24a555b02ace9587a553a2181dd95f305d7e104caa5d2a4"
     },
+    "native/tests/stock_water_replay/pace_parity.py": {
+      "mode": 420,
+      "sha256": "3dd4f5def2fb60bf1a962218d213f2737adbcb2ae04bd3457660c5e3778f6fa4"
+    },
+    "native/tests/stock_water_replay/pace_trace.inc": {
+      "mode": 420,
+      "sha256": "ee2eaa1f49c289e419847679d9e70bb3c33d3a3d1519d2dea4eeb67802cdcee3"
+    },
     "native/tests/stock_water_replay/recovery.inc": {
       "mode": 420,
       "sha256": "bc1a2ff725f77f6ad5aa3f2d2923948026dc18814d4e93dcd22053db84f6af8b"
@@ -882,7 +894,7 @@
     },
     "native/tests/stock_water_replay/replay_loop.inc": {
       "mode": 420,
-      "sha256": "7f22482e8478a7895f001746dce5b9f9dbaf9f5576655e2c6f97a5e17c28afba"
+      "sha256": "9d8d63ce75843fb37bbf1197c821a7f00b35f8cd2062a686030bdd925bd23b53"
     },
     "native/tests/stock_water_replay/replay_trace.inc": {
       "mode": 420,
@@ -1015,6 +1027,10 @@
     "packaging/container_runtime.py": {
       "mode": 420,
       "sha256": "57c7865853ce897d37b1931adbe5585dd77bda3096bdc6fa90e1a623679a8116"
+    },
+    "qa/adjoin-arena-m0-pool90.json": {
+      "mode": 420,
+      "sha256": "74632f161afcf7056850b7459411ea1341826175bd8b39f832c8b69cb921ab4a"
     },
     "qa/admin-browser-layout.json": {
       "mode": 420,
@@ -2347,6 +2363,10 @@
     "tests/test_manager.py": {
       "mode": 420,
       "sha256": "57cddaf0b67eff37f942a015917cc067a595dba544c4e742d6e7c4dbb8f728dc"
+    },
+    "tests/test_pace_parity.py": {
+      "mode": 420,
+      "sha256": "3c443574c3217f47724e55fbda1157856a89724c289f45e1ef902890e3fd6e97"
     },
     "tests/test_panel_ui.js": {
       "mode": 420,
