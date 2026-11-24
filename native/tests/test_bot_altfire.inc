@@ -151,12 +151,35 @@ static void test_alternate_fire(SithThing *self,SithThing *enemy,SithThing *ally
     test_fire_input(self,enemy,SITHBIN_BRYARPISTOL,0,1); test_fire_input(self,enemy,SITHBIN_STORMTROOPER_RIFLE,0,1);
     puts("PASS repeater uses converging short burst and falls back for spread or low charge; bow uses safe immediate release-free mode; rail and blasters use primary");
 
+    /* These cases were written for the primary-first saber (saber_heavy 0). */
+    flex_t saberHeavy=BT(SABER_HEAVY);
+    BT(SABER_HEAVY)=0;
     enemy->position.y=.20f; test_fire_input(self,enemy,SITHBIN_LIGHTSABER,0,1);
     enemy->actorParams.flags|=SITH_AF_IMMOBILE; test_fire_input(self,enemy,SITHBIN_LIGHTSABER,0,2);
     self->sector->flags|=SITH_SECTOR_UNDERWATER;
     test_fire_input(self,enemy,SITHBIN_LIGHTSABER,0,1); self->sector->flags&=~SITH_SECTOR_UNDERWATER;
     enemy->actorParams.flags&=~SITH_AF_IMMOBILE;
     enemy->position.y=.30f; test_fire_input(self,enemy,SITHBIN_LIGHTSABER,0,0);
+    /* saber_heavy: the heavy secondary from contact wherever the target will
+       still be in reach as its blade comes down; the quick primary for one
+       pulling away, beside a protected player, or underwater; out of contact
+       no swing, whatever the bot's grade. */
+    BT(SABER_HEAVY)=1; bot.tele.saberHeavy=bot.tele.saberLight=0;
+    enemy->position.y=.20f; test_fire_input(self,enemy,SITHBIN_LIGHTSABER,0,2);
+    assert(bot.tele.saberHeavy==1 && !bot.tele.saberLight);
+    enemy->physicsParams.vel.y=1; test_fire_input(self,enemy,SITHBIN_LIGHTSABER,0,1);
+    enemy->physicsParams.vel.y=0; self->physicsParams.vel.y=1; test_fire_input(self,enemy,SITHBIN_LIGHTSABER,0,2);
+    self->physicsParams.vel.y=0;
+    ally->position=(rdVector3){.30f,.10f,BOT_FOOT_HEIGHT}; test_fire_input(self,enemy,SITHBIN_LIGHTSABER,0,1);
+    ally->position=(rdVector3){10,0,BOT_FOOT_HEIGHT};
+    self->sector->flags|=SITH_SECTOR_UNDERWATER;
+    test_fire_input(self,enemy,SITHBIN_LIGHTSABER,0,1); self->sector->flags&=~SITH_SECTOR_UNDERWATER;
+    enemy->position.y=.30f; test_fire_input(self,enemy,SITHBIN_LIGHTSABER,0,0);
+    int elite=bot.elite; bot.elite=0; test_fire_input(self,enemy,SITHBIN_LIGHTSABER,0,0);
+    enemy->position.y=.20f; test_fire_input(self,enemy,SITHBIN_LIGHTSABER,0,2);
+    BT(SABER_HEAVY)=0; enemy->position.y=.30f; test_fire_input(self,enemy,SITHBIN_LIGHTSABER,0,1);
+    bot.elite=elite; BT(SABER_HEAVY)=saberHeavy; bot.tele.saberHeavy=bot.tele.saberLight=0;
+    puts("PASS saber_heavy swings the heavy secondary from contact at a target still in reach as it lands, the quick primary at one pulling away, beside a protected player or underwater, and nothing out of contact; legacy swings the primary from farther out");
     p->aItems[SITHBIN_POWER].amount=40; enemy->position.y=2; nav.combatJumpUntil=bot.now+5;
     test_fire_input(self,enemy,conc,0,0); test_fire_input(self,enemy,SITHBIN_RAIL_DETONATOR,0,0);
     test_fire_input(self,enemy,rpt,0,1); p->curWeaponID=SITHBIN_BRYARPISTOL;

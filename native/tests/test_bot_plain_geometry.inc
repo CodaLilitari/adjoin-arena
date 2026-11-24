@@ -8,6 +8,12 @@ static SithSurface *plainWallSurface; /* what the wall at plainWall is, when it 
 /* A force field across the ground at x=plainField: while it is on, nothing
    whose swept body touches the plane gets through; switched off, it is air. */
 static flex_t plainField=1e9f; static int plainFieldOn;
+/* A door lying flat as the floor under the origin: a slanted ray down onto
+   the ground meets it rather than the world (dead_end). */
+static SithThing *plainFloorThing;
+/* A wall across the ground at x=plainSlotX with an opening from y=plainSlotLo
+   to plainSlotHi: a door alcove's mouth (leg_axis). */
+static flex_t plainSlotX=1e9f, plainSlotLo, plainSlotHi;
 static SithSector plainLand, plainPool;
 static SithSurface plainGround;
 
@@ -54,6 +60,29 @@ static int TestPlainCollision(const rdVector3 *from,const rdVector3 *direction,
         hit->distance=0; hit->hitNorm.x=from->x<plainField ? -1 : 1;
         return 1;
     }
+    if (plainSlotX<1e8f && Bot_Min(from->x,end.x)-radius<plainSlotX && Bot_Max(from->x,end.x)+radius>plainSlotX) {
+        /* As the engine's own sweep: a body moving toward the wall is
+           stopped where it first touches the wall's plane if that point
+           lies within its radius of the solid part, corners included (on
+           Bespin a slant onto an opening's line from against the wall
+           beside it is stopped at the corner); a body already touching the
+           plane is judged where it stands, and moving along the wall or
+           away from it is free. Where the body is centred on the plane,
+           the most of it lies across the plane: it must fit the opening
+           there too. */
+        flex_t dx=end.x-from->x, side=from->x<plainSlotX ? 1.0f : -1.0f;
+        int toward=dx*side>1e-6f, crosses=toward && (plainSlotX-from->x)/dx<=1;
+        flex_t edge=plainSlotX-side*radius;
+        flex_t first=toward ? Bot_Clamp((edge-from->x)/dx,0,1) : 0;
+        flex_t t=crosses ? (plainSlotX-from->x)/dx : 0;
+        flex_t y=from->y+(end.y-from->y)*t, y0=from->y+(end.y-from->y)*first;
+        if ((toward && (y0-radius<plainSlotLo || y0+radius>plainSlotHi)) ||
+            (crosses && (y-radius<plainSlotLo || y+radius>plainSlotHi))) {
+            /* Reported where the body's edge first reaches the wall. */
+            hit->distance=distance*first; hit->hitNorm.x=-side;
+            return 1;
+        }
+    }
     if (Bot_Max(from->x,end.x)+radius>plainWall) {
         hit->hitNorm.x=-1;
         if (plainWallSurface) hit->surface=plainWallSurface;
@@ -69,6 +98,11 @@ static int TestPlainCollision(const rdVector3 *from,const rdVector3 *direction,
                 hit->distance=along; hit->hitNorm.x=-1; return 1;
             }
         }
+    }
+    if (plainFloorThing && direction->z<-0.5f && end.z-radius<0 && from->z>=0) {
+        hit->type=SITHCOLLISION_THING; hit->surface=NULL; hit->pThingCollided=plainFloorThing;
+        hit->distance=from->z/-direction->z; hit->hitNorm.z=1;
+        return 1;
     }
     if (plainSolidFloor && direction->z<0 && end.z-radius<0 && from->z-radius>=0) {
         hit->distance=(from->z-radius)/-direction->z; hit->hitNorm.z=1;

@@ -970,6 +970,34 @@ static void test_fix_field(void)
     assert(Bot_TrapTick(&self)==0 && !traps.use && bot.goal==-1 && Bot_GateCost(3,2)<0 && Bot_GateCost(2,3)>0);
     Bot_PathDistances(&self,4,distance,parent);
     assert(distance[1]>=1e19f);
+    /* 15 seconds the first time; each time in a row after that twice as
+       long, up to two minutes. */
+    BotField *field=&traps.fields[0];
+    assert(field->fails[1]==1 && fabsf(field->failedUntil[1]-bot.now-15.0f)<0.01f);
+    static const flex_t rests[]={30,60,120,120};
+    for (int i=0;i<4;i++) {
+        bot.now=field->failedUntil[1]+0.1f; farSwitch->nextTry=bot.now+30;
+        Bot_PathDistances(&self,4,distance,parent); assert(Bot_SetRoute(4,1,parent));
+        bot.routePos=0; traps.nextGateCheck=0;
+        assert(Bot_TrapTick(&self)==0 && !traps.use && bot.goal==-1);
+        assert(fabsf(field->failedUntil[1]-bot.now-rests[i])<0.01f);
+    }
+    /* A switch past a 25-unit walk is not worth it: the way from the gate to
+       the far switch made 26 long, no detour is priced through the field, and
+       a route already through it gives up on it. */
+    field->fails[1]=0; field->failedUntil[1]=0; farSwitch->nextTry=0;
+    BotEdge *far45=NULL, *far54=NULL;
+    for (int k=0;k<bot.nodes[4].nEdges;k++) if (bot.nodes[4].edges[k].to==5) far45=&bot.nodes[4].edges[k];
+    for (int k=0;k<bot.nodes[5].nEdges;k++) if (bot.nodes[5].edges[k].to==4) far54=&bot.nodes[5].edges[k];
+    assert(far45 && far54); far45->cost=far54->cost=26.0f;
+    traps.nextDetours=traps.nextScan=0; Bot_TrapScan(&self);
+    assert(Bot_GateCost(3,2)<0 && Bot_GateCost(2,3)>0 && "the near switch is still close");
+    bot.goal=1; bot.route[0]=4; bot.route[1]=3; bot.route[2]=2; bot.route[3]=1; bot.routeCount=4; bot.routePos=0;
+    traps.nextGateCheck=0;
+    assert(Bot_TrapTick(&self)==0 && !traps.use && bot.goal==-1 && field->fails[1]==1);
+    far45->cost=far54->cost=0.3f; field->fails[1]=0; field->failedUntil[1]=0;
+    traps.nextDetours=traps.nextScan=0; Bot_TrapScan(&self);
+    assert(Bot_GateCost(3,2)>2.2f && Bot_GateCost(3,2)<2.5f);
     /* Legacy: a field that is on is a wall, and no switch is pressed. */
     TacticsUse(1); traps.fields[0].failedUntil[1]=0; farSwitch->nextTry=0;
     Bot_PathDistances(&self,4,distance,parent);
@@ -984,7 +1012,7 @@ static void test_fix_field(void)
     plainWallSurface=NULL; plainWall=plainField=1e9f; plainFieldOn=0;
     memset(&traps,0,sizeof(traps)); bot.nNodes=0; bot.goal=-1; bot.routeCount=0; bot.tele.fieldsOpened=0; bot.tele.gateWait=0;
     bot.world=sithWorld_g_pCurrentWorld=NULL; sithPlayer_g_pLocalPlayerThing=NULL; testPlainActive=0;
-    puts("PASS force field: its COG gives two switches and the field's faces, no ordinary leg goes through it or ends against it, a gate leg crosses it, a route through it while it is on goes by the switch on that side and waits short of the field, the press opens it and the gate is walked; with no switch to work it is a wall a while; legacy treats it as a wall");
+    puts("PASS force field: its COG gives two switches and the field's faces, no ordinary leg goes through it or ends against it, a gate leg crosses it, a route through it while it is on goes by the switch on that side and waits short of the field, the press opens it and the gate is walked; with no switch to work it is a wall for 15 seconds, then 30, 60 and at most 120; a switch past a 25-unit walk is not gone for; legacy treats it as a wall");
 }
 
 static void test_fix_jump_margin(void)
@@ -1040,6 +1068,491 @@ static void test_fix_jump_margin(void)
     puts("PASS jump margin: a ledge landing just past its lip is refused unless a launch 15 percent slow still lands; a launch far too slow comes back down at the take-off; legacy pushes on");
 }
 
+/* fjump_margin: a shelf 1.07 up behind a face 0.10 away is made from a
+   standstill at 60 and 40 frames a second and missed at 30, as leg 144-83
+   on Nar Shaddaa was. Air thrust comes once a frame. */
+static void test_fix_fjump_margin(void)
+{
+    static SithWorld world;
+    SithThing self; SithPlayer own;
+    testPlainActive=1; plainEdge=plainWall=1e9f; plainGround.flags=0; plainLand.flags=0;
+    PlainSelf(&self,&own); self.physicsParams.airDrag=0.5f;
+    jkBot_Configure("FJMargin_Test","ky.3do"); TacticsUse(0);
+    bot.world=sithWorld_g_pCurrentWorld=&world; world.gravity=4.0f; nav.maxRunSpeed=1.33f;
+    sithPlayer_g_pLocalPlayerThing=&self;
+    plainShelf=0.10f; plainShelfZ=1.07f;
+    BotNode a={.pos={0,0,BOT_FOOT_HEIGHT},.sector=&plainLand};
+    BotNode shelf={.pos={0.25f,0,1.07f+BOT_FOOT_HEIGHT},.sector=&plainLand};
+    flex_t seconds,hold;
+    /* Running at 60: made on the full hold. */
+    bot.physicsStep=bot.frameDt=bot.frameSmooth=1.0f/60.0f; nav.fjBuild=0;
+    assert(Bot_ForceJumpProfile(&a,&shelf,4,&seconds,&hold) && fabsf(hold-1.40f)<0.001f);
+    /* Built into the graph on those same frames: refused, as it would be
+       missed at 25. Before, the graph kept it and the bot, running at 30,
+       refused it at the launch spot. */
+    nav.fjBuild=1;
+    assert(!Bot_ForceJumpProfile(&a,&shelf,4,&seconds,&hold));
+    /* One fast frame in a bot that averages 30 does not pass it. */
+    nav.fjBuild=0; bot.frameSmooth=1.0f/30.0f;
+    assert(!Bot_ForceJumpProfile(&a,&shelf,4,&seconds,&hold));
+    /* With a fixed physics step the thrust still comes once a frame. */
+    bot.physicsStep=1.0f/150.0f; bot.frameSmooth=1.0f/60.0f; nav.fjBuild=1;
+    assert(!Bot_ForceJumpProfile(&a,&shelf,4,&seconds,&hold));
+    nav.fjBuild=0; assert(Bot_ForceJumpProfile(&a,&shelf,4,&seconds,&hold));
+    /* Legacy builds it on the frame in hand. */
+    TacticsUse(1); BT(FJUMP_STANDSTILL)=1; bot.physicsStep=bot.frameDt=1.0f/60.0f; nav.fjBuild=1;
+    assert(Bot_ForceJumpProfile(&a,&shelf,4,&seconds,&hold));
+    TacticsUse(0);
+    nav.fjBuild=0; bot.frameSmooth=0; plainShelf=1e9f; plainShelfZ=0; testPlainActive=0;
+    bot.world=sithWorld_g_pCurrentWorld=NULL; sithPlayer_g_pLocalPlayerThing=NULL;
+    puts("PASS fjump margin: a standstill Force Jump is flown at the averaged frame time, and one built into the graph must still be made at 25 frames a second; legacy builds on the frame in hand");
+}
+
+/* lift_call: a lift standing still away from the stop wanted. The lift's
+   stops are 2 apart; its deck here is node 0 at the origin, up there node 1.
+   A call button beside the deck on the wall at x=0.3, its centre 0.17 up,
+   facing -x; a threshold adjoin at x=-0.4 facing -x onto the landing,
+   node 2 at x=-0.7. 00_elev_switch2.cog names the elevator, the button as
+   call0 and the threshold as lower_adjoin0. */
+static void test_fix_lift_call(void)
+{
+    static SithWorld world; static SithThing things[1]; static SithPathFrame frames[2];
+    static SithSurface surfaces[3]; static SithSurfaceAdjoin adjoin;
+    static rdVector3 vertices[12];
+    static int32_t buttonFace[4]={0,1,2,3}, thresholdFace[4]={4,5,6,7}, solidFace[4]={8,9,10,11};
+    static SithCogSymbol symbols[5]; static SithCogSymbolTable table; static sithCog cogs[1];
+    SithThing self; SithPlayer own;
+    testPlainActive=1; plainEdge=plainShelf=plainField=1e9f; plainFieldOn=0; plainWall=0.30f; plainShelfZ=0;
+    plainGround.flags=0; plainLand.flags=0;
+    PlainSelf(&self,&own);
+    jkBot_Configure("Lift_Test","ky.3do"); TacticsUse(0); bot.now=10; bot.nextUse=0;
+    self.actorParams.eyeOffset=(rdVector3){0,0,0.037f};
+    memset(&world,0,sizeof(world)); memset(surfaces,0,sizeof(surfaces)); memset(&adjoin,0,sizeof(adjoin));
+    memset(&traps,0,sizeof(traps)); memset(&nav,0,sizeof(nav));
+    bot.world=sithWorld_g_pCurrentWorld=&world; sithPlayer_g_pLocalPlayerThing=&self;
+    world.aSectors=&plainLand; world.numSectors=1; world.gravity=4;
+    /* The lift: a path thing with two frames, standing at the stop here. */
+    memset(things,0,sizeof(things)); frames[0].pos=(rdVector3){0,0,0}; frames[1].pos=(rdVector3){0,0,2};
+    things[0].type=SITH_THING_COG; things[0].moveType=SITH_MT_PATH; things[0].sector=&plainLand;
+    things[0].trackParams.aFrames=frames; things[0].trackParams.loadedFrames=2; things[0].position=frames[0].pos;
+    world.aThings=things; world.numThings=0; world.numThingsLoaded=1;
+    vertices[0]=(rdVector3){0.30f,0.05f,0.12f}; vertices[1]=(rdVector3){0.30f,-0.05f,0.12f};
+    vertices[2]=(rdVector3){0.30f,-0.05f,0.22f}; vertices[3]=(rdVector3){0.30f,0.05f,0.22f};
+    vertices[4]=(rdVector3){-0.4f,-0.3f,0}; vertices[5]=(rdVector3){-0.4f,0.3f,0};
+    vertices[6]=(rdVector3){-0.4f,0.3f,0.3f}; vertices[7]=(rdVector3){-0.4f,-0.3f,0.3f};
+    vertices[8]=(rdVector3){-0.4f,0.4f,0}; vertices[9]=(rdVector3){-0.4f,0.5f,0};
+    vertices[10]=(rdVector3){-0.4f,0.5f,0.3f}; vertices[11]=(rdVector3){-0.4f,0.4f,0.3f};
+    world.aVertices=vertices; world.numVertices=12; world.surfaces=surfaces; world.numSurfaces=3;
+    int32_t *corners[3]={buttonFace,thresholdFace,solidFace};
+    for (int i=0;i<3;i++) {
+        surfaces[i].pSector=&plainLand; surfaces[i].surfaceInfo.face.numVertices=4;
+        surfaces[i].surfaceInfo.face.vertexPosIdx=corners[i];
+        surfaces[i].surfaceInfo.face.normal=(rdVector3){-1,0,0};
+    }
+    surfaces[0].flags=SITH_SURFACE_COG_LINKED|SITH_SURFACE_HAS_COLLISION;
+    surfaces[1].pAdjoin=&adjoin; adjoin.flags=SITHSURF_ADJOIN_VISIBLE|SITHSURF_ADJOIN_ALLOW_MOVEMENT;
+    surfaces[1].flags=SITH_SURFACE_COG_LINKED;
+    plainWallSurface=&surfaces[0];
+    static const char *names[]={"elevator","call0","call1","lower_adjoin0","lower_adjoin1"};
+    static const int values[]={0,0,7,1,2};
+    for (int i=0;i<5;i++) {
+        memset(&symbols[i],0,sizeof(symbols[i])); symbols[i].pName=(char*)names[i];
+        symbols[i].val.type=SITHCOG_VALUE_INT; symbols[i].val.data[0]=values[i];
+    }
+    memset(&table,0,sizeof(table)); table.aSymbols=symbols; table.tableSize=table.numUsedSymbols=5;
+    memset(cogs,0,sizeof(cogs)); cogs[0].pSymbolTable=&table; world.aCogs=cogs; world.numCogs=1;
+    bot.nNodes=4; bot.graphDone=1;
+    RouteNode(0,0,0); RouteNode(1,0,0); bot.nodes[1].pos.z+=2; RouteNode(2,-0.7f,0); RouteNode(3,0.9f,0);
+    nav.liftCount=1; nav.lifts[0].thing=0; nav.lifts[0].node[0]=0; nav.lifts[0].node[1]=1;
+    nav.liftForNode[0]=nav.liftForNode[1]=1;
+    BotLift *lift=&nav.lifts[0];
+    /* Bound from the COG: one button in range, one threshold with an
+       adjoin; call1 names no surface and lower_adjoin1 is solid. */
+    Bot_BindLifts();
+    assert(lift->buttons==1 && lift->button[0]==0 && lift->thresholds==1 && lift->threshold[0]==1);
+    #define LIFT_STILL(seconds) (nav.liftTrack=1, nav.liftSeen=things[0].position, nav.liftMovedAt=bot.now-(seconds), \
+        nav.liftWaitAt=0, nav.liftStep=0, bot.nextUse=0, bot.goal=1, bot.routeCount=2, \
+        memset(bot.axes,0,sizeof(bot.axes)), memset(bot.keys,0,sizeof(bot.keys)), memset(bot.previous,0,sizeof(bot.previous)))
+    /* Riding it up, beside the button: a lift that has only just stopped is
+       waited out. */
+    self.attach_flags=SITH_ATTACH_THINGFACE; self.attachedThing=&things[0];
+    self.position=(rdVector3){0.12f,0,BOT_FOOT_HEIGHT}; PlainFace(&self,0);
+    LIFT_STILL(0.3f); bot.tele.liftCalls=bot.tele.liftSteps=0;
+    assert(Bot_LiftMove(&self,0,1) && !bot.keys[INPUT_FUNC_ACTIVATE] && bot.axes[INPUT_FUNC_FORWARD]==0);
+    /* Still 0.8 seconds away from the stop wanted: press its button. */
+    LIFT_STILL(1.0f);
+    assert(Bot_LiftMove(&self,0,1) && bot.keys[INPUT_FUNC_ACTIVATE] && bot.tele.liftCalls==1 && !nav.liftStep);
+    /* In the middle of the deck the button is past a rider's reach: step
+       off across the threshold onto the landing, and plan again from there. */
+    self.position=(rdVector3){0,0,BOT_FOOT_HEIGHT}; PlainFace(&self,180/BOT_DEG);
+    LIFT_STILL(1.0f);
+    assert(Bot_LiftMove(&self,0,1) && !bot.keys[INPUT_FUNC_ACTIVATE] && nav.liftStep==3 && bot.tele.liftSteps==1);
+    self.position.x=-0.2f; memset(bot.axes,0,sizeof(bot.axes));
+    assert(Bot_LiftMove(&self,0,1) && nav.liftStep==3 && PlainThrust(&self).x<-0.1f && bot.goal==1);
+    self.position.x=-0.52f; self.attach_flags=SITH_ATTACH_SURFACE; self.attachedThing=NULL;
+    assert(Bot_LiftMove(&self,0,1) && !nav.liftStep && bot.goal==-1 && !bot.routeCount);
+    /* A button that has not brought the lift in four seconds: step off. */
+    self.attach_flags=SITH_ATTACH_THINGFACE; self.attachedThing=&things[0];
+    self.position=(rdVector3){0.12f,0,BOT_FOOT_HEIGHT}; PlainFace(&self,0);
+    LIFT_STILL(4.5f);
+    assert(Bot_LiftMove(&self,0,1) && !bot.keys[INPUT_FUNC_ACTIVATE] && nav.liftStep==3 && bot.tele.liftSteps==2);
+    /* On a landing, the lift standing still at the other stop: walk up to the
+       call button on the landing's wall and press it. */
+    self.attach_flags=SITH_ATTACH_SURFACE; self.attachedThing=NULL; things[0].position=frames[1].pos;
+    plainWall=1.30f;
+    for (int i=0;i<4;i++) vertices[i].x=1.30f;
+    self.position=bot.nodes[3].pos; PlainFace(&self,0);
+    LIFT_STILL(1.0f);
+    assert(Bot_LiftMove(&self,3,0) && !bot.keys[INPUT_FUNC_ACTIVATE] && bot.axes[INPUT_FUNC_FORWARD]>0.3f);
+    self.position.x=1.15f; LIFT_STILL(1.0f);
+    assert(Bot_LiftMove(&self,3,0) && bot.keys[INPUT_FUNC_ACTIVATE] && bot.tele.liftCalls==2);
+    /* A lift on its way is waited for. */
+    LIFT_STILL(0.2f);
+    assert(Bot_LiftMove(&self,3,0) && !bot.keys[INPUT_FUNC_ACTIVATE] && bot.axes[INPUT_FUNC_FORWARD]==0 && nav.waitUntil>bot.now);
+    /* Come to its stop, it is boarded only once it has stood still a moment:
+       a stock lift ignores a crossing onto it while it moves. */
+    things[0].position=frames[0].pos; PlainFace(&self,180/BOT_DEG); LIFT_STILL(0.1f);
+    assert(Bot_LiftMove(&self,3,0) && bot.axes[INPUT_FUNC_FORWARD]==0 && nav.waitUntil>bot.now);
+    LIFT_STILL(0.5f);
+    assert(Bot_LiftMove(&self,3,0) && bot.axes[INPUT_FUNC_FORWARD]>0.3f && nav.waitUntil==0);
+    TacticsUse(1); LIFT_STILL(0.1f);
+    assert(Bot_LiftMove(&self,3,0) && bot.axes[INPUT_FUNC_FORWARD]>0.3f && "legacy boards at once");
+    TacticsUse(0); things[0].position=frames[1].pos;
+    /* leg_axis: the threshold is an opening 0.2 wide. Off its axis on the
+       deck, the straight way off clips the jamb: get onto the axis first,
+       whether walking off at the stop or stepping off a lift that will not
+       move. */
+    plainSlotX=-0.4f; plainSlotLo=-0.1f; plainSlotHi=0.1f;
+    self.attach_flags=SITH_ATTACH_THINGFACE; self.attachedThing=&things[0]; things[0].position=frames[0].pos;
+    self.position=(rdVector3){-0.25f,0.09f,BOT_FOOT_HEIGHT}; PlainFace(&self,180/BOT_DEG);
+    LIFT_STILL(1.0f); bot.tele.legAxis=0; bot.frameDt=0.03f;
+    assert(Bot_LiftMove(&self,0,2) && bot.tele.legAxis>0 && PlainThrust(&self).y<-0.2f);
+    things[0].position=frames[1].pos; LIFT_STILL(1.0f); nav.liftStep=3; nav.liftStepAt=(rdVector3){-0.4f,0,0.15f};
+    nav.liftStepNormal=(rdVector3){-1,0,0}; nav.liftStepUntil=bot.now+3; bot.tele.legAxis=0;
+    assert(Bot_LiftMove(&self,0,1) && nav.liftStep==3 && bot.tele.legAxis>0 && PlainThrust(&self).y<-0.2f);
+    self.position.y=0.005f; memset(bot.axes,0,sizeof(bot.axes)); bot.tele.legAxis=0;
+    assert(Bot_LiftMove(&self,0,1) && bot.tele.legAxis==0 && PlainThrust(&self).x<-0.5f && "on the axis: straight out");
+    TacticsUse(1); self.position.y=0.09f; nav.liftStep=0; things[0].position=frames[0].pos; LIFT_STILL(1.0f); bot.tele.legAxis=0;
+    assert(Bot_LiftMove(&self,0,2) && bot.tele.legAxis==0 && "legacy: no step onto the axis"); TacticsUse(0);
+    plainSlotX=1e9f; nav.liftStep=0; self.position=bot.nodes[3].pos;
+    self.attach_flags=SITH_ATTACH_SURFACE; self.attachedThing=NULL; things[0].position=frames[1].pos;
+    /* Legacy: the use key, every 1.2 seconds, wherever the bot looks. */
+    TacticsUse(1); PlainFace(&self,180/BOT_DEG); LIFT_STILL(5.0f);
+    assert(Bot_LiftMove(&self,3,0) && bot.keys[INPUT_FUNC_ACTIVATE] && bot.tele.liftCalls==2 && bot.axes[INPUT_FUNC_FORWARD]==0);
+    self.attach_flags=SITH_ATTACH_THINGFACE; self.attachedThing=&things[0]; self.position=(rdVector3){0,0,BOT_FOOT_HEIGHT};
+    things[0].position=frames[0].pos; LIFT_STILL(5.0f);
+    assert(Bot_LiftMove(&self,0,1) && !nav.liftStep && bot.tele.liftSteps==2);
+    TacticsUse(0);
+    #undef LIFT_STILL
+    plainWallSurface=NULL; plainWall=1e9f; memset(&nav,0,sizeof(nav)); bot.nNodes=0; bot.goal=-1; bot.routeCount=0;
+    bot.tele.liftCalls=bot.tele.liftSteps=0;
+    bot.world=sithWorld_g_pCurrentWorld=NULL; sithPlayer_g_pLocalPlayerThing=NULL; testPlainActive=0;
+    puts("PASS lift call: a lift's COG gives its call buttons and thresholds; a lift standing still away from the stop wanted is sent with a button in a rider's reach, or else stepped off across the threshold and planned from the landing; one not answering its button in four seconds is stepped off too; from a landing the bot walks up to the call button; a moving lift is waited for and boarded once it has stood still a moment; off the axis of a narrow threshold the bot gets onto it before walking or stepping off; legacy presses blindly and boards at once");
+}
+
+/* dead_end: Bespin's pit in miniature. The bot stands on a floor door
+   (a captured path thing) by node 0, which has no leg anywhere; nodes 1 to
+   9 hang together a little way off. */
+static void test_fix_dead_end(void)
+{
+    static SithWorld world; static SithThing things[1];
+    SithThing self; SithPlayer own;
+    testPlainActive=1; plainEdge=plainShelf=plainWall=plainField=1e9f; plainFieldOn=0; plainShelfZ=0;
+    plainGround.flags=0; plainLand.flags=0;
+    PlainSelf(&self,&own);
+    jkBot_Configure("DeadEnd_Test","ky.3do"); TacticsUse(0); bot.now=10; bot.nextUse=0; bot.forceBin=-1;
+    self.actorParams.eyeOffset=(rdVector3){0,0,0.037f};
+    memset(&world,0,sizeof(world)); memset(&traps,0,sizeof(traps)); memset(&nav,0,sizeof(nav));
+    bot.world=sithWorld_g_pCurrentWorld=&world; sithPlayer_g_pLocalPlayerThing=&self;
+    world.aSectors=&plainLand; world.numSectors=1; world.gravity=4;
+    memset(things,0,sizeof(things)); things[0].type=SITH_THING_COG; things[0].moveType=SITH_MT_PATH;
+    things[0].flags=SITH_TF_CAPTURED|SITH_TF_STANDABLE; things[0].sector=&plainLand;
+    world.aThings=things; world.numThings=0; world.numThingsLoaded=1;
+    plainFloorThing=&things[0];
+    bot.nNodes=10; bot.graphDone=1;
+    RouteNode(0,0.05f,0);
+    for (int i=1;i<10;i++) RouteNode(i,3.0f+0.4f*i,0);
+    for (int i=1;i<9;i++) { RouteEdge(i,i+1,BOT_ROUTE_WALK); RouteEdge(i+1,i,BOT_ROUTE_WALK); }
+    self.attach_flags=SITH_ATTACH_THING; self.attachedThing=&things[0]; self.position=(rdVector3){0,0,BOT_FOOT_HEIGHT};
+    bot.goal=-1; bot.targetSlot=-1; bot.tele.deadEndUses=0;
+    #define DEAD_TICK() (memset(bot.keys,0,sizeof(bot.keys)), memset(bot.previous,0,sizeof(bot.previous)), \
+        memset(bot.axes,0,sizeof(bot.axes)), bot.rawPitch=0, Bot_DeadEnd(&self))
+    /* Two seconds with nothing to do first. */
+    assert(!DEAD_TICK()); bot.now+=1.0f; assert(!DEAD_TICK());
+    /* Then: node 0 reaches nothing. Looking ahead, the use ray finds no door:
+       turn the view down. */
+    bot.now+=1.1f;
+    assert(DEAD_TICK() && nav.deadReach==1 && bot.rawPitch<0 && !bot.keys[INPUT_FUNC_ACTIVATE]);
+    /* Looking down 80 degrees, as far as a player's head goes: press use on it. */
+    self.actorParams.headPYR.x=-80;
+    assert(DEAD_TICK() && bot.keys[INPUT_FUNC_ACTIVATE] && bot.tele.deadEndUses==1);
+    /* Not again until the use key is free. */
+    bot.now+=0.5f; assert(DEAD_TICK() && !bot.keys[INPUT_FUNC_ACTIVATE]);
+    /* A recovery jump or a shot at someone above waits, without starting
+       the count again. */
+    self.attach_flags=0; bot.now+=1.5f; assert(!DEAD_TICK() && nav.deadSince>0);
+    self.attach_flags=SITH_ATTACH_THING; bot.targetSlot=2; assert(!DEAD_TICK() && nav.deadSince>0);
+    bot.targetSlot=-1; assert(DEAD_TICK() && bot.keys[INPUT_FUNC_ACTIVATE] && bot.tele.deadEndUses==2);
+    /* Off the door, the escape leaves the bot to recovery. */
+    self.attach_flags=SITH_ATTACH_SURFACE; self.attachedThing=NULL; bot.now+=1.0f;
+    assert(!DEAD_TICK());
+    /* Among nodes that lead somewhere it is no dead end. */
+    self.attach_flags=SITH_ATTACH_THING; self.attachedThing=&things[0]; self.position=bot.nodes[5].pos;
+    nav.deadCheckAt=0; bot.now+=1.0f;
+    assert(!DEAD_TICK() && nav.deadReach==9);
+    /* A goal ends it. */
+    self.position=(rdVector3){0,0,BOT_FOOT_HEIGHT}; bot.goal=4; assert(!DEAD_TICK() && !nav.deadSince);
+    /* Legacy leaves it to recovery. */
+    bot.goal=-1; TacticsUse(1); bot.now+=5.0f; assert(!DEAD_TICK()); bot.now+=3.0f; assert(!DEAD_TICK());
+    TacticsUse(0);
+    /* A door in two pieces, as Bespin's hatch, moved by one 00_door.cog:
+       over the seam where they part first, then the press. */
+    static SithThing pair[2]; static SithCogSymbol doors[2]; static SithCogSymbolTable doorTable; static sithCog doorCog[1];
+    memset(pair,0,sizeof(pair));
+    for (int i=0;i<2;i++) {
+        pair[i].type=SITH_THING_COG; pair[i].moveType=SITH_MT_PATH; pair[i].flags=SITH_TF_CAPTURED|SITH_TF_STANDABLE;
+        pair[i].sector=&plainLand; pair[i].position=(rdVector3){i ? 0.15f : -0.15f,0,0};
+    }
+    world.aThings=pair; world.numThings=1; world.numThingsLoaded=2; plainFloorThing=&pair[0];
+    static const char *doorNames[]={"door0","door1"};
+    for (int i=0;i<2;i++) {
+        memset(&doors[i],0,sizeof(doors[i])); doors[i].pName=(char*)doorNames[i];
+        doors[i].val.type=SITHCOG_VALUE_INT; doors[i].val.data[0]=i;
+    }
+    memset(&doorTable,0,sizeof(doorTable)); doorTable.aSymbols=doors; doorTable.tableSize=doorTable.numUsedSymbols=2;
+    memset(doorCog,0,sizeof(doorCog)); doorCog[0].pSymbolTable=&doorTable; world.aCogs=doorCog; world.numCogs=1;
+    self.attach_flags=SITH_ATTACH_THING; self.attachedThing=&pair[0]; self.position=(rdVector3){-0.12f,0,BOT_FOOT_HEIGHT};
+    PlainFace(&self,0); self.actorParams.headPYR.x=-80; bot.goal=-1; nav.deadSince=0; nav.deadCheckAt=0;
+    assert(!DEAD_TICK()); bot.now+=2.1f; bot.tele.deadEndUses=0;
+    assert(DEAD_TICK() && !bot.keys[INPUT_FUNC_ACTIVATE] && PlainThrust(&self).x>0.1f && "to the seam");
+    self.position.x=-0.04f; bot.now+=0.5f;
+    assert(DEAD_TICK() && bot.keys[INPUT_FUNC_ACTIVATE] && bot.tele.deadEndUses==1 && "near enough over it: press");
+    /* Over the seam the ray may meet the other piece: pressed all the same. */
+    plainFloorThing=&pair[1]; bot.now+=1.3f;
+    assert(DEAD_TICK() && bot.keys[INPUT_FUNC_ACTIVATE] && bot.tele.deadEndUses==2);
+    /* Away from the seam it never presses: pressed there, the door pinned
+       the bot to the wall. After two seconds it hops toward the seam. */
+    plainFloorThing=&pair[0]; self.position.x=-0.12f; nav.deadSeamUntil=0; bot.now+=1.3f; bot.nextJump=0;
+    assert(DEAD_TICK() && !bot.keys[INPUT_FUNC_ACTIVATE] && !bot.keys[INPUT_FUNC_JUMP] && PlainThrust(&self).x>0.1f);
+    bot.now+=2.1f;
+    assert(DEAD_TICK() && !bot.keys[INPUT_FUNC_ACTIVATE] && bot.keys[INPUT_FUNC_JUMP] && bot.tele.deadEndUses==2);
+    world.aCogs=NULL; world.numCogs=0;
+    #undef DEAD_TICK
+    plainFloorThing=NULL; self.actorParams.headPYR.x=0; memset(&nav,0,sizeof(nav)); bot.nNodes=0; bot.goal=-1;
+    bot.tele.deadEndUses=0;
+    bot.world=sithWorld_g_pCurrentWorld=NULL; sithPlayer_g_pLocalPlayerThing=NULL; testPlainActive=0;
+    puts("PASS dead end: with no goal for two seconds where the nearest node reaches nothing, a bot on a floor door looks down and presses use once the ray meets it, from over the seam where a two-piece door parts; a jump or a fight waits without restarting the count; off a door, among nodes that lead on, with a goal or in legacy it is left to recovery");
+}
+
+/* leg_axis: a door alcove's mouth 0.2 wide in a wall at x=1; node 0 on its
+   axis in front, node 1 through it. */
+static void test_fix_leg_axis(void)
+{
+    static SithWorld world;
+    SithThing self; SithPlayer own;
+    testPlainActive=1; plainEdge=plainShelf=plainWall=plainField=1e9f; plainFieldOn=0; plainShelfZ=0;
+    plainGround.flags=0; plainLand.flags=0;
+    plainSlotX=1.0f; plainSlotLo=-0.1f; plainSlotHi=0.1f;
+    PlainSelf(&self,&own);
+    jkBot_Configure("LegAxis_Test","ky.3do"); TacticsUse(0); bot.now=10; bot.forceBin=-1;
+    memset(&world,0,sizeof(world)); memset(&traps,0,sizeof(traps)); memset(&nav,0,sizeof(nav));
+    bot.world=sithWorld_g_pCurrentWorld=&world; sithPlayer_g_pLocalPlayerThing=&self;
+    world.aSectors=&plainLand; world.numSectors=1; world.gravity=4;
+    bot.nNodes=2; bot.graphDone=1;
+    RouteNode(0,0.7f,0); RouteNode(1,1.2f,0);
+    RouteEdge(0,1,BOT_ROUTE_WALK); RouteEdge(1,0,BOT_ROUTE_WALK);
+    #define AXIS_STEP(x,y) (self.position=(rdVector3){x,y,BOT_FOOT_HEIGHT}, PlainFace(&self,0), \
+        bot.goal=1, bot.route[0]=0, bot.route[1]=1, bot.routeCount=2, bot.routePos=1, bot.nextPlan=1e9f, \
+        memset(bot.axes,0,sizeof(bot.axes)), memset(bot.keys,0,sizeof(bot.keys)), bot.tele.legAxis=0, bot.frameDt=0.03f, \
+        Bot_Navigate(&self))
+    /* 0.08 off the axis and 0.12 short of the wall, the straight way to
+       node 1 clips the jamb: step back onto the axis, a little forward. */
+    AXIS_STEP(0.88f,0.08f);
+    rdVector3 thrust=PlainThrust(&self);
+    assert(bot.tele.legAxis>0 && thrust.y<-0.3f && thrust.x>0 && bot.goal==1);
+    /* On the axis: straight through. */
+    AXIS_STEP(0.88f,0.005f);
+    thrust=PlainThrust(&self);
+    assert(bot.tele.legAxis==0 && thrust.x>0.5f && fabsf(thrust.y)<0.2f);
+    /* Off the axis with a clear way: straight on, no detour. */
+    plainSlotLo=-0.5f; plainSlotHi=0.5f;
+    AXIS_STEP(0.88f,0.08f);
+    assert(bot.tele.legAxis==0);
+    plainSlotLo=-0.1f; plainSlotHi=0.1f;
+    /* Legacy: no step back onto the axis. */
+    TacticsUse(1); AXIS_STEP(0.88f,0.08f); assert(bot.tele.legAxis==0); TacticsUse(0);
+    #undef AXIS_STEP
+    plainSlotX=1e9f; memset(&nav,0,sizeof(nav)); bot.nNodes=0; bot.goal=-1; bot.routeCount=bot.routePos=0;
+    bot.world=sithWorld_g_pCurrentWorld=NULL; sithPlayer_g_pLocalPlayerThing=NULL; testPlainActive=0;
+    puts("PASS leg axis: off a walking leg's line where the straight way to its node clips the jamb of a narrow opening, the bot steps back onto the line first; on the line, or with the way clear, it goes straight; legacy does not");
+}
+
+/* lift_hop: a ledge (node 0, on the ground at the origin) beside a lift
+   shaft centred 0.3 along +y, whose deck stops 1.5 below the ledge (node 1)
+   and 1.2 above it (node 2), as Bespin's railgun alcove sits. */
+static void test_fix_lift_hop(void)
+{
+    static SithWorld world; static SithThing things[1]; static SithPathFrame frames[2];
+    SithThing self; SithPlayer own;
+    testPlainActive=1; plainEdge=plainShelf=plainWall=plainField=1e9f; plainFieldOn=0; plainShelfZ=0; plainSlotX=1e9f;
+    plainGround.flags=0; plainLand.flags=0;
+    PlainSelf(&self,&own);
+    jkBot_Configure("LiftHop_Test","ky.3do"); TacticsUse(0); bot.now=10; bot.nextUse=0; bot.frameDt=0.03f;
+    self.actorParams.eyeOffset=(rdVector3){0,0,0.037f};
+    memset(&world,0,sizeof(world)); memset(&traps,0,sizeof(traps)); memset(&nav,0,sizeof(nav));
+    bot.world=sithWorld_g_pCurrentWorld=&world; sithPlayer_g_pLocalPlayerThing=&self;
+    world.aSectors=&plainLand; world.numSectors=1; world.gravity=4;
+    memset(things,0,sizeof(things)); frames[0].pos=(rdVector3){0,0.3f,-1.5f}; frames[1].pos=(rdVector3){0,0.3f,1.2f};
+    things[0].type=SITH_THING_COG; things[0].moveType=SITH_MT_PATH; things[0].sector=&plainLand;
+    things[0].trackParams.aFrames=frames; things[0].trackParams.loadedFrames=2; things[0].position=frames[0].pos;
+    world.aThings=things; world.numThings=0; world.numThingsLoaded=1;
+    bot.nNodes=3; bot.graphDone=1;
+    RouteNode(0,0,0); RouteNode(1,0,0.3f); RouteNode(2,0,0.3f);
+    bot.nodes[1].pos.z=-1.5f+BOT_FOOT_HEIGHT; bot.nodes[2].pos.z=1.2f+BOT_FOOT_HEIGHT;
+    nav.liftCount=1; nav.lifts[0].thing=0; nav.lifts[0].node[0]=1; nav.lifts[0].node[1]=2; nav.lifts[0].top=0;
+    nav.liftForNode[1]=nav.liftForNode[2]=1;
+    /* The graph: a leg off the ledge to either stop, none back. */
+    assert(Bot_EdgeMode(0,1)==BOT_ROUTE_LIFT && Bot_EdgeMode(0,2)==BOT_ROUTE_LIFT && Bot_EdgeMode(1,0)<0);
+    TacticsUse(1); assert(Bot_EdgeMode(0,1)<0 && "legacy: no way off"); TacticsUse(0);
+    #define HOP_AT(z,rate,stillFor) (things[0].position=(rdVector3){0,0.3f,z}, nav.liftTrack=1, \
+        nav.liftSeen=(stillFor)>0 ? things[0].position : (rdVector3){0,0.3f,(z)-0.01f}, nav.liftMovedAt=bot.now-(stillFor), \
+        nav.liftLastZ=(z)-(rate)*0.03f, nav.liftLastAt=bot.now-0.03f, nav.liftWaitAt=0, nav.hopUntil=0, \
+        bot.goal=1, bot.routeCount=2, memset(bot.axes,0,sizeof(bot.axes)), memset(bot.keys,0,sizeof(bot.keys)), \
+        memset(bot.previous,0,sizeof(bot.previous)))
+    self.position=(rdVector3){0,0,BOT_FOOT_HEIGHT}; PlainFace(&self,90/BOT_DEG); bot.tele.liftHops=0;
+    /* Standing 1.5 below: drop onto it. */
+    HOP_AT(-1.5f,0,1.0f);
+    assert(Bot_LiftMove(&self,0,1) && nav.hopUntil>bot.now && bot.tele.liftHops==1 && PlainThrust(&self).y>0.3f);
+    /* Hurt, a drop over a unit is not taken: wait at the lip instead. */
+    self.actorParams.health=40; HOP_AT(-1.5f,0,1.0f);
+    assert(Bot_LiftMove(&self,0,1) && !nav.hopUntil && bot.tele.liftHops==1);
+    self.actorParams.health=100;
+    /* Standing above the ledge: walk up to the lip and wait there. */
+    HOP_AT(1.2f,0,1.0f);
+    assert(Bot_LiftMove(&self,0,1) && !nav.hopUntil && PlainThrust(&self).y>0.05f && nav.waitUntil>bot.now);
+    self.position.y=0.077f; HOP_AT(1.2f,0,1.0f);
+    assert(Bot_LiftMove(&self,0,1) && !nav.hopUntil && fabsf(PlainThrust(&self).y)<0.05f && nav.waitUntil>bot.now);
+    self.position.y=0;
+    /* Rising at a unit a second, 0.45 under the ledge: it will be 0.3 under
+       by the time the bot is over it. Go. 0.8 under: not yet. */
+    HOP_AT(-0.45f,1.0f,0);
+    assert(Bot_LiftMove(&self,0,1) && nav.hopUntil>bot.now && bot.tele.liftHops==2);
+    HOP_AT(-0.8f,1.0f,0);
+    assert(Bot_LiftMove(&self,0,1) && !nav.hopUntil && bot.tele.liftHops==2);
+    /* Coming down, just above the ledge: go, it will be under it. */
+    HOP_AT(0.05f,-1.0f,0);
+    assert(Bot_LiftMove(&self,0,2) && nav.hopUntil>bot.now && bot.tele.liftHops==3);
+    /* Committed while it rises past the ledge: stop short of the shaft. */
+    HOP_AT(0.05f,1.0f,0); nav.hopUntil=bot.now+0.5f;
+    assert(Bot_LiftMove(&self,0,1) && !nav.hopUntil && fabsf(PlainThrust(&self).y)<0.05f);
+    /* Legacy: no hop; a lift away from the stop is waited for. */
+    TacticsUse(1); HOP_AT(-1.5f,0,1.0f);
+    assert(Bot_LiftMove(&self,0,2) && !nav.hopUntil && bot.tele.liftHops==3); TacticsUse(0);
+    #undef HOP_AT
+    memset(&nav,0,sizeof(nav)); bot.nNodes=0; bot.goal=-1; bot.routeCount=0; bot.tele.liftHops=0;
+    bot.world=sithWorld_g_pCurrentWorld=NULL; sithPlayer_g_pLocalPlayerThing=NULL; testPlainActive=0;
+    puts("PASS lift hop: a ledge partway up a lift shaft gets legs onto both stops; the deck is dropped onto where it stands below within reach of the bot's health, or stepped onto as it passes just under the ledge, and the step is called off if it rises past; legacy has no way off");
+}
+
+/* leg_square: Bespin's lift 2 at the top in miniature. The deck's way off
+   is an opening 0.2 wide in a wall at x=-0.4, to a landing (node 2); the
+   rider stands against that wall 0.01 past the opening's edge and 0.11 off
+   its line, as Boba Fett stood for 25 seconds. */
+static void test_fix_leg_square(void)
+{
+    static SithWorld world; static SithThing things[1]; static SithPathFrame frames[2];
+    SithThing self; SithPlayer own;
+    testPlainActive=1; plainEdge=plainShelf=plainWall=plainField=1e9f; plainFieldOn=0; plainShelfZ=0;
+    plainGround.flags=0; plainLand.flags=0;
+    plainSlotX=-0.4f; plainSlotLo=-0.1f; plainSlotHi=0.1f;
+    PlainSelf(&self,&own);
+    jkBot_Configure("LegSquare_Test","ky.3do"); TacticsUse(0); bot.now=10; bot.nextUse=0; bot.forceBin=-1; bot.frameDt=0.03f;
+    self.actorParams.eyeOffset=(rdVector3){0,0,0.037f};
+    memset(&world,0,sizeof(world)); memset(&traps,0,sizeof(traps)); memset(&nav,0,sizeof(nav));
+    bot.world=sithWorld_g_pCurrentWorld=&world; sithPlayer_g_pLocalPlayerThing=&self;
+    world.aSectors=&plainLand; world.numSectors=1; world.gravity=4;
+    memset(things,0,sizeof(things)); frames[0].pos=(rdVector3){0,0,0}; frames[1].pos=(rdVector3){0,0,2};
+    things[0].type=SITH_THING_COG; things[0].moveType=SITH_MT_PATH; things[0].sector=&plainLand;
+    things[0].trackParams.aFrames=frames; things[0].trackParams.loadedFrames=2; things[0].position=frames[0].pos;
+    world.aThings=things; world.numThings=0; world.numThingsLoaded=1;
+    bot.nNodes=3; bot.graphDone=1;
+    RouteNode(0,0,0); RouteNode(1,0,0); bot.nodes[1].pos.z+=2; RouteNode(2,-0.7f,0);
+    nav.liftCount=1; nav.lifts[0].thing=0; nav.lifts[0].node[0]=0; nav.lifts[0].node[1]=1;
+    nav.liftForNode[0]=nav.liftForNode[1]=1;
+    self.attach_flags=SITH_ATTACH_THINGFACE; self.attachedThing=&things[0];
+    #define SQUARE_RIDE(stepping,y) (self.position=(rdVector3){-0.335f,y,BOT_FOOT_HEIGHT}, PlainFace(&self,180/BOT_DEG), \
+        nav.liftTrack=1, nav.liftSeen=things[0].position, nav.liftMovedAt=bot.now-1.0f, nav.liftWaitAt=0, \
+        nav.liftStep=(stepping) ? 3 : 0, nav.liftStepAt=(rdVector3){-0.4f,0,0.15f}, nav.liftStepNormal=(rdVector3){-1,0,0}, \
+        nav.liftStepUntil=bot.now+3, bot.goal=2, bot.routeCount=2, bot.tele.legAxis=bot.tele.legSquare=0, \
+        memset(bot.axes,0,sizeof(bot.axes)), memset(bot.keys,0,sizeof(bot.keys)), memset(bot.previous,0,sizeof(bot.previous)))
+    /* Walking off at the stop: the straight way and the slant onto the
+       line both meet the jamb's corner. Square along the wall instead. */
+    SQUARE_RIDE(0,0.11f);
+    assert(Bot_LiftMove(&self,0,2));
+    rdVector3 thrust=PlainThrust(&self);
+    assert(bot.tele.legSquare>0 && bot.tele.legAxis>0 && thrust.y<-0.2f && fabsf(thrust.x)<0.05f);
+    /* Stepping off a lift that will not move: the same. */
+    SQUARE_RIDE(1,0.11f);
+    assert(Bot_LiftMove(&self,0,1) && nav.liftStep==3);
+    thrust=PlainThrust(&self);
+    assert(bot.tele.legSquare>0 && thrust.y<-0.2f && fabsf(thrust.x)<0.05f);
+    /* 0.04 off the line, still against the wall: the slimmer steering probe
+       would pass the straight way, but the body meets the corner. Keep
+       squaring. 0.03 off, the body is clear of the jamb: straight off. */
+    SQUARE_RIDE(1,0.04f);
+    assert(Bot_LiftMove(&self,0,1) && bot.tele.legSquare>0 && PlainThrust(&self).y<-0.2f);
+    SQUARE_RIDE(1,0.03f);
+    assert(Bot_LiftMove(&self,0,1) && bot.tele.legSquare==0 && PlainThrust(&self).x<-0.5f);
+    SQUARE_RIDE(0,0.005f);
+    assert(Bot_LiftMove(&self,0,2) && bot.tele.legSquare==0 && PlainThrust(&self).x<-0.5f && "on the line: straight off");
+    /* Only 0.02 off the line of an opening that leaves a body 0.008 either
+       side: the square step is still long enough to register as a move. */
+    plainSlotLo=-0.06f; plainSlotHi=0.06f;
+    SQUARE_RIDE(1,0.02f);
+    assert(Bot_LiftMove(&self,0,1) && bot.tele.legSquare>0 && PlainThrust(&self).y<-0.2f);
+    plainSlotLo=-0.1f; plainSlotHi=0.1f;
+    /* leg_square off: no square step. From the corner, walking off at the
+       stop, the rider does not move at all, as on Bespin; from 0.04 off it
+       walks straight into the corner. */
+    BT(LEG_SQUARE)=0; SQUARE_RIDE(1,0.11f);
+    assert(Bot_LiftMove(&self,0,1) && bot.tele.legSquare==0);
+    SQUARE_RIDE(0,0.11f); thrust=Bot_LiftMove(&self,0,2) ? PlainThrust(&self) : (rdVector3){1,1,0};
+    assert(bot.tele.legSquare==0 && fabsf(thrust.x)<0.01f && fabsf(thrust.y)<0.01f);
+    SQUARE_RIDE(1,0.04f);
+    assert(Bot_LiftMove(&self,0,1) && bot.tele.legSquare==0 && PlainThrust(&self).x<-0.5f);
+    TacticsUse(0);
+    #undef SQUARE_RIDE
+    /* Walking a leg into a door alcove 0.2 wide in a wall at x=1, pressed
+       against the wall beside its mouth: the same, and once squaring it
+       keeps on until the body is clear of the jamb. */
+    memset(&nav,0,sizeof(nav)); plainSlotX=1.0f;
+    bot.nNodes=2; RouteNode(0,0.7f,0); RouteNode(1,1.2f,0);
+    RouteEdge(0,1,BOT_ROUTE_WALK); RouteEdge(1,0,BOT_ROUTE_WALK);
+    self.attach_flags=SITH_ATTACH_SURFACE; self.attachedThing=NULL; self.attachedSurface=&plainGround;
+    #define SQUARE_WALK(x,y) (self.position=(rdVector3){x,y,BOT_FOOT_HEIGHT}, PlainFace(&self,0), \
+        bot.goal=1, bot.route[0]=0, bot.route[1]=1, bot.routeCount=2, bot.routePos=1, bot.nextPlan=1e9f, \
+        memset(bot.axes,0,sizeof(bot.axes)), memset(bot.keys,0,sizeof(bot.keys)), bot.tele.legAxis=bot.tele.legSquare=0, \
+        Bot_Navigate(&self))
+    SQUARE_WALK(0.935f,0.11f);
+    thrust=PlainThrust(&self);
+    assert(bot.tele.legSquare>0 && bot.tele.legAxis>0 && thrust.y<-0.3f && fabsf(thrust.x)<0.05f && bot.goal==1);
+    assert(nav.squareNode==2 && nav.squareUntil>bot.now);
+    bot.now+=0.1f; SQUARE_WALK(0.935f,0.04f);
+    assert(bot.tele.legSquare>0 && PlainThrust(&self).y<-0.3f);
+    bot.now+=0.1f; SQUARE_WALK(0.935f,0.03f);
+    assert(bot.tele.legSquare==0 && PlainThrust(&self).x>0.3f);
+    /* A little way out from the wall the slant clears the corner, as before. */
+    memset(&nav,0,sizeof(nav)); SQUARE_WALK(0.88f,0.08f);
+    assert(bot.tele.legAxis>0 && bot.tele.legSquare==0 && PlainThrust(&self).x>0);
+    /* leg_square off: no square step. */
+    BT(LEG_SQUARE)=0; SQUARE_WALK(0.935f,0.11f); assert(bot.tele.legSquare==0 && !nav.squareNode); TacticsUse(0);
+    #undef SQUARE_WALK
+    plainSlotX=1e9f; memset(&nav,0,sizeof(nav)); bot.nNodes=0; bot.goal=-1; bot.routeCount=bot.routePos=0;
+    bot.tele.legAxis=bot.tele.legSquare=0;
+    bot.world=sithWorld_g_pCurrentWorld=NULL; sithPlayer_g_pLocalPlayerThing=NULL; testPlainActive=0;
+    puts("PASS leg square: pressed against the wall beside a narrow opening, where the body meets the jamb's corner on the straight way and on the slant onto the leg's line, the bot steps square onto the line along the wall until the body is clear of the jamb, whether walking off a lift, stepping off one or walking a leg; a little way out the slant still serves; with leg_square off it does not");
+}
+
 static void test_bot_tactic_fixes(void)
 {
     jkPlayer_maxPlayers=0; memset(jkPlayer_playerInfos,0,sizeof(jkPlayer_playerInfos));
@@ -1058,4 +1571,10 @@ static void test_bot_tactic_fixes(void)
     test_fix_trap_disarm();
     test_fix_field();
     test_fix_jump_margin();
+    test_fix_fjump_margin();
+    test_fix_lift_call();
+    test_fix_dead_end();
+    test_fix_leg_axis();
+    test_fix_lift_hop();
+    test_fix_leg_square();
 }
