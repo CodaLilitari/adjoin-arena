@@ -232,6 +232,31 @@ force units back along the body) still lands on floor or against a wall.
 the reason; `BOT_MOVE` counts shells and beams with mean range, seconds with
 a heavy in a fight, and those switches.
 
+## Sabers
+
+In the stock saber COG (`weap_saber.cog`) the secondary is a heavy swing:
+160 damage, against 40 to 60 for the primary's attacks, and the longest
+blade ray, 0.3 against 0.15 to 0.25. The primary depends on how the player
+is moving when it fires: a run of three quick slashes walking forward (40,
+40 and 60), otherwise a single 50. The heavy swing's blade does damage
+0.33 to 0.67 and 0.8 to 1.13 seconds into its animation (a quick slash's
+0.17 to 0.4), and the blade cannot swing again for 2 seconds (0.25 to 1
+for the primary). Shields (`item_shields.cog`) stop only half of a saber
+hit, so one heavy hit kills a player with no shields and leaves one with
+full health and 100 shields at 2 health (with 200 shields, at 20).
+Pressing either trigger drops the stock autoblock until half a second after
+release.
+
+The old rule swung the primary from 0.6 units, or for an elite bot in a
+gun match only at contact, with the heavy swing kept for an immobilized
+target. With `saber_heavy` (default 1) a bot swings only from contact
+(the two bodies plus 0.1), and swings heavy wherever the target will still
+be in reach 0.35 seconds on, as the blade comes down; the quick primary
+against a target pulling away, beside a protected player (the shorter
+blade), and underwater, where the COG has one attack for both triggers.
+Out of contact the guard stays up. `BOT_MOVE` counts `saber_heavy` and
+`saber_light` presses.
+
 ## Force Pull
 
 The stock Pull takes whatever player, actor or item lies nearest the view
@@ -457,11 +482,13 @@ open).
 - **`field_switch`** (default 1). An open field's gate leg is an ordinary
   walk. While the field is on, a gate leg costs the walk from it to the
   nearest switch on its side, the walk back, and a second to press it: 2
-  to 8 units from the strip, about 30 from the main side, where the switch
+  to 8 units from the strip, 28 to 31 from the main side, where the switch
   is a floor up and the sure way up goes round by the far end of the level
-  (the Force Jump legs up beside it are often refused on the spot). The
-  price is brought up to date every five seconds, so a struck jump leg or
-  the Force to make one counts. When a bot's route meets a gate that is
+  (a Force Jump leg up beside it that the bots used to refuse on the spot
+  is no longer built; see `fjump_margin`). A switch more than 25 units of
+  walk from the gate is not gone for at all: the field is a wall from that
+  side. The price is brought up to date every five seconds, so a struck
+  jump leg or the Force to make one counts. When a bot's route meets a gate that is
   on, it goes to that side's switch first (`purpose=open`) and presses it
   like a trap's switch. Once the field is seen open (`event=opened`) it
   goes on to where it was headed. It never walks into the field while it
@@ -469,9 +496,12 @@ open).
   (`BOT_MOVE gate_wait`, in seconds). If the way to the switch grows half
   as long again (and by 3 or more) while the bot is on it, it gives up
   (`why=too-far`) rather than trek round the level. If that side's switch
-  cannot be worked (no route to it, a press with no answer, a run given
-  up), the field is a wall from that side for 15 seconds (`BOT_FIELD
-  event=no-switch`). A field someone else opens first is good news
+  cannot be worked (no route to it, none within 25 units, a press with no
+  answer, a run given up), the field is a wall from that side for 15
+  seconds, then twice as long each time in a row, up to two minutes
+  (`BOT_FIELD event=no-switch`); opening it starts the count again. Before,
+  every failure rested it 15 seconds, and a bot on the main side went back
+  round the level for the switch again and again. A field someone else opens first is good news
   (`why=taken`, with no rest). Field switches count as trap switches for
   `trap_avoid`, so they are never pressed by accident. With `field_switch`
   at 0, a field that is on is a wall.
@@ -485,6 +515,101 @@ built whether the field was on or off when the graph was built.
 Limits. A bot does not close the field behind it or use it to cut off an
 opponent, and a fight next to a field that is on can still brush it.
 Bespin's reactor pad is out of the way and saw no use in the trials.
+
+## Lifts
+
+The graph gives every two-frame path thing named as a lift, elevator or
+platform a node on its deck at each stop. The bot waits on the landing
+until the deck is at its stop, rides it, and walks off at the other. The
+stock elevators move only when told to:
+
+| COG | Levels | What sends the lift |
+|---|---|---|
+| `00_elev_switch.cog` | Nar Shaddaa (2 lifts) | Crossing one of its threshold adjoins onto it, or its button, sends it up; two seconds after it gets there it comes back down. |
+| `00_elev_switch2.cog` | Bespin (5 lifts) | Crossing a threshold adjoin onto it (a quarter second later, if it is standing) or pressing any of its call buttons sends it to its other stop. |
+
+The bots never pressed anything for a lift: while waiting they pressed use
+every 1.2 seconds wherever they were looking. A bot that walked onto a deck
+crossed its threshold and was carried; one that boarded a deck still
+moving, or stood on it when it came back, never crossed one, and the lift
+stayed where it was. In the Bespin recording four of Red's five
+confinements (`BOT_CONFINED`) were at the foot of one lift, on or beside a
+deck that stood still; on Nar Shaddaa she waited at a lift whose button she
+could have reached from its deck.
+
+With `lift_call` (default 1) the lift's COG is read when the traps are
+bound: the thing it names `elevator`, its `button` and `call0` to `call3`
+surfaces, and its `lower_adjoin0` to `lower_adjoin2` thresholds
+(`BOT_LIFT event=bind`, with how many of each). A lift that has stood still
+for 0.8 seconds away from the stop the bot wants is stuck:
+
+- A rider presses a button at eye height that faces it and that the stock
+  use ray reaches from where it stands, or from a step of at most 0.12 (a
+  rider must not walk off the deck): it turns to it and presses use once
+  (`event=press`).
+- With no such button, or one that has not moved the lift in four seconds,
+  a rider steps off across the nearest threshold at its level onto the
+  landing beyond it (`event=step-off`). Once over it the bot plans again
+  from the landing (`event=stepped-off`), and the way back on crosses the
+  threshold, which is what sets the stock lifts going. It gives up the
+  step after three seconds (`event=step-timeout`).
+- On a landing, the bot walks up to the lift's button on that level, within
+  0.9 of a press, and presses it.
+- A deck that has come to its stop is boarded only once it has stood still
+  for 0.3 seconds. Both COGs ignore a crossing while the lift moves, and a
+  bot that walked on while the deck settled into its stop rode nowhere.
+
+Bespin's railgun and concussion rifle lie in small alcoves halfway up two
+lift shafts, each with a call button, and a player spawn is in each
+alcove. The graph had no leg out of either: a deck node is joined only to
+level ground at its own stop. A bot that spawned in one stayed there; in
+one recording Red spent the last three minutes of the match in the railgun
+alcove. With `lift_hop` (default 1) a node beside a shaft, between the
+lift's two stops and with a clear line into the shaft, gets a leg onto the
+deck at each stop. The bot waits at the alcove's lip facing the shaft and
+steps out when the deck stands below within a drop it can take (up to 1.6
+units, over 1 only with 50 health or more; with the player's air drag of
+0.5 the stock fall rule makes a 1.6 fall cost about 14), or when the
+moving deck will be 0.02 to 0.35 under the lip by the
+time the bot is over it, judged from the rate the deck has been climbing
+or falling. Where the deck stands still out of reach it presses the
+alcove's call button. A step under way is called off if the deck rises
+past the lip first, so the bot does not walk into the empty shaft
+(`BOT_LIFT event=hop`; `BOT_MOVE lift_hops`). The way into the alcoves
+from the deck is not built yet.
+
+A lift that is moving is waited for, and with `lift_call` on there are no
+blind presses. The 16-second limit on a wait still stands: after it the
+node the bot was headed for is avoided for 20 seconds. `BOT_MOVE` counts `lift_calls`
+(presses) and `lift_steps`. With `lift_call` at 0, the blind presses
+return and nothing else is done.
+
+## Dead ends
+
+Under Bespin's main floor a round pit drops 1.7 units to a pair of floor
+doors (`00_door.cog`, things 1 and 2) that open on use and let a player
+fall into the room below. The graph has one node down there and no leg out
+of it. In one recording Red fell in during a recovery at the rim and stood
+on the doors for the last four and a half minutes of the match, jumping and
+pressing use at the wall in front of her: no goal could be reached from
+there, and the use ray only ever looked ahead.
+
+With `dead_end` (default 1), a bot that has had no goal for two seconds
+while the node nearest it reaches no more than a twentieth of the graph (at
+least eight nodes) is in a dead end (`BOT_DEADEND event=found`, with the
+node and how much it reaches). Standing on a door (a path thing captured by
+its COG, not a lift) it first steps over the seam where the door's pieces
+part, found from the COG that moves them together (`door0` to `door3`),
+to within 0.05, hopping toward it if it has not got there in two seconds.
+It never presses from anywhere else: pressed by a bot standing on one
+piece near the wall that piece slides into, the door pinned the bot to the
+wall and never opened, and in two recordings a bot stood like that for two
+minutes. Over the seam it looks straight down, which the stock look code
+stops at 80 degrees, and presses use once the use ray meets either piece
+(`event=door`); the doors part and it drops through, about 1.7 units to
+the room below (about 17 health by the stock fall rule). A recovery jump or a fight with someone above pauses this
+without starting the two seconds again. Anywhere else recovery carries on
+as before. `BOT_MOVE` counts `dead_end_uses`.
 
 ## Lips
 
@@ -500,6 +625,42 @@ start from the floor under its feet as well as from the centre's sector.
 On the same spot, replayed against the level's geometry, every wanted
 direction now steps back onto the platform, and the nearest node is the
 platform's own, 0.15 away. `BOT_MOVE` counts `lip_steps`.
+
+## Narrow openings
+
+The bots follow a route by walking straight at its next node, and a move
+the ground check finds blocked is replaced by one turned up to 50 degrees
+off it. Bespin's upper rooms are left through door alcoves 0.2 units wide
+(a body is 0.13 across). In one recording Red stood at the mouth of one for
+three minutes: 0.05 off its axis, the straight way to the node inside
+clipped the jamb, every turned move led away from it, and the planner kept
+sending her back. On the level's own geometry the straight move into the
+alcove is refused from where she stood and allowed from 0.02 further over.
+With `leg_axis` (default 1), a bot off a walking leg's line by more than
+0.015, whose straight way to the leg's node is blocked, first steps back
+onto that line a little ahead, which the graph checked when it built the
+leg, and goes on from there. The same goes for boarding a lift, walking
+off one and stepping off across its threshold: Bespin's lift decks are
+reached through openings 0.2 wide, and a bot that stopped 0.09 off the
+middle of one on the deck could not get off it for 25 seconds. `BOT_MOVE`
+counts `leg_axis` in seconds.
+
+The engine stops a body moving toward a wall wherever the point it would
+touch the wall's plane lies within the body's radius (0.065) of a solid
+face, corners included, and a body stopped at a corner slides no further.
+The steering probe is slimmer than the body (0.052), so beside a narrow
+opening it passes moves the body cannot make. In the last Bespin recording
+Boba Fett rode a lift to the top and stood 25 seconds in the corner of the
+shaft beside the opening, 0.11 off its line, pressed against both walls:
+the straight way out and the slant back onto the line both met the jamb's
+corner. With `leg_square` (default 1), a bot off the line whose body would
+meet something on the straight way or the slant steps square onto the
+line, along the wall, and goes straight once the whole body clears the
+jamb; on a walking leg it keeps squaring for up to a second once it has
+started. Replayed on Bespin's own geometry with the engine's collision
+code, a rider stepping off from 21 spots on each of the eight lift stops
+got off from every one; with `leg_square` at 0, from 152 of the 168.
+`BOT_MOVE` counts `leg_square` in seconds.
 
 ## Confinement
 
@@ -583,6 +744,18 @@ the old behaviour.
   struck off and the bot plans again (`BOT_JUMP event=refuse`). Before this,
   the second recording's corridor had the bot walking into the rock wall
   under such a leg for 20 seconds.
+- `fjump_margin` (default 1). That flight depends on the frame rate: air
+  thrust is applied once a frame, so at a slow rate the body gets less of
+  it and flies a shorter jump. The graph was built on whatever frame time
+  the bot had while it loaded, and the bots then play at 30.
+  On Nar Shaddaa a leg up toward the main-side field switch (graph nodes
+  144 to 83) flies at 60 and 40 frames a second and falls short at 30, so
+  the planner kept choosing it and the bot kept refusing it on the launch
+  spot. A leg is now built in only if it still flies at 25 frames a second,
+  and the check on the launch spot flies at the bot's frame time averaged
+  over its last ten frames or so, not one frame's. On the level's own geometry
+  the graph keeps 83 Force Jump legs whether it is built at 60 or 30, and
+  that one is gone.
 - `jump_memory` (default 30; legacy 0). A Jump or Force Jump leg that comes
   down somewhere other than its target is struck off for twice this many
   seconds, and every spot on the ledge it aimed at is set aside for this
@@ -646,7 +819,7 @@ opponent like any other.
 
 ## Tactics
 
-`python -m bots.tactics list` prints the table: 57 named values with a
+`python -m bots.tactics list` prints the table: 64 named values with a
 default, a legacy value, and a range. The legacy column reproduces the
 behaviour before this change, so one build can play both.
 
@@ -954,6 +1127,33 @@ rebuild, and refresh the build receipts in the usual way.
   Ors came within 6 and disarmed it. Every bot read each change. The reach
   for taking it down was then allowed to grow past `trap_use`, to twice
   it, which has not been run live.
+- Lifts, Force Jump margins, field treks, dead ends, narrow openings and
+  the lift-shaft ledges: the driver suite (95 groups; five new, the force
+  field's extended) passes with the legacy values, with the new defaults
+  and under the sanitizers, as do the collision, companion, hearing,
+  portal, stock ground and loadout suites and the 251 Python tests. On Nar
+  Shaddaa's own geometry (offline) the graph keeps 83 Force Jump legs
+  whether it is built at 60 or 30 frames a second, and leg 144 to 83 is
+  gone; a gate in the field costs 2 to 8 units from the strip and 28 to 31
+  from the main side.
+- Live, five minutes each, four bots on the defaults, Red's own rendered
+  client recorded. Nar Shaddaa: Red refused none of the legs under the
+  main-side field switch (six refusals of two of them in the recording
+  before) and one leg elsewhere once, as did two other bots; she opened the
+  field once, from 0.14 away, and no two of her ten-second position
+  samples were the same. Bespin took eight recordings, each turning up a
+  way to stay stuck that the one before had not: the pit (four and a half
+  minutes on its hatch), a door alcove (three minutes at its mouth), a lift
+  deck 0.09 off its opening (25 seconds), a lift wait left over from a
+  death that kept the stuck checks off, the railgun alcove spawn (three
+  minutes), and the hatch pressed from beside the wall (two minutes, twice).
+  Each has its fix above. In the last, no bot had two ten-second samples in
+  the same place or more than one in the pit; across the four bots there
+  were 4 hops off the alcoves, 11 lift calls, 21 step-offs and 10 hatch
+  presses. Five step-offs timed out, all Boba Fett's in one 25-second
+  stretch on a deck at the top of a lift, pressed into the corner of the
+  shaft 0.11 off the middle of the opening: the move back onto its line met
+  the jamb's corner. `leg_square` (under Narrow openings) is the fix.
 
 Read the table with care. Two groups on identical settings in one 240 s
 match differed by 0.48 against 0.63 in speed and 36% against 19% in time
