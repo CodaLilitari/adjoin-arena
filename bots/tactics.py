@@ -83,6 +83,13 @@ TACTICS = (
     ("jump_margin", 1.0, 0.0, 0.0, 1.0, "accept a running jump only if a launch 15% slow (7% slow with less Force Jump lift) still lands; come back down from a launch far too slow"),
     ("trap_disarm", 1.0, 0.0, 0.0, 1.0, "switch an armed lightning ramp back off once it has stood armed a while with no opponent near it, from farther the longer it stands (up to twice trap_use)"),
     ("field_switch", 1.0, 0.0, 0.0, 1.0, "work a level's force field: a way through it while it is on costs the walk by that side's switch, which the bot presses before crossing; never walk into it while on"),
+    ("lift_call", 1.0, 0.0, 0.0, 1.0, "work a lift that will not come or go: press its button on this level, or step off across its threshold and plan again; no blind use presses while waiting (0 or 1)"),
+    ("fjump_margin", 1.0, 0.0, 0.0, 1.0, "build a Force Jump leg only if it still flies at 25 frames a second, and fly the check at the averaged frame time (0 or 1)"),
+    ("dead_end", 1.0, 0.0, 0.0, 1.0, "with no route out of where it stands, open the floor door it stands on: look down and press use (0 or 1)"),
+    ("leg_axis", 1.0, 0.0, 0.0, 1.0, "off a walking leg's line with the straight way to its node blocked, get back onto the line first (0 or 1)"),
+    ("lift_hop", 1.0, 0.0, 0.0, 1.0, "leave a ledge halfway up a lift shaft by the lift: onto its deck as it passes or where it stands below (0 or 1)"),
+    ("leg_square", 1.0, 0.0, 0.0, 1.0, "pressed against the wall beside a narrow opening, step square onto the leg's line until the body is clear of the jamb (0 or 1)"),
+    ("saber_heavy", 1.0, 0.0, 0.0, 1.0, "swing the saber's heavy secondary (160 damage, longest reach) from contact at a target still in reach as it lands; no swing out of contact (0 or 1)"),
 )
 NAMES = tuple(row[0] for row in TACTICS)
 INDEX = {name: index for index, name in enumerate(NAMES)}

@@ -315,13 +315,16 @@ run that ends before all bots join also returns failure.
 Proposed in `native/bot-tactics.patch`; not yet in the packaged bot clients.
 See [Bot movement, tactics and the coach seat](../docs/BOT_TACTICS.md).
 
-With that overlay built in, 57 named values steer the planner and the
+With that overlay built in, 64 named values steer the planner and the
 movement code: what each heavy gun is worth, how much water costs, whether
 the bot runs, how long it may stay in one spot before it must go elsewhere,
 whether it fights its way out of water and keeps Force Speed up, whether it
 pulls items on the run, how it goes after dropped packs, whether it keeps
 clear of, springs and disarms the stock levels' traps and works Nar
-Shaddaa's force field, and how much margin a running jump must have.
+Shaddaa's force field, whether it calls a lift that will not come, whether
+it opens the floor door of a pit it fell into, how it gets through a narrow
+opening from against the wall beside it, whether it swings the saber's heavy
+secondary, and how much margin a running jump or a Force Jump leg must have.
 `python3 -m bots.tactics list` prints them with their ranges and presets.
 
 - `python3 -m bots.tactics write PATH --preset NAME --set name=value` writes a
