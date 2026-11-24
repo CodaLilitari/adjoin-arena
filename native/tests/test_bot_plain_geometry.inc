@@ -7,7 +7,23 @@ static int plainSolidFloor; /* slanted rays meet the floor too (thrown grenades)
 static SithSector plainLand, plainPool;
 static SithSurface plainGround;
 
-static int TestPlainSphere(SithSector *sector) { return sector==&plainLand; }
+/* A pool variant for pickups in water: below plainPoolSurface every point
+   is in plainPool, above it in plainLand, and a sphere fits the pool while
+   it stays clear of the pool floor and of the surface. A ray down onto the
+   surface from the air meets the water. */
+static int plainPoolActive; static flex_t plainPoolFloor, plainPoolSurface=1e9f;
+static SithSurface plainWaterTop;
+static int TestPlainSphere(const rdVector3 *p,flex_t radius,SithSector *sector)
+{
+    if (plainPoolActive && p->z>plainPoolSurface) return sector==&plainLand && radius==0;
+    if (plainPoolActive) return sector==&plainPool && p->z-radius>=plainPoolFloor+0.0005f &&
+                                p->z+radius<=plainPoolSurface-0.0005f;
+    return sector==&plainLand;
+}
+static SithSector *TestPlainSector(const rdVector3 *p)
+{
+    return plainPoolActive && p->z<=plainPoolSurface ? &plainPool : &plainLand;
+}
 
 static int TestPlainCollision(const rdVector3 *from,const rdVector3 *direction,
                               flex_t distance,flex_t radius,SithCollision *hit)
@@ -19,6 +35,11 @@ static int TestPlainCollision(const rdVector3 *from,const rdVector3 *direction,
     plainGround.pSector=&plainLand;
     plainGround.flags|=SITH_SURFACE_HAS_COLLISION|SITH_SURFACE_FLOOR;
     if (direction->z<-0.99f) {
+        if (plainPoolActive && from->z>plainPoolSurface && end.z<=plainPoolSurface) {
+            plainWaterTop.flags=SITH_SURFACE_WATER; plainWaterTop.pSector=&plainLand;
+            hit->surface=&plainWaterTop; hit->distance=from->z-plainPoolSurface; hit->hitNorm.z=1;
+            return 1;
+        }
         flex_t floor=from->x>=plainShelf ? plainShelfZ : 0;
         if (from->x>=plainEdge || from->z<floor || end.z>floor) return 0;
         hit->distance=from->z-floor; hit->hitNorm.z=1;

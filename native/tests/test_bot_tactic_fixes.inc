@@ -1,8 +1,9 @@
 /* Fixes from the review of bot and human match footage: respawn timing,
  * swimming and climbing out while fighting, the Grip answer during a climb
  * out, Force Jump flown from a standstill, the jump memory, Force Speed kept
- * up, and resupply after a Force Pull. Controlled fixtures only: synthetic
- * ground and hand-built graphs, not a level or a live match. */
+ * up, resupply after a Force Pull, running everywhere safe, pulling items
+ * on the move, and dropped packs. Controlled fixtures only: synthetic ground
+ * and hand-built graphs, not a level or a live match. */
 
 static void test_fix_respawn(void)
 {
@@ -475,6 +476,184 @@ static void test_fix_resupply(void)
     puts("PASS resupply: a pulled gun at rest is a pickup worth its kind, empty guns put ammunition first, disarmed opponents are preferred, no hunt without shots");
 }
 
+static void test_fix_always_run(void)
+{
+    static SithWorld world; static SithThing things[1];
+    SithThing self; SithPlayer own;
+    testPlainActive=1; plainEdge=plainWall=plainShelf=1e9f; plainShelfZ=0; plainGround.flags=0; plainLand.flags=0;
+    PlainSelf(&self,&own);
+    jkBot_Configure("AlwaysRun_Test","ky.3do"); TacticsUse(0); bot.now=5;
+    rdVector3 east={1,0,0}, west={-1,0,0};
+    /* One running stop (0.69 units) ahead: a pit refuses the run, a wall
+       does not; the old runway wanted the whole body clear for that far. */
+    assert(Bot_RunSafe(&self,east,0));
+    plainEdge=0.5f; assert(!Bot_RunSafe(&self,east,0)); plainEdge=1e9f;
+    plainWall=0.3f; assert(Bot_RunSafe(&self,east,0) && !Bot_RunClear(&self,east,1,0)); plainWall=1e9f;
+    /* A step up behind a sheer face ends the look. Off a shelf: a small step
+       down is run, a drop the bot could not climb back is walked. */
+    plainShelf=0.3f; plainShelfZ=0.45f; assert(Bot_RunSafe(&self,east,0));
+    self.position=(rdVector3){0.6f,0,0.45f+BOT_FOOT_HEIGHT}; assert(!Bot_RunSafe(&self,west,0));
+    plainShelfZ=0.2f; self.position.z=0.2f+BOT_FOOT_HEIGHT; assert(Bot_RunSafe(&self,west,0));
+    assert(!Bot_RunClear(&self,west,1,0) && "the old runway walked any step down");
+    plainShelf=1e9f; plainShelfZ=0; self.position=(rdVector3){0,0,BOT_FOOT_HEIGHT};
+    /* Off ordinary dry footing there is no run at all. */
+    self.attach_flags=0; assert(!Bot_RunSafe(&self,east,0)); self.attach_flags=SITH_ATTACH_SURFACE;
+    plainGround.flags=SITH_SURFACE_ICY; assert(!Bot_RunSafe(&self,east,0)); plainGround.flags=0;
+    /* The last span onto a pickup is run too, unless the coast past it is unsafe. */
+    bot.world=sithWorld_g_pCurrentWorld=&world; world.aThings=things; world.numThings=world.numThingsLoaded=1;
+    bot.elite=1; sithPlayer_g_pLocalPlayerThing=&self;
+    SithThing *gun=&things[0]; memset(gun,0,sizeof(*gun));
+    gun->type=SITH_THING_ITEM; gun->idx=0; gun->guid=40; gun->signature=41; gun->sector=&plainLand;
+    gun->collide=SITH_COLLIDE_SPHERE; gun->collideSize=0.1f; strcpy(gun->aName,"concrifle");
+    #define APPROACH(x) (gun->position=(rdVector3){(x)+0.1f,0,0.05f}, \
+        bot.armItem=1, bot.armGuid=40, bot.armSignature=41, bot.armPosition=gun->position, \
+        bot.armDirect=1, bot.armNext=bot.now+10, \
+        bot.armContact=(BotNode){.pos={(x),0,BOT_FOOT_HEIGHT},.sector=&plainLand,.item=0}, \
+        memset(bot.axes,0,sizeof(bot.axes)), memset(bot.keys,0,sizeof(bot.keys)), Bot_ArmingMove(&self,1e20f))
+    assert(APPROACH(1.1f) && bot.keys[INPUT_FUNC_FAST] && bot.axes[INPUT_FUNC_FORWARD]>0.9f);
+    plainEdge=0.6f; assert(APPROACH(0.3f) && !bot.keys[INPUT_FUNC_FAST] && "a pit just past the pickup");
+    plainEdge=1e9f; TacticsUse(1); assert(APPROACH(1.1f) && !bot.keys[INPUT_FUNC_FAST]); TacticsUse(0);
+    #undef APPROACH
+    bot.armItem=bot.armDirect=0; bot.world=sithWorld_g_pCurrentWorld=NULL; sithPlayer_g_pLocalPlayerThing=NULL;
+    testPlainActive=0;
+    puts("PASS always run: only a pit, a big drop or poor footing ahead stops the run; walls, steps up and small steps down do not; pickups are run onto");
+}
+
+static void test_fix_pull_on_move(void)
+{
+    static SithWorld world; static SithThing items[1];
+    static SithCogSymbol marker; static SithCogSymbolTable table; static sithCog cog;
+    SithThing self, enemy; SithPlayer own;
+    int pull=SITHBIN_F_PULL;
+    testPlainActive=1; plainEdge=plainWall=plainShelf=1e9f; plainShelfZ=0; plainGround.flags=0; plainLand.flags=0;
+    PlainSelf(&self,&own); memset(&enemy,0,sizeof(enemy));
+    assert(setenv("JK_BOT_FORCE_STYLE","competitive",1)==0);
+    jkBot_Configure("PullMove_Test","ky.3do");
+    assert(unsetenv("JK_BOT_FORCE_STYLE")==0);
+    TacticsUse(0); bot.joined=1; bot.now=50; bot.elite=1; bot.frameDt=0.02f; jkPlayer_maxPlayers=0; testLOS=1;
+    sithPlayer_g_pLocalPlayerThing=&self;
+    own.aItems[pull].amount=4; own.aItems[pull].state=SITHINVENTORY_ITEM_AVAILABLE;
+    own.aItems[SITHBIN_F_JUMP].amount=4; own.aItems[SITHBIN_F_JUMP].state=SITHINVENTORY_ITEM_AVAILABLE;
+    own.aItems[SITHBIN_FORCEMANA].amount=400; own.curPower=SITHBIN_F_JUMP;
+    memset(&marker,0,sizeof(marker)); memset(&table,0,sizeof(table)); memset(&cog,0,sizeof(cog));
+    table.aSymbols=&marker; table.tableSize=table.numUsedSymbols=1; cog.pSymbolTable=&table;
+    marker.pName="victim"; marker.val.type=COG_TYPE_INT; marker.val.data[0]=-1;
+    testInventoryTypes[pull].cog=&cog;
+    bot.world=sithWorld_g_pCurrentWorld=&world; world.aThings=items; world.numThings=world.numThingsLoaded=1;
+    memset(items,0,sizeof(items));
+    items[0].type=SITH_THING_ITEM; items[0].idx=0; items[0].guid=700; items[0].sector=&plainLand;
+    strcpy(items[0].aName,"concrifle");
+    int key=Bot_PowerKey(pull); assert(key>=0);
+    #define PULL_TICK(target) (test_force_frame(), memset(bot.axes,0,sizeof(bot.axes)), Bot_ForceTick(&self,(target),180))
+    #define PULL_START() (items[0].flags=0, items[0].position=(rdVector3){1.5f,0,0.05f}, \
+        items[0].physicsParams.vel=(rdVector3){0,0,0}, own.curPower=SITHBIN_F_JUMP, marker.val.data[0]=-1, \
+        bot.nextItemPull=0, bot.pullItemLast=0, bot.nextForce=0, bot.forceBin=-1, PULL_TICK(NULL))
+    /* Aimed and cast while running at the item: it stays in reach and in
+       view and comes in sooner. Legacy stood still for the whole pull. */
+    PULL_START(); assert(bot.pullItem==1 && bot.pullPhase==1);
+    PULL_TICK(NULL);
+    assert(bot.pullPhase==2 && bot.keys[key] && bot.axes[INPUT_FUNC_FORWARD]>0.9f && bot.keys[INPUT_FUNC_FAST]);
+    own.curPower=pull; bot.now+=0.3f; PULL_TICK(NULL);
+    assert(bot.keys[key] && bot.axes[INPUT_FUNC_FORWARD]>0.9f && "held for the marker on the run");
+    marker.val.data[0]=0; bot.now+=0.3f; PULL_TICK(NULL);
+    assert(!bot.keys[key] && bot.pullPhase==3);
+    /* Thrown: run onto it as it flies in. */
+    items[0].position=(rdVector3){0.9f,0,0.1f}; items[0].physicsParams.vel=(rdVector3){-3,0,0};
+    bot.now+=0.05f; PULL_TICK(NULL); assert(bot.pullPhase==3 && bot.axes[INPUT_FUNC_FORWARD]>0.9f);
+    /* Where the way to it is unsafe, wait: it is coming to the release spot. */
+    plainEdge=0.12f; bot.now+=0.05f; PULL_TICK(NULL);
+    assert(bot.pullPhase==3 && bot.axes[INPUT_FUNC_FORWARD]==0 && bot.axes[INPUT_FUNC_SLIDE]==0);
+    plainEdge=1e9f;
+    /* A fight starting now keeps the view and the Force; the legs still chase. */
+    bot.now+=0.05f; PULL_TICK(&enemy); assert(bot.pullPhase==3 && bot.axes[INPUT_FUNC_FORWARD]>0.9f);
+    items[0].flags|=SITH_TF_DISABLED; bot.now+=0.05f; PULL_TICK(NULL);
+    assert(!bot.pullItem && bot.tele.itemCaught==1);
+    /* Marked when a fight starts: let go at once instead of cancelling. */
+    bot.now+=2; PULL_START(); assert(bot.pullPhase==1); PULL_TICK(NULL); assert(bot.pullPhase==2);
+    own.curPower=pull; marker.val.data[0]=0; bot.now+=0.1f; PULL_TICK(&enemy);
+    assert(bot.pullPhase==3 && !bot.keys[key] && bot.forceBin<0 && bot.tele.itemPulls==2);
+    items[0].flags|=SITH_TF_DISABLED; bot.now+=0.05f; PULL_TICK(NULL); assert(!bot.pullItem);
+    /* Under way, closing inside 0.45 or bouncing off the ground on the run
+       does not end it; the bot runs on until it has the item. */
+    bot.now+=2; PULL_START(); assert(bot.pullPhase==1);
+    items[0].position=(rdVector3){0.3f,0,0.05f}; PULL_TICK(NULL);
+    assert(bot.pullItem==1 && bot.axes[INPUT_FUNC_FORWARD]>0.9f);
+    self.attach_flags=0; PULL_TICK(NULL); assert(bot.pullItem==1 && bot.axes[INPUT_FUNC_FORWARD]>0.9f);
+    self.attach_flags=SITH_ATTACH_SURFACE;
+    items[0].flags|=SITH_TF_DISABLED; PULL_TICK(NULL); assert(!bot.pullItem && "taken by touch");
+    /* Legacy: still throughout; a fight ends the catch. */
+    TacticsUse(1); BT(ITEM_PULL)=2.0f; bot.now+=2; PULL_START(); PULL_TICK(NULL);
+    assert(bot.pullPhase==2 && bot.axes[INPUT_FUNC_FORWARD]==0 && !bot.keys[INPUT_FUNC_FAST]);
+    own.curPower=pull; marker.val.data[0]=0; bot.now+=0.6f; PULL_TICK(NULL); assert(bot.pullPhase==3);
+    bot.now+=0.05f; PULL_TICK(&enemy); assert(!bot.pullItem);
+    bot.now+=2; PULL_START(); assert(bot.pullPhase==1);
+    items[0].position=(rdVector3){0.3f,0,0.05f}; PULL_TICK(NULL); assert(!bot.pullItem && "too close: given up");
+    TacticsUse(0);
+    #undef PULL_START
+    #undef PULL_TICK
+    testInventoryTypes[pull].cog=NULL; own.curPower=SITHBIN_F_JUMP; bot.forceBin=-1;
+    bot.world=sithWorld_g_pCurrentWorld=NULL; sithPlayer_g_pLocalPlayerThing=NULL; testPlainActive=0;
+    puts("PASS Force Pull on the move: runs at the item through the cast and onto it as it flies in, waits where the way is unsafe, lets go when a fight starts; legacy stands");
+}
+
+static void test_fix_pack_hunt(void)
+{
+    static SithWorld world; static SithThing things[1];
+    SithThing self; SithPlayer own;
+    testPlainActive=1; plainEdge=plainWall=plainShelf=1e9f; plainShelfZ=0; plainGround.flags=0; plainLand.flags=0;
+    plainPool.flags=SITH_SECTOR_UNDERWATER;
+    PlainSelf(&self,&own);
+    jkBot_Configure("PackHunt_Test","ky.3do"); TacticsUse(0); bot.now=5; bot.elite=1;
+    bot.world=sithWorld_g_pCurrentWorld=&world; world.aThings=things; world.numThings=world.numThingsLoaded=1;
+    sithPlayer_g_pLocalPlayerThing=&self;
+    SithThing *pack=&things[0]; memset(pack,0,sizeof(*pack));
+    pack->type=SITH_THING_ITEM; pack->idx=0; pack->guid=900; pack->sector=&plainLand;
+    pack->collide=SITH_COLLIDE_SPHERE; pack->collideSize=0.1f; pack->itemParams.flags=SITH_ITEM_BACKPACK;
+    pack->itemParams.numBins=2;
+    pack->itemParams.contents[0].binIdx=SITHBIN_CONCUSSION_RIFLE; pack->itemParams.contents[0].value=1;
+    pack->itemParams.contents[1].binIdx=SITHBIN_POWER; pack->itemParams.contents[1].value=50;
+    /* pack_deny: a concussion rifle in a pack is worth the walk even to a
+       bot holding one with plenty of shots; before, only its ammunition. */
+    own.aItems[SITHBIN_CONCUSSION_RIFLE].amount=1; own.aItems[SITHBIN_CONCUSSION_RIFLE].state=SITHINVENTORY_ITEM_AVAILABLE;
+    own.aItems[SITHBIN_POWER].amount=200;
+    assert(Bot_PackValue(&self,pack)==BT(PACK_DENY) && BT(PACK_DENY)==3.0f);
+    TacticsUse(1); assert(Bot_PackValue(&self,pack)==1.0f); TacticsUse(0);
+    own.aItems[SITHBIN_CONCUSSION_RIFLE].amount=0; own.aItems[SITHBIN_POWER].amount=0;
+    assert(Bot_PackValue(&self,pack)==18.0f && "a missing rifle is still worth what it was");
+    /* A pack on a shelf 0.45 up behind a sheer face. The nodes below the face
+       are the nearest; only the shelf node walks onto the pack. Kept while
+       the pack lies still; a shove starts over. */
+    plainShelf=1.0f; plainShelfZ=0.45f;
+    pack->position=(rdVector3){1.3f,0,0.45f+0.036f};
+    bot.nNodes=4; bot.graphDone=1;
+    RouteNode(0,0.95f,0); RouteNode(1,0.9f,0.2f); RouteNode(2,0.9f,-0.2f);
+    RouteNode(3,1.9f,0); bot.nodes[3].pos.z=0.45f+BOT_FOOT_HEIGHT;
+    memset(nav.packRoutes,0,sizeof(nav.packRoutes));
+    BotPackRoute *kept=Bot_PackRoute(&self,pack);
+    assert(kept && fabsf(kept->end.pos.x-1.3f)<0.01f && fabsf(kept->end.pos.z-(0.45f+BOT_FOOT_HEIGHT))<0.01f);
+    Bot_GrowPackRoute(&self,kept);
+    assert(kept->count==1 && kept->approach[0]==3 && kept->tested==4 && kept->exhausted);
+    assert(Bot_PackRoute(&self,pack)==kept && kept->count==1);
+    pack->position.x+=0.1f; kept=Bot_PackRoute(&self,pack); assert(kept && kept->count==0 && !kept->tested);
+    /* On a pool floor the contact sphere sat on the floor and did not fit;
+       lifted within reach, it does. */
+    plainShelf=1e9f; plainShelfZ=0; plainPoolActive=1; plainPoolFloor=0;
+    pack->sector=&plainPool; pack->position=(rdVector3){0.5f,0,-0.002f};
+    BotNode end;
+    assert(Bot_PackContact(&self,pack,&end) && end.sector==&plainPool && end.pos.z-self.moveSize>=0.0005f);
+    TacticsUse(1); assert(!Bot_PackContact(&self,pack,&end)); TacticsUse(0);
+    /* Floating 0.057 under the surface the probe above it is in the air;
+       the contact is taken from the water, under the pack. */
+    plainPoolSurface=0.3f; pack->position=(rdVector3){0.5f,0,0.243f};
+    assert(Bot_PackContact(&self,pack,&end) && end.sector==&plainPool && end.pos.z<pack->position.z &&
+           end.pos.z+self.moveSize<=plainPoolSurface);
+    TacticsUse(1); assert(!Bot_PackContact(&self,pack,&end) && "the probe met the water surface"); TacticsUse(0);
+    plainPoolActive=0; plainPoolSurface=1e9f; plainPool.flags=0; bot.nNodes=0;
+    memset(nav.packRoutes,0,sizeof(nav.packRoutes));
+    bot.world=sithWorld_g_pCurrentWorld=NULL; sithPlayer_g_pLocalPlayerThing=NULL; testPlainActive=0;
+    puts("PASS dropped packs: a heavy gun is worth fetching to deny it, the way in is found from the nodes nearest the pack and kept, and a pack on a pool floor can be reached");
+}
+
 static void test_bot_tactic_fixes(void)
 {
     jkPlayer_maxPlayers=0; memset(jkPlayer_playerInfos,0,sizeof(jkPlayer_playerInfos));
@@ -485,4 +664,7 @@ static void test_bot_tactic_fixes(void)
     test_fix_jump_memory();
     test_fix_speed();
     test_fix_resupply();
+    test_fix_always_run();
+    test_fix_pull_on_move();
+    test_fix_pack_hunt();
 }

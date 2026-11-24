@@ -38,7 +38,7 @@ static SithCollision fixtureHit;
 /* Bounded box matching stock m2 sector110; not a full level simulation. */
 int sithIntersect_IsSphereInSector(const rdVector3 *p, flex_t radius, SithSector *sector)
 {
-    if (testPlainActive) return TestPlainSphere(sector);
+    if (testPlainActive) return TestPlainSphere(p,radius,sector);
     if (testC1Active) return TestC1Sphere(p,radius,sector);
     if (testBridgeActive) return TestBridgeSphere(p,radius,sector);
     if (testSlopeActive) return TestSlopeSphere(p,radius,sector);
@@ -50,7 +50,7 @@ int sithIntersect_IsSphereInSector(const rdVector3 *p, flex_t radius, SithSector
 SithSector *sithSector_FindSectorAtPos(SithWorld *world, rdVector3 *position)
 {
     (void)world;
-    if (testPlainActive) return &plainLand;
+    if (testPlainActive) return TestPlainSector(position);
     if (testC1Active) return TestC1Sector(position);
     if (testBridgeActive) return TestBridgeSector(position);
     if (testSlopeActive) return TestSlopeSectorAt(position);

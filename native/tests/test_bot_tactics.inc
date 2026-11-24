@@ -150,7 +150,10 @@ static void test_tactic_run(void)
     /* Coasting from a run needs about 0.69 units of checked floor. */
     plainEdge=0.60f; assert(!PlainMove(&self,1,0,0) && bot.axes[INPUT_FUNC_FORWARD]>0.99f);
     plainEdge=0.75f; assert(PlainMove(&self,1,0,0));
-    plainEdge=1e9f; plainWall=0.60f; assert(!PlainMove(&self,1,0,0));
+    /* always_run: a wall ahead is nothing to fall from; the full-body
+       runway the run used to need refused it. */
+    plainEdge=1e9f; plainWall=0.60f; assert(PlainMove(&self,1,0,0));
+    BT(ALWAYS_RUN)=0; assert(!PlainMove(&self,1,0,0)); BT(ALWAYS_RUN)=1;
     plainWall=1e9f;
     /* A ledge inside ordinary stopping distance steers aside and never runs. */
     plainEdge=0.15f; assert(!PlainMove(&self,1,1,0) && fabsf(bot.axes[INPUT_FUNC_SLIDE])>0.1f);
@@ -255,7 +258,9 @@ static void test_tactic_route_run(void)
     bot.nodes[2].nEdges=0; RouteEdge(2,3,BOT_ROUTE_WALK); RouteEdge(3,4,BOT_ROUTE_WALK);
     bot.routePos=1; self.position.x=1.5f;
     assert(fabsf(Bot_StraightWalk(&self,10)-0.5f)<0.0005f);
-    assert(!RouteStep(&self,1.5f,1));
+    /* always_run takes the corner running, on open floor; the old rule walked. */
+    assert(RouteStep(&self,1.5f,1));
+    BT(ALWAYS_RUN)=0; assert(!RouteStep(&self,1.5f,1)); BT(ALWAYS_RUN)=1;
     /* A gentle bend does not. */
     RouteNode(3,3,0.3f); RouteNode(4,4,0.3f);
     bot.nodes[2].nEdges=bot.nodes[3].nEdges=0; RouteEdge(2,3,BOT_ROUTE_WALK); RouteEdge(3,4,BOT_ROUTE_WALK);

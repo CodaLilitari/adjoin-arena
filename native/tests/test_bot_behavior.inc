@@ -360,6 +360,8 @@ static void test_item_pull(SithThing *self)
     assert(unsetenv("JK_BOT_FORCE_STYLE")==0);
     bot.joined=1; bot.now=50; bot.elite=1; jkPlayer_maxPlayers=0;
     flex_t saved=BT(ITEM_PULL); least=2.0f; BT(ITEM_PULL)=least; /* the default */
+    /* The pull made standing still; pull_on_move is covered in test_bot_tactic_fixes.inc. */
+    flex_t savedMove=BT(PULL_ON_MOVE); BT(PULL_ON_MOVE)=0;
     memset(own->aItems,0,sizeof(own->aItems));
     own->aItems[pull].amount=4; own->aItems[pull].state=SITHINVENTORY_ITEM_AVAILABLE;
     own->aItems[SITHBIN_F_JUMP].amount=4; own->aItems[SITHBIN_F_JUMP].state=SITHINVENTORY_ITEM_AVAILABLE;
@@ -420,7 +422,7 @@ static void test_item_pull(SithThing *self)
     /* An enemy in the fight takes precedence while aiming. */
     SithThing enemy={0}; test_force_frame(); Bot_ForceTick(self,&enemy,0); assert(!bot.pullItem);
     marker.val.data[0]=-1; testInventoryTypes[pull].cog=NULL; own->curPower=SITHBIN_F_JUMP;
-    bot.world=sithWorld_g_pCurrentWorld=NULL; self->attach_flags=0; BT(ITEM_PULL)=saved;
+    bot.world=sithWorld_g_pCurrentWorld=NULL; self->attach_flags=0; BT(ITEM_PULL)=saved; BT(PULL_ON_MOVE)=savedMove;
     puts("PASS a wrong marker deselects, the item rests before a retry, and a fight takes precedence");
 }
 
