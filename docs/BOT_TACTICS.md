@@ -94,6 +94,15 @@ Three more came out of the first live matches (see Evidence):
   into that water and the place it was heading for are set aside for this
   many seconds, so the same dive is not repeated at once.
 
+`water_slip` (default 1): a bot that ends up in water on a leg meant for
+dry ground (it walked off a pool edge, or a jump fell short) no longer
+presses jump at the surface toward a ledge no hop can reach. In the first
+recorded match that loop splashed five times in four seconds. It sets the
+leg aside for 15 seconds and replans from the water, which routes it out
+through a checked bank exit or a Force Jump from the surface. In a 300 s
+match the two bots on the defaults slipped seven times and were out within
+2 to 6 seconds each time.
+
 Every step from a bank into water now carries `water_entry_cost`; in the
 first version only one kind of entry did, and pool edges were free. The
 bank exit itself is unchanged.
@@ -167,6 +176,104 @@ keeps the ground speed the bot had and leaves its aim free, so it goes on
 firing in the air. Each one logs a `BOT_DODGE` line, and `BOT_MOVE` counts
 dodges and seconds of firing while airborne.
 
+## Heavy guns
+
+The concussion rifle has two modes in the stock COG. The shell (primary)
+flies at 7 units a second and bursts for 80 within 0.8 units, the shooter
+included, for 8 power cells. The beam (alternate) is an instant thin ray that
+does 80 to the first thing it meets within 5 units, with no splash and no
+harm to the shooter, for 4 cells. Either mode needs 8 cells in hand to fire.
+The old rule used the beam first anywhere it reached. With `conc_alt_range`
+(default 1.4) the bot fires the shell beyond 1.4 units when the shell is
+safe, and the beam inside that or when the shell would catch the bot or an
+ally; 99 restores the old rule.
+
+A heavy gun (concussion rifle or rail detonator) had to show a safe shot on
+every frame to stay selected. No other gun had to. A target stepping behind
+a lip, or the muzzle path clipping a wall for a moment, put the heavy away,
+and picking it back up costs the switch time twice. A combat jump put it
+away too, because heavies may not fire in the air. With `heavy_hold`
+(default 1) the heavy stays in hand while the beam reaches, while the target
+is out of sight, and while the shot is only blocked, since a blocked path
+blocks every gun alike. It is still put away for real reasons: out of ammo,
+the target inside its own blast, splash on an ally. A combat jump holds fire
+instead of switching. In a dodge hop the bot fires a heavy if the kick (80
+force units back along the body) still lands on floor or against a wall.
+`BOT_SWITCH` logs every switch away from a heavy with a visible target and
+the reason; `BOT_MOVE` counts shells and beams with mean range, seconds with
+a heavy in a fight, and those switches.
+
+## Force Pull
+
+The stock Pull takes whatever player, actor or item lies nearest the view
+centre, in sight, within 0.5 + rank/2 units. A player loses the gun in hand
+and drops to fists, unless Absorb is up; fists and sabers cannot be pulled.
+Pulls on players were reviewed with a check 0.8 s after each release: in
+three matches 128 of 199 checked pulls disarmed (64%), much the same for
+both groups. Absorb, which the light-side bots keep up in fights, accounts for
+most of the rest; the existing per-opponent retry delay already backs off
+after a pull that changes nothing. Pulls cancelled before release (the
+stock marker named something else, or sight was lost) were 102. Each cancel
+cycles the selected power, which is the scrolling power names seen in the
+recording; that is only on the bot's own screen.
+
+Items answer Pull too: the item flies at the puller with gravity off.
+Keys, wrenches and CTF flags refuse it. With `item_pull` (default 2; 0 =
+never) a bot standing on dry ground with no enemy in sight pulls an item
+worth at least that much (the same value the planner gives it) from 0.75
+units out to just inside its reach. It stops, turns until the item is
+centred, holds Pull until the stock marker names that item, releases, and
+stands for up to 1.5 s to catch it. A wrong marker cancels through
+deselection; an item that was not caught rests ten seconds before another
+try; an enemy coming into view ends the pull. `BOT_PULL` lines record each
+item pull and each player pull's outcome.
+
+## Mines and thermals
+
+The bots used neither. The combat code left thermal detonators and
+sequencer charges out of weapon choice, and the planner never collected
+them. Canyon Oasis has a thermal pickup and three charges.
+
+`hazard_avoid` (default 1): a weapon thing at rest with an explosion of its
+own is a hazard. That is a laid charge (a proximity mine two seconds after
+it lands, for sixty seconds, set off by anything inside 0.3 units), a
+bouncing thermal on its fuse, or a stuck rail charge. Nodes within reach of
+one are avoided, legs that pass one cost as much as an avoided node, and a
+bot standing too close steps away. Shots in flight stay with the dodge.
+
+`mines` (default 1): charges are worth collecting up to three. When the bot
+takes a guarded item that respawns (a heavy gun, armour, health, a power
+boost) and has a charge, it selects the charge, raises it and drops a
+proximity mine (the secondary) on the spot, for the next player who comes
+for the respawn. Not with an enemy in view, not near another hazard, not
+with more than three of its own alive, not in team play or while any
+player is peaceful.
+
+`thermals` (default 1): thermals are worth collecting up to four. The
+stock throw scales the grenade's launch velocity by the seconds held, 0.7
+to 2 for the primary, which bursts on whatever it touches: 0.7 units of
+reach at the shortest hold, 3.2 at the longest, with up to a second and a
+third of flight. That suits targets guns serve badly: out of sight below or
+behind a lip, in the water, or standing still, 1.4 to 3.2 units away. The
+bot flies the grenade the way the engine does (template velocity, air drag,
+gravity, collision with level geometry) to find the pitch that lands by
+the target's feet, chooses the shortest hold that reaches, keeps the arc
+updated while holding, and releases once turned onto it. It never throws
+at its own feet. `BOT_MINE`, `BOT_THERMAL` and `BOT_HAZARD` lines log each
+attempt.
+
+## Use
+
+Every press of the use key plays the stock "use" animation, and the host
+sends it to every player, whether or not anything is there to use. The bot
+pressed use every 0.8 seconds whenever its way was blocked, in case it was
+a door. In a match that came to 30 to 63 presses a minute. With `blind_use`
+at its default of 0, it presses only when the engine's own activate test
+would find something: a COG-linked surface or a captured thing that is not
+an item, within reach along the view. A stall that triggers recovery still
+presses once. Measured in the same match: 2 to 3 presses a minute, against
+30 and 63 for two bots with `blind_use=1`.
+
 ## Confinement
 
 `Bot_Recovery` already handles a bot that cannot move. The new check handles
@@ -187,7 +294,7 @@ count and avoid time.
 
 ## Tactics
 
-`python -m bots.tactics list` prints the table: 28 named values with a
+`python -m bots.tactics list` prints the table: 36 named values with a
 default, a legacy value, and a range. The legacy column reproduces the
 behaviour before this change, so one build can play both.
 
@@ -320,6 +427,45 @@ rebuild, and refresh the build receipts in the usual way.
   water, two attempts with an earlier timing showed the Force Jump does
   fire from the surface, and both fell back. The present timing has not
   yet been tried in a match: the bots were rarely in that pool.
+- A four-minute recording of one bot's own rendered client, third person,
+  against two bots on the same build: 3 kills, 3 deaths, about a third of
+  the time in water, six dodges, three seconds of firing in the air, no
+  running jumps. Reviewing it frame by frame found the blind use presses
+  and the surface-hop loop above. It also shows the Force power names
+  filling the top of the bot's own screen. That comes from the bot cycling
+  its selected power to stop Pull, which only the bot itself sees, and from
+  36 Pull casts in 277 seconds alive. The video also shows the bot taking
+  Grip damage repeatedly without answering it.
+- The match after both fixes, 300 s, defaults against `legacy`: speed 0.63
+  against 0.38, time wet 21% against 40%, kills 7 against 3, use presses
+  1.9 to 5.5 a minute against 9 and 27.
+- Three matches (16 minutes) of the defaults against the defaults with
+  `conc_alt_range=99`, `heavy_hold=0` and `item_pull=0`. The new group
+  fired 26 shells at a mean range of 3.0 to 3.2 units and 2 beams where the
+  shell was not safe; the old group fired only beams, 12 of them, at a mean
+  of 1.2 to 2.8. Both fire the rifle less often than it is in hand. In the
+  last match, the one with
+  the blocked-path rule built in, the new group put a heavy away 9 times
+  (5 out of ammo, 4 too close) and the old group 29 times, 13 of them for a
+  path that was only blocked. Kills over the three were 28 to 23 and deaths
+  21 to 31. The first of the three had no blocked-path rule yet, and one
+  match of this size cannot rank two settings (see below). 32 item pulls
+  were cast and 23 items caught, among them a full shield, a repeater, a
+  crossbow and a stormtrooper rifle. An earlier match caught a concussion
+  rifle.
+- The driver suite (73 groups) passes with the legacy values, with the new
+  defaults and under the sanitizers; it now covers the shell and beam rule,
+  holding a heavy through a blocked path, firing in a dodge hop, an item
+  pull from aim to catch, hazards, laying a mine and a thermal throw from
+  selection to release.
+- Four matches on Canyon Oasis with mines on (23 minutes): 12 mines laid,
+  14 steps away from a bot's own fresh mine, none from anyone else's. The
+  charges lie on a ledge the planner does not reach; five of the six bots
+  that laid mines got them with Item Pull. Whether a mine killed anyone is not measured. No thermal was thrown:
+  the map's one thermal lies in the pool where the planner has no node, and
+  no bot picked it up. On m5, which has four of each, the bots barely move
+  (fifty confinement escapes each in six minutes) and its heavy guns are
+  unreachable to the planner, so it was no test.
 
 Read the table with care. Two groups on identical settings in one 240 s
 match differed by 0.48 against 0.63 in speed and 36% against 19% in time
@@ -345,6 +491,11 @@ measured: in one 300 s match four bots dodged 17 times and two of them fired
 for 3 seconds in the air. After one jump fell short at 9 percent under its
 sprint speed, jumps must now land at 90 and 109 percent of it, which halves
 the ways into the alcove at rank four (three are left). Behaviour on moving platforms is untested.
+Thermal throws are tested only in fixtures so far. Mines are laid only on
+item spots, not on a retreat. Grip damage is
+still not answered. Whether the beam's 0.8 degree aim tolerance is what
+keeps beam counts low has not been checked. Item pulls have not been seen
+reaching the concussion rifle in its alcove from below.
 
 ## Human footage
 
