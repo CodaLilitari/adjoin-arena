@@ -14,7 +14,8 @@ around it. It builds on the competitive bot branch and changes four things:
 **Status.** The overlay is source. It is not in the packaged binaries, which
 still match `native/bot-client.patch` and `web_bots/engine.patch` and their
 build receipts. It has passed fixture tests and a check against the engine's
-own physics code. It has not been built into a client or played in a match.
+own physics code, and bot clients built from it have played bot-only matches
+on Canyon Oasis. It has not been played against people.
 See [Evidence and limits](#evidence-and-limits) and
 [Building and trying it](#building-and-trying-it).
 
@@ -292,9 +293,127 @@ the bot also takes the existing air-and-bank escape and records the dive as
 failed. Each escape logs one `BOT_CONFINED` line with position, strike
 count and avoid time.
 
+## What the recordings showed
+
+Two four-minute recordings of one bot's own rendered client on Canyon Oasis,
+reviewed frame by frame against its logs, were set beside four public Canyon
+Oasis matches between people (two Full Force duels, a 2v2 and a permanent
+concussion rifle duel). Each fix below is a tactic whose legacy value keeps
+the old behaviour.
+
+- `quick_respawn` (default 1). The stock controls ignore the respawn key
+  until three seconds after death, then respawn on a press followed by a
+  release. The bots pressed for 0.18 s in every 1.4 s from 1.5 s on, so the
+  first press that counted came 4.3 to 4.5 s after death; the players in the
+  footage were back in about 3.1 s. The bot now presses on alternate frames
+  as soon as the stock timer allows. In a match: 3.0 s dead per death
+  against 4.5 s for the legacy group.
+- `air_health` (default 0; legacy 30). A swimmer under 30 health turned for
+  air at once, breath or no breath. The surface heals nothing, and the turn
+  set the goal aside and replanned, which on the shaft-top pool put a bot at
+  23 health in and out of the same water about ten times in twenty seconds.
+  Breath alone decides now. A hurt bot gets to health through the plan, and
+  swims still cost more under 40 health, as before.
+- `swim_cost` (default 3; legacy 1). A leg swum under water costs three
+  times its length in the planner: swimming runs at 0.27 to 0.6 units a
+  second against 1.3 to 1.6 for running. The step in from a bank keeps its
+  `water_entry_cost`. In 25 minutes of one of the people's matches, sampled
+  every 1.5 seconds, no stay in water was longer than about four and a half
+  seconds; the recorded bot's single swims ran 7.6 to 11.6.
+- `water_fight` (default 1). The climb out of water took the view and never
+  fired. In one recording two bots sat in the same small pool for eight
+  seconds, on the same exit, each in the other's reach, neither shooting,
+  until both were caught as confined. People fire while swimming up a shaft
+  and come out of a pool with the gun up: one fired the concussion rifle 0.7
+  seconds after dropping out of the bottom of the shaft. Now:
+  - The exit no longer demands facing the bank. Forward and strafe together
+    push at full thrust along the line to the bank with the body turned up
+    to 43 degrees off it, facing either way along it. The climb looks as near
+    the shot as that allows and fires when on it. A concussion rifle or rail
+    detonator, which kicks its shooter 80 force units back, waits out the
+    run-up, the jump and the last settle on the launch spot.
+  - A launch spot belongs to the swimmer nearest it. The other gives way,
+    sets that way out aside for four seconds and plans another
+    (`BOT_WATER event=yield`).
+  - On a level swim leg in a fight, the stroke is solved for the view:
+    forward along the view, strafe at 0.7 of it, rise and sink at half, so
+    the bot keeps looking at its target while it swims.
+  - A Grip is answered even in the middle of a climb; other powers wait for
+    dry ground.
+- `fjump_standstill` (default 1). The bot stops before a Force Jump and the
+  stock release adds only upward speed, so the leg is flown on air thrust
+  from a standstill. Integrated the way the engine applies thrust in the air,
+  that carries the body only 0.1 to 0.2 units across, even at full charge. The arcs that admitted Force Jump legs assumed running speed
+  through the air, so they took legs the bot then fell short of, into the
+  wall under the ledge; in one recording a bot spent most of 40 seconds in a
+  corridor facing its rock wall between Force Jumps. Legs are now checked by
+  flying that standstill flight through the level, level and slightly lower
+  landings included, which the old check skipped. Ledges that need speed are
+  for the running jumps. The route moves on to the landing once the bot is
+  within 0.11 of the launch node, and a few hundredths off that spot can be
+  enough to fall short, so the bot first steps back onto the spot, still
+  facing the landing, and jumps from there. A leg that cannot be made even
+  from the spot, or that the bot cannot get back onto in three seconds, is
+  struck off and the bot plans again (`BOT_JUMP event=refuse`). Before this,
+  the second recording's corridor had the bot walking into the rock wall
+  under such a leg for 20 seconds.
+- `jump_memory` (default 30; legacy 0). A Jump or Force Jump leg that comes
+  down somewhere other than its target is struck off for twice this many
+  seconds, and every spot on the ledge it aimed at is set aside for this
+  long, so the next plan finds another way up or another goal
+  (`BOT_JUMP event=miss`). A landing on the target's own level, a short walk
+  from the mark, counts as made.
+- `speed_upkeep` (default 1). Force Speed costs 20 mana and lasts 5 + 2.5 x
+  rank seconds. The players kept it up nearly all the time, recasting every
+  few seconds. The bot cast it only for a long straight walk and kept 200 mana
+  back for Absorb. It now keeps Speed up on any walking leg and in fights,
+  past the Absorb reserve, but never below the mana for a Jump and a Pull,
+  and not during jumps, drops, lifts or swims. Within 1.5 units of an
+  opponent, where Grip takes hold, it still leaves the mana to raise Absorb.
+  In a match the group on the defaults had Speed up about 215 of every 300
+  seconds alive, against about 165 for the legacy group. `BOT_MOVE` reports
+  the seconds Speed was down by reason (`speed_no`: another power in
+  progress, navigation or water state, movement input, a leg with its own
+  pace, mana, the ground ahead). In an eight-bot match, before the
+  close-range rule, Speed was up 66 to 80 percent of the time alive; water
+  and navigation states accounted for most of the rest, mana and blocked
+  ground for a few seconds each.
+- `resupply` (default 1). A pulled gun is a new pickup (`+fpconcrifle` and
+  the like): takeable after 0.2 s, gone after 4 s, never respawned. The bots
+  disarm a lot (73 disarms by four bots in one six-minute match) and left
+  the guns lying. Now a pulled gun at rest, or sliding to a stop, is worth
+  what that gun is worth (a missing concussion rifle 18). A bot with no gun
+  holding more than a few shots adds 4 to every real gun, so they keep their
+  order, treats ammunition for a gun it holds as worth at least 12, and does
+  not go hunting. A pickup just chosen is favoured by half again for 2.5
+  seconds (otherwise 15 percent), so near-equal choices do not flip back and
+  forth at a waterline, where path costs jump. An opponent left with fists is
+  preferred as a target and in the hunt. `BOT_GEAR event=loose` logs each
+  pulled gun chased; in one eight-bot match there were eleven.
+
+Two earlier tactics came from the first recording:
+
+- `absorb_reserve` (default 1). The bot took Grip damage again and again
+  without answering it. Absorb costs 200 and at rank four turns Grip,
+  Lightning and Destruction damage into mana. While it is down, optional
+  casts leave enough mana to raise it, and a Grip is answered with
+  Protection or Absorb before bacta, whose cooldown would delay them. While
+  the Grip lasts, nothing optional is cast, only Healing below 60 health, so
+  the mana is there when Absorb runs out and must be raised again: in one
+  recording the bot spent it on Pulls during a Grip and died when Absorb
+  expired.
+- `turn_rate` (default 1800). The bot turned through the keyboard axis, which
+  the stock code caps at 200 degrees a second for yaw and 90 for pitch. It
+  now turns the way a mouse does, through the stock look code, up to this
+  many degrees a second straight onto the point; 0 restores the keyboard.
+
+The fists-as-peace setting is taken out for now: bots read `fists_peace` from
+their behaviour file but ignore it, so a player with fists out is an
+opponent like any other.
+
 ## Tactics
 
-`python -m bots.tactics list` prints the table: 36 named values with a
+`python -m bots.tactics list` prints the table: 46 named values with a
 default, a legacy value, and a range. The legacy column reproduces the
 behaviour before this change, so one build can play both.
 
@@ -458,6 +577,30 @@ rebuild, and refresh the build receipts in the usual way.
   holding a heavy through a blocked path, firing in a dodge hop, an item
   pull from aim to catch, hazards, laying a mine and a thermal throw from
   selection to release.
+- The fixes from the recordings: the driver suite (82 groups, 7 of them new)
+  passes with the legacy values, with the new defaults and under the
+  sanitizers. Running the older groups on the new defaults needs a few of
+  them to pin a tactic whose change is deliberate: swim pricing in one graph
+  with hand-set edge costs, the running-arc Force Jump model in two arc
+  tests, and an armed bot in one pickup-value test.
+- Three matches on Canyon Oasis with eight bots (16 minutes). Defaults
+  against `legacy`, six minutes: 60 kills and 42 deaths against 40 and 58;
+  3.0 s dead per death against 4.5; 80 seconds of firing while wet against
+  23; two exit spots given way. Defaults against the defaults with
+  `water_fight=0`, bot profiles swapped, six minutes: 43 and 49 against 48
+  and 46, time wet 15% against 17%. That match does not show water fighting
+  changing the score or the time in water; most firing in water already
+  happens outside the climb out (33 against 38 seconds). An all-default
+  match of four minutes: eleven pulled guns chased.
+- Five more four-minute recordings of the bot's own client, each reviewed
+  against its log before the next change. They found the corridor wall
+  (above, `fjump_standstill`), a bot dithering at a pool's edge right after a
+  respawn while its pickup choice flipped between near-equal guns (the
+  resupply ordering and hold), Pulls spent during a Grip (above,
+  `absorb_reserve`) and Speed down for long stretches with mana spent on
+  Absorb. The last recording, with everything above, still shows long swims
+  through the canal tunnel after a run-off from the alcove ledge, and a death
+  under Grip once Absorb was down and mana was short.
 - Four matches on Canyon Oasis with mines on (23 minutes): 12 mines laid,
   14 steps away from a bot's own fresh mine, none from anyone else's. The
   charges lie on a ledge the planner does not reach; five of the six bots
@@ -492,8 +635,9 @@ for 3 seconds in the air. After one jump fell short at 9 percent under its
 sprint speed, jumps must now land at 90 and 109 percent of it, which halves
 the ways into the alcove at rank four (three are left). Behaviour on moving platforms is untested.
 Thermal throws are tested only in fixtures so far. Mines are laid only on
-item spots, not on a retreat. Grip damage is
-still not answered. Whether the beam's 0.8 degree aim tolerance is what
+item spots, not on a retreat. Grip is now answered with Protection or
+Absorb, also mid-climb out of water; whether that saves health is not
+measured. Whether the beam's 0.8 degree aim tolerance is what
 keeps beam counts low has not been checked. Item pulls have not been seen
 reaching the concussion rifle in its alcove from below.
 
