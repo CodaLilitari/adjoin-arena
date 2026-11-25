@@ -8,6 +8,7 @@ from .native_duel import SIDES, read_observer, read_seat, require, sha
 
 
 NAMES = {"dark": "Bot_BobaFett", "light": "Bot_JanOrs"}
+PROFILE_ORDER = ("boba_fett", "jan_ors")
 WEAPONS = {10: "repeater", 29: "concussion rifle", 34: "repeater"}
 
 
@@ -22,24 +23,28 @@ def read_match(directory):
             and receipt["requested_map"] == "m10.jkl" and receipt["network_interfaces"] == ["lo"]
             and receipt["pacing"] == "normal engine wall-clock", "Requires an instrumented native ready-gate match")
     require(assignment in ("normal", "swapped"), "Unknown start assignment")
+    order = tuple(receipt["seat_order"])
+    require(order in (PROFILE_ORDER, PROFILE_ORDER[::-1]), "Unknown join order")
+    jan_first = order[0] == "jan_ors"
+    sides = SIDES[::-1] if jan_first else SIDES
     swapped = assignment == "swapped"
     require(fixture["variant_gob_sha256"] == controlled_opening.REPEATER_GATE_GOBS[swapped]
             and fixture["variant_jkl_sha256"] == controlled_opening.VARIANT_MAP,
             "Unexpected instrumented episode or map")
-    openings = controlled_opening.qualify(directory, receipt["bots"], swap_starts=swapped)
+    openings = controlled_opening.qualify(directory, receipt["bots"], swap_starts=swapped, jan_first=jan_first)
     require(openings == receipt["opening_observations"] and ready_gate.qualify(directory, openings) == gate,
             "Opening or start gate differs from native logs")
-    repeaters = controlled_opening.qualify_repeater(directory, openings, gate)
+    repeaters = controlled_opening.qualify_repeater(directory, openings, gate, jan_first=jan_first)
     require(repeaters == receipt["repeater_observations"], "Repeater observations differ from native logs")
     log_hashes = {name: sha(directory / name) for name in ("dark.log", "light.log", "server.log", "force-trace.jsonl")}
     require(log_hashes == receipt["log_sha256"] and log_hashes["server.log"] == gate["host_log_sha256"],
             "Native logs differ from the verified run")
-    _, video = read_observer(directory, receipt, [NAMES[side] for side in SIDES])
+    _, video = read_observer(directory, receipt, [NAMES[side] for side in sides], sides=sides)
     require(video["camera"] == "rifle-overlook", "Use the same rifle-overlook camera for all runs")
 
     seats = {}
     profiles = {}
-    for slot, side in enumerate(SIDES, 1):
+    for side in SIDES:
         peer = receipt["bots"][side]
         opening = openings[side]
         repeater = repeaters[side]
@@ -47,7 +52,9 @@ def read_match(directory):
         sector = opening["events"][0]["sector"]
         native = read_seat(directory / (side + ".log"), NAMES[side])
         plan = native["first_gear_plan"]
-        require(native["join_acknowledgements"] == [peer["joined"]] and plan, "Missing join or initial plan")
+        slot = opening["slot"]
+        require(slot == sides.index(side) + 1 and native["join_acknowledgements"] == [peer["joined"]] and plan,
+                "Unexpected native seat, join or initial plan")
         held_plans = owner["pre_release_plans"]
         if held_plans:
             require(held_plans[0] == {"item": plan["item"], "bot_time_s": plan["t"]}, "First plan disagreement")

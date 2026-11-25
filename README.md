@@ -59,9 +59,22 @@ Boba kept slot 1, Jan kept slot 2, and the same native bots played four 22-secon
 
 All eight first gear plans matched the weapon subsequently gained. Times run from each player's local release to the first sampled inventory gain during the opening life. Sector 41 is 1.278 world units from the rifle. Sector 18 is 1.164 units from the nearby repeater. The planner considers pickup value, traversability and route cost. These trials isolate the effect of exchanging the two starts on the observed first choice. They leave the exact scoring calculation and the competitive value of each route open.
 
-Acquisition speed stayed associated with the player and seat. Boba waited 3.573 to 4.391 seconds behind the gate and changed gear plans en route. Jan waited 0.138 to 0.171 seconds and kept her first gear plan until the stock pickup message in all four trials. Both planners ran during the hold. Reversing which player joins first would help distinguish a profile difference from a first-seat effect. [Four-match evidence](qa/adjoin-arena-start-crossover.json) and [reproduction command](scripts/bot_development/legacy/README.md#exchange-the-starting-positions).
+Acquisition speed stayed associated with the player and seat. Boba waited 3.573 to 4.391 seconds behind the gate and changed gear plans en route. Jan waited 0.138 to 0.171 seconds and kept her first gear plan until the stock pickup message in all four trials. Both planners ran during the hold. The experiment below reverses the join order. [Four-match evidence](qa/adjoin-arena-start-crossover.json) and [reproduction command](scripts/bot_development/legacy/README.md#exchange-the-starting-positions).
 
 During the first attempt video encoding delayed shutdown and extended the native logs beyond the observation window. The four trials above use the corrected recorder, which ends capture and reaps the game processes before encoding. The measured shared windows were 22.08 to 22.10 seconds. The host and bots finished shutting down in 30 to 61 ms.
+
+### Does the opening detour follow the player or the first seat?
+
+Jan joined first in four new 22-second native matches. The sequence of physical starts was normal, swapped, swapped, normal, matching the earlier Boba-first series. Jan kept her light Force profile and Boba kept his dark profile. The host roster, each native client, and the recorded Force loadouts all confirmed the assignments.
+
+| Join order | First player planning another item before pickup | Second player planning another item before pickup |
+| --- | --- | --- |
+| Boba then Jan | Boba in 4 of 4 | Jan in 0 of 4 |
+| Jan then Boba | Jan in 4 of 4 | Boba in 0 of 4 |
+
+Every first joiner planned another item after release and before acquiring the initially planned weapon. Every second joiner stayed on the original target through pickup. Each intended pickup was confirmed by its stock HUD message and first-life inventory gain. The median time from local release to sampled gain was 9.852 seconds in slot 1 and 1.275 seconds in slot 2. All 16 acquisitions still followed the starting position.
+
+In these openings the target changes followed the first seat across both profiles and both layouts. Slot 1 also coordinated release and spent 3.573 to 4.391 seconds held with its planner active. Slot 2 spent 0.138 to 0.175 seconds held. Delaying both gear planners until release would test whether this head start in planning contributes. The fixed camera shows the rifle rack. The ordered gear logs establish target changes en route. [Eight-match evidence](qa/adjoin-arena-join-crossover.json) and [reproduction command](scripts/bot_development/legacy/README.md#reverse-the-join-order).
 
 ## Inherited JK Cross Server documentation
 

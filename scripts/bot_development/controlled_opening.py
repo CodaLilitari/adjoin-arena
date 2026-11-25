@@ -134,10 +134,27 @@ def build(archive, output, *, ready_gate=False, swap_starts=False, observe_repea
             "cog_sha256": digest(script), "unchanged_entry_count": len(entries) - 2}
 
 
-def observe(log, joined, *, swap_starts=False):
+NAMES = {"dark": "Bot_BobaFett", "light": "Bot_JanOrs"}
+
+
+def slots_by_side(jan_first):
+    return {"light": 1, "dark": 2} if jan_first else {"dark": 1, "light": 2}
+
+
+def observe(log, joined, *, swap_starts=False, side=None, require_profile=False):
     """Match one owner log and connection in a single map to COG life and bin 9 readbacks."""
     lines = [item.strip() for item in log.read_text(encoding="ascii", errors="replace").splitlines()
              if item.strip()]
+    # Native discover and loadout messages bind this file to its actual player
+    # and Force profile. Older minimal opening-only observations can lack both.
+    if side is not None:
+        discoveries = [s for s in lines if s.startswith("BOT_DISCOVER ")]
+        loadouts = [s for s in lines if s.startswith("BOT_LOADOUT ")]
+        if require_profile or discoveries or loadouts:
+            if (len(discoveries) != 1 or len(loadouts) != 1
+                    or f"name={NAMES[side]}" not in discoveries[0].split()
+                    or loadouts[0] != f"BOT_LOADOUT rank=8 side={side} style=competitive spent=24 remaining=0"):
+                raise ValueError("Native profile or Force side does not match the owner")
     joins = [match.groups() for line in lines if (match := _JOIN.fullmatch(line))]
     loads = [line.removeprefix("OpenJKDF2: sithWorld_Load -> ") for line in lines
              if line.startswith("OpenJKDF2: sithWorld_Load -> ")]
@@ -212,20 +229,22 @@ def observe(log, joined, *, swap_starts=False):
             "log_sha256": digest(log.read_bytes())}
 
 
-def qualify(directory, bots, *, swap_starts=False):
-    measured = {side: observe(directory / (side + ".log"), bots[side]["joined"], swap_starts=swap_starts)
-                for side in ("dark", "light")}
-    if swap_starts and (measured["dark"]["slot"], measured["light"]["slot"]) != (1, 2):
-        raise ValueError("Swapping starts must preserve the original owners and join order")
-    if {row["slot"] for row in measured.values()} != {1, 2} or len({row["net"] for row in measured.values()}) != 2:
+def qualify(directory, bots, *, swap_starts=False, jan_first=False):
+    slots = slots_by_side(jan_first)
+    measured = {side: observe(directory / (side + ".log"), bots[side]["joined"], swap_starts=swap_starts,
+                              side=side, require_profile=jan_first)
+                for side in slots}
+    if any(row["slot"] != slots[side] for side, row in measured.items()):
+        raise ValueError("Observed owners do not match the requested join order")
+    if len({row["net"] for row in measured.values()}) != 2:
         raise ValueError("Two distinct joined owners required")
     return measured
 
 
-def qualify_repeater(directory, openings, gate):
+def qualify_repeater(directory, openings, gate, *, jan_first=False):
     """Bind bin 6 samples to the same owning clients, life boundaries and local release clocks."""
     measured = {}
-    for side, slot in (("dark", 1), ("light", 2)):
+    for side, slot in slots_by_side(jan_first).items():
         opening = openings[side]
         owner = gate["owners"][side]
         raw = (directory / (side + ".log")).read_bytes()

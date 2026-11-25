@@ -26,7 +26,7 @@
     },
     "README.md": {
       "mode": 420,
-      "sha256": "4c61339026c82157619d01711056187c5f8327d696dcc343f79585760acf2cbf"
+      "sha256": "a42e43ddaf389b1290e50e223e6430bfddb5d482809ade132ef2a59bfb28f89e"
     },
     "Start-Server.command": {
       "mode": 493,
@@ -1031,6 +1031,10 @@
     "qa/adjoin-arena-controlled-opening.json": {
       "mode": 420,
       "sha256": "51afaa9cbd7042833d83dd842bc4654721bed802b40132f614c615d97885d0f3"
+    },
+    "qa/adjoin-arena-join-crossover.json": {
+      "mode": 420,
+      "sha256": "a6fdf37ba92085285d18fc57d0bf82ca324dfa39bd7dc2a19815515ccdf5c2b3"
     },
     "qa/adjoin-arena-m0-pool90.json": {
       "mode": 420,
@@ -2132,13 +2136,21 @@
       "mode": 420,
       "sha256": "fcc1f9b978196478442eb491b39031d7dab6a26db0efc49ed3841785cab696b4"
     },
+    "scripts/bot_development/analysis/join_crossover.py": {
+      "mode": 420,
+      "sha256": "d67ec6d65e998643e40e4c435f083f8b90a514fc6ecfcae4af2f3b2a2c912cc2"
+    },
     "scripts/bot_development/analysis/memory_rollouts.py": {
       "mode": 420,
       "sha256": "191a03831ced3eb46a72f86caa3a89947730e52aace21366a6c9095f00ff5a6f"
     },
     "scripts/bot_development/analysis/native_duel.py": {
       "mode": 420,
-      "sha256": "c804446d4f5d6a711ed26fdc28dece0da52848ab44e5350ad9e47f98f653c6fa"
+      "sha256": "baa9a24eb45668c0c929645837c1a65d21775b427d99cf5c44b9a9061b927ab9"
+    },
+    "scripts/bot_development/analysis/opening_detour.py": {
+      "mode": 420,
+      "sha256": "03f5cb167d521b68b0709982715f60289467fdaf68cf9ab2651c158b95592ad1"
     },
     "scripts/bot_development/analysis/outcome_build_inputs.py": {
       "mode": 420,
@@ -2178,7 +2190,7 @@
     },
     "scripts/bot_development/analysis/start_crossover.py": {
       "mode": 420,
-      "sha256": "ab945ac31ecff31b2ff6acbeec1e719d5901f9f509e8c7a0e189d266219837b0"
+      "sha256": "75fd704f7fc3fef37b7b8fdb1960b570a78c8855f8588084fe3c5c224e0c1f76"
     },
     "scripts/bot_development/analysis/validate_replay_poses.py": {
       "mode": 420,
@@ -2218,15 +2230,15 @@
     },
     "scripts/bot_development/controlled_opening.py": {
       "mode": 420,
-      "sha256": "cf88fbfcc9c32195a85054f77a1773c6a1d561f26ce63c3ad2967888bb35cea5"
+      "sha256": "661896211890c8d143bc2631d33a02c04a6d9b4fb380f5ad23ae47641c23342b"
     },
     "scripts/bot_development/legacy/README.md": {
       "mode": 420,
-      "sha256": "70dc6f22d6d20d6df6a50a01d2a4a23f79a6ce47db6a29afc48f0731035dd2ff"
+      "sha256": "933e52013afe493a8fb89f79a57e6dacf619c7625758f508b8fbdc45ecc6df28"
     },
     "scripts/bot_development/legacy/native_force_observation.py": {
       "mode": 420,
-      "sha256": "4515fe1f07e896700f3409f2390df8572c25e6e0f5312326613e92e5a27f7776"
+      "sha256": "17b2fd582b4928ac9097d025e7a9cb0db297c76bdf21564658a3ce04b6feebcf"
     },
     "scripts/bot_development/legacy/rebuild_native_pair.py": {
       "mode": 420,
@@ -2295,6 +2307,18 @@
     "tests/test_arena_controlled_opening.py": {
       "mode": 420,
       "sha256": "ab82ba0d77dd1ad48ca2b34ecb773a927912c50f7c3ef5c9f2a8f3c54b573e1f"
+    },
+    "tests/test_arena_join_crossover.py": {
+      "mode": 420,
+      "sha256": "02cfc23d28026bebefda0ccb7bc980442613e657e21318e4ccb1209a08cc2acf"
+    },
+    "tests/test_arena_join_order.py": {
+      "mode": 420,
+      "sha256": "41c816e6d5ea6bdea8c540d71100424f09d44e3f5e2612f1ad582b79acd17eb5"
+    },
+    "tests/test_arena_opening_detour.py": {
+      "mode": 420,
+      "sha256": "5f31717e4f10dc65f3cf1e47049b484035e615c0e823e384c169cbc106be3e57"
     },
     "tests/test_arena_ready_gate.py": {
       "mode": 420,

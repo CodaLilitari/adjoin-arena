@@ -237,7 +237,14 @@ def observe(side, name, line, row, trace):
     row["previous"] = sample
 
 
+def seat_schedule(jan_first):
+    """Keep each profile's environment index while changing its place in the join queue."""
+    seats = tuple(enumerate(LABELS.items()))
+    return seats[::-1] if jan_first else seats
+
+
 def run(args, receipt, tmp):
+    schedule = seat_schedule(args.jan_first)
     repo, source, output = args.repo.resolve(), args.data.resolve(), args.output.resolve()
     sys.dont_write_bytecode = True
     sys.path.insert(0, str(repo))
@@ -255,7 +262,7 @@ def run(args, receipt, tmp):
             raise Failure("arena_baseline_requires_isolated_loopback_network_namespace")
         receipt.update(kind="adjoin-arena-native-duel", network_interfaces=interfaces,
                        pacing="normal engine wall-clock", seed_control="not assigned or observed",
-                       seat_order=list(LABELS.values()), launcher_sha256=digest(Path(__file__)))
+                       seat_order=[profile for _, (_, profile) in schedule], launcher_sha256=digest(Path(__file__)))
         paths = ("bots/profiles.json", "bots/run.py", "bots/companion.py", "bots/settings.py", "manager/config.py",
                  "manager/content.py", "native/BOT_BUILD.json", "qa/bots-stock-map-audit.json")
         if args.recorder:
@@ -356,7 +363,7 @@ def run(args, receipt, tmp):
                     observe(side,profiles[pid]["name"],text[marker:],bots[side],trace)
 
     with (output/"force-trace.jsonl").open("x",encoding="ascii",buffering=1) as trace:
-        for index, (side, pid) in enumerate(LABELS.items()):
+        for index, (side, pid) in schedule:
             p = profiles[pid]
             directory = tmp/side
             env = private_env(directory,bot)
@@ -456,6 +463,8 @@ def main():
                           help="Hold both Canyon Oasis opening poses until both bot seats report ready.")
     scenario.add_argument("--controlled-opening", action="store_true",
                         help="Use a private Canyon Oasis variant to set each bot's first spawn and observe rifle inventory.")
+    parser.add_argument("--jan-first", action="store_true",
+                        help="Join Jan before Boba while retaining their profiles and the physical starts.")
     parser.add_argument("--swap-starts", action="store_true",
                         help="Exchange the two physical ready-gate starts, retaining bot seats and profiles.")
     parser.add_argument("--observe-repeater", action="store_true",
@@ -463,6 +472,8 @@ def main():
     parser.add_argument("--camera", choices=("follow", "rifle-overlook"),
                         help="Record the selected native camera (implies --record).")
     args = parser.parse_args()
+    if args.jan_first and not args.ready_gate:
+        parser.error("--jan-first requires --ready-gate")
     if (args.swap_starts or args.observe_repeater) and not args.ready_gate:
         parser.error("--swap-starts and --observe-repeater are available only with --ready-gate")
     if args.camera:
@@ -501,7 +512,7 @@ def main():
         if args.controlled_opening or args.ready_gate:
             try:
                 receipt["opening_observations"] = args.opening.qualify(
-                    out, receipt["bots"], swap_starts=args.swap_starts)
+                    out, receipt["bots"], swap_starts=args.swap_starts, jan_first=args.jan_first)
             except (KeyError, IndexError, TypeError, ValueError) as error:
                 raise Failure("controlled_opening_observations_failed") from error
         if args.ready_gate:
@@ -513,7 +524,7 @@ def main():
         if args.observe_repeater:
             try:
                 receipt["repeater_observations"] = args.opening.qualify_repeater(
-                    out, receipt["opening_observations"], receipt["ready_gate_observations"])
+                    out, receipt["opening_observations"], receipt["ready_gate_observations"], jan_first=args.jan_first)
             except (IndexError, KeyError, TypeError, ValueError) as error:
                 raise Failure("repeater_observations_failed") from error
         code = 0

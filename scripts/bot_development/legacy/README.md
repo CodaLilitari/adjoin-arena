@@ -155,3 +155,18 @@ python3 -B -m scripts.bot_development.analysis.start_crossover \
 ```
 
 The report checks the native logs and stationary camera against their recorded hashes. It includes the first gear plan and the first sampled possession of each weapon during the opening life. The pickup timer starts at each player's local release. A null timer means no gain was sampled in that life.
+
+### Reverse the join order
+
+Add `--jan-first` to each of the four instrumented ready-gate commands above. Keep the same normal, swapped, swapped, normal sequence and use four new output directories. Jan now takes slot 1 with her light Force profile and Boba takes slot 2 with his dark profile. In a normal run slot 1 starts in sector 41, and in a swapped run slot 1 starts in sector 18. The COG still uses slot 1 as the gate coordinator.
+
+From the repository root, compare both four-match series in chronological order within each group.
+
+```sh
+python3 -B -m scripts.bot_development.analysis.join_crossover \
+  --boba-first "$BOBA/1-normal" "$BOBA/2-swapped" "$BOBA/3-swapped" "$BOBA/4-normal" \
+  --jan-first "$JAN/1-normal" "$JAN/2-swapped" "$JAN/3-swapped" "$JAN/4-normal" \
+  --output "$RUN_ROOT/join-order.json"
+```
+
+For each player, the report reads the first gear plan and subsequent plans up to the stock pickup message for that weapon. A different item ID counts as a target change. Replanning a path to the same item keeps the original target. Owner inventory supplies the acquisition time. An opening without a corroborated pickup remains unobserved. The host roster, join acknowledgements and Force loadouts establish who actually occupied each slot.
