@@ -1,0 +1,455 @@
+diff --git a/src/AI/jkBot.c b/src/AI/jkBot.c
+index 420283a0..c849bc66 100644
+--- a/src/AI/jkBot.c
++++ b/src/AI/jkBot.c
+@@ -37,6 +37,72 @@
+ #include <stdio.h>
+ #include <string.h>
+ 
++/* ===================== TEMP: Elite Arena P78 single-player adapter =====================
++   Wren (AI collaborator, via Grok Bot), 2026-11-25. Test-only; never for release or PR4.
++   SM Sith Lord's Elite Arena P78 bots are COG-driven actors in single-player debug play,
++   not multiplayer clients. With jkBotP78_sp set (web role "sp"), this bot drives the
++   local SP player and is shown those actors as peer slots 1..4 of a SHADOW copy of the
++   player table. The engine's own tables, COGs and game rules are not written. With
++   jkBotP78_sp clear every macro below reads the real table (multiplayer unchanged). */
++#include "Cog/sithCog.h"
++int jkBotP78_sp;
++static SithPlayer jkBotP78_infos[JKPLAYER_NUM_INFOS];
++static uint32_t jkBotP78_max;
++static double jkBotP78_nextQuery;
++static int jkBotP78_body[4]={-1,-1,-1,-1};
++static int jkBotP78_cw[4]={-1,-1,-1,-1};  /* p70w<k> (static row 37+k) CURWEAPON user2: the bin in hand */
++static SithWorld *jkBotP78_world;
++/* p70dm (static COG row 31) QUERY user4: (11,k) the body thing of bot k, (9,k)/(10,k) frags/deaths. */
++static int jkBotP78_Query(int q,int k)
++{
++    if (!sithWorld_g_pStaticWorld || sithWorld_g_pStaticWorld->numCogs<=31) return -1;
++    return (int)sithCog_SendMessageEx(&sithWorld_g_pStaticWorld->aCogs[31],SITH_MESSAGE_USER4,
++        SENDERTYPE_SYSTEM,0,0,0,0,(cog_flex_t)q,(cog_flex_t)k,0,0);
++}
++static void jkBotP78_Refresh(double now)
++{
++    if (!jkBotP78_sp) return;
++    memset(jkBotP78_infos,0,sizeof(jkBotP78_infos));
++    jkBotP78_max=1;
++    SithWorld *w=sithWorld_g_pCurrentWorld;
++    if (!sithPlayer_g_pLocalPlayer || !w || !w->aThings) return;
++    jkBotP78_infos[0]=*sithPlayer_g_pLocalPlayer;
++    jkBotP78_infos[0].flags|=1;
++    if (!jkBotP78_infos[0].playerNetId) jkBotP78_infos[0].playerNetId=1;
++    if (w!=jkBotP78_world) { jkBotP78_world=w; jkBotP78_nextQuery=0; for (int k=0;k<4;k++) jkBotP78_body[k]=-1; }
++    if (now>=jkBotP78_nextQuery || now<jkBotP78_nextQuery-1.0) {
++        jkBotP78_nextQuery=now+0.25;
++        for (int k=0;k<4;k++) {
++            jkBotP78_body[k]=jkBotP78_Query(11,k);
++            jkBotP78_cw[k]=-1;
++            if (jkBotP78_body[k]>=0 && sithWorld_g_pStaticWorld && sithWorld_g_pStaticWorld->numCogs>(uint32_t)(37+k))
++                jkBotP78_cw[k]=(int)sithCog_SendMessageEx(&sithWorld_g_pStaticWorld->aCogs[37+k],SITH_MESSAGE_USER2,
++                    SENDERTYPE_SYSTEM,0,0,0,0,0,0,0,0);
++        }
++    }
++    for (int k=0;k<4;k++) {
++        int idx=jkBotP78_body[k];
++        if (idx<0 || idx>=w->numThingsLoaded) continue;
++        SithThing *t=&w->aThings[idx];
++        if (t->type!=SITH_THING_ACTOR || !t->sector) continue;
++        SithPlayer *s=&jkBotP78_infos[1+k];
++        s->pLocalPlayer=t; s->flags=1; s->playerNetId=1001+k; s->teamNum=0;
++        if (jkBotP78_max<(uint32_t)(2+k)) jkBotP78_max=2+k;
++    }
++}
++/* The gun a P78 bot holds, from its arms COG (it has no playerInfo weapon mesh); -1 unknown. */
++static int jkBotP78_Weapon(const SithThing *t)
++{
++    if (!jkBotP78_sp || !t || t->type!=SITH_THING_ACTOR) return -1;
++    for (int k=0;k<4;k++) if (jkBotP78_body[k]==(int)t->idx) return jkBotP78_cw[k]>=1 && jkBotP78_cw[k]<=10 ? jkBotP78_cw[k] : -1;
++    return -1;
++}
++#define BOT_PEER_TYPE(t) ((t)->type==SITH_THING_PLAYER || (jkBotP78_sp && (t)->type==SITH_THING_ACTOR))
++#define sithNet_isMulti (sithNet_isMulti || jkBotP78_sp)
++#define jkPlayer_playerInfos (jkBotP78_sp ? jkBotP78_infos : jkPlayer_playerInfos)
++#define jkPlayer_maxPlayers (jkBotP78_sp ? jkBotP78_max : jkPlayer_maxPlayers)
++/* =================== end TEMP P78 adapter declarations =================== */
++
+ #define BOT_NODES 8192
+ /* Ordinary edges keep their old cap; two more slots are reserved for running jumps. */
+ #define BOT_PLAIN_EDGES 16
+@@ -1552,7 +1618,7 @@ static void Bot_MoveTelemetry(SithThing *self)
+         /* The stock victim answers a pull by dropping the gun and selecting fists. */
+         int slot=bot.pullCheckSlot, after=-1;
+         SithThing *t=slot>=0 && slot<JKPLAYER_NUM_INFOS ? jkPlayer_playerInfos[slot].pLocalPlayer : NULL;
+-        if (t && t->type==SITH_THING_PLAYER && !(t->flags&(SITH_TF_DEAD|SITH_TF_DESTROYED))) after=Bot_PullWeapon(t);
++        if (t && BOT_PEER_TYPE(t) && !(t->flags&(SITH_TF_DEAD|SITH_TF_DESTROYED))) after=Bot_PullWeapon(t);
+         if (after>=0 && after!=bot.pullCheckWeapon) bot.tele.disarms++;
+         fprintf(stderr,"BOT_PULL name=%s target=%d weapon=%d after=%d type=%d flags=%x health=%.0f event=%s\n",bot.name,slot,
+             bot.pullCheckWeapon,after,t ? (int)t->type : -1,t ? (unsigned)t->flags : 0,t ? (double)t->actorParams.health : -1.0,
+@@ -1672,6 +1738,7 @@ void jkBot_Tick(flex_t dt)
+     if (!bot.enabled || !bot.joined || !sithNet_isMulti || (g_submodeFlags&8) ||
+         !sithWorld_g_pCurrentWorld || !sithPlayer_g_pLocalPlayerThing || !sithPlayer_g_pLocalPlayer) return;
+     if (!isfinite(dt) || dt<=0) return;
++    jkBotP78_Refresh((double)bot.now); /* TEMP P78 adapter */
+     if (lily.enabled) lily.tickMs=(double)dt*1000.0;
+     bot.frameDt=Bot_Min(dt,0.25f); bot.now+=bot.frameDt;
+     /* fjump_margin: the frame time averaged over about ten frames. */
+diff --git a/src/AI/jkBotBehavior.inc b/src/AI/jkBotBehavior.inc
+index 00270b7c..f46ee94c 100644
+--- a/src/AI/jkBotBehavior.inc
++++ b/src/AI/jkBotBehavior.inc
+@@ -5,7 +5,7 @@ static int Bot_EnemyBase(SithThing *self, int slot)
+     if (slot<0 || slot>=(int)jkPlayer_maxPlayers || slot>=JKPLAYER_NUM_INFOS) return 0;
+     SithPlayer *p=&jkPlayer_playerInfos[slot]; SithThing *t=p->pLocalPlayer;
+     if (!(p->flags&1) || !p->playerNetId || !t || t==self ||
+-        t->type!=SITH_THING_PLAYER || !t->sector ||
++        !BOT_PEER_TYPE(t) || !t->sector ||
+         (t->flags&(SITH_TF_DEAD|SITH_TF_DISABLED|SITH_TF_DESTROYED))) return 0;
+     if (!Bot_CtfOpponent(self,slot)) return 0;
+     return !((sithNet_MultiModeFlags&MULTIMODEFLAG_TEAMS) && self->actorParams.pPlayer &&
+@@ -46,6 +46,13 @@ static int Bot_WeaponFromModel(const rdModel3 *model)
+     for (int i=1;i<=10;i++) if (Bot_NameEquals(model->filename,models[i])) return i;
+     return -1;
+ }
++/* TEMP P78 adapter: a peer's held gun -- the stock weapon mesh, or a P78 bot's arms COG. */
++static int Bot_PeerWeaponOf(const SithThing *t)
++{
++    if (!t) return -1;
++    if (t->playerInfo) return Bot_WeaponFromModel(t->playerInfo->rd_thing.model3);
++    return jkBotP78_Weapon(t);
++}
+ static int Bot_IsPeaceful(SithThing *self, int slot)
+ {
+     (void)self;
+@@ -53,7 +60,7 @@ static int Bot_IsPeaceful(SithThing *self, int slot)
+     BotPeer *peer=Bot_Peer(slot);
+     if (!peer || peer->hostileUntil>bot.now) return 0;
+     SithThing *t=jkPlayer_playerInfos[slot].pLocalPlayer;
+-    int weapon=t->playerInfo ? Bot_WeaponFromModel(t->playerInfo->rd_thing.model3) : -1;
++    int weapon=Bot_PeerWeaponOf(t);
+     return weapon==SITHBIN_FISTS || (weapon<0 && peer->seenWeapon && peer->weapon==SITHBIN_FISTS);
+ }
+ static void Bot_Provoke(SithThing *self, SithThing *source, const char *reason)
+@@ -72,12 +79,12 @@ void jkBot_ObserveDamage(SithThing *victim, SithThing *source, flex_t damage)
+     if (!bot.enabled || !bot.joined || victim!=sithPlayer_g_pLocalPlayerThing ||
+         !isfinite(damage) || damage<=0) return;
+     /* Never blame the nearest player for a fall, self-hit, or recycled parent. */
+-    for (int n=0;source && source->type!=SITH_THING_PLAYER && n<4;n++) {
++    for (int n=0;source && !BOT_PEER_TYPE(source) && n<4;n++) {
+         if (!source->pParent || source->pParent==source ||
+             source->parentSignature!=source->pParent->signature) return;
+         source=source->pParent;
+     }
+-    if (source && source->type==SITH_THING_PLAYER) Bot_Provoke(victim,source,"damage");
++    if (source && BOT_PEER_TYPE(source)) Bot_Provoke(victim,source,"damage");
+ }
+ void jkBot_ObserveSkill(SithThing *victim, SithThing *source, int bin)
+ {
+diff --git a/src/AI/jkBotCombat.inc b/src/AI/jkBotCombat.inc
+index 05cc15a9..5619cd47 100644
+--- a/src/AI/jkBotCombat.inc
++++ b/src/AI/jkBotCombat.inc
+@@ -44,7 +44,7 @@ static int Bot_HasWeapon(SithThing *self, int weapon)
+ static int Bot_ProtectedPlayer(SithThing *self, int slot)
+ {
+     SithPlayer *p=&jkPlayer_playerInfos[slot]; SithThing *t=p->pLocalPlayer;
+-    if (!(p->flags&1) || !p->playerNetId || !t || t==self || t->type!=SITH_THING_PLAYER ||
++    if (!(p->flags&1) || !p->playerNetId || !t || t==self || !BOT_PEER_TYPE(t) ||
+         (t->flags&(SITH_TF_DEAD|SITH_TF_DISABLED|SITH_TF_DESTROYED))) return 0;
+     return !Bot_EnemyBase(self,slot) || Bot_IsPeaceful(self,slot);
+ }
+@@ -256,7 +256,7 @@ static int Bot_CloseSaberOpportunity(SithThing *self,SithThing *target,flex_t di
+     flex_t body=Bot_Clamp(self->collideSize+target->collideSize,0.08f,0.20f);
+     if (fabsf(delta.z)>body || !sithCollision_HasLOS(self,target,0)) return 0;
+     flex_t reach=body+0.10f;
+-    int enemyGun=target->playerInfo ? Bot_WeaponFromModel(target->playerInfo->rd_thing.model3) : -1;
++    int enemyGun=Bot_PeerWeaponOf(target);
+     /* Splash weapons give no bolt-defense reason to draw or pursue. */
+     if (enemyGun==SITHBIN_CONCUSSION_RIFLE || enemyGun==SITHBIN_RAIL_DETONATOR) return 0;
+     if ((enemyGun==SITHBIN_BRYARPISTOL || enemyGun==SITHBIN_STORMTROOPER_RIFLE) &&
+diff --git a/src/AI/jkBotForce.inc b/src/AI/jkBotForce.inc
+index 6561bd2c..cf4cf6ea 100644
+--- a/src/AI/jkBotForce.inc
++++ b/src/AI/jkBotForce.inc
+@@ -114,7 +114,7 @@ static int Bot_ActiveCompetitiveGrip(SithThing *self)
+ }
+ static int Bot_PullWeapon(SithThing *target)
+ {
+-    int weapon=target->playerInfo ? Bot_WeaponFromModel(target->playerInfo->rd_thing.model3) : -1;
++    int weapon=Bot_PeerWeaponOf(target);
+     return weapon>SITHBIN_FISTS && weapon<SITHBIN_LIGHTSABER && !(target->actorParams.flags&SITH_AF_DROID) ? weapon : 0;
+ }
+ /* A failed acquisition needs a brief retry interval. Only ordinary releases
+@@ -397,7 +397,7 @@ static void Bot_TryCombatJump(SithThing *self,SithThing *target)
+         !(self->physicsParams.flags&SITH_PF_USEGRAVITY) || self->actorParams.flags&(SITH_AF_IMMOBILE|SITH_AF_CONTROLSDISABLED) ||
+         bot.keys[INPUT_FUNC_JUMP] || bot.keys[INPUT_FUNC_DUCK] || bot.keys[INPUT_FUNC_ACTIVATE] ||
+         !Bot_EnemyAllowed(self,Bot_PlayerSlot(target)) || !Bot_VisibleTarget(self,target) ||
+-        Bot_WeaponFromModel(target->playerInfo->rd_thing.model3)!=SITHBIN_CONCUSSION_RIFLE ||
++        Bot_PeerWeaponOf(target)!=SITHBIN_CONCUSSION_RIFLE ||
+         !Bot_ForceReady(self,SITHBIN_F_JUMP,Bot_ForceCost(self,SITHBIN_F_JUMP))) return;
+     int gun=sithInventory_GetCurrentWeapon(self);
+     /* Both stock heavy guns kick the shooter on discharge. A pending heavy
+diff --git a/src/AI/jkBotNavigation.inc b/src/AI/jkBotNavigation.inc
+index 636c3e11..e502b6e7 100644
+--- a/src/AI/jkBotNavigation.inc
++++ b/src/AI/jkBotNavigation.inc
+@@ -468,8 +468,7 @@ static int Bot_LooseWeapon(const SithThing *item)
+ /* resupply: an opponent holding only fists, typically just pulled. */
+ static int Bot_Disarmed(const SithThing *t)
+ {
+-    return BT_ON(RESUPPLY) && t && t->playerInfo &&
+-        Bot_WeaponFromModel(t->playerInfo->rd_thing.model3)==SITHBIN_FISTS;
++    return BT_ON(RESUPPLY) && t && Bot_PeerWeaponOf(t)==SITHBIN_FISTS;
+ }
+ /* A pickup with no route node: a dropped pack or a loose gun. */
+ static int Bot_Transient(const SithThing *item) { return Bot_LivePack(item) || Bot_LooseWeapon(item); }
+diff --git a/src/Cog/jkCog.c b/src/Cog/jkCog.c
+index 7d7cbc0d..a3f3acfe 100644
+--- a/src/Cog/jkCog.c
++++ b/src/Cog/jkCog.c
+@@ -880,6 +880,9 @@ void jkCog_StringOutput(sithCog *ctx)
+         v2 = sithPlayer_GetThingPlayerNumByIndex(v2);
+     stdString_WcharToChar(v5, jkCog_jkstring, 127);
+     v5[127] = 0;
++#if defined(ARCH_WASM) && defined(PLATFORM_WSRELAY)
++    { extern int jkBotP78_sp; if (jkBotP78_sp) { printf("P78_HUD %s\n", v5); fflush(stdout); } } /* TEMP P78 adapter: HUD text to the log */
++#endif
+     if ( v2 >= 0 )
+     {
+         if ( v2 == playerThingIdx )
+diff --git a/src/Gui/jkGUIMultiplayer.c b/src/Gui/jkGUIMultiplayer.c
+index 791cd6be..177e1789 100644
+--- a/src/Gui/jkGUIMultiplayer.c
++++ b/src/Gui/jkGUIMultiplayer.c
+@@ -44,26 +44,28 @@ static SithWorld *webBotWorld;
+ static int webBotThirdPerson;
+ static unsigned char webBotInbox[512];
+ 
++extern int jkBotP78_sp; /* TEMP P78 adapter, see below */
++
+ /* Copy in and out synchronously. No JS view of the engine heap is retained. */
+ EMSCRIPTEN_KEEPALIVE double jkBotWebNow(void) { return emscripten_get_now()/1000.0; }
+ /* Read back the real rendered actor and camera for local recording receipts. */
+ EMSCRIPTEN_KEEPALIVE const char *jkBotWebRenderedModel(void)
+ {
+     SithThing *self=sithPlayer_g_pLocalPlayerThing;
+-    if (!jkBot_IsEnabled() || !sithNet_isMulti || !self || self->renderData.type!=RD_THING_MODEL3 ||
++    if (!jkBot_IsEnabled() || !(sithNet_isMulti||jkBotP78_sp) || !self || self->renderData.type!=RD_THING_MODEL3 ||
+         !self->renderData.model3) return "";
+     return self->renderData.model3->filename;
+ }
+ EMSCRIPTEN_KEEPALIVE const char *jkBotWebSaberMaterial(int tip)
+ {
+     SithThing *self=sithPlayer_g_pLocalPlayerThing;
+-    if (!jkBot_IsEnabled() || !sithNet_isMulti || !self || !self->playerInfo) return "";
++    if (!jkBot_IsEnabled() || !(sithNet_isMulti||jkBotP78_sp) || !self || !self->playerInfo) return "";
+     rdMaterial *material=tip ? self->playerInfo->polyline.tipFace.material : self->playerInfo->polyline.face.material;
+     return material ? material->mat_fpath : "";
+ }
+ EMSCRIPTEN_KEEPALIVE int jkBotWebViewFlags(void)
+ {
+-    if (!jkBot_IsEnabled() || !sithNet_isMulti || !sithCamera_g_pCurCamera) return 0;
++    if (!jkBot_IsEnabled() || !(sithNet_isMulti||jkBotP78_sp) || !sithCamera_g_pCurCamera) return 0;
+     int result=1;
+     if (sithCamera_g_pCurCamera==&sithCamera_g_aCameras[1] &&
+         sithCamera_g_pCurCamera->pPrimaryFocusThing==sithPlayer_g_pLocalPlayerThing) result|=2;
+@@ -198,6 +200,145 @@ static int jkGuiMultiplayer_WebFindRoom(const char16_t *name, int roomId)
+     return -1;
+ }
+ 
++/* ===== TEMP: Elite Arena P78 single-player adapter (Wren, via Grok Bot, 2026-11-25) =====
++   Test-only. Web role "sp" starts single-player Debug Play of JK1MP m10 (Canyon Oasis)
++   with SM Sith Lord's P78 mod, the bot driving the local player (see AI/jkBot.c). */
++#include "Cog/sithCog.h"
++#include "World/sithModel.h"
++#include "World/sithSoundClass.h"
++#include "World/sithTemplate.h"
++#include "World/sithThing.h"
++#include "Gameplay/jkSaber.h"
++#include "Gameplay/sithInventory.h"
++#include "Gameplay/sithTime.h"
++#include "Main/jkEpisode.h"
++#include "Main/jkRes.h"
++extern int jkBotP78_sp;
++static char webP78Model[32], webP78Sound[32];
++static int webP78Phase;          /* 0 wait for the ARENA menu, 1 match started, 2 match over */
++static unsigned webP78Next, webP78ScoreNext, webP78Started;
++static int webP78LastDead;
++static int webP78Cog(int row,int msg,int p0,int p1,int p2,int p3)
++{
++    if (!sithWorld_g_pStaticWorld || row<0 || (unsigned)row>=sithWorld_g_pStaticWorld->numCogs) return -1;
++    return (int)sithCog_SendMessageEx(&sithWorld_g_pStaticWorld->aCogs[row],msg,SENDERTYPE_SYSTEM,0,0,0,0,
++                                      (cog_flex_t)p0,(cog_flex_t)p1,(cog_flex_t)p2,(cog_flex_t)p3);
++}
++static void webP78Character(SithThing *self)
++{
++    /* SP Debug Play loads the level with an empty Force inventory (rank 0, no stars, no mana: run
++       p78-20261125-183351 BOT_FORCE_STATE). Give Lily the same rank-8 plan her MP character gets
++       (jkGuiMultiplayer_WebCharacter); kyle.cog refills mana as rank*50 on spawn. */
++    if (self && !(self->flags&SITH_TF_DEAD) && sithInventory_GetInventory(self,SITHBIN_JEDI_RANK)<1) {
++        const char *side=getenv("JK_BOT_FORCE_SIDE"), *style=getenv("JK_BOT_FORCE_STYLE");
++        jkBotLoadout plan;
++        if (jkBotLoadout_Plan(8,side && !strcmp(side,"dark"),jkBotLoadout_Style(style),&plan)) {
++            for (int bin=SITHBIN_F_JUMP;bin<=SITHBIN_F_DEADLYSIGHT;bin++) sithInventory_SetInventory(self,bin,plan.stars[bin]);
++            sithInventory_SetInventory(self,SITHBIN_JEDI_RANK,8);
++            jkPlayer_SetRank(8);
++            jkPlayer_SetAccessiblePowers(8); jkPlayer_SetProtectionDeadlysight();
++            jkPlayer_DisallowOtherSide(8); jkPlayer_InitForceBins(); jkPlayer_CalcAlignment(1);
++            sithInventory_SetInventory(self,SITHBIN_FORCEMANA,400);
++            printf("P78_FORCE applied rank=8 mana=%.0f stars:",(double)sithInventory_GetInventory(self,SITHBIN_FORCEMANA));
++            for (int bin=SITHBIN_F_JUMP;bin<=SITHBIN_F_DEADLYSIGHT;bin++) printf(" %d=%.0f",bin,(double)sithInventory_GetInventory(self,bin));
++            printf("\n");
++        }
++    }
++    rdModel3 *model=webP78Model[0] ? sithModel_Load(webP78Model,1) : NULL;
++    if (model && self->renderData.model3!=model) {
++        sithThing_SetThingModel(self,model);
++        sithSoundClass *snd=webP78Sound[0] ? sithSoundClass_Load(webP78Sound) : NULL;
++        if (snd) sithSoundClass_SetThingClass(self,snd);
++        printf("P78_ADAPTER model=%s sound=%s\n",webP78Model,webP78Sound);
++    }
++    if (self->playerInfo) {
++        rdMaterial *m=self->playerInfo->polyline.face.material;
++        if (!m || strcmp(m->mat_fpath,"saberred1.mat")) {
++            jkSaber_InitializeSaberInfo(self,"saberred1.mat","saberred0.mat",0.0032f,0.0018f,0.12f,
++                sithTemplate_GetTemplate("+ssparks_wall"),sithTemplate_GetTemplate("+ssparks_blood"),
++                sithTemplate_GetTemplate("+ssparks_saber"));
++            printf("P78_ADAPTER saber=red\n");
++        }
++    }
++}
++/* Start one deathmatch through the mod's own menu messages, as its buttons would:
++   p70mode (row 0) user5 SETTING(_, _, value, which) then user4 START; p70ctl (row 29) user1 CLOSE. */
++static void webP78Drive(SithThing *self)
++{
++    unsigned now=stdPlatform_GetTimeMsec();
++    int dead=(self->flags&SITH_TF_DEAD)!=0;
++    if (dead!=webP78LastDead) { printf("P78_LOCAL %s t=%.1f\n",dead?"died":"respawned",(double)sithTime_g_secGameTime); webP78LastDead=dead; }
++    if (webP78Phase==0 && (int)(now-webP78Next)>=0) {
++        webP78Next=now+500;
++        int ph=webP78Cog(0,SITH_MESSAGE_USER0,0,0,0,0);
++        if (ph==9) {
++            webP78Cog(0,SITH_MESSAGE_USER5,0,0,0,0);   /* BOTS: state 0 = 1 bot */
++            webP78Cog(0,SITH_MESSAGE_USER5,0,0,1,2);   /* TIME: state 1 = 5 minutes */
++            webP78Cog(29,SITH_MESSAGE_USER1,0,0,0,0);  /* close the floating menu */
++            int ok=webP78Cog(0,SITH_MESSAGE_USER4,0,0,0,0);
++            int dm=webP78Cog(31,SITH_MESSAGE_USER4,0,0,0,0);
++            printf("P78_ADAPTER start_match mode_ph=%d dm_ph=%d ret=%d bots=1 skill_state=%d time=5min frag=%d weapons=%d force=%d\n",
++                   ph,dm,ok,webP78Cog(0,SITH_MESSAGE_USER0,8,1,0,0),webP78Cog(0,SITH_MESSAGE_USER0,8,3,0,0),
++                   webP78Cog(0,SITH_MESSAGE_USER0,8,4,0,0),webP78Cog(0,SITH_MESSAGE_USER0,8,5,0,0));
++            webP78Phase=1; webP78Started=now; webP78ScoreNext=now+1000;
++            printf("P78_FORCE rank_bin20=%.0f mana_bin14=%.0f stars:",(double)sithInventory_GetInventory(self,20),(double)sithInventory_GetInventory(self,14));
++            for (int bin=SITHBIN_F_JUMP;bin<=SITHBIN_F_DEADLYSIGHT;bin++) printf(" %d=%.0f",bin,(double)sithInventory_GetInventory(self,bin));
++            printf("\n");
++        }
++    }
++    if (webP78Phase==1 && (int)(now-webP78ScoreNext)>=0) {
++        webP78ScoreNext=now+5000;
++        int ph=webP78Cog(31,SITH_MESSAGE_USER4,0,0,0,0);
++        int b1=webP78Cog(31,SITH_MESSAGE_USER4,11,0,0,0);
++        double b1h=-1;
++        if (b1>=0 && sithWorld_g_pCurrentWorld && b1<sithWorld_g_pCurrentWorld->numThingsLoaded)
++            b1h=sithWorld_g_pCurrentWorld->aThings[b1].actorParams.health;
++        printf("P78_BODY1 thing=%d health=%.1f\n",b1,b1h);
++        printf("P78_SCORE wall=%.1f game=%.1f dm_ph=%d you=%d/%d bot1=%d/%d body1=%d\n",(now-webP78Started)/1000.0,
++               (double)sithTime_g_secGameTime,ph,webP78Cog(31,SITH_MESSAGE_USER4,9,0,0,0),webP78Cog(31,SITH_MESSAGE_USER4,10,0,0,0),
++               webP78Cog(31,SITH_MESSAGE_USER4,9,1,0,0),webP78Cog(31,SITH_MESSAGE_USER4,10,1,0,0),webP78Cog(31,SITH_MESSAGE_USER4,11,0,0,0));
++        if (ph==0 && now-webP78Started>20000) { webP78Phase=2; printf("P78_ADAPTER match_over\n"); }
++    }
++    fflush(stdout);
++}
++static int jkGuiMultiplayer_WebP78Startup(const char *name,char *model,char *sound)
++{
++    if (!jkGuiMultiplayer_WebName(name,15,NULL) || !jkGuiMultiplayer_WebName(model,31,".3do") ||
++        !jkGuiMultiplayer_WebName(sound,31,".snd")) return -1;
++    jkSmack_stopTick=1; jkSmack_nextGuiState=JK_GAMEMODE_TITLE;
++    Window_SetDrawHandlers(stdDisplay_DrawAndFlipGdi,stdDisplay_SetCooperativeLevel);
++    std3D_StartScene(); std3D_EndScene();
++    if (!sithOpenStatic("static.jkl")) return -1;
++    jkHudInv_InitItems();
++    const char *rules="/jk1/bot-behavior.cfg";
++    FILE *behavior=fopen(rules,"w");
++    if (!behavior) return -1;
++    int written=fprintf(behavior,"version=1\nsabers_only=0\nfists_peace=0\nforce_enabled=1\n");
++    if (written<0 || fclose(behavior)!=0 || setenv("JK_BOT_BEHAVIOR_FILE",rules,1)!=0) return -1;
++    const char *third=getenv("JK_BOT_WEB_THIRD_PERSON");
++    webBotThirdPerson=third && !strcmp(third,"1");
++    webBotWorld=NULL;
++    jkBot_Configure(name,model);
++    jkBotCompanion_SetTransport(jkBotWebEmit);
++    if (!jkGuiMultiplayer_WebCharacter(name,model,sound,8)) return -1;
++    stdString_SafeStrCopy(webP78Model,model,sizeof(webP78Model));
++    stdString_SafeStrCopy(webP78Sound,sound,sizeof(webP78Sound));
++    jkBotP78_sp=1;
++    /* As Single Player > Debug Play > Jedi Training (JK1MP) > m10.jkl does. */
++    jkRes_LoadGob("JK1MP");
++    if (jkEpisode_mLoad.paEntries) { JK_FREE(jkEpisode_mLoad.paEntries); jkEpisode_mLoad.paEntries=NULL; }
++    jkMain_pEpisodeEnt=jkMain_pEpisodeEnt2=NULL;
++    if (!jkEpisode_Load(&jkEpisode_mLoad)) return -1;
++    jkEpisode_idk4(&jkEpisode_mLoad,"m10.jkl");
++    if (jkEpisode_mLoad.paEntries) {
++        jkMain_pEpisodeEnt=jkMain_pEpisodeEnt2=&jkEpisode_mLoad.paEntries[jkEpisode_mLoad.currentEpisodeEntryIdx];
++    }
++    printf("P78_ADAPTER sp_debug_play episode=JK1MP map=m10.jkl name=%s model=%s third=%d\n",name,model,webBotThirdPerson);
++    jkMain_sub_403470("m10.jkl");
++    return 1;
++}
++/* ===== end TEMP P78 adapter ===== */
++
+ /* Returns zero for normal play, one for a started bot, negative on a boot error.
+    The four players, including the visible host, use the ordinary WSRelay
+    create/open, level loading and welcome paths. */
+@@ -208,6 +349,7 @@ int jkGuiMultiplayer_WebBotStartup(void)
+     if (!role) return 0;
+     const char *name=getenv("JK_BOT_WEB_NAME"), *room=getenv("JK_BOT_WEB_ROOM");
+     char *model=getenv("JK_BOT_WEB_MODEL"), *sound=getenv("JK_BOT_WEB_SOUND");
++    if (!strcmp(role,"sp")) return jkGuiMultiplayer_WebP78Startup(name,model,sound); /* TEMP P78 */
+     const char *third=getenv("JK_BOT_WEB_THIRD_PERSON");
+     int host=!strcmp(role,"host"), external=!strcmp(role,"external");
+     const char *episode=getenv("JK_BOT_WEB_EPISODE"), *map=getenv("JK_BOT_WEB_MAP");
+@@ -311,10 +453,11 @@ int jkGuiMultiplayer_WebBotStartup(void)
+ 
+ void jkGuiMultiplayer_WebBotBeforeControls(void)
+ {
+-    if (!jkBot_IsEnabled() || !sithNet_isMulti || (g_submodeFlags&8) ||
++    if (!jkBot_IsEnabled() || !(sithNet_isMulti||jkBotP78_sp) || (g_submodeFlags&8) ||
+         !sithWorld_g_pCurrentWorld || !sithPlayer_g_pLocalPlayerThing ||
+-        !sithPlayer_g_pLocalPlayer || !(sithPlayer_g_pLocalPlayer->flags&1) ||
+-        !sithPlayer_g_pLocalPlayer->playerNetId) return;
++        !sithPlayer_g_pLocalPlayer || (!jkBotP78_sp && !(sithPlayer_g_pLocalPlayer->flags&1)) ||
++        (!jkBotP78_sp && !sithPlayer_g_pLocalPlayer->playerNetId)) return;
++    if (jkBotP78_sp) { webP78Character(sithPlayer_g_pLocalPlayerThing); webP78Drive(sithPlayer_g_pLocalPlayerThing); } /* TEMP P78 */
+     if (webBotWorld!=sithWorld_g_pCurrentWorld) {
+         webBotWorld=sithWorld_g_pCurrentWorld;
+         jkBot_OnJoined();
+diff --git a/src/World/sithThing.c b/src/World/sithThing.c
+index be2af26e..5c528903 100644
+--- a/src/World/sithThing.c
++++ b/src/World/sithThing.c
+@@ -517,12 +517,28 @@ static flex_t sithThing_ApplyDamage(SithThing *pThing, SithThing *pDamageThing,
+ #if defined(ARCH_WASM) && defined(PLATFORM_WSRELAY)
+     if (jkBot_IsEnabled())
+         jkBot_ObserveDamage(pThing, pDamageThing, damage);
++#endif
++#if defined(ARCH_WASM) && defined(PLATFORM_WSRELAY)
++    flex_t p78Raw = damage; /* TEMP P78 adapter: hit ledger */
+ #endif
+     if ( (pThing->flags & SITH_TF_CAPTURED) != 0 && (pThing->flags & SITH_TF_INVULN) == 0 )
+     {
+         param1 = (flex_t)(unsigned int)hitType; // FLEXTODO
+         damage = sithCog_ThingSendMessageEx(pThing, pDamageThing, SITH_MESSAGE_DAMAGED, damage, param1, 0.0, 0.0);
+     }
++#if defined(ARCH_WASM) && defined(PLATFORM_WSRELAY)
++    { /* TEMP P78 adapter (Wren): log every hit on an actor whose damage traces back to the local player */
++        extern int jkBotP78_sp;
++        if (jkBotP78_sp && pThing->type == SITH_THING_ACTOR && pDamageThing) {
++            SithThing *root = pDamageThing;
++            for (int n = 0; root && root != sithPlayer_g_pLocalPlayerThing && n < 4; n++) root = root->pParent;
++            if (root == sithPlayer_g_pLocalPlayerThing)
++                printf("P78_HIT victim=%d src_type=%d raw=%.1f after_cog=%.1f health=%.1f captured=%d invuln=%d\n",
++                       (int)pThing->idx, (int)pDamageThing->type, (double)p78Raw, (double)damage,
++                       (double)pThing->actorParams.health, !!(pThing->flags & SITH_TF_CAPTURED), !!(pThing->flags & SITH_TF_INVULN));
++        }
++    }
++#endif
+     if ( damage > 0.0 )
+     {
+         if ( pThing->type != SITH_THING_ACTOR )

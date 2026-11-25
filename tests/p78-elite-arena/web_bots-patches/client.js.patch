@@ -1,0 +1,22 @@
+--- a/web_bots/client.js
++++ b/web_bots/client.js
+@@ -201,7 +201,7 @@
+ 
+   async function startRecording(seconds=120) {
+     if (id!=="lily" || stage!=="running" || captured) throw new Error("Lily's running view is required.");
+-    if (!(Number.isFinite(seconds) && seconds>0 && seconds<=240)) throw new Error("Duration must be more than 0 and at most 240 seconds.");
++    if (!(Number.isFinite(seconds) && seconds>0 && seconds<=700)) throw new Error("Duration must be more than 0 and at most 240 seconds.");
+     if (!canvas.captureStream || typeof MediaRecorder==="undefined") throw new Error("Canvas recording is unavailable.");
+     graphics();
+     const stream=canvas.captureStream(30);
+@@ -271,7 +271,9 @@
+     }
+     return {seconds,audio_tracks:stream.getAudioTracks().length,mime};
+   }
+-  globalThis.jkBot = {startRecording,info:()=>({id,stage,graphics:render,view:latestView,
++  // TEMP (P78 adapter test): stop a recording early, once the match has ended.
++  function stopRecording() { if (captured && captured.rec.state==="recording") { captured.rec.stop(); return true; } return false; }
++  globalThis.jkBot = {startRecording,stopRecording,info:()=>({id,stage,graphics:render,view:latestView,
+                                  dropped,recording:captured?.status || null})};
+   record.onclick=()=>startRecording().catch(message);
+   document.querySelector("#credential").onchange=async ev=>{
