@@ -63,12 +63,12 @@ class SelectedRoom:
                 "map":self.level, "seat":self.seat, "netcode":2}
 
 
-def unsupported(game):
+def unsupported(game, allow_mod=False):
     if game.get("game") != "jk1" or game.get("net") != 2:
         return "requires full Jedi Knight on WSRelay netcode 2"
     if game.get("locked") is not False:
         return "password required"
-    if game.get("mod"):
+    if game.get("mod") and not allow_mod:
         return "requires a host mod"
     if type(game.get("players")) != int or type(game.get("max")) != int or not 0 < game["players"] < game["max"]:
         return "no open player slot"
@@ -90,7 +90,7 @@ def select_room(games, args):
     if len(choices) != 1:
         raise ValueError("Selected room is absent or ambiguous on this relay.")
     game = choices[0]
-    reason = unsupported(game)
+    reason = unsupported(game, getattr(args, "allow_mod", False))
     if reason:
         raise ValueError("Selected room is unavailable: "+reason)
     episode = game["episode"]

@@ -42,6 +42,18 @@ ROOM_PLAYERS = {
     "t800": ("Bot_T800Hybrid", "kyi14.3do", "kybossk.snd", "dark"),
     "crownbraid": ("Bot_CrownBraid", "kya10.3do", "kyfemale.snd", "light"),
 }
+# Character models in a roster GOB (a JK -path mod such as RedRosterPhoto, the
+# owner's private files): each seat wears its own body when the GOB carries it,
+# and keeps its stock Kyle variant otherwise.
+ROSTER_MODELS = {
+    "lily": ("dlil.3do", "dlil.snd"),
+    "lilivane": ("lvane.3do", "kyfemale.snd"),
+    "biddy": ("biddybl.3do", "biddybl.snd"),
+    "t800": ("t800hy4.3do", "ky.snd"),
+    "red": ("redmandot.3do", "kyfemale.snd"),
+    "crownbraid": ("redmandoh.3do", "kyfemale.snd"),
+}
+SABER_COLORS = ("red", "green")
 MAX_CHUNK, MAX_CAPTURE = 8*1024*1024, 512*1024*1024
 CAPTURE_IDLE_SECONDS = 10.
 
@@ -61,6 +73,37 @@ def game_file(root, relative):
     if not path.is_file():
         raise ValueError(f"Expected a game file for {relative}.")
     return path
+
+
+def gob_names(path):
+    """Lower-case entry names of a GOB (JK's resource archive), from its index only."""
+    with open(path, "rb") as f:
+        magic, _version, offset = struct.unpack("<4sII", f.read(12))
+        if magic != b"GOB ":
+            raise ValueError("Not a GOB archive.")
+        f.seek(offset)
+        count, = struct.unpack("<I", f.read(4))
+        if count > 100000:
+            raise ValueError("GOB index is implausibly large.")
+        names = set()
+        for _ in range(count):
+            entry = f.read(136)
+            if len(entry) != 136:
+                raise ValueError("GOB index is truncated.")
+            names.add(entry[8:].split(b"\0")[0].decode("latin1").replace("/", "\\").casefold())
+    return names
+
+
+def seat_character(ident, gob_files=frozenset()):
+    """(name, model, sound, side) for a seat; a roster body applies when the mod GOB has it."""
+    name, model, sound, side = ROOM_PLAYERS[ident]
+    body = ROSTER_MODELS.get(ident)
+    if body and body[0] in gob_files:
+        model = body[0]
+        # Stock voices (ky.snd, kyfemale.snd) are in every install; a custom one must be in the GOB.
+        if body[1] in gob_files or body[1] in ("ky.snd", "kyfemale.snd"):
+            sound = body[1]
+    return name, model, sound, side
 
 
 def browser_pair():
@@ -123,7 +166,7 @@ def child_relay(path):
 
 class Host:
     def __init__(self, data, engine, runtime, room, model, chat, mode="ff-guns", *, adaptive_lily=False, external=None,
-                 hosted=None):
+                 hosted=None, red_sabers=("lily",)):
         if mode not in ARENA_MODES:
             raise ValueError("Unknown arena mode. Choose one of " + ", ".join(ARENA_MODES) + ".")
         if external and hosted:
@@ -141,9 +184,13 @@ class Host:
         if external and external.episode_file:
             self.assets.append(("/jk1/episode/"+external.episode_file.name, external.episode_file))
         self.model = model is not None
+        self.gob_models = frozenset()
+        self.red_sabers = frozenset(red_sabers)
         if model:
             if not Path(model).is_file() or Path(model).suffix.lower() != ".gob":
                 raise ValueError("Supply a regular model GOB.")
+            self.gob_models = frozenset(n.split("\\")[-1] for n in gob_names(model)
+                                        if n.startswith("3do\\") and n.endswith(".3do") or n.endswith(".snd"))
             self.assets.append(("/jk1/jkmods/companion/lilitari.gob",Path(model).resolve()))
         for name in ("openjkdf2.js","openjkdf2.wasm"):
             if not (self.engine/name).is_file():
@@ -292,9 +339,7 @@ class Host:
             self.channels[ident].outgoing_frames()
             seat.update(instance=body["instance"],cookie=secrets.token_urlsafe(24),stage="boot",graphics=None,view=None)
         seat["poll"] = time.monotonic()
-        name,model,sound,side = ROOM_PLAYERS[ident]
-        if ident == "lily" and self.model:
-            model,sound="dlil.3do","dlil.snd"
+        name,model,sound,side = seat_character(ident, self.gob_models)
         role = "host" if ident=="lily" or self.hosted else "join"
         response = web.json_response({"id":ident,
             **({"relay":self.outside_relay} if self.outside_relay else {}),
@@ -304,7 +349,8 @@ class Host:
                 **({"JK_BOT_WEB_EPISODE":self.external.episode,"JK_BOT_WEB_MAP":self.external.level} if self.external else {}),
                 **({"JK_BOT_WEB_MAX_PLAYERS":str(self.hosted.max_players),"JK_BOT_WEB_MAP":self.hosted.level} if self.hosted else {}),
                 "JK_BOT_WEB_NAME":name,"JK_BOT_WEB_MODEL":model,"JK_BOT_WEB_SOUND":sound,
-                "JK_BOT_WEB_SABER_COLOR":"red" if ident=="lily" else "green",
+                "JK_BOT_WEB_SABER_COLOR":"red" if ident in self.red_sabers else "green",
+                **({"JK_BOT_WEB_MOD":"1"} if self.model else {}),
                 "JK_BOT_TRACE_FORCE":"1" if os.environ.get("JK_BOT_TRACE_FORCE")=="1" else "0",
                 "JK_BOT_FORCE_SIDE":side,"JK_BOT_FORCE_STYLE":"competitive","JK_BOT_WEB_THIRD_PERSON":"1" if ident=="lily" else "0"}})
         response.set_cookie("jkrelay_"+ident,seat["cookie"],httponly=True,samesite="Strict",path="/relay")

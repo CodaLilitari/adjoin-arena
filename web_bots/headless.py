@@ -235,12 +235,13 @@ class Launcher:
         results = {}
         for ident in seats:
             spec = SimpleNamespace(data=self.args.data, room_id=room_id, seat=ident, relay=self.args.relay,
-                                   episode_gob=self.args.episode_gob)
+                                   episode_gob=self.args.episode_gob, allow_mod=self.args.model_gob is not None)
             room = select_room(games, spec)
-            host = Host(self.args.data, self.args.engine_dir, self.run / ident, str(room_id), None, False,
+            host = Host(self.args.data, self.args.engine_dir, self.run / ident, str(room_id), self.args.model_gob, False,
                         self.args.mode if self.args.command == "host" else
                         ("ff-sabers" if self.args.sabers_only else "ff-guns"),
-                        adaptive_lily=self.args.adaptive_lily and ident == "lily", external=room)
+                        adaptive_lily=self.args.adaptive_lily and ident == "lily", external=room,
+                        red_sabers=self.args.red_sabers)
             await self.add_host(ident, host, "join")
             await self.open_seat(browser, ident)
             ok = await self.wait_joined(ident, self.args.join_timeout)
@@ -261,8 +262,9 @@ class Launcher:
             try:
                 if a.command == "host":
                     hosted = HostedRoom(a.relay, a.host_seat, a.max_players, a.map, a.room_name)
-                    host = Host(a.data, a.engine_dir, self.run / a.host_seat, a.room_name, None, False, a.mode,
-                                adaptive_lily=a.adaptive_lily and a.host_seat == "lily", hosted=hosted)
+                    host = Host(a.data, a.engine_dir, self.run / a.host_seat, a.room_name, a.model_gob, False, a.mode,
+                                adaptive_lily=a.adaptive_lily and a.host_seat == "lily", hosted=hosted,
+                                red_sabers=a.red_sabers)
                     self.manifest["hosted"] = hosted.public()
                     await self.add_host(a.host_seat, host, "host")
                     await self.open_seat(browser, a.host_seat)
@@ -338,6 +340,11 @@ def build_parser():
         c.add_argument("--raster-threads", type=int, default=0, help="Chromium --num-raster-threads (0 = default).")
         c.add_argument("--exit-on-drop", action=argparse.BooleanOptionalAction, default=True,
                        help="Exit non-zero if Chrome disconnects or the host seat crashes/drops.")
+        c.add_argument("--model-gob", type=Path,
+                       help="A -path mod GOB loaded by every seat (jkmods/companion); seats whose roster body it "
+                            "carries wear it. The host's JKWeb shares it with joiners and spectators in-game.")
+        c.add_argument("--red-sabers", type=lambda t: tuple(x for x in t.split(",") if x), default=("lily",),
+                       help="Comma-separated seats with a red saber (saberred1/0.mat); the rest are green.")
     join.add_argument("--room-id", type=int, required=True)
     join.add_argument("--sabers-only", action="store_true")
     host.add_argument("--room-name", default="Canyon_" + secrets.token_hex(3))

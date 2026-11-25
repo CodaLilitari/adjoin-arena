@@ -125,10 +125,10 @@ index eea7bbda..ec74af78 100644
      sithMulti_InitTick(entry.tickRateMs);
      return jkMain_loadFile2(entry.episodeGobName,entry.mapJklFname) ? 1:-1;
 diff --git a/src/Platform/Networking/WSRelay/stdComm_WSRelay.c b/src/Platform/Networking/WSRelay/stdComm_WSRelay.c
-index fd244dc8..e7cc3e68 100644
+index fd244dc8..d7f128e4 100644
 --- a/src/Platform/Networking/WSRelay/stdComm_WSRelay.c
 +++ b/src/Platform/Networking/WSRelay/stdComm_WSRelay.c
-@@ -5744,6 +5744,25 @@ void stdComm_WSRelay_ForgetList()
+@@ -5744,6 +5744,32 @@ void stdComm_WSRelay_ForgetList()
      wsrelay_bListForget = 1;
  }
  
@@ -141,10 +141,17 @@ index fd244dc8..e7cc3e68 100644
 +// require the stock site's mod manager.
 +int stdComm_WSRelay_BotBaseGame(int idx, int welcomed)
 +{
-+    if (!stdComm_WSRelay_BotRoomId(idx) || wsrelay_aShownTails[idx][0]) return 0;
++    /* PR4 (Wren): a bot started with the same -path mod as the host
++       (JK_BOT_WEB_MOD=1, the launcher's --model-gob) may join a room whose
++       lobby tail names a mod; the ordinary mods.js check after the welcome
++       (wsrelay_GetHostMod) still finds the bot already on the host's mod, or
++       restarts it like any player. Without it, a modded room stays refused. */
++    const char *withMod=getenv("JK_BOT_WEB_MOD");
++    int modOk=withMod && !strcmp(withMod,"1");
++    if (!stdComm_WSRelay_BotRoomId(idx) || (wsrelay_aShownTails[idx][0] && !modOk)) return 0;
 +    if (!welcomed) return 1;
 +    const jkMultiEntry *listed=&jkGuiMultiplayer_aEntries[idx], *actual=&wsrelay_storedEntryEnum;
-+    return wsrelay_room==wsrelay_aShownRooms[idx] && !wsrelay_storedTailEnum[0] &&
++    return wsrelay_room==wsrelay_aShownRooms[idx] && (modOk || !wsrelay_storedTailEnum[0]) &&
 +           !__strcmpi(listed->episodeGobName,actual->episodeGobName) &&
 +           !__strcmpi(listed->mapJklFname,actual->mapJklFname) &&
 +           listed->maxRank==actual->maxRank && listed->multiModeFlags==actual->multiModeFlags &&

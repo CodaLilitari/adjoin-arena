@@ -58,20 +58,20 @@
   },
   "files": {
     "bin/bots-jkweb/openjkdf2.js": {
-      "sha256": "538ffa62b66aa5912c3bf4766ab7134418ec697908be78565a8d6b4dad30cfc1",
+      "sha256": "4492ea09a4a165e4740f0e144c2c332cb5db6d4a7f792f7b089e4ce1880dc4d9",
       "bytes": 573194
     },
     "bin/bots-jkweb/openjkdf2.wasm": {
-      "sha256": "614c44494af3a044c2bb3ec31fd5d52c1d13a5d45bc74d5bd807fef7544bc675",
-      "bytes": 4059461
+      "sha256": "44b999f50bd299b4fd3677cbf20691a28ab1f5c90681864ef7e41b4d6866e701",
+      "bytes": 4059527
     },
     "web_bots/engine.patch": {
       "sha256": "76804bec9637d46940fc7098a6f6a9ef512d746303018b7238667dbdecf3f088",
       "bytes": 330425
     },
     "web_bots/external-room.patch": {
-      "sha256": "f6ba03db229cb11d43ac45552cb03fb968ad0cefca819213f9b276969603b861",
-      "bytes": 9103
+      "sha256": "a67faeda01e073ed9b6e0a8d85b531cc3a75465ea1d223c5b44bc790e6ba65bf",
+      "bytes": 9609
     },
     "web_bots/bot-tactics-web.patch": {
       "sha256": "f73290c9d1187b1fe183b6583a5d02330c157c69d8c632ab5a5b74da1a796f22",
@@ -83,5 +83,6 @@
     }
   },
   "spectator_feed": "upstream web-mp feed (stdComm_WSRelay feedKeyBegin, sithMulti_FeedKeyframe): keyframe on feed open, new level, every 60 s, and on 'key'",
-  "relink_note": "engine-relink.tar.gz still holds the 7a6f95c-based relink inputs; regenerate with web_bots/package_engine.py before a release"
+  "relink_note": "engine-relink.tar.gz still holds the 7a6f95c-based relink inputs; regenerate with web_bots/package_engine.py before a release",
+  "modded_rooms": "Bots launched with --model-gob set JK_BOT_WEB_MOD=1; stdComm_WSRelay_BotBaseGame then admits a room whose lobby tail names a mod, and mods.js (wsrelay_GetHostMod) confirms the bot already runs the host's mod."
 }
