@@ -21,20 +21,22 @@ import time
 from urllib.parse import urlsplit
 
 from .lily import protocol as lily
+from . import tactics
 
 HEADER = struct.Struct("<4sBBHIII")
 STATE, ACK, CHAT, SOUND = 1, 2, 3, 4
 STRATEGY, SAY, RELEASE = 16, 17, 18
+TACTICS = 21  # 19 and 20 belong to the adaptive-player branch
 STRATEGY_PAYLOAD = struct.Struct("<dBBHffII")
 LILY_COMMANDS = {"commit": lily.COMMIT, "motor": lily.MOTOR}
-KINDS = {"strategy": STRATEGY, "say": SAY, "release": RELEASE, **LILY_COMMANDS}
+KINDS = {"strategy": STRATEGY, "say": SAY, "release": RELEASE, "tactics": TACTICS, **LILY_COMMANDS}
 LILY_EVENTS = {lily.SENSE: "sense", lily.OFFERS: "offers", lily.PROGRESS: "progress"}
 LILY_REQUEST = re.compile(r"lily\.([1-9][0-9]{0,19})\Z")
 LILY_HISTORY = 256
 MODES = ("autonomous", "pressure", "resource", "recover")
 RESOURCES = (0, 11, 12, 14, 15, 40, 60, 62, 63, 64, 65, 66)
 ACK_STATUS = ("applied", "rejected", "expired", "stale", "rate_limited")
-MAX_PENDING, EVENT_HISTORY, COMMAND_HISTORY = 16, 128, 256
+MAX_PENDING, EVENT_HISTORY, COMMAND_HISTORY, TACTIC_HISTORY = 16, 128, 256, 32
 UINT_MAX = 0xffffffff
 IDENTIFIER = re.compile(r"[A-Za-z0-9_-]{1,64}\Z")
 FENCE = {"run_id", "world_epoch", "life_epoch"}
@@ -155,6 +157,7 @@ class Command:
     status: str = "pending"
     reason: int | None = None
     sent: bool = False
+    detail: dict | None = None
 
     def result(self, key):
         extra = {"action_seq": self.seq} if self.name in LILY_COMMANDS else {}
@@ -183,6 +186,10 @@ class Bot:
     lease_until: float = 0.
     last_chat: float = -math.inf
     release: tuple | None = None
+    # Tactic adjustments the engine acknowledged as applied, oldest first.
+    # The engine's table also depends on its baseline file, so this is the
+    # hub's record of what it sent, not a readback of the engine.
+    tactic_log: deque = field(default_factory=lambda: deque(maxlen=TACTIC_HISTORY))
 
     adaptive_lily: bool = False
     lily_telemetry: dict = field(default_factory=dict)
@@ -253,6 +260,8 @@ class Bot:
                     and status < len(ACK_STATUS) and (status == 0) == (reason == 0)):
                 cmd.status, cmd.reason = ACK_STATUS[status], reason
                 del self.pending[seq]
+                if cmd.name == "tactics" and status == 0:
+                    self.tactic_log.append(dict(cmd.detail, world_epoch=world, life_epoch=life, at=now))
             return
         if not world or not life:
             return
@@ -491,6 +500,8 @@ class Hub:
                     extra = {"lily": bot.lily_observation(now)} if bot.adaptive_lily else {}
                     return 200, dict(fence, **extra, state=bot.state, native_active=fresh,
                                      age_seconds=(now-bot.observed if bot.state else None))
+                if route == "tactics":
+                    return 200, dict(fence, **tactics.describe(), now=now, applied=list(bot.tactic_log))
                 if route == "events":
                     need(not query or re.fullmatch(r"after=[0-9]{1,18}", query), "Invalid event cursor.")
                     after = int(query[6:]) if query else 0
@@ -541,7 +552,8 @@ class Hub:
             need(COMMAND_TICKET <= body.keys(), "Missing command ticket or request ID.")
         else:
             fields(body, COMMAND_TICKET | ({"mode"} if route == "strategy" else {"text"} if route == "say" else set()),
-                   strategy_options if route == "strategy" else ())
+                   strategy_options if route == "strategy" else
+                   {"preset", "values", "reset"} if route == "tactics" else ())
         key = body["request_id"]
         pattern = LILY_REQUEST if adaptive else IDENTIFIER
         need(type(key) is str and pattern.fullmatch(key), "Invalid request identifier.")
@@ -553,10 +565,20 @@ class Hub:
         self.check_lease(bot, body)
         need(fresh, "Waiting for native state.", 409)
         deadline = min(now + 2, bot.lease_until)
+        detail = None
         if adaptive:
             serial = int(key[5:])
             need(serial > bot.lily_request_number, "Adaptive request ID has been retired.", 409)
             payload, deadline = bot.lily_payload(route, body, now)
+        elif route == "tactics":
+            # The engine refuses a second adjustment within its commitment
+            # window and reports it as rate_limited; its game clock decides.
+            try:
+                reset, values = tactics.resolve(body.get("preset"), body.get("values"), body.get("reset", False))
+                payload = struct.pack("<d", deadline) + tactics.encode(reset, values)
+            except ValueError as error:
+                raise Problem(400, str(error)) from None
+            detail = {"preset": body.get("preset"), "reset": reset, "values": values}
         elif route == "say":
             need(self.allow_chat, "This bot run has outbound companion chat disabled.", 403)
             need(plain_text(body["text"]), "Invalid or reserved game chat.")
@@ -601,7 +623,7 @@ class Hub:
             bot.last_chat = now
         seq = bot.next_seq()
         cmd = Command(route, fingerprint, body["lease_id"], seq, bot.world, bot.life,
-                      frame(KINDS[route], bot.world, bot.life, seq, payload), deadline)
+                      frame(KINDS[route], bot.world, bot.life, seq, payload), deadline, detail=detail)
         history[key] = bot.pending[seq] = cmd
         return 202, dict(run_id=self.run_id, **cmd.result(key))
 

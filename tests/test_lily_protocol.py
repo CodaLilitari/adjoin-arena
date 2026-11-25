@@ -47,3 +47,32 @@ class TestLilyWire(unittest.TestCase):
             bad[index] = value
             with self.subTest(index=index, value=value):
                 self.assertIsNone(p.decode_event(p.SENSE, p.SENSE_HEADER.pack(*bad)))
+
+
+class TestPr4Extensions(unittest.TestCase):
+    """PR4 (Wren): sense self-trailer, collected outcome, new reasons."""
+    def sense(self):
+        fields = list(p.SENSE_HEADER.unpack(bytes(p.SENSE_HEADER.size)))
+        fields[0], fields[4], fields[24] = 1, -1, 33.0
+        return p.SENSE_HEADER.pack(*fields)
+
+    def test_sense_self_trailer(self):
+        base = self.sense()
+        plain = p.decode_event(p.SENSE, base)
+        self.assertNotIn("self", plain)
+        own = p.decode_event(p.SENSE, base + p.SENSE_SELF.pack(42, 1, 0, 0, 0, 87.5, 40.0, 200.0))
+        self.assertEqual(own["self"], dict(sector=42, on_water_surface=True, hurt_recently=False,
+                                           health=87.5, shields=40.0, mana=200.0))
+        for bad in (p.SENSE_SELF.pack(-1, 0, 0, 0, 0, 1, 1, 1), p.SENSE_SELF.pack(3, 2, 0, 0, 0, 1, 1, 1),
+                    p.SENSE_SELF.pack(3, 0, 0, 0, 0, math.nan, 1, 1), p.SENSE_SELF.pack(3, 0, 0, 0, 0, 1, 1, 1)[:-1]):
+            with self.subTest(bad=bad):
+                self.assertIsNone(p.decode_event(p.SENSE, base + bad))
+
+    def test_collected_and_new_reasons(self):
+        def event(owner, phase, reason, outcome, node):
+            return p.decode_event(p.PROGRESS, p.ACTION.pack(1, 8, 9, owner, phase, reason, outcome, 40, node))
+        self.assertEqual(event(1, 4, 0, 3, 5)["outcome"], "collected")
+        self.assertIsNone(event(2, 4, 0, 3, -1), "only a route collects")
+        self.assertEqual(event(1, 6, 9, 0, 5)["reason"], "not_collected")
+        self.assertEqual(event(1, 5, 10, 0, 5)["reason"], "self_defense")
+        self.assertIsNone(event(2, 5, 10, 0, -1), "motor playback is never interrupted for self-defence")

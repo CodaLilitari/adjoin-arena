@@ -12,11 +12,15 @@ CHOICE = Struct("<IiBB3fff")
 ACTION = Struct("<IIIBBBBIi")
 SENSE_HEADER = Struct("<IIIIiBBBBI3f3f3f3ffff4fBBBB")
 PEER = Struct("<IIIi3f3f")
+# PR4 sense extension: own sector, on_water_surface, hurt_recently, 2 reserved, health, shields, mana.
+SENSE_SELF = Struct("<iBBBBfff")
 AXES = ("forward", "strafe", "turn", "pitch")
 OWNERS = ("baseline", "route", "motor")
 PHASES = ("idle", "queued", "started", "running", "completed", "interrupted", "failed", "expired")
-REASONS = ("none", "released", "life", "world", "deadline", "invalid_route", "survival", "disconnected", "replaced")
-OUTCOMES = ("none", "arrived", "playback")
+REASONS = ("none", "released", "life", "world", "deadline", "invalid_route", "survival", "disconnected", "replaced",
+           "not_collected", "self_defense")
+OUTCOMES = ("none", "arrived", "playback", "collected")
+SUCCESS_OUTCOMES = {"route": ("arrived", "collected"), "motor": ("playback",)}
 CLASSES = ("patrol", "item")
 
 
@@ -87,15 +91,16 @@ def _valid_progress(owner, phase, reason, outcome, node):
     if not _action_node(owner, node):
         return False
     if phase == 4:
-        return reason == 0 and outcome == owner  # route arrived, or motor played
+        # route arrived (or collected its item), or motor played
+        return reason == 0 and (outcome == owner or (owner == 1 and outcome == 3))
     if outcome != 0:
         return False
     if phase in (1, 2, 3):
         return reason == 0
     if phase == 5:
-        return reason in (1, 2, 3, 7, 8) or (owner == 1 and reason in (5, 6))
+        return reason in (1, 2, 3, 7, 8) or (owner == 1 and reason in (5, 6, 10))
     if phase == 6:
-        return owner == 1 and reason == 5
+        return owner == 1 and reason in (5, 9)
     return phase == 7 and reason == 4
 
 
@@ -140,6 +145,16 @@ def decode_event(kind, payload):
             if buttons > 31 or weapon > 10 or force not in (0, *range(21, 35)):
                 return None
             peers = []
+            own = None
+            if count <= 8 and len(payload) == SENSE_HEADER.size + count * PEER.size + SENSE_SELF.size:
+                tail = SENSE_HEADER.size + count * PEER.size
+                own_sector, surface, hurt, _r1, _r2, health, shields, mana = SENSE_SELF.unpack_from(payload, tail)
+                _finite((health, shields, mana))
+                if own_sector < 0 or surface > 1 or hurt > 1:
+                    return None
+                own = dict(sector=own_sector, on_water_surface=bool(surface), hurt_recently=bool(hurt),
+                           health=health, shields=shields, mana=mana)
+                payload = payload[:tail]
             for slot, net_id, guid, sector, *values in _records(payload, SENSE_HEADER, PEER, count):
                 _finite(values)
                 if not net_id or sector < 0:
@@ -151,7 +166,8 @@ def decode_event(kind, payload):
                         supported=bool(supported), medium=("air", "water")[medium], position=list(fields[10:13]),
                         velocity=list(fields[13:16]), facing=list(fields[16:19]), up=list(fields[19:22]),
                         head_pitch=fields[22], breath_used_ms=fields[23], tick_ms=fields[24],
-                        axes=list(fields[25:29]), buttons=buttons, weapon=weapon, force=force, peers=peers)
+                        axes=list(fields[25:29]), buttons=buttons, weapon=weapon, force=force, peers=peers,
+                        **({} if own is None else {"self": own}))
     except (StructError, IndexError, ValueError, TypeError, BufferError):
         return None
     return None

@@ -9,7 +9,7 @@ import tempfile
 
 
 BASE = "7a6f95c9a3399e59acbf019dc6b25f9981d29dff"
-PATCHES = ("engine.patch", "external-room.patch")
+PATCHES = ("engine.patch", "external-room.patch", "bot-tactics-web.patch")
 
 
 def file_hash(path):

@@ -676,7 +676,7 @@ class Supervisor:
                         pass
                 verdict = None
                 status = p["phase"] + "_" + p["reason"]
-                if p["phase"] == "completed" and p["outcome"] == "arrived" and u["kind"] == "route":
+                if p["phase"] == "completed" and p["outcome"] in ("arrived", "collected") and u["kind"] == "route":
                     status, verdict = "arrived", True
                 elif p["phase"] == "completed" and p["outcome"] == "playback" and u["kind"] == "motor":
                     status = "playback"

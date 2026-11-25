@@ -79,6 +79,72 @@ static void testHandoverAndCompletion(void)
     jkPlayer_playerInfos[1].pLocalPlayer=NULL;
     puts("PASS final-frame completion, ordinary Force key-up vs cancellation, moving lift and CTF wait ownership");
 }
+/* PR4 (Wren): reaching an item node is not collecting it, and a route no
+   longer disarms the bot when it is under fire with a target. */
+static SithThing lilyPickup;
+static int lilyProgress(uint32_t seq,int *phase,int *reason,int *outcome)
+{
+    int found=0;
+    while (receive(6)) if (word(frame+20)==seq && frame[33]>=4) {
+        *phase=frame[33]; *reason=frame[34]; *outcome=frame[35]; found=1;
+    }
+    return found;
+}
+static void commitTo(uint32_t seq,int node)
+{
+    lily.offeredAt-=2; companion.nextState=0; tick();
+    assert(receive(5)>0);
+    uint32_t sample=word(frame+20), offer=word(frame+24);
+    command(19,seq,24,clockseconds()+2); setword(frame+28,sample); setword(frame+32,11);
+    setword(frame+36,offer); setword(frame+40,node); submit(44); ack(19,CP_APPLIED,seq);
+    assert(lily.active.seq==seq && bot.goal==node);
+}
+static void testPickupCredit(void)
+{
+    SithThing *prior=world.aThings; int priorCount=world.numThings, priorLoaded=world.numThingsLoaded;
+    memset(&lilyPickup,0,sizeof(lilyPickup));
+    lilyPickup.type=SITH_THING_ITEM; lilyPickup.sector=&sector; strcpy(lilyPickup.aName,"shieldrecharge");
+    world.aThings=&lilyPickup; world.numThings=0; world.numThingsLoaded=1;
+    self.actorParams.pPlayer->aItems[SITHBIN_SHIELDS].amount=0;
+    companion.policy=(CompanionPolicy){0};
+    /* Leave no atomic Force or traversal from the previous scenario. */
+    bot.forceBin=-1; bot.forceCancel=0; bot.forceUntil=0; nav.liftWaitAt=0; nav.crossingEntry=0;
+    nav.waterExitUntil=0; nav.jumpUntil=0; nav.forceJumpPending=0; nav.combatJumpUntil=0;
+    bot.nNodes=3; bot.graphDone=1; bot.goal=-1; bot.routeCount=bot.routePos=0;
+    for (int i=0;i<3;i++) {
+        bot.nodes[i]=(BotNode){.pos={0.4f*i,0,0},.sector=&sector,.item=-1};
+        if (i<2) { bot.nodes[i].nEdges=1; bot.nodes[i].edges[0]=(BotEdge){i+1,0.4f,0}; }
+    }
+    bot.nodes[2].item=0; lilyPickup.position=bot.nodes[2].pos;
+    int phase=0,reason=0,outcome=0;
+    /* 1. The item stays: arrival holds for the grace, then fails as not_collected. */
+    self.position=bot.nodes[0].pos; while (receive(6)) {}
+    commitTo(400,2);
+    self.position=bot.nodes[1].pos; tick();
+    self.position=bot.nodes[2].pos; tick();
+    assert(lily.active.seq==400 && lily.collectUntil>0 && "an item still present is not yet credited");
+    assert(!lilyProgress(400,&phase,&reason,&outcome));
+    bot.now=lily.collectUntil+0.01f; tick();
+    assert(lilyProgress(400,&phase,&reason,&outcome) && phase==LILY_FAILED && reason==LILY_NOT_COLLECTED);
+    assert(!lily.active.seq && lily.collectUntil==0);
+    /* 2. The stock touch removes it during the grace: completed as collected. */
+    self.position=bot.nodes[0].pos; bot.goal=-1; bot.routeCount=bot.routePos=0;
+    for (int i=0;i<3;i++) bot.nodes[i].avoidUntil=0;
+    commitTo(401,2);
+    self.position=bot.nodes[1].pos; tick();
+    self.position=bot.nodes[2].pos; tick();
+    assert(lily.active.seq==401 && lily.collectUntil>0);
+    lilyPickup.flags|=SITH_TF_DISABLED; tick();
+    assert(lilyProgress(401,&phase,&reason,&outcome) && phase==LILY_COMPLETED && outcome==LILY_COLLECTED);
+    lilyPickup.flags&=~SITH_TF_DISABLED;
+    /* 3. Self-defence predicate and its opt-out. */
+    bot.targetSlot=1; bot.hurtUntil=bot.now+2; assert(Lily_ShouldDefend());
+    bot.hurtUntil=bot.now-0.1f; assert(!Lily_ShouldDefend());
+    bot.hurtUntil=bot.now+2; lily.selfDefense=0; assert(!Lily_ShouldDefend());
+    lily.selfDefense=1; bot.targetSlot=-1; bot.hurtUntil=0;
+    world.aThings=prior; world.numThings=priorCount; world.numThingsLoaded=priorLoaded;
+    puts("PASS PR4 Lily pickup credit (not_collected after grace, collected on stock touch) and self-defence gate");
+}
 static void testLily(void)
 {
     setenv("JK_BOT_LILY","1",1);
@@ -181,6 +247,7 @@ static void testLily(void)
     lily.samples[lily.sample%32].time-=2;
     motor(312,lily.sample,1,0,clockseconds()+2); submit(46); ack(20,CP_STALE,312);
     testHandoverAndCompletion();
+    testPickupCredit();
     puts("PASS 300 native actions, exact replay, evicted sequence fence, aged sample and fists-peace");
     puts("PASS committed cursor, physical route arrival, stock fire/weapon/Force inputs, atomic admission and lifecycle release");
     puts("PASS native Lily bounded chunks, stale/expiry validation, actual axes, held edges and terminal identity");
