@@ -27,7 +27,7 @@ def load_private(path):
         # the current Windows SID; use an environment value for the literal
         # path so no user-controlled text can become PowerShell code.
         script = ("$ErrorActionPreference='Stop'; "
-                  "$a=Get-Acl -LiteralPath $env:JK_COMPANION_CHECK_PATH; "
+                  "$a=[System.IO.File]::GetAccessControl($env:JK_COMPANION_CHECK_PATH); "
                   "$id=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; "
                   "$r=$a.GetAccessRules($true,$true,[System.Security.Principal.SecurityIdentifier]); "
                   "if (@($r | Where-Object { $_.AccessControlType -eq 'Allow' -and "

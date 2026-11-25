@@ -57,7 +57,7 @@ def create_private_directory(directory, *, parents=False):
         "$acl.SetSecurityDescriptorSddlForm(('D:P(A;OICI;FA;;;'+$user.Value+')'), "
         "[System.Security.AccessControl.AccessControlSections]::Access); "
         "[System.IO.Directory]::SetAccessControl($path,$acl); "
-        "$actual=Get-Acl -LiteralPath $path; "
+        "$actual=[System.IO.Directory]::GetAccessControl($path); "
         "$rules=@($actual.GetAccessRules($true,$true,[System.Security.Principal.SecurityIdentifier])); "
         "if (!$actual.AreAccessRulesProtected -or $rules.Count -ne 1 -or "
         "$rules[0].IdentityReference.Value -ne $user.Value -or "

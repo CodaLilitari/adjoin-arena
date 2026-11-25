@@ -1,0 +1,98 @@
+{
+  "observation_date": "2026-11-25",
+  "public_discovery": {
+    "origin": "https://jediknight.zone/",
+    "endpoint": "wss://jediknight.zone/relay",
+    "command": "watch",
+    "reply": "status",
+    "rooms_at_sample": 0,
+    "player_join_sent": false,
+    "landing_page_sha256": "e882831a3533f7b1751aa40973e2e5435d17dcb7f97dbbe3539e0bc22e2009a1"
+  },
+  "owned_interoperability_test": {
+    "topology": "Unmodified deployed stock browser host, independent bot browser player, local upstream reference relay",
+    "stock_host_assets": {
+      "javascript_sha256": "0d0b356914e6220f674dd850efa55b6091de127a0928133da0ff6a727b114221",
+      "wasm_sha256": "7415eb113a37f7f59abc5941c1d963f50ccefb20186026fb3a8a27807fa21a82"
+    },
+    "relay_reference": "https://raw.githubusercontent.com/tristamus/jkdf2mp-bb-server/16b986a60c69eca3f17b1621151ef346ac0082f0/relay/relay.py",
+    "relay_sha256": "c7d24a708e90ad827952f11c18f1095fdb37ceb95128f0820b76df481da18619",
+    "bot_source_base": "https://github.com/tristamus/OpenJKDF2/tree/7a6f95c9a3399e59acbf019dc6b25f9981d29dff",
+    "external_source_patch_sha256": "f1d7dd4ab48347bca03806a4b4b4c580da8493f792d39ac054502501cf040d57",
+    "bot_javascript_sha256": "10d6776aeacc571f4c0597351f49d57c28382b49fb1b4d65cef0edc37f40afd6",
+    "bot_wasm_sha256": "8424b202a846106207cb544bde9641c7236514b52df2acae883a2b9e83eb1b72",
+    "game": {
+      "episode": "JK1MP",
+      "map": "m2.jkl",
+      "level_name": "Nar Shaddaa Loading Terminal",
+      "force_rank": 4,
+      "netcode": 2
+    },
+    "control_messages": {
+      "join_requests": [
+        1
+      ],
+      "welcome_player_id": 2,
+      "bot_host_requests": 0
+    },
+    "native_player": {
+      "name": "Bot_BobaFett",
+      "slot": 1,
+      "network_id": 2,
+      "model": "kyh4.3do",
+      "within_one_life_samples": 17,
+      "max_xy_distance_game_units": 3.189011,
+      "navigation_nodes": 641,
+      "directed_edges": 9168
+    },
+    "simultaneous_relay_roster": [
+      "CodaHost",
+      "Bot_BobaFett"
+    ],
+    "stock_player_scores": [
+      [
+        "CodaHost",
+        "Katarn",
+        0
+      ],
+      [
+        "Bot_BobaFett",
+        "Mandalor",
+        0
+      ]
+    ],
+    "stock_player_scores_screenshot_sha256": "9c5cbd75495886730a1340fd07a955f25420b9f7faf84bead9344b4e8ca69ab2",
+    "bot_observation_sha256": "806d999e48d13332c49d306d68034c26ca1bf133b40bcf7a06982f0840e5dd3a"
+  },
+  "regressions": {
+    "windows_web_host_unittests": 14,
+    "room_selection_unittests": 3,
+    "existing_browser_client_js_test": "passed",
+    "linux_native_companion_unittests": 9,
+    "missing_room_real_reference_relay": "rejected before creating a run",
+    "room_fixture_cases": [
+      "unrelated room with identical name",
+      "duplicate or missing ID",
+      "locked or full room",
+      "different game or netcode",
+      "host mod",
+      "missing or mismatched local level",
+      "demo and invalid relay"
+    ],
+    "selected_red_boot": {
+      "name": "Bot_Red",
+      "stock_model": "kyh4.3do",
+      "stock_sound": "kybobafett.snd",
+      "role": "external",
+      "custom_mod_mounted": false,
+      "private_default_seats": [
+        "lily",
+        "boba",
+        "jan",
+        "yun"
+      ],
+      "evidence": "selected seat's authenticated HTTP boot"
+    }
+  },
+  "scope": "The live player interoperability result is from the owned replica. The public origin was checked through read-only discovery. This used the bundled JKWeb bot controller and the operator-selected room workflow."
+}

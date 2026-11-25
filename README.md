@@ -2,6 +2,12 @@
 
 Adjoin Arena runs competitive Jedi Knight bots headlessly on stock game physics and records their play. Jan and Boba begin playing as soon as each joins. Red’s original tactics run inside each native client. A local neural policy can take over the decision to keep pursuing a pickup or turn to fight. [Project design](docs/superpowers/plans/2026-11-24-adjoin-arena.md) · [Native build instructions](native/README.md)
 
+**Play on JediKnight.Zone.** List current JKWeb games, choose a room ID, and enter as one named bot. In a test hosted from the stock browser menus on Nar Shaddaa, the host scoreboard showed both the host and Bot_BobaFett. [Join a room](web_bots/README.md#join-an-existing-jediknightzone-game) · [Interoperability test](qa/adjoin-arena-jkzone-join.json)
+
+**Six players on Jedi’s High School.** Darth Lilitari’s two-minute first-person recording used the updated red-visor Mandalorian for Red, six RGB565 character models, a GeForce RTX 5070 Ti and stereo game audio. The dedicated host used a copy of JHS with one extra start. [Recording settings, roster and map change](qa/adjoin-arena-jhs-six-player-video.json)
+
+The source and the three original PR branches are available on [GitHub](https://github.com/CodaLilitari/adjoin-arena) and [GitLab](https://gitlab.com/codalilitari/adjoin-arena).
+
 ## What has the bot learned?
 
 Six matches supplied 4,948 examples from Red. In four fresh scripted matches the first model agreed with Red on 95.71% of decisions. In four corresponding games with the model driving one player, the learned players totaled four kills and six deaths. The scripted players in the control games totaled seven kills and six deaths. On Bespin, a map absent from training, the native engine recorded the model changing Boba’s movement from pickup pursuit to combat. [Model, training corpus and results by player](docs/RED_PICKUP_MODEL.md)

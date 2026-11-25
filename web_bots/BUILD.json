@@ -8,6 +8,11 @@
   "game_assets_included": false,
   "method": "CMake source build with ordinary player input hooks; unchanged upstream WSRelay protocol.",
   "patch": "web_bots/engine.patch",
+  "patches": [
+    "web_bots/engine.patch",
+    "web_bots/external-room.patch"
+  ],
+  "verify_recompiled_libsmacker": true,
   "relink": "web_bots/engine-relink.tar.gz",
   "source_pins": [
     " f5e92d76973a7a53f517579bc95d61483bf108c0 lib/libpng (f5e92d7)",
@@ -35,9 +40,11 @@
     "src/Devices/sithSoundMixer.h": "932ae40638ffa450fe1d154118d7fc6e7813d6229a523abe3eac277958527ef9",
     "src/Dss/jkDSS.c": "2a06406afe669368fa1f31e433947bd522fe4093966dd4028e89b6c05b4d1b09",
     "src/Dss/sithMulti.c": "3e2129e114072fcbe4915ed66b54ad158de3a1ae0287776eff691cbd9bc6d678",
-    "src/Gui/jkGUIMultiplayer.c": "9bd881d3668ffac645010c55476dad3b3960eb6519c0817b6a31aad85b75d662",
+    "src/Gui/jkGUIMultiplayer.c": "dde293c195af3c7975f48a63e7535ed431dcd26c7020936717e23f4f63243f4a",
     "src/Gui/jkGUIMultiplayer.h": "504d0390e4d6f4fa31f42230ce273fa3125d24d42053feec9d85cc601a0d4287",
     "src/Main/Main.c": "5bcfdaa2a985f542310b675929dda6f00b0b7bbe9c783bb0fada6ad2677ac4f7",
+    "src/Platform/Networking/WSRelay/stdComm_WSRelay.c": "b424a5bd1bafdf3652e70b09d6862910a5f731514249d9246b034423788c857f",
+    "src/Platform/Networking/WSRelay/stdComm_WSRelay.h": "68463b37704c19575a549f547356bf8a5727d706f408a495e0336adb5da7f2ca",
     "src/Win95/stdSound.c": "8d9415e5e8e2bd25d39851183731deaa910af79c1e72e11d5e18fbc87305e321",
     "src/World/sithItem.c": "ee735511a0a1dd4ed66e41ee3a3a332411784581f39dc9656c31985d5ea6e4e9",
     "src/World/sithSoundClass.c": "fd8d86375f1409a59837beddc34d1e67c4b6330f0e7dae3447e3ec6746607aa0",
@@ -46,20 +53,24 @@
   },
   "files": {
     "bin/bots-jkweb/openjkdf2.js": {
-      "sha256": "9d3a986b7d6a11f8ed03a81090d7cc258ce7e360abb86784ef33176604703c78",
+      "sha256": "10d6776aeacc571f4c0597351f49d57c28382b49fb1b4d65cef0edc37f40afd6",
       "bytes": 563119
     },
     "bin/bots-jkweb/openjkdf2.wasm": {
-      "sha256": "a1bee43135182c235cd39291594c3b3737b055da02bebb7c35e173c50087c9c7",
-      "bytes": 3838771
+      "sha256": "8424b202a846106207cb544bde9641c7236514b52df2acae883a2b9e83eb1b72",
+      "bytes": 3839589
     },
     "web_bots/engine.patch": {
       "sha256": "fffac050ec822d871dab29a0f38dbe4df7228c94f593c24996a0ced0091f7c0d",
       "bytes": 330015
     },
+    "web_bots/external-room.patch": {
+      "sha256": "f1d7dd4ab48347bca03806a4b4b4c580da8493f792d39ac054502501cf040d57",
+      "bytes": 8289
+    },
     "web_bots/engine-relink.tar.gz": {
-      "sha256": "3e172acd0c8d3821cea50618dd8459f634d7cbeed740f6e1d030a70f56f7955c",
-      "bytes": 1583424
+      "sha256": "9774891a648205715263997a08992cc2e5628efd60f2e97e92249e18525ed3d9",
+      "bytes": 1571488
     }
   }
 }

@@ -12,7 +12,7 @@ python scripts/bot_development/verify/web_candidate.py \
 ```
 
 This verifies all packaged file sizes and hashes, exports the exact base with
-`git archive`, checks and applies the packaged patch, and compares every changed
+`git archive`, checks and applies the packaged patches in their recorded order, and compares every changed
 source hash. It retains a temporary staging directory and prints its location.
 `--work-dir` chooses the parent directory. No retail game data is needed.
 
@@ -26,9 +26,8 @@ python scripts/bot_development/verify/web_candidate.py \
   --receipt /path/to/new-relink-check.json
 ```
 
-The verifier uses the command and objects in `engine-relink.tar.gz`, checks the SDK
-version, and requires the resulting JavaScript and WASM to match the shipped bytes.
-The relink does not recompile libsmacker. A source-only report explicitly sets
-`independent_direct_relink` to null; it makes no claim that linking or live gameplay
-passed. Full verification also does not launch a match or establish competitive
-movement quality.
+The verifier first links the archived object files with the pinned SDK. For the
+room-join package it then recompiles all three bundled libsmacker objects and
+links again. It compares the rebuilt object hashes and requires both links to
+produce the published JavaScript and WebAssembly byte-for-byte. With
+`--source-only`, the receipt records `independent_direct_relink` as null.

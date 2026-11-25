@@ -14,6 +14,7 @@ from unittest.mock import patch
 from aiohttp import ClientSession
 from aiohttp.test_utils import TestClient, TestServer
 from web_bots import serve
+from web_bots.join_room import SelectedRoom
 from bots import companion as cp
 from bots import companion_cli as cli
 
@@ -132,6 +133,28 @@ class HostTests(unittest.IsolatedAsyncioTestCase):
             serve.Host(self.root/"game", self.root/"engine", self.root/"invalid",
                        "Canyon", None, False, mode="anything")
         self.assertFalse((self.root/"invalid").exists())
+
+    async def test_red_visits_selected_room_with_a_stock_mandalorian_profile(self):
+        self.assertEqual(tuple(self.host.seats), ("lily", "boba", "jan", "yun"))
+        self.assertEqual((await self.client.get("/bot/red")).status, 404)
+        room = SelectedRoom("ws://127.0.0.1:5443/relay", 17, "JK1MP", "m2.jkl", "red", None)
+        arena = serve.Host(self.root/"game", self.root/"engine", self.root/"visit", "17",
+                           None, False, external=room)
+        self.addCleanup(arena.close)
+        async with TestClient(TestServer(arena.app(), host="127.0.0.1")) as browser:
+            arena.set_port(browser.port)
+            self.assertEqual(tuple(arena.seats), ("red",))
+            self.assertEqual((await browser.get("/bot/lily")).status, 404)
+            self.assertEqual((await browser.get("/bot/red")).status, 200)
+            response = await browser.post("/engine/red/boot", json={"instance":"a"*32},
+                                          headers={"Authorization":"Bearer "+arena.tokens["red"]})
+            self.assertEqual(response.status, 200)
+            boot = await response.json()
+            self.assertFalse(boot["mod"])
+            env = boot["env"]
+            self.assertEqual((env["JK_BOT_WEB_ROLE"], env["JK_BOT_WEB_ROOM"]), ("external", "17"))
+            self.assertEqual((env["JK_BOT_WEB_NAME"], env["JK_BOT_WEB_MODEL"], env["JK_BOT_WEB_SOUND"]),
+                             ("Bot_Red", "kyh4.3do", "kybobafett.snd"))
 
     async def test_model_and_engine_credential_never_served_as_public_files(self):
         conf=await self.boot()

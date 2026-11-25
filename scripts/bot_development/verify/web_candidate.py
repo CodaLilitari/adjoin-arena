@@ -8,6 +8,8 @@ import argparse
 import hashlib
 import io
 import json
+import os
+import sys
 from pathlib import Path
 import subprocess
 import tarfile
@@ -42,9 +44,11 @@ def verify(root, engine, work_dir=None, source_only=False, compiler=None):
     archive = subprocess.check_output(["git", "archive", manifest["base_commit"]], cwd=engine)
     with tarfile.open(fileobj=io.BytesIO(archive)) as stream:
         stream.extractall(source, filter="data")
-    patch = child(root, manifest["patch"])
-    subprocess.run(["git", "apply", "--check", str(patch)], cwd=source, check=True)
-    subprocess.run(["git", "apply", str(patch)], cwd=source, check=True)
+    patch_paths = manifest.get("patches", [manifest["patch"]])
+    for name in patch_paths:
+        patch = child(root, name)
+        subprocess.run(["git", "apply", "--check", str(patch)], cwd=source, check=True)
+        subprocess.run(["git", "apply", "--whitespace=nowarn", str(patch)], cwd=source, check=True)
     for name, expected in manifest["changed_sources"].items():
         if sha(child(source, name).read_bytes()) != expected:
             raise ValueError("Patched source hash differs: " + name)
@@ -63,17 +67,34 @@ def verify(root, engine, work_dir=None, source_only=False, compiler=None):
             raise ValueError("Emscripten version differs from BUILD.json")
         with (stage / "relink.log").open("w") as log:
             subprocess.run(command, cwd=relink, stdout=log, stderr=subprocess.STDOUT, check=True)
-        for name in ("openjkdf2.js", "openjkdf2.wasm"):
-            expected = manifest["files"]["bin/bots-jkweb/" + name]["sha256"]
-            if sha((relink / name).read_bytes()) != expected:
-                raise ValueError("Independent relink differs: " + name)
+        def check_outputs():
+            for name in ("openjkdf2.js", "openjkdf2.wasm"):
+                expected = manifest["files"]["bin/bots-jkweb/" + name]["sha256"]
+                if sha((relink / name).read_bytes()) != expected:
+                    raise ValueError("Independent relink differs: " + name)
+        check_outputs()
+        recompiled = bool(manifest.get("verify_recompiled_libsmacker"))
+        if recompiled:
+            directory = relink / "CMakeFiles/sith_engine.dir/src/external/libsmacker"
+            objects = {name: sha((directory / (name + ".c.o")).read_bytes())
+                       for name in ("smacker", "smk_bitstream", "smk_hufftree")}
+            env = os.environ.copy()
+            if compiler:
+                env["PATH"] = str(compiler.resolve().parent) + os.pathsep + env["PATH"]
+            with (stage / "recompile.log").open("w") as log:
+                subprocess.run([sys.executable, "relink.py"], cwd=relink, env=env, stdout=log,
+                               stderr=subprocess.STDOUT, check=True)
+            for name, expected in objects.items():
+                if sha((directory / (name + ".c.o")).read_bytes()) != expected:
+                    raise ValueError("Recompiled libsmacker object differs: " + name)
+            check_outputs()
         relink_result = {"js_byte_identical": True, "wasm_byte_identical": True,
-                         "recompiled_libsmacker": False}
+                         "recompiled_libsmacker": recompiled}
     if manifest_path.read_bytes() != manifest_bytes:
         raise ValueError("Build manifest changed during verification")
     return {"schema": 1, "engine_repository": manifest["repository"],
             "engine_base_commit": manifest["base_commit"], "emscripten": manifest["emscripten"],
-            "clean_pinned_source_accepts_patch": True,
+            "clean_pinned_source_accepts_patch": True, "applied_patches": patch_paths,
             "changed_source_hashes_verified": len(manifest["changed_sources"]),
             "files": manifest["files"], "independent_direct_relink": relink_result,
             "source_only": source_only, "stage": str(stage),

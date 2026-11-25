@@ -1,0 +1,164 @@
+--- a/src/Gui/jkGUIMultiplayer.c
++++ b/src/Gui/jkGUIMultiplayer.c
+@@ -109,6 +109,7 @@
+         {"model","JK_BOT_WEB_MODEL"},{"sound","JK_BOT_WEB_SOUND"},{"thirdPerson","JK_BOT_WEB_THIRD_PERSON"},
+         {"side","JK_BOT_FORCE_SIDE"},{"style","JK_BOT_FORCE_STYLE"},{"elite","JK_BOT_ELITE"},
+         {"mode","JK_BOT_WEB_MODE"},{"saberColor","JK_BOT_WEB_SABER_COLOR"},
++        {"episode","JK_BOT_WEB_EPISODE"},{"map","JK_BOT_WEB_MAP"},
+         {"trace","JK_BOT_TRACE_FORCE"},{"lily","JK_BOT_LILY"}
+     };
+     char value[96];
+@@ -169,7 +170,7 @@
+     return 1;
+ }
+ 
+-static int jkGuiMultiplayer_WebFindRoom(const char16_t *name)
++static int jkGuiMultiplayer_WebFindRoom(const char16_t *name, int roomId)
+ {
+     unsigned started=stdPlatform_GetTimeMsec(), next=started;
+     int pending=0;
+@@ -186,7 +187,8 @@
+         }
+         int found=-1;
+         if (!pending) for (int i=0;i<dplay_dword_55D618 && i<32;i++) {
+-            if (__wcscmp(name,jkGuiMultiplayer_aEntries[i].serverName)) continue;
++            if (roomId ? stdComm_WSRelay_BotRoomId(i)!=roomId :
++                         __wcscmp(name,jkGuiMultiplayer_aEntries[i].serverName)) continue;
+             if (found>=0) return -1;
+             found=i;
+         }
+@@ -207,7 +209,9 @@
+     const char *name=getenv("JK_BOT_WEB_NAME"), *room=getenv("JK_BOT_WEB_ROOM");
+     char *model=getenv("JK_BOT_WEB_MODEL"), *sound=getenv("JK_BOT_WEB_SOUND");
+     const char *third=getenv("JK_BOT_WEB_THIRD_PERSON");
+-    int host=!strcmp(role,"host");
++    int host=!strcmp(role,"host"), external=!strcmp(role,"external");
++    const char *episode=getenv("JK_BOT_WEB_EPISODE"), *map=getenv("JK_BOT_WEB_MAP");
++    int roomId=0;
+     const char *mode=getenv("JK_BOT_WEB_MODE");
+     if (!mode) mode="ff-guns";
+     int rank=0, sabers=0;
+@@ -215,10 +219,33 @@
+     else if (!strcmp(mode,"ff-sabers")) { rank=8; sabers=1; }
+     else if (!strcmp(mode,"nf-sabers")) sabers=1;
+     else if (strcmp(mode,"nf-guns")) return -1;
+-    if ((!host && strcmp(role,"join")) || !jkGuiMultiplayer_WebName(name,15,NULL) ||
++    if (external) {
++        if (!room || !*room || strlen(room)>9 || room[0]=='0' || strspn(room,"0123456789")!=strlen(room) ||
++            !episode || !*episode || !map || !*map || strlen(episode)>31 || strlen(map)>31) return -1;
++        roomId=atoi(room);
++    }
++    if ((!host && !external && strcmp(role,"join")) || !jkGuiMultiplayer_WebName(name,15,NULL) ||
+         !jkGuiMultiplayer_WebName(room,31,NULL) || !jkGuiMultiplayer_WebName(model,31,".3do") ||
+         !jkGuiMultiplayer_WebName(sound,31,".snd") || (third && strcmp(third,"0") && strcmp(third,"1")) ||
+         Main_bMotsCompat || stdComm_WSRelay_bViewer) return -1;
++    jkSmack_stopTick=1; jkSmack_nextGuiState=JK_GAMEMODE_TITLE;
++    Window_SetDrawHandlers(stdDisplay_DrawAndFlipGdi,stdDisplay_SetCooperativeLevel);
++    std3D_StartScene(); std3D_EndScene();
++    if (!sithOpenStatic("static.jkl")) return -1;
++    jkHudInv_InitItems();
++    jkGuiNetHost_bIsDedicated=0;
++    if (stdComm_OpenConnection(NULL)) return -1;
++    char16_t wide[32];
++    stdString_CharToWchar(wide,room,31); wide[31]=0;
++    int i=-1;
++    if (!host) {
++        i=jkGuiMultiplayer_WebFindRoom(wide,roomId);
++        if (i<0) { fprintf(stderr,"BOT_JOIN_REJECTED requested room missing or ambiguous\n"); return -1; }
++        if (external) {
++            rank=jkGuiMultiplayer_aEntries[i].maxRank;
++            if (rank<0 || rank>8) return -1;
++        }
++    }
+     /* Reuse the ordinary bot policy file. These settings restrict AI inputs;
+        the stock MPC rank, COGs, inventory and physics still own every effect. */
+     const char *rules="/jk1/bot-behavior.cfg";
+@@ -231,15 +258,6 @@
+     webBotWorld=NULL;
+     jkBot_Configure(name,model);
+     jkBotCompanion_SetTransport(jkBotWebEmit);
+-    jkSmack_stopTick=1; jkSmack_nextGuiState=JK_GAMEMODE_TITLE;
+-    Window_SetDrawHandlers(stdDisplay_DrawAndFlipGdi,stdDisplay_SetCooperativeLevel);
+-    std3D_StartScene(); std3D_EndScene();
+-    if (!sithOpenStatic("static.jkl")) return -1;
+-    jkHudInv_InitItems();
+-    jkGuiNetHost_bIsDedicated=0;
+-    if (stdComm_OpenConnection(NULL)) return -1;
+-    char16_t wide[32];
+-    stdString_CharToWchar(wide,room,31); wide[31]=0;
+     if (host) {
+         if (!jkGuiMultiplayer_WebCharacter(name,model,sound,rank)) {
+             fprintf(stderr,"BOT_JOIN_REJECTED cannot prepare host's ordinary MPC\n"); return -1;
+@@ -253,18 +271,28 @@
+         printf("BOT_WEB_HOST netcode=%d episode=JK1MP map=m10.jkl seats=4 mode=%s rank=%d\n",STDCOMM_WSRELAY_NETCODE,mode,rank);
+         return jkMain_loadFile2("JK1MP","m10.jkl") ? 1:-1;
+     }
+-    int i=jkGuiMultiplayer_WebFindRoom(wide);
+-    if (i<0) { fprintf(stderr,"BOT_JOIN_REJECTED named room missing or ambiguous\n"); return -1; }
+     jkMultiEntry entry=jkGuiMultiplayer_aEntries[i];
+     if (entry.field_E0!=10 || (entry.sessionFlags&SESSIONFLAG_PASSWORD) ||
+-        __strcmpi(entry.episodeGobName,"JK1MP") || __strcmpi(entry.mapJklFname,"m10.jkl") ||
+-        entry.maxRank!=rank || !jkGuiMultiplayer_WebCharacter(name,model,sound,entry.maxRank)) return -1;
++        __strcmpi(entry.episodeGobName,external ? episode : "JK1MP") ||
++        __strcmpi(entry.mapJklFname,external ? map : "m10.jkl") || entry.maxRank!=rank ||
++        (external && (entry.numPlayers>=entry.maxPlayers || !stdComm_WSRelay_BotBaseGame(i,0)))) {
++        fprintf(stderr,"BOT_JOIN_REJECTED room settings changed, locked, full or require a mod\n");
++        return -1;
++    }
++    if (!jkGuiMultiplayer_WebCharacter(name,model,sound,entry.maxRank)) return -1;
+     char16_t password[2]={0};
+     int error=stdComm_Open(i,password);
+     if (error) {
+         fprintf(stderr,"BOT_JOIN_REJECTED WSRelay refused normal open: %x\n",(unsigned)error);
+         return -1;
+     }
++    if (external && !stdComm_WSRelay_BotBaseGame(i,1)) {
++        fprintf(stderr,"BOT_JOIN_REJECTED host welcome differs from selected game\n");
++        stdComm_Close();
++        return -1;
++    }
++    if (external) printf("BOT_WEB_EXTERNAL room_id=%d episode=%s map=%s rank=%d slot_kind=player netcode=%d\n",
++                         roomId,entry.episodeGobName,entry.mapJklFname,rank,STDCOMM_WSRELAY_NETCODE);
+     sithMulti_multiModeFlags=entry.multiModeFlags;
+     sithMulti_InitTick(entry.tickRateMs);
+     return jkMain_loadFile2(entry.episodeGobName,entry.mapJklFname) ? 1:-1;
+--- a/src/Platform/Networking/WSRelay/stdComm_WSRelay.h
++++ b/src/Platform/Networking/WSRelay/stdComm_WSRelay.h
+@@ -108,6 +108,9 @@
+ // Called when the join screen opens: if its first list is late, it gives up
+ // with no games, as on the first visit, not with the last visit's.
+ void stdComm_WSRelay_ForgetList();
++// Numeric lobby identity of the exact list consumed by stdComm_Open.
++int stdComm_WSRelay_BotRoomId(int idx);
++int stdComm_WSRelay_BotBaseGame(int idx, int welcomed);
+ 
+ // Whether the lobby checks the password of listed game idx when this game
+ // joins it, as the lobby said when it listed it. Its list then carries no
+--- a/src/Platform/Networking/WSRelay/stdComm_WSRelay.c
++++ b/src/Platform/Networking/WSRelay/stdComm_WSRelay.c
+@@ -5390,6 +5390,25 @@
+     wsrelay_bListForget = 1;
+ }
+ 
++int stdComm_WSRelay_BotRoomId(int idx)
++{
++    return idx >= 0 && idx < wsrelay_numShown ? wsrelay_aShownRooms[idx] : 0;
++}
++
++// This launcher mounts the operator's episode. Mod and asset-pack transfers
++// require the stock site's mod manager.
++int stdComm_WSRelay_BotBaseGame(int idx, int welcomed)
++{
++    if (!stdComm_WSRelay_BotRoomId(idx) || wsrelay_aShownTails[idx][0]) return 0;
++    if (!welcomed) return 1;
++    const jkMultiEntry *listed=&jkGuiMultiplayer_aEntries[idx], *actual=&wsrelay_storedEntryEnum;
++    return wsrelay_room==wsrelay_aShownRooms[idx] && !wsrelay_storedTailEnum[0] &&
++           !__strcmpi(listed->episodeGobName,actual->episodeGobName) &&
++           !__strcmpi(listed->mapJklFname,actual->mapJklFname) &&
++           listed->maxRank==actual->maxRank && listed->multiModeFlags==actual->multiModeFlags &&
++           listed->tickRateMs==actual->tickRateMs && !(actual->sessionFlags & SESSIONFLAG_PASSWORD);
++}
++
+ int stdComm_EnumSessions(int a, void* b)
+ {
+     if (stdComm_Imperial_bActive) // Added: the Imperial Network Protocol connection

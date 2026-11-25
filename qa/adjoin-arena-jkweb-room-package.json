@@ -1,0 +1,109 @@
+{
+  "schema": 1,
+  "base_commit": "7a6f95c9a3399e59acbf019dc6b25f9981d29dff",
+  "emscripten": "6.0.12",
+  "manifest": "web_bots/BUILD.json",
+  "manifest_sha256": "8833a355c9baaa1f6efd762cb5fa7e270a495382188f5c55194513c9433c3022",
+  "artifacts": {
+    "bin/bots-jkweb/openjkdf2.js": {
+      "sha256": "10d6776aeacc571f4c0597351f49d57c28382b49fb1b4d65cef0edc37f40afd6",
+      "bytes": 563119
+    },
+    "bin/bots-jkweb/openjkdf2.wasm": {
+      "sha256": "8424b202a846106207cb544bde9641c7236514b52df2acae883a2b9e83eb1b72",
+      "bytes": 3839589
+    },
+    "web_bots/engine.patch": {
+      "sha256": "fffac050ec822d871dab29a0f38dbe4df7228c94f593c24996a0ced0091f7c0d",
+      "bytes": 330015
+    },
+    "web_bots/external-room.patch": {
+      "sha256": "f1d7dd4ab48347bca03806a4b4b4c580da8493f792d39ac054502501cf040d57",
+      "bytes": 8289
+    },
+    "web_bots/engine-relink.tar.gz": {
+      "sha256": "9774891a648205715263997a08992cc2e5628efd60f2e97e92249e18525ed3d9",
+      "bytes": 1571488
+    }
+  },
+  "patches": [
+    "web_bots/engine.patch",
+    "web_bots/external-room.patch"
+  ],
+  "verified_changed_source_count": 31,
+  "patch_state_tests": [
+    {
+      "initial_overlays": 0,
+      "changed_sources": 31,
+      "second_application_identical": true
+    },
+    {
+      "initial_overlays": 1,
+      "changed_sources": 31,
+      "second_application_identical": true
+    },
+    {
+      "initial_overlays": 2,
+      "changed_sources": 31,
+      "second_application_identical": true
+    }
+  ],
+  "unknown_overlay_bytes_rejected_without_mutation": true,
+  "repeat_packaging": "Archive and manifest SHA-256 matched on two packaging runs.",
+  "independent_relink": {
+    "archived_objects": "Both linked files matched the shipped bytes.",
+    "libsmacker": "All three recompiled object hashes matched and the second link reproduced both shipped files."
+  },
+  "regressions": {
+    "python_web_tests": 21,
+    "browser_js_boot_modes": 4
+  },
+  "private_arena": {
+    "qualified": true,
+    "episode": "JK1MP",
+    "map": "m10.jkl",
+    "role": "one in-browser player host and three joining player engines",
+    "transport": "separate pinned loopback relay",
+    "mode": "ff-guns",
+    "host_marker": "BOT_WEB_HOST netcode=2 episode=JK1MP map=m10.jkl seats=4 mode=ff-guns rank=8",
+    "seats": {
+      "lily": {
+        "slot": 0,
+        "network_id": 1,
+        "world_epoch": 1,
+        "life_epoch": 1,
+        "native_join": "BOT_JOINED slot=0 net=1 map=m10.jkl model=ky.3do"
+      },
+      "boba": {
+        "slot": 2,
+        "network_id": 2,
+        "world_epoch": 1,
+        "life_epoch": 1,
+        "native_join": "BOT_JOINED slot=2 net=2 map=m10.jkl model=kyh4.3do"
+      },
+      "jan": {
+        "slot": 3,
+        "network_id": 3,
+        "world_epoch": 1,
+        "life_epoch": 1,
+        "native_join": "BOT_JOINED slot=3 net=3 map=m10.jkl model=kya10.3do"
+      },
+      "yun": {
+        "slot": 1,
+        "network_id": 4,
+        "world_epoch": 1,
+        "life_epoch": 1,
+        "native_join": "BOT_JOINED slot=1 net=4 map=m10.jkl model=kya18.3do"
+      }
+    },
+    "host_view": {
+      "flags": 7,
+      "model": "ky.3do"
+    },
+    "host_renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5070 Ti (0x00002C05) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "raw_qualification_sha256": "e33991de9dcccbba8542b38dcf706f61c5abef1cc7013ffe4bcaf305dbf812b7",
+    "recording_seconds": 0,
+    "earlier_setup_attempt": "The browser DNS filter initially rejected the numeric loopback address before opening the first seat. Adding an explicit 127.0.0.1 exception allowed the private test."
+  },
+  "external_stock_join_receipt": "qa/adjoin-arena-jkzone-join.json"
+}

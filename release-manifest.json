@@ -26,7 +26,7 @@
     },
     "README.md": {
       "mode": 420,
-      "sha256": "252f0e4b193f2ff6dcd58fe880af4819a6c4b48031f36f4f0adc3cdb6ad313c1"
+      "sha256": "fcbf19ec54fbec82972eae44e79e7ab5eabdc590b0d18539fac4f621d3c8f52f"
     },
     "Start-Server.command": {
       "mode": 493,
@@ -46,11 +46,11 @@
     },
     "bin/bots-jkweb/openjkdf2.js": {
       "mode": 420,
-      "sha256": "9d3a986b7d6a11f8ed03a81090d7cc258ce7e360abb86784ef33176604703c78"
+      "sha256": "10d6776aeacc571f4c0597351f49d57c28382b49fb1b4d65cef0edc37f40afd6"
     },
     "bin/bots-jkweb/openjkdf2.wasm": {
       "mode": 493,
-      "sha256": "a1bee43135182c235cd39291594c3b3737b055da02bebb7c35e173c50087c9c7"
+      "sha256": "8424b202a846106207cb544bde9641c7236514b52df2acae883a2b9e83eb1b72"
     },
     "bin/bots-linux-x86_64/jk-bot-client": {
       "mode": 493,
@@ -86,11 +86,11 @@
     },
     "bots/companion.py": {
       "mode": 420,
-      "sha256": "8bd9d420abd5a006b2477fb1a4a5f59c66bdc4d8532e54cd69187ccc269c077f"
+      "sha256": "b2cc6aa9603e89934f5a59c84a5aca65b206b9e6cd88f72c018882ed300ab17e"
     },
     "bots/companion_cli.py": {
       "mode": 420,
-      "sha256": "506daf32c7b7ac5984bcfde633500baab8288b82bee3ce4ee88ec25414cf617c"
+      "sha256": "01a7dbb622cde3fd64bb99372affa36ffcc668d04fe7134bf1c40c80139847ad"
     },
     "bots/lily/__init__.py": {
       "mode": 420,
@@ -379,6 +379,10 @@
     "docs/UPDATES.md": {
       "mode": 420,
       "sha256": "e5126acb2ed6b67dc9670836973b4e8973f84abf81aa2f7747397e7cac119dc9"
+    },
+    "docs/images/jkweb-stock-host-scoreboard.png": {
+      "mode": 420,
+      "sha256": "9c5cbd75495886730a1340fd07a955f25420b9f7faf84bead9344b4e8ca69ab2"
     },
     "docs/images/spectator-geometry.png": {
       "mode": 420,
@@ -1235,6 +1239,18 @@
     "qa/adjoin-arena-jhs-route-geometry.json": {
       "mode": 420,
       "sha256": "2f72b28493721e7cb1fa163dca19b3aaa1b31d2c5da69dabd909f3c7dbbf6724"
+    },
+    "qa/adjoin-arena-jhs-six-player-video.json": {
+      "mode": 420,
+      "sha256": "e792701588d059e5855f9c6e1f8ca7f3058843398799ab8a4d750a50466f00d8"
+    },
+    "qa/adjoin-arena-jkweb-room-package.json": {
+      "mode": 420,
+      "sha256": "a042d0e31f1d7ae388c341145961c24fe6fa6c10aeec29a91edc06ab93c25b16"
+    },
+    "qa/adjoin-arena-jkzone-join.json": {
+      "mode": 420,
+      "sha256": "da77e53053be9ea58d3e3a93b60c54cb1caabfcece9c012a91f36c472f5fda3b"
     },
     "qa/adjoin-arena-join-crossover.json": {
       "mode": 420,
@@ -2614,11 +2630,11 @@
     },
     "scripts/bot_development/verify/README.md": {
       "mode": 420,
-      "sha256": "dbe46ceac2cb57cdf1a2e76d004bddf391848ad839934eeff6af3ce1db8275dc"
+      "sha256": "187b47054be32e826e14d0bf8e6e832da5af3710e3b9890b4e88c4564315f809"
     },
     "scripts/bot_development/verify/web_candidate.py": {
       "mode": 420,
-      "sha256": "cbdb13a612fbac51266292d949b8b98ce412fafd58d7e9dca6e9cbe0a9748022"
+      "sha256": "b6cba9ab1151b7dad69ca0a4e3554549f0cedcffdc0aea12b47e199a12c71969"
     },
     "scripts/build_platform_releases.py": {
       "mode": 420,
@@ -2922,7 +2938,11 @@
     },
     "tests/test_web_bot_host.py": {
       "mode": 420,
-      "sha256": "c29ce4988f2dce8b7cc66bb3dab073fbd6b970bfabddf6463e372967ab5028ba"
+      "sha256": "eb98b595800c9e70f950b43c5bf146c64b1595685b7f2d7da741f531617a2c30"
+    },
+    "tests/test_web_bot_join_room.py": {
+      "mode": 420,
+      "sha256": "764b9619d3bfbcd34df316eb54b1c3ac6dd1781ae9197e6d6b5cdf0a1b9124de"
     },
     "tools/admin-helper.css": {
       "mode": 420,
@@ -2942,27 +2962,35 @@
     },
     "web_bots/BUILD.json": {
       "mode": 420,
-      "sha256": "fe86c5ffc476e45e36f47a9b356bd6cd293b44e608b0cdd70612a6e270b08cc6"
+      "sha256": "8833a355c9baaa1f6efd762cb5fa7e270a495382188f5c55194513c9433c3022"
     },
     "web_bots/README.md": {
       "mode": 420,
-      "sha256": "398757d9721916523d45cbf42243af1b0d8a046b471c2f7f9b8dfa95ffa62ef4"
+      "sha256": "a5e4315c3166282751393ad662ef29443ec839d70045eccfed70355cab4a70f2"
     },
     "web_bots/build.sh": {
       "mode": 493,
-      "sha256": "20d12fe43d12c44cc0aeeb522a2f5f947d9ffe042a63ac80f62044455057d892"
+      "sha256": "10555e1e01b8eda0739558deaea053d796f822e003c5e94b64482eb22ca22b0d"
     },
     "web_bots/client.js": {
       "mode": 420,
-      "sha256": "8e38c8dd6dc004c28f5d6f20538588b50649db83d8a8a015c9e203953880cd66"
+      "sha256": "c81d6265ca05b605b86a174870070f5a68c5dbb1eb49fc134ea2ab46338c9280"
     },
     "web_bots/engine-relink.tar.gz": {
       "mode": 420,
-      "sha256": "3e172acd0c8d3821cea50618dd8459f634d7cbeed740f6e1d030a70f56f7955c"
+      "sha256": "9774891a648205715263997a08992cc2e5628efd60f2e97e92249e18525ed3d9"
     },
     "web_bots/engine.patch": {
       "mode": 420,
       "sha256": "fffac050ec822d871dab29a0f38dbe4df7228c94f593c24996a0ced0091f7c0d"
+    },
+    "web_bots/engine_patches.py": {
+      "mode": 420,
+      "sha256": "4fd6db6974ea102d758795c46f0b1902a56ca8d61b700a401d8576bcbcd43f01"
+    },
+    "web_bots/external-room.patch": {
+      "mode": 420,
+      "sha256": "f1d7dd4ab48347bca03806a4b4b4c580da8493f792d39ac054502501cf040d57"
     },
     "web_bots/fetch_relay.py": {
       "mode": 420,
@@ -2972,17 +3000,21 @@
       "mode": 420,
       "sha256": "3ed9f0341c38351588f1b896f3b59656dd59d9cce6d535dd994132cee001ee62"
     },
+    "web_bots/join_room.py": {
+      "mode": 420,
+      "sha256": "1153a1336046d84dcc00e9c24e12f5252c1e425513bfda6bc860c643ef5c32f3"
+    },
     "web_bots/launch_chrome.py": {
       "mode": 420,
       "sha256": "2a372cca1d3c1d0cd62dc707afed66c0c2bf5b4e43ce2e75f4b1c5142d657236"
     },
     "web_bots/package_engine.py": {
       "mode": 420,
-      "sha256": "d0bda481713170a3f60021cb900a14c93f16bf537d89462c63a0946fd8db85e5"
+      "sha256": "d370333372afcee7f8ba9bcbf40459cbc7d5fa2420c4eb7162c75183050e184c"
     },
     "web_bots/serve.py": {
       "mode": 420,
-      "sha256": "f6f4a21033106a2ef2e7c1b495d4a8f156fe7864f33febc984eb4fe706b2ae09"
+      "sha256": "59a734fdda0c1d8261c0f0e7833fa4ddef5e950f726be0d4008fbe338d73e96f"
     },
     "web_gateway/README.md": {
       "mode": 420,

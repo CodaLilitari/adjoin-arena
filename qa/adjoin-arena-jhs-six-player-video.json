@@ -1,0 +1,103 @@
+{
+  "schema": 1,
+  "map": "Jedi’s High School, six-player recording map",
+  "clock_rate": 1,
+  "game_content": {
+    "original_gob": "a62c94789c521af2746cc8378301a4940a59a24f6fb44dd4c443caacc0211b04",
+    "original_map": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+    "original_route": "c9a86f5b438146d8f7c27d76f90af1d253ead33e1e0d47b748a310aad2b1f92c",
+    "six_gob": "4031bb340a46e6fd14e2a3ba413b2ef7054e029081666cc9c995dcccc6aef186",
+    "six_map": "55d29a9928f3821f93405737f255c6deb7dbddf34219ed2db34411138cfb8247",
+    "six_route": "93a65769c85caacf637677a111aee640bbce4d3cbb6041983b2eeb8921c598fe",
+    "inserted_thing": "263: walkplayer walkplayer -.42 -12.44 .12 0 0 0 5",
+    "duplicate_of": 10,
+    "original_entries": 34,
+    "unchanged_nonmap_members": 33,
+    "unchanged_other_jkl_bytes": 597187,
+    "point_count": 10
+  },
+  "roster_pack_sha256": "5006ae2cd2228683cf941e7660e8a462693631ffd5cbf5d217f2f62651a04b2d",
+  "players": [
+    {
+      "player": "Bot_CrownBraid",
+      "model": "redmandoh.3do",
+      "slot": 1,
+      "network_id": 3,
+      "body_materials_rgb565": 15
+    },
+    {
+      "player": "Bot_Lilivane",
+      "model": "lvane.3do",
+      "slot": 2,
+      "network_id": 5,
+      "body_materials_rgb565": 41
+    },
+    {
+      "player": "Bot_BiddyBlas",
+      "model": "biddybl.3do",
+      "slot": 3,
+      "network_id": 7,
+      "body_materials_rgb565": 9
+    },
+    {
+      "player": "Bot_T800Hybrid",
+      "model": "t800hy4.3do",
+      "slot": 4,
+      "network_id": 9,
+      "body_materials_rgb565": 5
+    },
+    {
+      "player": "Bot_Red",
+      "model": "redmando.3do",
+      "slot": 5,
+      "network_id": 11,
+      "body_materials_rgb565": 15
+    },
+    {
+      "player": "Bot_Lilitari",
+      "model": "dlil.3do",
+      "slot": 6,
+      "network_id": 13,
+      "body_materials_rgb565": 49
+    }
+  ],
+  "view": "first person, attached to the locally controlled Darth Lilitari player",
+  "appearance": {
+    "name": "Bot_Lilitari",
+    "model": "dlil.3do",
+    "sound": "dlil.snd",
+    "side": "saberred1.mat",
+    "tip": "saberred0.mat",
+    "source": "mpc_readback"
+  },
+  "gpu": "D3D12 (NVIDIA GeForce RTX 5070 Ti)",
+  "resolution": [
+    960,
+    540
+  ],
+  "video_codec": "H.264",
+  "audio": "AAC stereo, 48 kHz, from the local game process",
+  "frames_per_second": 30,
+  "frames": 3600,
+  "unique_native_frames": 3512,
+  "seconds": 120,
+  "per_frame_weapon_counts": {
+    "red_saber": 3181,
+    "sidearm": 419
+  },
+  "run_clock_rates": {
+    "server": 0.99999987,
+    "Bot_CrownBraid": 1.00000057,
+    "Bot_Lilivane": 1.00000022,
+    "Bot_BiddyBlas": 0.99999978,
+    "Bot_T800Hybrid": 1.00000023,
+    "Bot_Red": 1.00000031,
+    "Bot_Lilitari": 1.00000097
+  },
+  "video_without_audio_sha256": "fb89fad15f7858572db6831c6a742584dccf3489aa7b1d4643ce8e39c57ab988",
+  "final_mp4_sha256": "3508e72a85e5efbc5dfcaf73133355714cec8c7427b69e447467fd77cffa76f5",
+  "final_mp4_bytes": 157041890,
+  "runtime_evidence_sha256": "9609d761d97ec0bda8153c6a12f0784d57b1060d4e447fd35993950fb023560c",
+  "timing_and_audio_sha256": "c99d14c2113d4d9e25299f73e23f9b8948de253003e4a8a7d1a9f6642c2bc79b",
+  "verification": "Both streams decoded to the end. The launcher timed out during post-recording hashing; native player, clock, camera and asset logs survived. The final process image mappings were unavailable after exit."
+}

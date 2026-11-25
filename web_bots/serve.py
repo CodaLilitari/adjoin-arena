@@ -33,6 +33,15 @@ SEATS = {
     "jan": ("Bot_JanOrs", "kya10.3do", "kyfemale.snd", "light"),
     "yun": ("Bot_Yun", "kya18.3do", "kyyun.snd", "light"),
 }
+# Named visitors wear ordinary retail models on unmodified WSRelay hosts.
+ROOM_PLAYERS = {
+    **SEATS,
+    "red": ("Bot_Red", "kyh4.3do", "kybobafett.snd", "dark"),
+    "lilivane": ("Bot_Lilivane", "kya9.3do", "kyfemale.snd", "dark"),
+    "biddy": ("Bot_BiddyBlas", "ky.3do", "ky.snd", "light"),
+    "t800": ("Bot_T800Hybrid", "kyi14.3do", "kybossk.snd", "dark"),
+    "crownbraid": ("Bot_CrownBraid", "kya10.3do", "kyfemale.snd", "light"),
+}
 MAX_CHUNK, MAX_CAPTURE = 8*1024*1024, 512*1024*1024
 CAPTURE_IDLE_SECONDS = 10.
 
@@ -113,14 +122,18 @@ def child_relay(path):
 
 
 class Host:
-    def __init__(self, data, engine, runtime, room, model, chat, mode="ff-guns", *, adaptive_lily=False):
+    def __init__(self, data, engine, runtime, room, model, chat, mode="ff-guns", *, adaptive_lily=False, external=None):
         if mode not in ARENA_MODES:
             raise ValueError("Unknown arena mode. Choose one of " + ", ".join(ARENA_MODES) + ".")
         self.mode = mode
+        self.external = external
+        seat_ids = (external.seat,) if external else tuple(SEATS)
         if not isinstance(room,str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,31}",room) or room != room.strip():
             raise ValueError("Room must be 1..31 ASCII letters, digits, underscores or hyphens.")
         self.room, self.engine, self.runtime = room, Path(engine), Path(runtime)
         self.assets = [("/jk1/"+name, game_file(data,name)) for name in ASSETS]
+        if external and external.episode_file:
+            self.assets.append(("/jk1/episode/"+external.episode_file.name, external.episode_file))
         self.model = model is not None
         if model:
             if not Path(model).is_file() or Path(model).suffix.lower() != ".gob":
@@ -132,12 +145,12 @@ class Host:
         create_private_directory(self.runtime, parents=True)
         self.secrets_dir = self.runtime/"engines"
         create_private_directory(self.secrets_dir)
-        self.hub = Hub(self.runtime, SEATS, 0, allow_chat=chat, channel_factory=browser_pair,
-                       experimental_ids=("lily",) if adaptive_lily else ())
-        self.tokens = {ident: secrets.token_urlsafe(32) for ident in SEATS}
-        self.channels = {ident:self.hub.open_browser_channel(ident) for ident in SEATS}
+        self.hub = Hub(self.runtime, seat_ids, 0, allow_chat=chat, channel_factory=browser_pair,
+                       experimental_ids=("lily",) if adaptive_lily and "lily" in seat_ids else ())
+        self.tokens = {ident: secrets.token_urlsafe(32) for ident in seat_ids}
+        self.channels = {ident:self.hub.open_browser_channel(ident) for ident in seat_ids}
         self.seats = {ident: {"instance":None,"cookie":None,"poll":0., "seq_base":0,"world_base":0,
-                              "graphics":None, "view":None, "stage":"waiting", "dropped":0} for ident in SEATS}
+                              "graphics":None, "view":None, "stage":"waiting", "dropped":0} for ident in seat_ids}
         self.proxy_proof = secrets.token_hex(32)
         self.port = self.relay_port = self.http = None
         self.capture = None
@@ -148,8 +161,9 @@ class Host:
         for ident,token in self.tokens.items():
             private_json(self.secrets_dir/(ident+".json"),{"version":1,"id":ident,"url":self.url,"token":token})
         private_json(self.runtime/"run.json", {"url":self.url,"status":self.url+"/status","room":self.room,"mode":self.mode,
-            "adaptive_lily":self.hub.bots["lily"].adaptive_lily,
-            "pages":{i:self.url+"/bot/"+i for i in SEATS}, "companion":self.hub.url,
+            "adaptive_lily":bool("lily" in self.seats and self.hub.bots["lily"].adaptive_lily),
+            **({"external":self.external.public()} if self.external else {}),
+            "pages":{i:self.url+"/bot/"+i for i in self.seats}, "companion":self.hub.url,
             "engine_credentials":"engines","companion_credentials":"companion"})
 
     def close(self):
@@ -208,11 +222,11 @@ class Host:
         return app
 
     async def page(self, request):
-        if request.match_info["ident"] not in SEATS:
+        if request.match_info["ident"] not in self.seats:
             raise web.HTTPNotFound()
         return web.FileResponse(HERE/"index.html",headers={"Content-Security-Policy":
             "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'unsafe-inline'; "
-            "worker-src 'self' blob:; connect-src 'self' ws://127.0.0.1:"+str(self.port)+"; frame-ancestors 'none'; base-uri 'none'"})
+            "worker-src 'self' blob:; connect-src 'self' ws://127.0.0.1:"+str(self.port)+(" "+self.external.relay if self.external else "")+"; frame-ancestors 'none'; base-uri 'none'"})
 
     async def javascript(self, request):
         return web.FileResponse(HERE/"client.js",headers={"Content-Type":"text/javascript"})
@@ -256,12 +270,16 @@ class Host:
             self.channels[ident].outgoing_frames()
             seat.update(instance=body["instance"],cookie=secrets.token_urlsafe(24),stage="boot",graphics=None,view=None)
         seat["poll"] = time.monotonic()
-        name,model,sound,side = SEATS[ident]
+        name,model,sound,side = ROOM_PLAYERS[ident]
         if ident == "lily" and self.model:
             model,sound="dlil.3do","dlil.snd"
-        response = web.json_response({"id":ident,"assets":[{"path":path,"url":f"/engine/{ident}/assets/{n}"} for n,(path,_) in enumerate(self.assets)],
-            "mod":self.model,"env":{"JK_BOT_WEB_ROLE":"host" if ident=="lily" else "join","JK_BOT_WEB_ROOM":self.room,"JK_BOT_WEB_MODE":self.mode,
+        role = "host" if ident=="lily" else "join"
+        response = web.json_response({"id":ident,
+            **({"relay":self.external.relay} if self.external else {}),
+            "assets":[{"path":path,"url":f"/engine/{ident}/assets/{n}"} for n,(path,_) in enumerate(self.assets)],
+            "mod":self.model,"env":{"JK_BOT_WEB_ROLE":"external" if self.external else role,"JK_BOT_WEB_ROOM":self.room,"JK_BOT_WEB_MODE":self.mode,
                 **({"JK_BOT_LILY":"1"} if self.hub.bots[ident].adaptive_lily else {}),
+                **({"JK_BOT_WEB_EPISODE":self.external.episode,"JK_BOT_WEB_MAP":self.external.level} if self.external else {}),
                 "JK_BOT_WEB_NAME":name,"JK_BOT_WEB_MODEL":model,"JK_BOT_WEB_SOUND":sound,
                 "JK_BOT_WEB_SABER_COLOR":"red" if ident=="lily" else "green",
                 "JK_BOT_TRACE_FORCE":"1" if os.environ.get("JK_BOT_TRACE_FORCE")=="1" else "0",

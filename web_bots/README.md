@@ -1,4 +1,29 @@
-# Private four-bot JKWeb arena
+# JKWeb multiplayer bots
+
+## Join an existing JediKnight.Zone game
+
+Use Python 3.11 or newer, a WebGL 2 browser, and a local installation of Jedi Knight: Dark Forces II. From the repository root, install the browser launcher's dependency and list currently advertised games.
+
+```sh
+python -m pip install "aiohttp==3.14.5"
+python -m web_bots.join_room list
+```
+
+Pick an entry with an open slot and `"unavailable": null`. In this example, replace `42` with its numeric `id` and the two paths with your installed game directory and a writable location for the bot's local session.
+
+```sh
+python -m web_bots.join_room join --room-id 42 --seat boba --data "/path/to/Jedi Knight" --runtime "/path/to/bot-runs"
+```
+
+Open the printed `page` URL in the browser. Use **Open engine credential** to select the exact local JSON file named by `credential`. Keep the command running while the bot plays. Look for the bot's name on the host's **Player Scores** screen. Close the bot tab to leave the game, then stop the launcher with Ctrl+C.
+
+Choose `lily`, `red`, `lilivane`, `biddy`, `t800`, or `crownbraid` for the six identities from the JHS recording. The room launcher also offers `boba`, `jan`, and `yun`. For an unmodified host, these identities use stock appearances. For example, `--seat red` appears as `Bot_Red` with the stock Mandalorian model. The bot joins the selected room as a player, using the rank advertised by the host. Add `--sabers-only` to restrict its weapon choices. For a room using a custom map, supply its matching installed episode or add `--episode-gob "/path/to/episode.gob"`. The launcher checks the GOB name and the advertised JKL. The browser uses this project's WebAssembly controller. The pickup-versus-fight weights and the mapped JHS entrance described in the native arena studies run in the native client.
+
+This path supports open, full-game JKDF2 rooms on the Zone's WSRelay netcode 2. The room list explains exclusions such as a full session, password or required host mod. MotS, demo, and Imperial Network Protocol sessions use different game or connection paths. The player reads their own game assets locally. For testing on your own relay, append `--relay ws://127.0.0.1:PORT/relay` to both commands. [JediKnight.Zone game rooms](https://jediknight.zone/) · [Upstream lobby protocol and deployment](https://github.com/tristamus/jkdf2mp-bb-server/blob/main/cloudflare/README.md)
+
+We checked public room discovery against JediKnight.Zone. We tested joining and moving on a local copy of its relay with the unmodified deployed browser client hosting Nar Shaddaa Loading Terminal. The host and bot appeared together on the stock scoreboard. The public lobby had no advertised games at the time of the discovery check. [Host’s Player Scores screen](../docs/images/jkweb-stock-host-scoreboard.png) · [Match evidence](../qa/adjoin-arena-jkzone-join.json)
+
+## Private four-bot arena
 
 This launcher runs the bot-enabled **current JKWeb browser engine**. Lily's browser hosts the game and the other three browser engines join through a private instance of the upstream relay. The match runs on stock JK1MP Canyon Oasis. The default is full Force with guns (`ff-guns`). The browser clients execute gameplay and ordinary multiplayer traffic. The external companion can observe or issue expiring strategy requests through a separate local API.
 
@@ -133,7 +158,7 @@ replays from live browser observations.
 The engine pin is `tristamus/OpenJKDF2` `web-mp` commit
 `7a6f95c9a3399e59acbf019dc6b25f9981d29dff` (netcode 2). Activate Emscripten
 **6.0.12**, then run `bash web_bots/build.sh`. The script checks out the exact
-pin, applies [engine.patch](engine.patch), and uses the upstream WASM toolchain.
+pin, applies [the bot controller](engine.patch) followed by [the selected-room changes](external-room.patch), and uses the upstream WASM toolchain.
 [BUILD.json](BUILD.json) records changed-source and artifact hashes. Original
 game assets are not included.
 

@@ -134,13 +134,22 @@
         canvas,
         arguments: boot.mod ? ["-path","jkmods/companion"] : [],
         jkBotConfig:{lily:adaptiveLily,mode:env.JK_BOT_WEB_MODE,role:env.JK_BOT_WEB_ROLE,room:env.JK_BOT_WEB_ROOM,name:env.JK_BOT_WEB_NAME,
+                     episode:env.JK_BOT_WEB_EPISODE,map:env.JK_BOT_WEB_MAP,
                      model:env.JK_BOT_WEB_MODEL,sound:env.JK_BOT_WEB_SOUND,side:env.JK_BOT_FORCE_SIDE,
                      saberColor:env.JK_BOT_WEB_SABER_COLOR,trace:env.JK_BOT_TRACE_FORCE==="1",
                      style:env.JK_BOT_FORCE_STYLE,thirdPerson:env.JK_BOT_WEB_THIRD_PERSON==="1",elite:true},
-        jkRelayUrl:"ws://"+location.host+"/relay",
+        jkRelayUrl:boot.relay || "ws://"+location.host+"/relay",
         locateFile:name => "/wasm/"+name,
         onJkBotEvent:outgoing,
-        print:line => console.log(line), printErr:line => console.error(line),
+        print:line => console.log(line),
+        printErr:line => {
+          console.error(line);
+          if (boot.relay && String(line).includes("BOT_JOIN_REJECTED")) {
+            stage = "failed";
+            status.textContent = "Room join declined";
+            message(String(line));
+          }
+        },
         onAbort:reason => { stage="failed"; status.textContent="Engine stopped"; message(String(reason)); },
         preRun:[() => {
           const fs = mod.FS;
