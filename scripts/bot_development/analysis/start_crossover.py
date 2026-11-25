@@ -12,7 +12,7 @@ PROFILE_ORDER = ("boba_fett", "jan_ors")
 WEAPONS = {10: "repeater", 29: "concussion rifle", 34: "repeater"}
 
 
-def read_match(directory, *, allow_no_plan=False):
+def read_match(directory, *, allow_no_plan=False, expected_pacing="normal engine wall-clock", expected_host_sha=None):
     path = directory / "receipt.json"
     receipt = json.loads(path.read_bytes())
     gate = receipt["ready_gate_observations"]
@@ -21,7 +21,7 @@ def read_match(directory, *, allow_no_plan=False):
     require(receipt["kind"] == "adjoin-arena-ready-gate" and gate["status"] == "qualified"
             and receipt["status"] == "live_join_and_loadout_verified" and fixture.get("observe_repeater") is True
             and receipt["requested_map"] == "m10.jkl" and receipt["network_interfaces"] == ["lo"]
-            and receipt["pacing"] == "normal engine wall-clock", "Requires an instrumented native ready-gate match")
+            and receipt["pacing"] == expected_pacing, "Requires an instrumented native ready-gate match at the expected pace")
     require(assignment in ("normal", "swapped"), "Unknown start assignment")
     order = tuple(receipt["seat_order"])
     require(order in (PROFILE_ORDER, PROFILE_ORDER[::-1]), "Unknown join order")
@@ -41,7 +41,7 @@ def read_match(directory, *, allow_no_plan=False):
     log_hashes = {name: sha(directory / name) for name in ("dark.log", "light.log", "server.log", "force-trace.jsonl")}
     require(log_hashes == receipt["log_sha256"] and log_hashes["server.log"] == gate["host_log_sha256"],
             "Native logs differ from the verified run")
-    _, video = read_observer(directory, receipt, [NAMES[side] for side in sides], sides=sides)
+    _, video = read_observer(directory, receipt, [NAMES[side] for side in sides], sides=sides, expected_host_sha=expected_host_sha)
     require(video["camera"] == "rifle-overlook", "Use the same rifle-overlook camera for all runs")
 
     seats = {}

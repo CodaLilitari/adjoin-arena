@@ -6,6 +6,7 @@ directory. This is a development observation, not a competitive-skill verdict.
 """
 import argparse
 from collections import Counter
+from contextlib import nullcontext
 import hashlib
 import json
 import math
@@ -332,6 +333,15 @@ def run(args, receipt, tmp):
     if args.planner_client:
         bot, build = research_client(repo, args.planner_client, packaged, hashes)
         receipt["planner_experiment"] = {"mode": args.planner_quarantine, "build": build}
+    if args.pace_build:
+        import native_observation_pace as pace_tools
+        server, bot, pace_build = pace_tools.resolve_build(repo, args.pace_build.resolve(), hashes, digest)
+        build = pace_build["bot"]
+        receipt["planner_experiment"] = {"mode": "on", "build": build}
+        receipt["pacing"] = "native pace experiment"
+        receipt["pace_experiment"] = {"speed": args.pace_rate, "requested_game_seconds": args.duration,
+                                      "trace": "pace-trace.jsonl", "build": pace_build,
+                                      "verifier_sha256": digest(Path(pace_tools.__file__))}
     server_dir = tmp/"server"
     stage(source,server_dir)
     gob = server_dir/"episode/jk1mp.gob"
@@ -389,7 +399,10 @@ def run(args, receipt, tmp):
         if (profiles[pid]["force_side"],profiles[pid]["force_style"]) != (side,"competitive"):
             raise Failure(side+"_incorrect_profile")
         prepare_bot(server_dir,tmp/side,profiles[pid])
-    boot("server",[str(server),*receipt["server_argv"]],server_dir,private_env(server_dir,server),
+    host_env = private_env(server_dir, server)
+    if args.pace_build:
+        host_env.update(ADJOIN_PACE_ROLE="host", ADJOIN_PACE_RATE=str(args.pace_rate))
+    boot("server",[str(server),*receipt["server_argv"]],server_dir,host_env,
          output, recorder=args.recorder, repo=repo, camera=args.camera, line_buffered=args.ready_gate)
     before = time.monotonic()
     while not owns_udp(CHILDREN["server"].pid,port):
@@ -399,9 +412,11 @@ def run(args, receipt, tmp):
         time.sleep(.1)
     receipt["dedicated_server_owned_udp_port"] = True
     partial = {s:b"" for s in LABELS}
+    if args.pace_build:
+        partial["server"] = b""
 
     def collect(trace):
-        for side, pid in LABELS.items():
+        for side in partial:
             if side not in READERS:
                 continue
             raw = partial[side] + READERS[side].read(1024*1024)
@@ -409,11 +424,18 @@ def run(args, receipt, tmp):
             partial[side] = lines.pop()[-16384:]
             for line in lines:
                 text = line.decode("ascii","replace").strip()
+                if args.pace_build:
+                    pace.observe("host" if side == "server" else side, CHILDREN[side].pid, text)
+                if side == "server":
+                    continue
                 marker = text.find("BOT_")
                 if marker >= 0:
-                    observe(side,profiles[pid]["name"],text[marker:],bots[side],trace)
+                    observe(side,profiles[LABELS[side]]["name"],text[marker:],bots[side],trace)
 
-    with (output/"force-trace.jsonl").open("x",encoding="ascii",buffering=1) as trace:
+    pace_file = (output/"pace-trace.jsonl").open("x", encoding="ascii", buffering=1) if args.pace_build else nullcontext()
+    with pace_file as clock_trace, (output/"force-trace.jsonl").open("x",encoding="ascii",buffering=1) as trace:
+        if args.pace_build:
+            pace = pace_tools.NativePace(clock_trace, receipt["pace_experiment"])
         for index, (side, pid) in schedule:
             p = profiles[pid]
             directory = tmp/side
@@ -422,8 +444,10 @@ def run(args, receipt, tmp):
                                        force_side=side,force_style="competitive")
             env.update({k:v for k,v in standard.items() if k.startswith("JK_BOT_")})
             env["JK_BOT_TRACE_FORCE"] = "1"
-            if args.planner_client:
+            if args.planner_quarantine:
                 env["JK_BOT_PLANNER_QUARANTINE"] = "1" if args.planner_quarantine == "on" else "0"
+            if args.pace_build:
+                env.update(ADJOIN_PACE_ROLE=side, ADJOIN_PACE_RATE=str(args.pace_rate))
             args_bot = ["-headless","-botConnect",f"127.0.0.1:{port}","-botName",p["name"],
                         "-botSkin",p["model"],"-botSound",p["sound"]]
             bots[side]["argv"] = args_bot
@@ -439,23 +463,37 @@ def run(args, receipt, tmp):
                     raise Failure(side+"_join_timeout")
                 time.sleep(.10)
         start_match = time.monotonic()
-        if args.planner_client:
+        if args.planner_quarantine:
             images = receipt["planner_experiment"]["loaded_images"] = {}
             server_lib = str(Path(SERVER).parent / GNS)
             for label in ("server", *LABELS):
                 proc = Path("/proc") / str(CHILDREN[label].pid)
                 if label == "server":
-                    images[label] = loaded_images(proc, server, hashes[SERVER], hashes[server_lib])
+                    expected_host = pace_build["host"]["binary_sha256"] if args.pace_build else hashes[SERVER]
+                    images[label] = loaded_images(proc, server, expected_host, hashes[server_lib])
                 else:
                     images[label] = loaded_images(proc, bot, build["binary_sha256"], build["gns_sha256"])
+            if args.pace_build:
+                receipt["pace_experiment"]["loaded_images"] = {
+                    ("host" if label == "server" else label): {"pid": CHILDREN[label].pid, **image}
+                    for label, image in images.items()}
         while True:
             collect(trace)
             check_liveness()
             cutoff = time.monotonic()
-            if cutoff-start_match >= args.duration:
+            if args.pace_build:
+                cutoff_ns = time.monotonic_ns()
+                done = pace.poll(cutoff_ns)
+                if not done and cutoff - start_match > 12 + 2 * args.duration / args.pace_rate:
+                    raise Failure("native_pace_game_window_watchdog")
+                if done:
+                    pace.finish(cutoff_ns)
+            else:
+                done = cutoff-start_match >= args.duration
+            if done:
                 receipt["both_joined_cutoff_monotonic"] = cutoff
                 break
-            time.sleep(.15)
+            time.sleep(.015 if args.pace_build else .15)
     receipt["both_joined_observation_wall_seconds"] = round(cutoff-start_match,2)
     for side, row in bots.items():
         if not row["joined"] or not row["loadout"] or row["matching_star_samples"] == 0:
@@ -535,13 +573,24 @@ def main():
                         help="Use the pinned planner experiment client and its adjacent networking library.")
     parser.add_argument("--planner-quarantine", choices=("off", "on"),
                         help="Run the research client in the matched control or shared-GO condition.")
+    parser.add_argument("--pace-build", type=Path, metavar="DIRECTORY",
+                        help="Use a verified native pace-build directory containing the paired host and planner client.")
+    parser.add_argument("--pace-rate", type=int, choices=(1, 2),
+                        help="Set both players and host to the selected game speed; --duration means game seconds.")
     parser.add_argument("--camera", choices=("follow", "rifle-overlook"),
                         help="Record the selected native camera (implies --record).")
     args = parser.parse_args()
+    if ((args.pace_build is None) != (args.pace_rate is None)
+            or args.pace_build and (args.planner_client or args.planner_quarantine
+                                    or not (args.arena_baseline and args.ready_gate and args.observe_repeater))):
+        parser.error("--pace-build and --pace-rate require each other and an instrumented arena ready gate; "
+                     "the pace build already includes the shared-GO planner")
     if ((args.planner_client is None) != (args.planner_quarantine is None)
             or args.planner_client is not None and not (args.arena_baseline and args.ready_gate and args.observe_repeater)):
         parser.error("--planner-client and --planner-quarantine require each other, --arena-baseline, "
                      "--ready-gate and --observe-repeater")
+    if args.pace_build:
+        args.planner_quarantine = "on"
     if args.jan_first and not args.ready_gate:
         parser.error("--jan-first requires --ready-gate")
     if (args.swap_starts or args.observe_repeater) and not args.ready_gate:
@@ -589,7 +638,7 @@ def main():
             try:
                 receipt["ready_gate_observations"] = gate = args.gate_verifier.qualify(
                     out, receipt["opening_observations"], planner_mode=args.planner_quarantine)
-                if args.planner_client:
+                if args.planner_quarantine:
                     receipt["planner_experiment"]["owners"] = {side: gate["owners"][side]["planner"] for side in LABELS}
             except ValueError as error:
                 receipt["ready_gate_error"] = str(error)
@@ -603,6 +652,8 @@ def main():
         code = 0
     except Failure as e:
         receipt["error"] = str(e)
+    except ValueError as e:
+        receipt["error"] = str(e) if args.pace_build and re.fullmatch(r"native_pace_[a-z_]+", str(e)) else "ValueError"
     except Exception as e:
         # OSError strings often contain private installation paths.
         receipt["error"] = type(e).__name__
@@ -618,6 +669,10 @@ def main():
     for row in receipt.get("bots",{}).values():
         row.pop("previous",None)
     if args.arena_baseline and made_output:
+        pace_trace = args.output / "pace-trace.jsonl"
+        if "pace_experiment" in receipt and pace_trace.is_file():
+            with pace_trace.open("rb") as stream:
+                receipt["pace_experiment"]["trace_sha256"] = hashlib.file_digest(stream, "sha256").hexdigest()
         receipt["log_sha256"] = {}
         for name in ("server.log","dark.log","light.log","force-trace.jsonl"):
             log = args.output / name

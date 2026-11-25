@@ -26,7 +26,7 @@
     },
     "README.md": {
       "mode": 420,
-      "sha256": "a13e4685419e54b9e4472690888cedb4364e980b8c3b80d48bc969448d5fbba6"
+      "sha256": "6d1935e7a4765a43351afb5c610827053bc73e4af60cc2fa296690aa16253375"
     },
     "Start-Server.command": {
       "mode": 493,
@@ -742,7 +742,11 @@
     },
     "native/README.md": {
       "mode": 420,
-      "sha256": "f77a1a9683d6d3d5570d4c6e3e207874d9103ca8aac4e66d44ad2c16cb358d42"
+      "sha256": "b255d5564a7c5a8ac01380967f0713f86caa740da0c7a4a950eb084c55c11d06"
+    },
+    "native/arena_pace.c": {
+      "mode": 420,
+      "sha256": "7d1b50ab4f78b6ae6f61e748691b823d8ca8f3eec3efe6440872addbeedfb993"
     },
     "native/bot-client.patch": {
       "mode": 420,
@@ -756,6 +760,10 @@
       "mode": 493,
       "sha256": "5b430bba50bad4c3403fca2583767816704b338814991770aec1ac3e3a7cedeb"
     },
+    "native/build_arena_pace.py": {
+      "mode": 420,
+      "sha256": "b83bf815faab6ac51c9bb1c50241b5dfd54671b3712b71bf65d57ee7b48ebc62"
+    },
     "native/build_bots.sh": {
       "mode": 420,
       "sha256": "e2e495e16a0f396e1d9eed1697713f9f44bf55ea3c2682ec554d3e5c9cd3d828"
@@ -767,6 +775,10 @@
     "native/crossplay-dedicated.patch": {
       "mode": 420,
       "sha256": "cbc3cb1d1d22e072f4427ecaa926e604163b2520dd2f21effcd7b0710871a542"
+    },
+    "native/pace-build.json": {
+      "mode": 420,
+      "sha256": "378ae9a077c737959ccb48da50a861cc67fda34a1275b5e2b95355618e823db4"
     },
     "native/package_bots.py": {
       "mode": 420,
@@ -920,6 +932,10 @@
       "mode": 420,
       "sha256": "54ec53e4387e7b817eae6b98d10ed7b69486b7056ec173b14dcc7ba40b2619ee"
     },
+    "native/tests/test_arena_pace_clock.py": {
+      "mode": 420,
+      "sha256": "37358ba99aefc22ceda1b007d04413575d20148ab30fa584bf16ab42a0d52453"
+    },
     "native/tests/test_bot_altfire.inc": {
       "mode": 420,
       "sha256": "b7d155d1ff8befe77e256440b35bb070ef3902ca70383c0ac76ee0133e3832fa"
@@ -1059,6 +1075,14 @@
     "qa/adjoin-arena-native-duel-1x.json": {
       "mode": 420,
       "sha256": "2729d40f7d9d5eaedae244abe8ed5d6f1a6aa6045a3d30179c7853cd0c2798c7"
+    },
+    "qa/adjoin-arena-opening-pace-schedule.json": {
+      "mode": 420,
+      "sha256": "c12a6a96decf35bf260998490645a1851472d05dfa0b1f0af84968cc8fd6f8e1"
+    },
+    "qa/adjoin-arena-opening-pace.json": {
+      "mode": 420,
+      "sha256": "0ba422e634c1c3f47ca0ecbf42914ce1585ba3adcba446216844632ab50ef943"
     },
     "qa/adjoin-arena-planner-start-schedule.json": {
       "mode": 420,
@@ -2170,11 +2194,15 @@
     },
     "scripts/bot_development/analysis/native_duel.py": {
       "mode": 420,
-      "sha256": "baa9a24eb45668c0c929645837c1a65d21775b427d99cf5c44b9a9061b927ab9"
+      "sha256": "b264d1da419119e01d7244be9518dbef9fad1412c8286983ffe1865861a7bdbc"
     },
     "scripts/bot_development/analysis/opening_detour.py": {
       "mode": 420,
       "sha256": "03f5cb167d521b68b0709982715f60289467fdaf68cf9ab2651c158b95592ad1"
+    },
+    "scripts/bot_development/analysis/opening_pace.py": {
+      "mode": 420,
+      "sha256": "69fd12f5ad88f8993de6aeed1a06fce813970df612106b9cef3cfdaf9780332b"
     },
     "scripts/bot_development/analysis/outcome_build_inputs.py": {
       "mode": 420,
@@ -2218,7 +2246,7 @@
     },
     "scripts/bot_development/analysis/start_crossover.py": {
       "mode": 420,
-      "sha256": "3bb8c12575d0eee98818f849cb8954f122a98c0d7c65e3bab98e362d136a9a77"
+      "sha256": "788938f05cdefc6d4a131c7551713c20e2bff3d2e0e05182b62bcdf7dfdc69b3"
     },
     "scripts/bot_development/analysis/validate_replay_poses.py": {
       "mode": 420,
@@ -2262,11 +2290,15 @@
     },
     "scripts/bot_development/legacy/README.md": {
       "mode": 420,
-      "sha256": "4a14db490031d75632ab7090e96de92d6b8a4ff556b2fce82dfbedd73be8bccf"
+      "sha256": "4c92a894cb028815f89e260f724a485ef3db566973c73056d81178b3572b4382"
     },
     "scripts/bot_development/legacy/native_force_observation.py": {
       "mode": 420,
-      "sha256": "e05d67ae0914c0b1983ce75a2cbad7fe00b6dc6c17a19754a023364271879d57"
+      "sha256": "02b581b9aa6c97f742ca422a29bb41e736ccff4d1d464a7bcd7da26f2ac6cb6f"
+    },
+    "scripts/bot_development/legacy/native_observation_pace.py": {
+      "mode": 420,
+      "sha256": "c389bbdb9003e91fb8433104b0e6b6439f1a2fae19c4bcbfa8070f048c62a4de"
     },
     "scripts/bot_development/legacy/rebuild_native_pair.py": {
       "mode": 420,
@@ -2347,6 +2379,10 @@
     "tests/test_arena_opening_detour.py": {
       "mode": 420,
       "sha256": "5f31717e4f10dc65f3cf1e47049b484035e615c0e823e384c169cbc106be3e57"
+    },
+    "tests/test_arena_opening_pace.py": {
+      "mode": 420,
+      "sha256": "a0cc36c82ee547300584b4f27e0d12ea79d4db80e597e3a7b56e3c96d606aa5e"
     },
     "tests/test_arena_planner_experiment.py": {
       "mode": 420,
@@ -2499,6 +2535,10 @@
     "tests/test_native_duel.py": {
       "mode": 420,
       "sha256": "c28d0a5ae84d1c01ad9b6d199eea0a9a4f397360fdad6cd773b85df0cf97fc7e"
+    },
+    "tests/test_native_observation_pace.py": {
+      "mode": 420,
+      "sha256": "2ab5a5717bb7fd84306892f6bf039845ad660b5e097111dd1a28bd94d48755d2"
     },
     "tests/test_pace_parity.py": {
       "mode": 420,

@@ -1,0 +1,5131 @@
+{
+  "schema": 1,
+  "schedule_sha256": "c12a6a96decf35bf260998490645a1851472d05dfa0b1f0af84968cc8fd6f8e1",
+  "native_build_sha256": "378ae9a077c737959ccb48da50a861cc67fda34a1275b5e2b95355618e823db4",
+  "prior_planner_qualification_sha256": "d2e660917395873cc9f41d714230876db15a066a060481a64b2f891e01b188d9",
+  "configuration": {
+    "pacing": "native pace experiment",
+    "bot_options": {
+      "taunts": false,
+      "team": 0,
+      "force_style": "competitive",
+      "trace_force": true
+    },
+    "seed_control": "not assigned or observed",
+    "launcher_sha256": "02b581b9aa6c97f742ca422a29bb41e736ccff4d1d464a7bcd7da26f2ac6cb6f",
+    "launcher_input_sha256": {
+      "bots/profiles.json": "3756863cb46ee220f2c5bd03d6706ebce861677b2f58c125248e4462e2465c39",
+      "bots/run.py": "3d6e0a2b90303b01d917c7158414bc8ac81c568c8c21abc87461a35063b34691",
+      "bots/companion.py": "8bd9d420abd5a006b2477fb1a4a5f59c66bdc4d8532e54cd69187ccc269c077f",
+      "bots/settings.py": "12a0a981f6e0186462da58338e20502b2485aa75541cea6f531095959205c694",
+      "manager/config.py": "fdc2a130e1b29677808a675193961213a412803369a5652777f00744e7bbdfb4",
+      "manager/content.py": "d4dae8db1b658f0b545d476b2e324b39c79cee622fd7ac77d8ccc955ca7f7812",
+      "native/BOT_BUILD.json": "b06918b1287caa62ba15e86275230fae0965e41f0ca61db985313179cd62ba30",
+      "qa/bots-stock-map-audit.json": "5c4e68d22e75c99f3e5bb5d1257732d8e2a3749a872efa77653c294cfd748511",
+      "web_gateway/ipc.py": "25763a360f251c68c030e2245eedae31d629111eebbcd81ac9c49bada51d5f0c",
+      "manager/spectator.py": "9fb67f40576c7480c278fb1cd68ad17ccca484da4a5f91411f1b73f5dfce497b",
+      "manager/spectator_geometry.py": "e6a69654b78bf4d343ab5401fb9067457ca069c698652b0799f38bdce27d3544"
+    },
+    "ready_gate_source_sha256": {
+      "controlled_opening.py": "661896211890c8d143bc2631d33a02c04a6d9b4fb380f5ad23ae47641c23342b",
+      "ready_gate.py": "c847f0bfb6f039b257bf6ec4b7062f4a922fa76a381fda29e0a8d31c5d3a80cb"
+    },
+    "recorder_sha256": "4d69067faf1a578c3e386e860ca1bd73d184f68fe5c5ec5bee727281a01e052a",
+    "requested_match_seconds": 22,
+    "platform": {
+      "python": "3.14.4",
+      "glibc": "2.43"
+    },
+    "render_environment": {
+      "SDL_VIDEODRIVER": "offscreen",
+      "SDL_VIDEO_DRIVER": "offscreen",
+      "EGL_PLATFORM": "surfaceless",
+      "LIBGL_ALWAYS_SOFTWARE": "1",
+      "ALSOFT_DRIVERS": "null",
+      "SDL_AUDIODRIVER": "dummy",
+      "LP_NUM_THREADS": "2"
+    },
+    "profiles": {
+      "dark": {
+        "argv": [
+          "-headless",
+          "-botConnect",
+          "loopback host",
+          "-botName",
+          "Bot_BobaFett",
+          "-botSkin",
+          "kyh4.3do",
+          "-botSound",
+          "kybobafett.snd"
+        ],
+        "loadout": {
+          "rank": 8,
+          "style": "competitive",
+          "spent": 24,
+          "remaining": 0
+        },
+        "behavior": {
+          "sabers_only": 0,
+          "fists_peace": 0,
+          "force_enabled": 1
+        }
+      },
+      "light": {
+        "argv": [
+          "-headless",
+          "-botConnect",
+          "loopback host",
+          "-botName",
+          "Bot_JanOrs",
+          "-botSkin",
+          "kya10.3do",
+          "-botSound",
+          "kyfemale.snd"
+        ],
+        "loadout": {
+          "rank": 8,
+          "style": "competitive",
+          "spent": 24,
+          "remaining": 0
+        },
+        "behavior": {
+          "sabers_only": 0,
+          "fists_peace": 0,
+          "force_enabled": 1
+        }
+      }
+    },
+    "binary_and_map_hashes": {
+      "bin/bots-linux-x86_64/jk-bot-client": "d04f5106a3a0a3f123162e82a364bc98ec495ae8bd2fe89fb0f1b2461fc44fe3",
+      "bin/bots-linux-x86_64/libGameNetworkingSockets.so": "8246a869b1d72115ecc849309629aa1abbce0bf1a0f23cc70deaded98d82d8e9",
+      "native/bot-client.patch": "12fc518bdf29bd7322c4d69935f9be499ea3f829f25538bd1f66de0dc2ff4af6",
+      "bin/linux-x86_64/openjkdf2": "16944b47e2ceecf3f09cc2820af26372e2af8642057c2b0a963e353ff090c745",
+      "bin/linux-x86_64/libGameNetworkingSockets.so": "45797fcd310f0812af9f55354ff22663859ca68c2d8bb0005efb88a748c471e7",
+      "native/arena_pace.c": "7d1b50ab4f78b6ae6f61e748691b823d8ca8f3eec3efe6440872addbeedfb993",
+      "native/build_arena_pace.py": "b83bf815faab6ac51c9bb1c50241b5dfd54671b3712b71bf65d57ee7b48ebc62",
+      "native/relink-linux-x86_64.tar.gz": "8abea7457b84141777bef76685ad7f91eec9710a40811811bda12293fddb88d2",
+      "native/bot-relink-linux-x86_64.tar.gz": "a9d6ac49ff89d662c8ef4d56973994d572701a27ff6ba944c069df0c21ff3d21",
+      "native/pace-build.json": "378ae9a077c737959ccb48da50a861cc67fda34a1275b5e2b95355618e823db4",
+      "res1hi.gob": "6c6d51eca9c85dffe7dce9b449642a052f055352e3f817abf03b465da861aafd",
+      "res2.gob": "c75f7d5211bdd2e07a3af6a987c718037e8f0fd6909018ddb4327137bf3a7ebf",
+      "jkl/m10.jkl": "704f786cc494e3593dcf18815247e678dbde9f0f53e09164300b1b7d81860ad8"
+    },
+    "server_registry": {
+      "gameName": "Native Force QA",
+      "serverEpisodeGob": "JK1MP",
+      "serverMapJkl": "m10.jkl",
+      "maxPlayers": 4,
+      "bIsDedicated": true,
+      "maxRank": 8,
+      "tickRate": 100,
+      "gameFlags": 0,
+      "sessionFlags": 0,
+      "timeLimit": 0,
+      "scoreLimit": 0,
+      "bUseScoreLimit": false,
+      "bUseTimeLimit": false,
+      "bIsSingleLevel": false,
+      "bIsTeams": false,
+      "bIsCoop": false,
+      "bIsEpisodeCoop": false,
+      "enableVsync": false,
+      "enableBloom": false,
+      "enableSSAO": false,
+      "fpslimit": 60
+    },
+    "planner_experiment": {
+      "mode": "on",
+      "build": {
+        "archive_sha256": "a9d6ac49ff89d662c8ef4d56973994d572701a27ff6ba944c069df0c21ff3d21",
+        "base_binary_sha256": "885234aa2c9de16406f9c01da5bfefe733d65777d86edf7a89336cf255561b69",
+        "planner_object_sha256": "f2c42f370b748df7c4534f2193c125ac6f9c079f8b6dc8761c24d65b8a28f9d8",
+        "binary_sha256": "7879511c1c9f1739cebe66de31da3514d56ad0578d369076727f25824e99bfd6",
+        "gns_sha256": "8246a869b1d72115ecc849309629aa1abbce0bf1a0f23cc70deaded98d82d8e9"
+      }
+    },
+    "initial_force_stars": {
+      "dark": [
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        4.0,
+        0.0,
+        4.0,
+        0.0
+      ],
+      "light": [
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        0.0,
+        0.0,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  },
+  "agreement_band_game_s": 0.2,
+  "secondary_band_game_s": 0.1,
+  "rates": {
+    "1": {
+      "shared_wall_seconds_min_median_max": [
+        22.27,
+        22.31,
+        22.39
+      ],
+      "launcher_elapsed_wall_s_min_median_max": [
+        29.59,
+        29.91,
+        30.31
+      ],
+      "host": {
+        "matches": 8,
+        "min": 0.999997,
+        "median": 0.999999,
+        "max": 1.000003
+      },
+      "dark": {
+        "matches": 8,
+        "min": 0.999999,
+        "median": 1.0000005,
+        "max": 1.000002,
+        "release_to_pickup_brackets": {
+          "status_counts": {
+            "bracketed": 8
+          },
+          "within_ten_percent": 8,
+          "min_median_max": [
+            0.999961,
+            1.0000084999999999,
+            1.000067
+          ]
+        }
+      },
+      "light": {
+        "matches": 8,
+        "min": 0.999998,
+        "median": 0.9999994999999999,
+        "max": 1.000002,
+        "release_to_pickup_brackets": {
+          "status_counts": {
+            "bracketed": 8
+          },
+          "within_ten_percent": 8,
+          "min_median_max": [
+            0.999972,
+            0.9999979999999999,
+            1.00002
+          ]
+        }
+      }
+    },
+    "2": {
+      "shared_wall_seconds_min_median_max": [
+        11.11,
+        11.145,
+        11.17
+      ],
+      "launcher_elapsed_wall_s_min_median_max": [
+        16.38,
+        16.759999999999998,
+        17.66
+      ],
+      "host": {
+        "matches": 8,
+        "min": 1.999991,
+        "median": 2.0,
+        "max": 2.000008
+      },
+      "dark": {
+        "matches": 8,
+        "min": 1.999994,
+        "median": 2.000002,
+        "max": 2.000012,
+        "release_to_pickup_brackets": {
+          "status_counts": {
+            "bracketed": 8
+          },
+          "within_ten_percent": 8,
+          "min_median_max": [
+            1.999633,
+            1.9999950000000002,
+            2.000202
+          ]
+        }
+      },
+      "light": {
+        "matches": 8,
+        "min": 1.99999,
+        "median": 2.0000035,
+        "max": 2.000015,
+        "release_to_pickup_brackets": {
+          "status_counts": {
+            "bracketed": 8
+          },
+          "within_ten_percent": 8,
+          "min_median_max": [
+            1.999929,
+            2.000047,
+            2.000299
+          ]
+        }
+      }
+    }
+  },
+  "summary": {
+    "all": {
+      "paired_openings": 16,
+      "same_initial_target": {
+        "agree": 16,
+        "differ": 0,
+        "unresolved": 0
+      },
+      "same_target_sequence": {
+        "agree": 16,
+        "differ": 0,
+        "unresolved": 0
+      },
+      "same_corroborated_weapon": {
+        "agree": 16,
+        "differ": 0,
+        "unresolved": 0
+      },
+      "exact_time": {
+        "agree": 4,
+        "differ": 12,
+        "unresolved": 0
+      },
+      "same_rounded_elapsed_millisecond": {
+        "agree": 4,
+        "differ": 12,
+        "unresolved": 0
+      },
+      "within_secondary_band": {
+        "agree": 16,
+        "differ": 0,
+        "unresolved": 0
+      },
+      "within_agreement_band": {
+        "agree": 16,
+        "differ": 0,
+        "unresolved": 0
+      },
+      "median_signed_delta_game_s": 0.0,
+      "max_absolute_delta_game_s": 0.068
+    },
+    "by_slot": {
+      "1": {
+        "paired_openings": 8,
+        "same_initial_target": {
+          "agree": 8,
+          "differ": 0,
+          "unresolved": 0
+        },
+        "same_target_sequence": {
+          "agree": 8,
+          "differ": 0,
+          "unresolved": 0
+        },
+        "same_corroborated_weapon": {
+          "agree": 8,
+          "differ": 0,
+          "unresolved": 0
+        },
+        "exact_time": {
+          "agree": 1,
+          "differ": 7,
+          "unresolved": 0
+        },
+        "same_rounded_elapsed_millisecond": {
+          "agree": 1,
+          "differ": 7,
+          "unresolved": 0
+        },
+        "within_secondary_band": {
+          "agree": 8,
+          "differ": 0,
+          "unresolved": 0
+        },
+        "within_agreement_band": {
+          "agree": 8,
+          "differ": 0,
+          "unresolved": 0
+        },
+        "median_signed_delta_game_s": 0.024,
+        "max_absolute_delta_game_s": 0.068
+      },
+      "2": {
+        "paired_openings": 8,
+        "same_initial_target": {
+          "agree": 8,
+          "differ": 0,
+          "unresolved": 0
+        },
+        "same_target_sequence": {
+          "agree": 8,
+          "differ": 0,
+          "unresolved": 0
+        },
+        "same_corroborated_weapon": {
+          "agree": 8,
+          "differ": 0,
+          "unresolved": 0
+        },
+        "exact_time": {
+          "agree": 3,
+          "differ": 5,
+          "unresolved": 0
+        },
+        "same_rounded_elapsed_millisecond": {
+          "agree": 3,
+          "differ": 5,
+          "unresolved": 0
+        },
+        "within_secondary_band": {
+          "agree": 8,
+          "differ": 0,
+          "unresolved": 0
+        },
+        "within_agreement_band": {
+          "agree": 8,
+          "differ": 0,
+          "unresolved": 0
+        },
+        "median_signed_delta_game_s": -0.017,
+        "max_absolute_delta_game_s": 0.034
+      }
+    },
+    "by_player": {
+      "Bot_BobaFett": {
+        "paired_openings": 8,
+        "same_initial_target": {
+          "agree": 8,
+          "differ": 0,
+          "unresolved": 0
+        },
+        "same_target_sequence": {
+          "agree": 8,
+          "differ": 0,
+          "unresolved": 0
+        },
+        "same_corroborated_weapon": {
+          "agree": 8,
+          "differ": 0,
+          "unresolved": 0
+        },
+        "exact_time": {
+          "agree": 1,
+          "differ": 7,
+          "unresolved": 0
+        },
+        "same_rounded_elapsed_millisecond": {
+          "agree": 1,
+          "differ": 7,
+          "unresolved": 0
+        },
+        "within_secondary_band": {
+          "agree": 8,
+          "differ": 0,
+          "unresolved": 0
+        },
+        "within_agreement_band": {
+          "agree": 8,
+          "differ": 0,
+          "unresolved": 0
+        },
+        "median_signed_delta_game_s": -0.017,
+        "max_absolute_delta_game_s": 0.034
+      },
+      "Bot_JanOrs": {
+        "paired_openings": 8,
+        "same_initial_target": {
+          "agree": 8,
+          "differ": 0,
+          "unresolved": 0
+        },
+        "same_target_sequence": {
+          "agree": 8,
+          "differ": 0,
+          "unresolved": 0
+        },
+        "same_corroborated_weapon": {
+          "agree": 8,
+          "differ": 0,
+          "unresolved": 0
+        },
+        "exact_time": {
+          "agree": 3,
+          "differ": 5,
+          "unresolved": 0
+        },
+        "same_rounded_elapsed_millisecond": {
+          "agree": 3,
+          "differ": 5,
+          "unresolved": 0
+        },
+        "within_secondary_band": {
+          "agree": 8,
+          "differ": 0,
+          "unresolved": 0
+        },
+        "within_agreement_band": {
+          "agree": 8,
+          "differ": 0,
+          "unresolved": 0
+        },
+        "median_signed_delta_game_s": 0.0,
+        "max_absolute_delta_game_s": 0.068
+      }
+    }
+  },
+  "pairs": [
+    {
+      "pair": 1,
+      "first": "boba",
+      "starts": "normal",
+      "normal_index": 1,
+      "fast_index": 2,
+      "owners": [
+        {
+          "player": "Bot_BobaFett",
+          "slot": 1,
+          "sector": 41,
+          "first_targets": [
+            29,
+            29
+          ],
+          "same_initial_target": true,
+          "target_sequences": [
+            [
+              29
+            ],
+            [
+              29
+            ]
+          ],
+          "same_target_sequence": true,
+          "same_corroborated_weapon": true,
+          "weapons": [
+            "concussion_rifle",
+            "concussion_rifle"
+          ],
+          "owner_gain_game_s": [
+            1.19,
+            1.156
+          ],
+          "same_observed_weapon_delta_game_s": -0.034,
+          "fast_minus_normal_game_s": -0.034,
+          "exact_time": false,
+          "same_rounded_elapsed_millisecond": false,
+          "within_secondary_band": true,
+          "within_agreement_band": true,
+          "unresolved": [
+            null,
+            null
+          ]
+        },
+        {
+          "player": "Bot_JanOrs",
+          "slot": 2,
+          "sector": 18,
+          "first_targets": [
+            34,
+            34
+          ],
+          "same_initial_target": true,
+          "target_sequences": [
+            [
+              34
+            ],
+            [
+              34
+            ]
+          ],
+          "same_target_sequence": true,
+          "same_corroborated_weapon": true,
+          "weapons": [
+            "repeater",
+            "repeater"
+          ],
+          "owner_gain_game_s": [
+            1.36,
+            1.36
+          ],
+          "same_observed_weapon_delta_game_s": 0.0,
+          "fast_minus_normal_game_s": 0.0,
+          "exact_time": true,
+          "same_rounded_elapsed_millisecond": true,
+          "within_secondary_band": true,
+          "within_agreement_band": true,
+          "unresolved": [
+            null,
+            null
+          ]
+        }
+      ]
+    },
+    {
+      "pair": 2,
+      "first": "jan",
+      "starts": "normal",
+      "normal_index": 4,
+      "fast_index": 3,
+      "owners": [
+        {
+          "player": "Bot_BobaFett",
+          "slot": 2,
+          "sector": 18,
+          "first_targets": [
+            34,
+            34
+          ],
+          "same_initial_target": true,
+          "target_sequences": [
+            [
+              34
+            ],
+            [
+              34
+            ]
+          ],
+          "same_target_sequence": true,
+          "same_corroborated_weapon": true,
+          "weapons": [
+            "repeater",
+            "repeater"
+          ],
+          "owner_gain_game_s": [
+            1.36,
+            1.394
+          ],
+          "same_observed_weapon_delta_game_s": 0.034,
+          "fast_minus_normal_game_s": 0.034,
+          "exact_time": false,
+          "same_rounded_elapsed_millisecond": false,
+          "within_secondary_band": true,
+          "within_agreement_band": true,
+          "unresolved": [
+            null,
+            null
+          ]
+        },
+        {
+          "player": "Bot_JanOrs",
+          "slot": 1,
+          "sector": 41,
+          "first_targets": [
+            29,
+            29
+          ],
+          "same_initial_target": true,
+          "target_sequences": [
+            [
+              29
+            ],
+            [
+              29
+            ]
+          ],
+          "same_target_sequence": true,
+          "same_corroborated_weapon": true,
+          "weapons": [
+            "concussion_rifle",
+            "concussion_rifle"
+          ],
+          "owner_gain_game_s": [
+            1.156,
+            1.156
+          ],
+          "same_observed_weapon_delta_game_s": 0.0,
+          "fast_minus_normal_game_s": 0.0,
+          "exact_time": true,
+          "same_rounded_elapsed_millisecond": true,
+          "within_secondary_band": true,
+          "within_agreement_band": true,
+          "unresolved": [
+            null,
+            null
+          ]
+        }
+      ]
+    },
+    {
+      "pair": 3,
+      "first": "jan",
+      "starts": "swapped",
+      "normal_index": 5,
+      "fast_index": 6,
+      "owners": [
+        {
+          "player": "Bot_BobaFett",
+          "slot": 2,
+          "sector": 41,
+          "first_targets": [
+            29,
+            29
+          ],
+          "same_initial_target": true,
+          "target_sequences": [
+            [
+              29
+            ],
+            [
+              29
+            ]
+          ],
+          "same_target_sequence": true,
+          "same_corroborated_weapon": true,
+          "weapons": [
+            "concussion_rifle",
+            "concussion_rifle"
+          ],
+          "owner_gain_game_s": [
+            1.156,
+            1.156
+          ],
+          "same_observed_weapon_delta_game_s": 0.0,
+          "fast_minus_normal_game_s": 0.0,
+          "exact_time": true,
+          "same_rounded_elapsed_millisecond": true,
+          "within_secondary_band": true,
+          "within_agreement_band": true,
+          "unresolved": [
+            null,
+            null
+          ]
+        },
+        {
+          "player": "Bot_JanOrs",
+          "slot": 1,
+          "sector": 18,
+          "first_targets": [
+            34,
+            34
+          ],
+          "same_initial_target": true,
+          "target_sequences": [
+            [
+              34
+            ],
+            [
+              34
+            ]
+          ],
+          "same_target_sequence": true,
+          "same_corroborated_weapon": true,
+          "weapons": [
+            "repeater",
+            "repeater"
+          ],
+          "owner_gain_game_s": [
+            1.292,
+            1.306
+          ],
+          "same_observed_weapon_delta_game_s": 0.014,
+          "fast_minus_normal_game_s": 0.014,
+          "exact_time": false,
+          "same_rounded_elapsed_millisecond": false,
+          "within_secondary_band": true,
+          "within_agreement_band": true,
+          "unresolved": [
+            null,
+            null
+          ]
+        }
+      ]
+    },
+    {
+      "pair": 4,
+      "first": "boba",
+      "starts": "swapped",
+      "normal_index": 8,
+      "fast_index": 7,
+      "owners": [
+        {
+          "player": "Bot_BobaFett",
+          "slot": 1,
+          "sector": 18,
+          "first_targets": [
+            34,
+            34
+          ],
+          "same_initial_target": true,
+          "target_sequences": [
+            [
+              34
+            ],
+            [
+              34
+            ]
+          ],
+          "same_target_sequence": true,
+          "same_corroborated_weapon": true,
+          "weapons": [
+            "repeater",
+            "repeater"
+          ],
+          "owner_gain_game_s": [
+            1.326,
+            1.36
+          ],
+          "same_observed_weapon_delta_game_s": 0.034,
+          "fast_minus_normal_game_s": 0.034,
+          "exact_time": false,
+          "same_rounded_elapsed_millisecond": false,
+          "within_secondary_band": true,
+          "within_agreement_band": true,
+          "unresolved": [
+            null,
+            null
+          ]
+        },
+        {
+          "player": "Bot_JanOrs",
+          "slot": 2,
+          "sector": 41,
+          "first_targets": [
+            29,
+            29
+          ],
+          "same_initial_target": true,
+          "target_sequences": [
+            [
+              29
+            ],
+            [
+              29
+            ]
+          ],
+          "same_target_sequence": true,
+          "same_corroborated_weapon": true,
+          "weapons": [
+            "concussion_rifle",
+            "concussion_rifle"
+          ],
+          "owner_gain_game_s": [
+            1.156,
+            1.122
+          ],
+          "same_observed_weapon_delta_game_s": -0.034,
+          "fast_minus_normal_game_s": -0.034,
+          "exact_time": false,
+          "same_rounded_elapsed_millisecond": false,
+          "within_secondary_band": true,
+          "within_agreement_band": true,
+          "unresolved": [
+            null,
+            null
+          ]
+        }
+      ]
+    },
+    {
+      "pair": 5,
+      "first": "boba",
+      "starts": "swapped",
+      "normal_index": 9,
+      "fast_index": 10,
+      "owners": [
+        {
+          "player": "Bot_BobaFett",
+          "slot": 1,
+          "sector": 18,
+          "first_targets": [
+            34,
+            34
+          ],
+          "same_initial_target": true,
+          "target_sequences": [
+            [
+              34
+            ],
+            [
+              34
+            ]
+          ],
+          "same_target_sequence": true,
+          "same_corroborated_weapon": true,
+          "weapons": [
+            "repeater",
+            "repeater"
+          ],
+          "owner_gain_game_s": [
+            1.36,
+            1.326
+          ],
+          "same_observed_weapon_delta_game_s": -0.034,
+          "fast_minus_normal_game_s": -0.034,
+          "exact_time": false,
+          "same_rounded_elapsed_millisecond": false,
+          "within_secondary_band": true,
+          "within_agreement_band": true,
+          "unresolved": [
+            null,
+            null
+          ]
+        },
+        {
+          "player": "Bot_JanOrs",
+          "slot": 2,
+          "sector": 41,
+          "first_targets": [
+            29,
+            29
+          ],
+          "same_initial_target": true,
+          "target_sequences": [
+            [
+              29
+            ],
+            [
+              29
+            ]
+          ],
+          "same_target_sequence": true,
+          "same_corroborated_weapon": true,
+          "weapons": [
+            "concussion_rifle",
+            "concussion_rifle"
+          ],
+          "owner_gain_game_s": [
+            1.156,
+            1.156
+          ],
+          "same_observed_weapon_delta_game_s": 0.0,
+          "fast_minus_normal_game_s": 0.0,
+          "exact_time": true,
+          "same_rounded_elapsed_millisecond": true,
+          "within_secondary_band": true,
+          "within_agreement_band": true,
+          "unresolved": [
+            null,
+            null
+          ]
+        }
+      ]
+    },
+    {
+      "pair": 6,
+      "first": "jan",
+      "starts": "swapped",
+      "normal_index": 12,
+      "fast_index": 11,
+      "owners": [
+        {
+          "player": "Bot_BobaFett",
+          "slot": 2,
+          "sector": 41,
+          "first_targets": [
+            29,
+            29
+          ],
+          "same_initial_target": true,
+          "target_sequences": [
+            [
+              29
+            ],
+            [
+              29
+            ]
+          ],
+          "same_target_sequence": true,
+          "same_corroborated_weapon": true,
+          "weapons": [
+            "concussion_rifle",
+            "concussion_rifle"
+          ],
+          "owner_gain_game_s": [
+            1.156,
+            1.122
+          ],
+          "same_observed_weapon_delta_game_s": -0.034,
+          "fast_minus_normal_game_s": -0.034,
+          "exact_time": false,
+          "same_rounded_elapsed_millisecond": false,
+          "within_secondary_band": true,
+          "within_agreement_band": true,
+          "unresolved": [
+            null,
+            null
+          ]
+        },
+        {
+          "player": "Bot_JanOrs",
+          "slot": 1,
+          "sector": 18,
+          "first_targets": [
+            34,
+            34
+          ],
+          "same_initial_target": true,
+          "target_sequences": [
+            [
+              34
+            ],
+            [
+              34
+            ]
+          ],
+          "same_target_sequence": true,
+          "same_corroborated_weapon": true,
+          "weapons": [
+            "repeater",
+            "repeater"
+          ],
+          "owner_gain_game_s": [
+            1.292,
+            1.326
+          ],
+          "same_observed_weapon_delta_game_s": 0.034,
+          "fast_minus_normal_game_s": 0.034,
+          "exact_time": false,
+          "same_rounded_elapsed_millisecond": false,
+          "within_secondary_band": true,
+          "within_agreement_band": true,
+          "unresolved": [
+            null,
+            null
+          ]
+        }
+      ]
+    },
+    {
+      "pair": 7,
+      "first": "jan",
+      "starts": "normal",
+      "normal_index": 13,
+      "fast_index": 14,
+      "owners": [
+        {
+          "player": "Bot_BobaFett",
+          "slot": 2,
+          "sector": 18,
+          "first_targets": [
+            34,
+            34
+          ],
+          "same_initial_target": true,
+          "target_sequences": [
+            [
+              34
+            ],
+            [
+              34
+            ]
+          ],
+          "same_target_sequence": true,
+          "same_corroborated_weapon": true,
+          "weapons": [
+            "repeater",
+            "repeater"
+          ],
+          "owner_gain_game_s": [
+            1.36,
+            1.326
+          ],
+          "same_observed_weapon_delta_game_s": -0.034,
+          "fast_minus_normal_game_s": -0.034,
+          "exact_time": false,
+          "same_rounded_elapsed_millisecond": false,
+          "within_secondary_band": true,
+          "within_agreement_band": true,
+          "unresolved": [
+            null,
+            null
+          ]
+        },
+        {
+          "player": "Bot_JanOrs",
+          "slot": 1,
+          "sector": 41,
+          "first_targets": [
+            29,
+            29
+          ],
+          "same_initial_target": true,
+          "target_sequences": [
+            [
+              29
+            ],
+            [
+              29
+            ]
+          ],
+          "same_target_sequence": true,
+          "same_corroborated_weapon": true,
+          "weapons": [
+            "concussion_rifle",
+            "concussion_rifle"
+          ],
+          "owner_gain_game_s": [
+            1.122,
+            1.19
+          ],
+          "same_observed_weapon_delta_game_s": 0.068,
+          "fast_minus_normal_game_s": 0.068,
+          "exact_time": false,
+          "same_rounded_elapsed_millisecond": false,
+          "within_secondary_band": true,
+          "within_agreement_band": true,
+          "unresolved": [
+            null,
+            null
+          ]
+        }
+      ]
+    },
+    {
+      "pair": 8,
+      "first": "boba",
+      "starts": "normal",
+      "normal_index": 16,
+      "fast_index": 15,
+      "owners": [
+        {
+          "player": "Bot_BobaFett",
+          "slot": 1,
+          "sector": 41,
+          "first_targets": [
+            29,
+            29
+          ],
+          "same_initial_target": true,
+          "target_sequences": [
+            [
+              29
+            ],
+            [
+              29
+            ]
+          ],
+          "same_target_sequence": true,
+          "same_corroborated_weapon": true,
+          "weapons": [
+            "concussion_rifle",
+            "concussion_rifle"
+          ],
+          "owner_gain_game_s": [
+            1.156,
+            1.19
+          ],
+          "same_observed_weapon_delta_game_s": 0.034,
+          "fast_minus_normal_game_s": 0.034,
+          "exact_time": false,
+          "same_rounded_elapsed_millisecond": false,
+          "within_secondary_band": true,
+          "within_agreement_band": true,
+          "unresolved": [
+            null,
+            null
+          ]
+        },
+        {
+          "player": "Bot_JanOrs",
+          "slot": 2,
+          "sector": 18,
+          "first_targets": [
+            34,
+            34
+          ],
+          "same_initial_target": true,
+          "target_sequences": [
+            [
+              34
+            ],
+            [
+              34
+            ]
+          ],
+          "same_target_sequence": true,
+          "same_corroborated_weapon": true,
+          "weapons": [
+            "repeater",
+            "repeater"
+          ],
+          "owner_gain_game_s": [
+            1.36,
+            1.326
+          ],
+          "same_observed_weapon_delta_game_s": -0.034,
+          "fast_minus_normal_game_s": -0.034,
+          "exact_time": false,
+          "same_rounded_elapsed_millisecond": false,
+          "within_secondary_band": true,
+          "within_agreement_band": true,
+          "unresolved": [
+            null,
+            null
+          ]
+        }
+      ]
+    }
+  ],
+  "runs": [
+    {
+      "index": 1,
+      "pair": 1,
+      "first": "boba",
+      "starts": "normal",
+      "speed": 1,
+      "name": "pace-01-normal-boba-1x",
+      "source_receipt_sha256": "09a05ee1be1eb1c2c0c2e0a35bb978dd0e0212fbb6dbc595a3be90bc6c75c745",
+      "log_sha256": {
+        "dark.log": "9f9a188b9e8c8392246d85df0bd96ce5a6886467fbde99a9ada93fcb7f2d2564",
+        "light.log": "9e168c3368697df5bf6a8b1b0eb333e7599ef3b9d46b741021f9bc40fd2e81c9",
+        "server.log": "32e9280a0812994d4adc64dffcd10b07a5491f9a501a8a677f13cce465135638",
+        "force-trace.jsonl": "479a926bf8941af7a0826f3e47a936f02afde3cd6aee93d11f7e30911cd315b2"
+      },
+      "pace_trace_sha256": "690dd22d6d459c2af10648cce86442000c8b256144e9f7dec7bc240aa2ae5254",
+      "owners": {
+        "dark": {
+          "player": "Bot_BobaFett",
+          "slot": 1,
+          "sector": 41,
+          "expected_item": 29,
+          "expected_weapon": "concussion_rifle",
+          "first_target": 29,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 29,
+              "pack": false,
+              "direct": true,
+              "line": 267
+            }
+          ],
+          "target_sequence": [
+            29
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "concussion_rifle",
+            "line": 287
+          },
+          "sampled_first_weapons": [
+            "concussion_rifle"
+          ],
+          "owner_first_life_gain_s": {
+            "concussion_rifle": 1.19
+          },
+          "qualified_weapon": "concussion_rifle",
+          "qualified_gain_s": 1.19,
+          "unresolved_reason": null
+        },
+        "light": {
+          "player": "Bot_JanOrs",
+          "slot": 2,
+          "sector": 18,
+          "expected_item": 34,
+          "expected_weapon": "repeater",
+          "first_target": 34,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 34,
+              "pack": false,
+              "direct": true,
+              "line": 186
+            }
+          ],
+          "target_sequence": [
+            34
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "repeater",
+            "line": 198
+          },
+          "sampled_first_weapons": [
+            "repeater"
+          ],
+          "owner_first_life_gain_s": {
+            "repeater": 1.36
+          },
+          "qualified_weapon": "repeater",
+          "qualified_gain_s": 1.36,
+          "unresolved_reason": null
+        }
+      },
+      "clocks": {
+        "host": {
+          "observed_rate": 1.0,
+          "game_seconds": 22.1,
+          "wall_seconds": 22.099998,
+          "samples": 131,
+          "first": {
+            "role": "host",
+            "pid": 184343,
+            "rate": 1,
+            "frame": 160,
+            "game_ms": 5440,
+            "mono_ns": 138768064344774,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "host",
+            "pid": 184343,
+            "rate": 1,
+            "frame": 810,
+            "game_ms": 27540,
+            "mono_ns": 138790164342566,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            169.732884,
+            169.999628,
+            170.239156
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 184343,
+          "first_sample_lag_wall_s": 0.105395,
+          "cutoff_after_last_sample_wall_s": 0.073923
+        },
+        "dark": {
+          "observed_rate": 0.999999,
+          "game_seconds": 22.1,
+          "wall_seconds": 22.100018,
+          "samples": 131,
+          "first": {
+            "role": "dark",
+            "pid": 184351,
+            "rate": 1,
+            "frame": 90,
+            "game_ms": 3060,
+            "mono_ns": 138768125216574,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "dark",
+            "pid": 184351,
+            "rate": 1,
+            "frame": 740,
+            "game_ms": 25160,
+            "mono_ns": 138790225234124,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            169.920003,
+            170.000266,
+            170.086963
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 184351,
+          "first_sample_lag_wall_s": 0.166267,
+          "cutoff_after_last_sample_wall_s": 0.013031,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 0.999992,
+            "samples": 9,
+            "wall_seconds": 1.36001,
+            "game_ms": 1360,
+            "first_sample_minus_release_game_ms": -68,
+            "last_sample_minus_pickup_game_ms": 102,
+            "non_nominal_applied_samples": 0
+          }
+        },
+        "light": {
+          "observed_rate": 0.999999,
+          "game_seconds": 22.1,
+          "wall_seconds": 22.100032,
+          "samples": 131,
+          "first": {
+            "role": "light",
+            "pid": 184369,
+            "rate": 1,
+            "frame": 10,
+            "game_ms": 340,
+            "mono_ns": 138768053847737,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "light",
+            "pid": 184369,
+            "rate": 1,
+            "frame": 660,
+            "game_ms": 22440,
+            "mono_ns": 138790153879247,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            169.897484,
+            169.997726,
+            170.127456
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 184369,
+          "first_sample_lag_wall_s": 0.094898,
+          "cutoff_after_last_sample_wall_s": 0.084386,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 0.999972,
+            "samples": 9,
+            "wall_seconds": 1.360039,
+            "game_ms": 1360,
+            "first_sample_minus_release_game_ms": 0,
+            "last_sample_minus_pickup_game_ms": 0,
+            "non_nominal_applied_samples": 0
+          }
+        }
+      },
+      "video": {
+        "sha256": "8e7e82659e5c4462b1652d8d85e33527d4a024037d3bdcd5577858985b9d9e4e",
+        "frames": 122,
+        "seconds": 24.685,
+        "receipt_sha256": "de23be90ed820fc5e109c9e24f7716322ce87c3b9e68bcc4da829f8cf3fedd0c",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 122,
+        "station_sector": 41
+      },
+      "shared_wall_seconds": 22.39,
+      "launcher_elapsed_wall_s": 29.94
+    },
+    {
+      "index": 2,
+      "pair": 1,
+      "first": "boba",
+      "starts": "normal",
+      "speed": 2,
+      "name": "pace-02-normal-boba-2x",
+      "source_receipt_sha256": "e1a35786960c24ca627fe3200b41c7a32e1802418f8861169c1e60a6c43412ef",
+      "log_sha256": {
+        "dark.log": "113a7120c37368b65d1e7b58a7736095551219fc9f8b25a863b8a1eeccfdf929",
+        "light.log": "723ac7fff4fe0f00e5a07f0849c6ecd49a181955813940cfa26eb9b4b37c0eb8",
+        "server.log": "b40c85bd753699e918f08de950fc8688f004a5991746c272aa10df5eb441f890",
+        "force-trace.jsonl": "83ae11c98a557b0fce209249c1ec5c959e000ecbba269167513401b7d6fe7145"
+      },
+      "pace_trace_sha256": "3e0bf507514b2d181643ed95894d7e2ef88a6c4b8ccd0aa81219ac820ff4f472",
+      "owners": {
+        "dark": {
+          "player": "Bot_BobaFett",
+          "slot": 1,
+          "sector": 41,
+          "expected_item": 29,
+          "expected_weapon": "concussion_rifle",
+          "first_target": 29,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 29,
+              "pack": false,
+              "direct": true,
+              "line": 283
+            }
+          ],
+          "target_sequence": [
+            29
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "concussion_rifle",
+            "line": 302
+          },
+          "sampled_first_weapons": [
+            "concussion_rifle"
+          ],
+          "owner_first_life_gain_s": {
+            "concussion_rifle": 1.156
+          },
+          "qualified_weapon": "concussion_rifle",
+          "qualified_gain_s": 1.156,
+          "unresolved_reason": null
+        },
+        "light": {
+          "player": "Bot_JanOrs",
+          "slot": 2,
+          "sector": 18,
+          "expected_item": 34,
+          "expected_weapon": "repeater",
+          "first_target": 34,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 34,
+              "pack": false,
+              "direct": true,
+              "line": 180
+            }
+          ],
+          "target_sequence": [
+            34
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "repeater",
+            "line": 192
+          },
+          "sampled_first_weapons": [
+            "repeater"
+          ],
+          "owner_first_life_gain_s": {
+            "repeater": 1.36
+          },
+          "qualified_weapon": "repeater",
+          "qualified_gain_s": 1.36,
+          "unresolved_reason": null
+        }
+      },
+      "clocks": {
+        "host": {
+          "observed_rate": 2.000003,
+          "game_seconds": 22.1,
+          "wall_seconds": 11.049985,
+          "samples": 131,
+          "first": {
+            "role": "host",
+            "pid": 184599,
+            "rate": 2,
+            "frame": 185,
+            "game_ms": 6290,
+            "mono_ns": 138796610834848,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "host",
+            "pid": 184599,
+            "rate": 2,
+            "frame": 835,
+            "game_ms": 28390,
+            "mono_ns": 138807660819456,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            84.060114,
+            84.999398,
+            85.898702
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 184599,
+          "first_sample_lag_wall_s": 0.04128,
+          "cutoff_after_last_sample_wall_s": 0.002731
+        },
+        "dark": {
+          "observed_rate": 1.999994,
+          "game_seconds": 22.1,
+          "wall_seconds": 11.050033,
+          "samples": 131,
+          "first": {
+            "role": "dark",
+            "pid": 184607,
+            "rate": 2,
+            "frame": 105,
+            "game_ms": 3570,
+            "mono_ns": 138796588243561,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "dark",
+            "pid": 184607,
+            "rate": 2,
+            "frame": 755,
+            "game_ms": 25670,
+            "mono_ns": 138807638276587,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            84.887357,
+            85.000884,
+            85.135686
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 184607,
+          "first_sample_lag_wall_s": 0.018689,
+          "cutoff_after_last_sample_wall_s": 0.025274,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 2.000202,
+            "samples": 9,
+            "wall_seconds": 0.679931,
+            "game_ms": 1360,
+            "first_sample_minus_release_game_ms": -102,
+            "last_sample_minus_pickup_game_ms": 102,
+            "non_nominal_applied_samples": 0
+          }
+        },
+        "light": {
+          "observed_rate": 2.000015,
+          "game_seconds": 22.1,
+          "wall_seconds": 11.049918,
+          "samples": 131,
+          "first": {
+            "role": "light",
+            "pid": 184617,
+            "rate": 2,
+            "frame": 10,
+            "game_ms": 340,
+            "mono_ns": 138796569746237,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "light",
+            "pid": 184617,
+            "rate": 2,
+            "frame": 660,
+            "game_ms": 22440,
+            "mono_ns": 138807619664353,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            84.872747,
+            84.996139,
+            85.147049
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 184617,
+          "first_sample_lag_wall_s": 0.000192,
+          "cutoff_after_last_sample_wall_s": 0.043886,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 2.000119,
+            "samples": 9,
+            "wall_seconds": 0.679959,
+            "game_ms": 1360,
+            "first_sample_minus_release_game_ms": 0,
+            "last_sample_minus_pickup_game_ms": 0,
+            "non_nominal_applied_samples": 0
+          }
+        }
+      },
+      "video": {
+        "sha256": "ab21274e1da49a23f2a64f5460544e78274dead604bcb3a2e8477cb431242112",
+        "frames": 53,
+        "seconds": 10.671,
+        "receipt_sha256": "8c48e1baa5792dc0358ee5d99f3ad7a4bbdd16a4cdd225c90dd22db28299e517",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 53,
+        "station_sector": 41
+      },
+      "shared_wall_seconds": 11.12,
+      "launcher_elapsed_wall_s": 17.2
+    },
+    {
+      "index": 3,
+      "pair": 2,
+      "first": "jan",
+      "starts": "normal",
+      "speed": 2,
+      "name": "pace-03-normal-jan-2x",
+      "source_receipt_sha256": "7e0609377752171df231cd25238eba83e5d36899a75b4314f81279b50531d244",
+      "log_sha256": {
+        "dark.log": "2c65ccf43413e7bf5cc3bb9fc252c79666307fdacaaa2a42c2df94a70f9d786a",
+        "light.log": "5a6c9e096c1dce724722b9278446fb41afa6d581b6ce3c6e03e7adf90887597f",
+        "server.log": "dd1daf8f8f3a2926e4844f42736a149495f3c436e662d3c507e66d1bc23b4095",
+        "force-trace.jsonl": "90fadff9a17003d1669149f4bc7dc3a2747146a89efe32f49c1d7082398c552e"
+      },
+      "pace_trace_sha256": "87f522bb7d54be04b7fad2f4b9298d89786bdc0f91edbe144e7fe9731118c1d6",
+      "owners": {
+        "dark": {
+          "player": "Bot_BobaFett",
+          "slot": 2,
+          "sector": 18,
+          "expected_item": 34,
+          "expected_weapon": "repeater",
+          "first_target": 34,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 34,
+              "pack": false,
+              "direct": true,
+              "line": 180
+            }
+          ],
+          "target_sequence": [
+            34
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "repeater",
+            "line": 194
+          },
+          "sampled_first_weapons": [
+            "repeater"
+          ],
+          "owner_first_life_gain_s": {
+            "repeater": 1.394
+          },
+          "qualified_weapon": "repeater",
+          "qualified_gain_s": 1.394,
+          "unresolved_reason": null
+        },
+        "light": {
+          "player": "Bot_JanOrs",
+          "slot": 1,
+          "sector": 41,
+          "expected_item": 29,
+          "expected_weapon": "concussion_rifle",
+          "first_target": 29,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 29,
+              "pack": false,
+              "direct": true,
+              "line": 285
+            }
+          ],
+          "target_sequence": [
+            29
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "concussion_rifle",
+            "line": 304
+          },
+          "sampled_first_weapons": [
+            "concussion_rifle"
+          ],
+          "owner_first_life_gain_s": {
+            "concussion_rifle": 1.156
+          },
+          "qualified_weapon": "concussion_rifle",
+          "qualified_gain_s": 1.156,
+          "unresolved_reason": null
+        }
+      },
+      "clocks": {
+        "host": {
+          "observed_rate": 2.000001,
+          "game_seconds": 22.1,
+          "wall_seconds": 11.049992,
+          "samples": 131,
+          "first": {
+            "role": "host",
+            "pid": 184703,
+            "rate": 2,
+            "frame": 190,
+            "game_ms": 6460,
+            "mono_ns": 138813822503209,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "host",
+            "pid": 184703,
+            "rate": 2,
+            "frame": 840,
+            "game_ms": 28560,
+            "mono_ns": 138824872495117,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            84.453373,
+            85.000475,
+            85.538697
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 184703,
+          "first_sample_lag_wall_s": 0.06428,
+          "cutoff_after_last_sample_wall_s": 0.000209
+        },
+        "dark": {
+          "observed_rate": 2.000005,
+          "game_seconds": 22.1,
+          "wall_seconds": 11.049971,
+          "samples": 131,
+          "first": {
+            "role": "dark",
+            "pid": 184732,
+            "rate": 2,
+            "frame": 10,
+            "game_ms": 340,
+            "mono_ns": 138813772756333,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "dark",
+            "pid": 184732,
+            "rate": 2,
+            "frame": 660,
+            "game_ms": 22440,
+            "mono_ns": 138824822727470,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            84.954175,
+            84.999948,
+            85.042605
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 184732,
+          "first_sample_lag_wall_s": 0.014533,
+          "cutoff_after_last_sample_wall_s": 0.049977,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 2.000072,
+            "samples": 10,
+            "wall_seconds": 0.764973,
+            "game_ms": 1530,
+            "first_sample_minus_release_game_ms": -68,
+            "last_sample_minus_pickup_game_ms": 68,
+            "non_nominal_applied_samples": 0
+          }
+        },
+        "light": {
+          "observed_rate": 2.000001,
+          "game_seconds": 22.1,
+          "wall_seconds": 11.049996,
+          "samples": 131,
+          "first": {
+            "role": "light",
+            "pid": 184711,
+            "rate": 2,
+            "frame": 110,
+            "game_ms": 3740,
+            "mono_ns": 138813789822577,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "light",
+            "pid": 184711,
+            "rate": 2,
+            "frame": 760,
+            "game_ms": 25840,
+            "mono_ns": 138824839818681,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            84.894539,
+            85.000981,
+            85.097279
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 184711,
+          "first_sample_lag_wall_s": 0.031599,
+          "cutoff_after_last_sample_wall_s": 0.032886,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 1.999967,
+            "samples": 9,
+            "wall_seconds": 0.680011,
+            "game_ms": 1360,
+            "first_sample_minus_release_game_ms": -136,
+            "last_sample_minus_pickup_game_ms": 68,
+            "non_nominal_applied_samples": 0
+          }
+        }
+      },
+      "video": {
+        "sha256": "e16215c44600ee96ec2ffa6006558e8dc3e04eeac37a4728f3478c0fa4695180",
+        "frames": 53,
+        "seconds": 10.558,
+        "receipt_sha256": "47ff68bfae86c41d3cb489c6547e44e9b196a18c60c455aa9414e6cc111bc4ee",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 53,
+        "station_sector": 41
+      },
+      "shared_wall_seconds": 11.16,
+      "launcher_elapsed_wall_s": 16.57
+    },
+    {
+      "index": 4,
+      "pair": 2,
+      "first": "jan",
+      "starts": "normal",
+      "speed": 1,
+      "name": "pace-04-normal-jan-1x",
+      "source_receipt_sha256": "4338a31cfaecf41137bd346354e7699e52d0b93d5504720d327693240cf9d1ba",
+      "log_sha256": {
+        "dark.log": "3b8dba751ea21cf3ded1b62f6882e6985e5394061258c6f1f43a4a52daff0381",
+        "light.log": "bcdd48e30b91ebf00621a9137be97e7eccc803e3814be40210b22e23b2b75350",
+        "server.log": "6228f2fecdc491d4b1d73dcbe5377e20a515ba0cf5828b7ad12dfcb63b3f1a74",
+        "force-trace.jsonl": "fc890cda6b7d1a0b2b09a86014c9ea17265cebc21f48b26171cb5843939108e3"
+      },
+      "pace_trace_sha256": "869a2ed527e640818e3bc4749b5b8c8559c10df0cc002bfdcebfe46ce1c7e6e0",
+      "owners": {
+        "dark": {
+          "player": "Bot_BobaFett",
+          "slot": 2,
+          "sector": 18,
+          "expected_item": 34,
+          "expected_weapon": "repeater",
+          "first_target": 34,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 34,
+              "pack": false,
+              "direct": true,
+              "line": 180
+            }
+          ],
+          "target_sequence": [
+            34
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "repeater",
+            "line": 192
+          },
+          "sampled_first_weapons": [
+            "repeater"
+          ],
+          "owner_first_life_gain_s": {
+            "repeater": 1.36
+          },
+          "qualified_weapon": "repeater",
+          "qualified_gain_s": 1.36,
+          "unresolved_reason": null
+        },
+        "light": {
+          "player": "Bot_JanOrs",
+          "slot": 1,
+          "sector": 41,
+          "expected_item": 29,
+          "expected_weapon": "concussion_rifle",
+          "first_target": 29,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 29,
+              "pack": false,
+              "direct": true,
+              "line": 268
+            }
+          ],
+          "target_sequence": [
+            29
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "concussion_rifle",
+            "line": 287
+          },
+          "sampled_first_weapons": [
+            "concussion_rifle"
+          ],
+          "owner_first_life_gain_s": {
+            "concussion_rifle": 1.156
+          },
+          "qualified_weapon": "concussion_rifle",
+          "qualified_gain_s": 1.156,
+          "unresolved_reason": null
+        }
+      },
+      "clocks": {
+        "host": {
+          "observed_rate": 1.000001,
+          "game_seconds": 22.1,
+          "wall_seconds": 22.099984,
+          "samples": 131,
+          "first": {
+            "role": "host",
+            "pid": 184825,
+            "rate": 1,
+            "frame": 160,
+            "game_ms": 5440,
+            "mono_ns": 138832980947903,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "host",
+            "pid": 184825,
+            "rate": 1,
+            "frame": 810,
+            "game_ms": 27540,
+            "mono_ns": 138855080932209,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            169.557852,
+            170.000332,
+            170.423122
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 184825,
+          "first_sample_lag_wall_s": 0.01467,
+          "cutoff_after_last_sample_wall_s": 0.121635
+        },
+        "dark": {
+          "observed_rate": 1.0,
+          "game_seconds": 22.1,
+          "wall_seconds": 22.099999,
+          "samples": 131,
+          "first": {
+            "role": "dark",
+            "pid": 184844,
+            "rate": 1,
+            "frame": 10,
+            "game_ms": 340,
+            "mono_ns": 138833067909216,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "dark",
+            "pid": 184844,
+            "rate": 1,
+            "frame": 660,
+            "game_ms": 22440,
+            "mono_ns": 138855167908272,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            169.941586,
+            170.001069,
+            170.056074
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 184844,
+          "first_sample_lag_wall_s": 0.101631,
+          "cutoff_after_last_sample_wall_s": 0.034659,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 0.999989,
+            "samples": 9,
+            "wall_seconds": 1.360014,
+            "game_ms": 1360,
+            "first_sample_minus_release_game_ms": 0,
+            "last_sample_minus_pickup_game_ms": 0,
+            "non_nominal_applied_samples": 0
+          }
+        },
+        "light": {
+          "observed_rate": 1.000002,
+          "game_seconds": 22.1,
+          "wall_seconds": 22.099963,
+          "samples": 131,
+          "first": {
+            "role": "light",
+            "pid": 184833,
+            "rate": 1,
+            "frame": 90,
+            "game_ms": 3060,
+            "mono_ns": 138833101916392,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "light",
+            "pid": 184833,
+            "rate": 1,
+            "frame": 740,
+            "game_ms": 25160,
+            "mono_ns": 138855201879867,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            169.921886,
+            170.001043,
+            170.097694
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 184833,
+          "first_sample_lag_wall_s": 0.135638,
+          "cutoff_after_last_sample_wall_s": 0.000688,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 0.999995,
+            "samples": 9,
+            "wall_seconds": 1.360006,
+            "game_ms": 1360,
+            "first_sample_minus_release_game_ms": -102,
+            "last_sample_minus_pickup_game_ms": 102,
+            "non_nominal_applied_samples": 0
+          }
+        }
+      },
+      "video": {
+        "sha256": "a5c2fd4f5d47f6a5ea3cb9432a30dc681c91bcfed84cf2bff6a79ac4b04f43e5",
+        "frames": 120,
+        "seconds": 24.243,
+        "receipt_sha256": "eb82f5251e71f2ad7f0013c0b5543d992b69dad29df07c931267a4a0d664d063",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 120,
+        "station_sector": 41
+      },
+      "shared_wall_seconds": 22.37,
+      "launcher_elapsed_wall_s": 30.13
+    },
+    {
+      "index": 5,
+      "pair": 3,
+      "first": "jan",
+      "starts": "swapped",
+      "speed": 1,
+      "name": "pace-05-swapped-jan-1x",
+      "source_receipt_sha256": "1288322473a29108482a86db29a124966555ec753d78085d476d963e416f1e1f",
+      "log_sha256": {
+        "dark.log": "35310c1b17e39473fa678a602be1e2388f3753b75ec307143da789de7487c2bf",
+        "light.log": "92913213857381b11b59386fc3ea8a974b3ad706b8e2e40c84357cbbb449a694",
+        "server.log": "48a71d134d49ff521d6bd3e15891a2ba8ab830d111224b8c99a6fd1d5c3e3292",
+        "force-trace.jsonl": "e8d65a916679a8619ae675517465f68f9548b78e083b65fd5a7f56d7976fdaeb"
+      },
+      "pace_trace_sha256": "b165a118a7503e52cc42051bc07d3733cad1e7c257c42f2b0d37aeab0a071e93",
+      "owners": {
+        "dark": {
+          "player": "Bot_BobaFett",
+          "slot": 2,
+          "sector": 41,
+          "expected_item": 29,
+          "expected_weapon": "concussion_rifle",
+          "first_target": 29,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 29,
+              "pack": false,
+              "direct": true,
+              "line": 186
+            }
+          ],
+          "target_sequence": [
+            29
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "concussion_rifle",
+            "line": 199
+          },
+          "sampled_first_weapons": [
+            "concussion_rifle"
+          ],
+          "owner_first_life_gain_s": {
+            "concussion_rifle": 1.156
+          },
+          "qualified_weapon": "concussion_rifle",
+          "qualified_gain_s": 1.156,
+          "unresolved_reason": null
+        },
+        "light": {
+          "player": "Bot_JanOrs",
+          "slot": 1,
+          "sector": 18,
+          "expected_item": 34,
+          "expected_weapon": "repeater",
+          "first_target": 34,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 34,
+              "pack": false,
+              "direct": true,
+              "line": 267
+            }
+          ],
+          "target_sequence": [
+            34
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "repeater",
+            "line": 287
+          },
+          "sampled_first_weapons": [
+            "repeater"
+          ],
+          "owner_first_life_gain_s": {
+            "repeater": 1.292
+          },
+          "qualified_weapon": "repeater",
+          "qualified_gain_s": 1.292,
+          "unresolved_reason": null
+        }
+      },
+      "clocks": {
+        "host": {
+          "observed_rate": 0.999999,
+          "game_seconds": 22.1,
+          "wall_seconds": 22.100023,
+          "samples": 131,
+          "first": {
+            "role": "host",
+            "pid": 184980,
+            "rate": 1,
+            "frame": 160,
+            "game_ms": 5440,
+            "mono_ns": 138863342400723,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "host",
+            "pid": 184980,
+            "rate": 1,
+            "frame": 810,
+            "game_ms": 27540,
+            "mono_ns": 138885442423298,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            169.921159,
+            170.001303,
+            170.067535
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 184980,
+          "first_sample_lag_wall_s": 0.14691,
+          "cutoff_after_last_sample_wall_s": 0.010301
+        },
+        "dark": {
+          "observed_rate": 1.000002,
+          "game_seconds": 22.1,
+          "wall_seconds": 22.09996,
+          "samples": 131,
+          "first": {
+            "role": "dark",
+            "pid": 184999,
+            "rate": 1,
+            "frame": 10,
+            "game_ms": 340,
+            "mono_ns": 138863293103115,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "dark",
+            "pid": 184999,
+            "rate": 1,
+            "frame": 660,
+            "game_ms": 22440,
+            "mono_ns": 138885393062703,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            169.907224,
+            169.99977,
+            170.099393
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 184999,
+          "first_sample_lag_wall_s": 0.097613,
+          "cutoff_after_last_sample_wall_s": 0.059662,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 1.000034,
+            "samples": 8,
+            "wall_seconds": 1.189959,
+            "game_ms": 1190,
+            "first_sample_minus_release_game_ms": 0,
+            "last_sample_minus_pickup_game_ms": 34,
+            "non_nominal_applied_samples": 0
+          }
+        },
+        "light": {
+          "observed_rate": 1.000002,
+          "game_seconds": 22.1,
+          "wall_seconds": 22.099955,
+          "samples": 131,
+          "first": {
+            "role": "light",
+            "pid": 184988,
+            "rate": 1,
+            "frame": 85,
+            "game_ms": 2890,
+            "mono_ns": 138863199178392,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "light",
+            "pid": 184988,
+            "rate": 1,
+            "frame": 735,
+            "game_ms": 24990,
+            "mono_ns": 138885299133430,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            169.909685,
+            170.0011,
+            170.098915
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 184988,
+          "first_sample_lag_wall_s": 0.003688,
+          "cutoff_after_last_sample_wall_s": 0.153591,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 0.999984,
+            "samples": 9,
+            "wall_seconds": 1.360021,
+            "game_ms": 1360,
+            "first_sample_minus_release_game_ms": -68,
+            "last_sample_minus_pickup_game_ms": 0,
+            "non_nominal_applied_samples": 0
+          }
+        }
+      },
+      "video": {
+        "sha256": "b09e180e921bac5e6addc1130eadaf0d8dd05a68db5559195279a837234926bf",
+        "frames": 116,
+        "seconds": 23.495,
+        "receipt_sha256": "d125f2f5f7fe9b5d38004319c8025cc17f16b6bb0fae593a3d717adc9ed24883",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 116,
+        "station_sector": 41
+      },
+      "shared_wall_seconds": 22.39,
+      "launcher_elapsed_wall_s": 29.88
+    },
+    {
+      "index": 6,
+      "pair": 3,
+      "first": "jan",
+      "starts": "swapped",
+      "speed": 2,
+      "name": "pace-06-swapped-jan-2x",
+      "source_receipt_sha256": "6aa5c4cff4f4f54428c6f493b2484a731c420f03e25df929e2351765cedc3e5c",
+      "log_sha256": {
+        "dark.log": "6a07f9c2bffcf3f14fd8977c66ec643ebc438d880ad80a6e223c9dbf7d98dcb5",
+        "light.log": "2228729f03cd8d68e9956558b41884d34d1196bca78658f25fbaeb72640c5182",
+        "server.log": "909643d4912c49d6799f3f086504ade919367d4b69f8edf25cef2c79bf0a51ac",
+        "force-trace.jsonl": "8167bab06521713ecf09074187e19e33f7b983a4bb4fc53ca0bc2ee549c7a7b5"
+      },
+      "pace_trace_sha256": "49fa00754940b14802c5b03d8a2673ec802bed97923d616919d67b015ed284c6",
+      "owners": {
+        "dark": {
+          "player": "Bot_BobaFett",
+          "slot": 2,
+          "sector": 41,
+          "expected_item": 29,
+          "expected_weapon": "concussion_rifle",
+          "first_target": 29,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 29,
+              "pack": false,
+              "direct": true,
+              "line": 186
+            }
+          ],
+          "target_sequence": [
+            29
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "concussion_rifle",
+            "line": 199
+          },
+          "sampled_first_weapons": [
+            "concussion_rifle"
+          ],
+          "owner_first_life_gain_s": {
+            "concussion_rifle": 1.156
+          },
+          "qualified_weapon": "concussion_rifle",
+          "qualified_gain_s": 1.156,
+          "unresolved_reason": null
+        },
+        "light": {
+          "player": "Bot_JanOrs",
+          "slot": 1,
+          "sector": 18,
+          "expected_item": 34,
+          "expected_weapon": "repeater",
+          "first_target": 34,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 34,
+              "pack": false,
+              "direct": true,
+              "line": 282
+            }
+          ],
+          "target_sequence": [
+            34
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "repeater",
+            "line": 301
+          },
+          "sampled_first_weapons": [
+            "repeater"
+          ],
+          "owner_first_life_gain_s": {
+            "repeater": 1.306
+          },
+          "qualified_weapon": "repeater",
+          "qualified_gain_s": 1.306,
+          "unresolved_reason": null
+        }
+      },
+      "clocks": {
+        "host": {
+          "observed_rate": 1.999995,
+          "game_seconds": 22.1,
+          "wall_seconds": 11.05003,
+          "samples": 131,
+          "first": {
+            "role": "host",
+            "pid": 185121,
+            "rate": 2,
+            "frame": 185,
+            "game_ms": 6290,
+            "mono_ns": 138892540705609,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "host",
+            "pid": 185121,
+            "rate": 2,
+            "frame": 835,
+            "game_ms": 28390,
+            "mono_ns": 138903590735407,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            84.669765,
+            85.001356,
+            85.316545
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 185121,
+          "first_sample_lag_wall_s": 0.025393,
+          "cutoff_after_last_sample_wall_s": 0.068356
+        },
+        "dark": {
+          "observed_rate": 2.000007,
+          "game_seconds": 22.1,
+          "wall_seconds": 11.049959,
+          "samples": 131,
+          "first": {
+            "role": "dark",
+            "pid": 185138,
+            "rate": 2,
+            "frame": 10,
+            "game_ms": 340,
+            "mono_ns": 138892550309501,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "dark",
+            "pid": 185138,
+            "rate": 2,
+            "frame": 660,
+            "game_ms": 22440,
+            "mono_ns": 138903600268807,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            84.887629,
+            85.000118,
+            85.141784
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 185138,
+          "first_sample_lag_wall_s": 0.034997,
+          "cutoff_after_last_sample_wall_s": 0.058823,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 2.000115,
+            "samples": 8,
+            "wall_seconds": 0.594966,
+            "game_ms": 1190,
+            "first_sample_minus_release_game_ms": 0,
+            "last_sample_minus_pickup_game_ms": 34,
+            "non_nominal_applied_samples": 0
+          }
+        },
+        "light": {
+          "observed_rate": 2.000004,
+          "game_seconds": 22.1,
+          "wall_seconds": 11.04998,
+          "samples": 131,
+          "first": {
+            "role": "light",
+            "pid": 185129,
+            "rate": 2,
+            "frame": 105,
+            "game_ms": 3570,
+            "mono_ns": 138892596926868,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "light",
+            "pid": 185129,
+            "rate": 2,
+            "frame": 755,
+            "game_ms": 25670,
+            "mono_ns": 138903646906953,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            84.948005,
+            84.999269,
+            85.074072
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 185129,
+          "first_sample_lag_wall_s": 0.081614,
+          "cutoff_after_last_sample_wall_s": 0.012184,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 1.999994,
+            "samples": 9,
+            "wall_seconds": 0.680002,
+            "game_ms": 1360,
+            "first_sample_minus_release_game_ms": -54,
+            "last_sample_minus_pickup_game_ms": 0,
+            "non_nominal_applied_samples": 0
+          }
+        }
+      },
+      "video": {
+        "sha256": "9b18e86b2942d04131fcd392716c9e760144fc4ce3112311a1bc962057841f2c",
+        "frames": 53,
+        "seconds": 10.609,
+        "receipt_sha256": "ecf18c7a7c0fa6de30fd0681f41dd5948d40a981cd8cf5d31f37a1dd84ec8e8b",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 53,
+        "station_sector": 41
+      },
+      "shared_wall_seconds": 11.17,
+      "launcher_elapsed_wall_s": 17.66
+    },
+    {
+      "index": 7,
+      "pair": 4,
+      "first": "boba",
+      "starts": "swapped",
+      "speed": 2,
+      "name": "pace-07-swapped-boba-2x",
+      "source_receipt_sha256": "9ff424c5b703688c1df815c4ba36d6463d05058d1cb62e1e06233d203a849e82",
+      "log_sha256": {
+        "dark.log": "e8348db4077c6b1b2360294de166a01b10c517c0fbef59d2c9cf557f481e3a23",
+        "light.log": "21c901180ea20e9d58fc55b4c3320800f964c9ab91ec91fa69000463b94cac20",
+        "server.log": "875171e6d727b7ada09c44de6434c47bbad149af80fcd475c6074eeef5bd3f71",
+        "force-trace.jsonl": "7f9b7ce54496aae21f4e95ea71be006438fa1e7f2c83c44b23153318779db919"
+      },
+      "pace_trace_sha256": "59a31794d05fb104c2e8e8fdafc8c947fe7917fb19d9e1469f2833b0755a592a",
+      "owners": {
+        "dark": {
+          "player": "Bot_BobaFett",
+          "slot": 1,
+          "sector": 18,
+          "expected_item": 34,
+          "expected_weapon": "repeater",
+          "first_target": 34,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 34,
+              "pack": false,
+              "direct": true,
+              "line": 283
+            }
+          ],
+          "target_sequence": [
+            34
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "repeater",
+            "line": 304
+          },
+          "sampled_first_weapons": [
+            "repeater"
+          ],
+          "owner_first_life_gain_s": {
+            "repeater": 1.36
+          },
+          "qualified_weapon": "repeater",
+          "qualified_gain_s": 1.36,
+          "unresolved_reason": null
+        },
+        "light": {
+          "player": "Bot_JanOrs",
+          "slot": 2,
+          "sector": 41,
+          "expected_item": 29,
+          "expected_weapon": "concussion_rifle",
+          "first_target": 29,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 29,
+              "pack": false,
+              "direct": true,
+              "line": 180
+            }
+          ],
+          "target_sequence": [
+            29
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "concussion_rifle",
+            "line": 194
+          },
+          "sampled_first_weapons": [
+            "concussion_rifle"
+          ],
+          "owner_first_life_gain_s": {
+            "concussion_rifle": 1.122
+          },
+          "qualified_weapon": "concussion_rifle",
+          "qualified_gain_s": 1.122,
+          "unresolved_reason": null
+        }
+      },
+      "clocks": {
+        "host": {
+          "observed_rate": 1.999997,
+          "game_seconds": 22.1,
+          "wall_seconds": 11.050018,
+          "samples": 131,
+          "first": {
+            "role": "host",
+            "pid": 185322,
+            "rate": 2,
+            "frame": 185,
+            "game_ms": 6290,
+            "mono_ns": 138909316643654,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "host",
+            "pid": 185322,
+            "rate": 2,
+            "frame": 835,
+            "game_ms": 28390,
+            "mono_ns": 138920366661975,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            84.950243,
+            84.999041,
+            85.044655
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 185322,
+          "first_sample_lag_wall_s": 0.029235,
+          "cutoff_after_last_sample_wall_s": 0.038602
+        },
+        "dark": {
+          "observed_rate": 1.999996,
+          "game_seconds": 22.1,
+          "wall_seconds": 11.050025,
+          "samples": 131,
+          "first": {
+            "role": "dark",
+            "pid": 185330,
+            "rate": 2,
+            "frame": 110,
+            "game_ms": 3740,
+            "mono_ns": 138909353283295,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "dark",
+            "pid": 185330,
+            "rate": 2,
+            "frame": 760,
+            "game_ms": 25840,
+            "mono_ns": 138920403308130,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            84.941409,
+            85.000063,
+            85.039163
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 185330,
+          "first_sample_lag_wall_s": 0.065875,
+          "cutoff_after_last_sample_wall_s": 0.001956,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 1.999989,
+            "samples": 10,
+            "wall_seconds": 0.765004,
+            "game_ms": 1530,
+            "first_sample_minus_release_game_ms": -34,
+            "last_sample_minus_pickup_game_ms": 136,
+            "non_nominal_applied_samples": 0
+          }
+        },
+        "light": {
+          "observed_rate": 1.999999,
+          "game_seconds": 22.1,
+          "wall_seconds": 11.050004,
+          "samples": 131,
+          "first": {
+            "role": "light",
+            "pid": 185339,
+            "rate": 2,
+            "frame": 10,
+            "game_ms": 340,
+            "mono_ns": 138909290259526,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "light",
+            "pid": 185339,
+            "rate": 2,
+            "frame": 660,
+            "game_ms": 22440,
+            "mono_ns": 138920340263632,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            84.940085,
+            85.000501,
+            85.059282
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 185339,
+          "first_sample_lag_wall_s": 0.002851,
+          "cutoff_after_last_sample_wall_s": 0.065,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 2.000021,
+            "samples": 8,
+            "wall_seconds": 0.594994,
+            "game_ms": 1190,
+            "first_sample_minus_release_game_ms": -34,
+            "last_sample_minus_pickup_game_ms": 34,
+            "non_nominal_applied_samples": 0
+          }
+        }
+      },
+      "video": {
+        "sha256": "5f6d96e483067e58057fd8a3729e0c2110856e9f8d079fdf9aa10ffd84974e8b",
+        "frames": 52,
+        "seconds": 10.405,
+        "receipt_sha256": "25af09e6c4ef489399efef9f0122b22c95e514b0b6ec7deffd2c3f403bff053f",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 52,
+        "station_sector": 41
+      },
+      "shared_wall_seconds": 11.14,
+      "launcher_elapsed_wall_s": 16.38
+    },
+    {
+      "index": 8,
+      "pair": 4,
+      "first": "boba",
+      "starts": "swapped",
+      "speed": 1,
+      "name": "pace-08-swapped-boba-1x",
+      "source_receipt_sha256": "d632e0cb836c0b77f3924f0e7440fc9ebca642144d422a4368640ad16d4c94b0",
+      "log_sha256": {
+        "dark.log": "861c12899c1bc951ea5d40388b036b7d3834a386b4571f65db3f2d97869d7123",
+        "light.log": "866d66f0034b48e62f50084b0b7182694034812b350a233ea115f236fedb579a",
+        "server.log": "bfba28ca28ac137e9cc5f50a895394ca1d88efafb158937597e4b0ecd00a6dbe",
+        "force-trace.jsonl": "fdbec4ab610eec6b8c2edcefd9b453621b4c5a2e5ae0da7cc01249b473b3b777"
+      },
+      "pace_trace_sha256": "55049a554aee1dfd6dd86d179d98183a36ab4bf923c17d5efdeb6aa1b3d03d10",
+      "owners": {
+        "dark": {
+          "player": "Bot_BobaFett",
+          "slot": 1,
+          "sector": 18,
+          "expected_item": 34,
+          "expected_weapon": "repeater",
+          "first_target": 34,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 34,
+              "pack": false,
+              "direct": true,
+              "line": 267
+            }
+          ],
+          "target_sequence": [
+            34
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "repeater",
+            "line": 286
+          },
+          "sampled_first_weapons": [
+            "repeater"
+          ],
+          "owner_first_life_gain_s": {
+            "repeater": 1.326
+          },
+          "qualified_weapon": "repeater",
+          "qualified_gain_s": 1.326,
+          "unresolved_reason": null
+        },
+        "light": {
+          "player": "Bot_JanOrs",
+          "slot": 2,
+          "sector": 41,
+          "expected_item": 29,
+          "expected_weapon": "concussion_rifle",
+          "first_target": 29,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 29,
+              "pack": false,
+              "direct": true,
+              "line": 186
+            }
+          ],
+          "target_sequence": [
+            29
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "concussion_rifle",
+            "line": 199
+          },
+          "sampled_first_weapons": [
+            "concussion_rifle"
+          ],
+          "owner_first_life_gain_s": {
+            "concussion_rifle": 1.156
+          },
+          "qualified_weapon": "concussion_rifle",
+          "qualified_gain_s": 1.156,
+          "unresolved_reason": null
+        }
+      },
+      "clocks": {
+        "host": {
+          "observed_rate": 0.999997,
+          "game_seconds": 22.1,
+          "wall_seconds": 22.100061,
+          "samples": 131,
+          "first": {
+            "role": "host",
+            "pid": 185461,
+            "rate": 1,
+            "frame": 160,
+            "game_ms": 5440,
+            "mono_ns": 138928754200393,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "host",
+            "pid": 185461,
+            "rate": 1,
+            "frame": 810,
+            "game_ms": 27540,
+            "mono_ns": 138950854261713,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            169.906719,
+            169.998085,
+            170.083664
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 185461,
+          "first_sample_lag_wall_s": 0.130863,
+          "cutoff_after_last_sample_wall_s": 0.013015
+        },
+        "dark": {
+          "observed_rate": 1.000001,
+          "game_seconds": 22.1,
+          "wall_seconds": 22.099982,
+          "samples": 131,
+          "first": {
+            "role": "dark",
+            "pid": 185469,
+            "rate": 1,
+            "frame": 85,
+            "game_ms": 2890,
+            "mono_ns": 138928639784960,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "dark",
+            "pid": 185469,
+            "rate": 1,
+            "frame": 735,
+            "game_ms": 24990,
+            "mono_ns": 138950739766955,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            169.818888,
+            169.999249,
+            170.203385
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 185469,
+          "first_sample_lag_wall_s": 0.016447,
+          "cutoff_after_last_sample_wall_s": 0.127509,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 1.000025,
+            "samples": 9,
+            "wall_seconds": 1.359966,
+            "game_ms": 1360,
+            "first_sample_minus_release_game_ms": -34,
+            "last_sample_minus_pickup_game_ms": 0,
+            "non_nominal_applied_samples": 0
+          }
+        },
+        "light": {
+          "observed_rate": 0.999998,
+          "game_seconds": 22.1,
+          "wall_seconds": 22.100034,
+          "samples": 131,
+          "first": {
+            "role": "light",
+            "pid": 185513,
+            "rate": 1,
+            "frame": 10,
+            "game_ms": 340,
+            "mono_ns": 138928711248997,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "light",
+            "pid": 185513,
+            "rate": 1,
+            "frame": 660,
+            "game_ms": 22440,
+            "mono_ns": 138950811283479,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            169.827643,
+            169.999953,
+            170.116127
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 185513,
+          "first_sample_lag_wall_s": 0.087911,
+          "cutoff_after_last_sample_wall_s": 0.055993,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 1.00002,
+            "samples": 8,
+            "wall_seconds": 1.189977,
+            "game_ms": 1190,
+            "first_sample_minus_release_game_ms": 0,
+            "last_sample_minus_pickup_game_ms": 34,
+            "non_nominal_applied_samples": 0
+          }
+        }
+      },
+      "video": {
+        "sha256": "d33ce108fa914c73447f959a17b5fa83fe4ab9a551b0563a23c4a3390c2a9591",
+        "frames": 118,
+        "seconds": 23.903,
+        "receipt_sha256": "f7f967e0d3f57390f315cbaa2b3df24ea9b457ca2e129b562b2046a6e71f3f2b",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 118,
+        "station_sector": 41
+      },
+      "shared_wall_seconds": 22.33,
+      "launcher_elapsed_wall_s": 30.15
+    },
+    {
+      "index": 9,
+      "pair": 5,
+      "first": "boba",
+      "starts": "swapped",
+      "speed": 1,
+      "name": "pace-09-swapped-boba-1x",
+      "source_receipt_sha256": "88424ade95d4f5529d63c00e4e7c4fb2ee646e71a88a437dbe6104b67deb2547",
+      "log_sha256": {
+        "dark.log": "009bf04ce478bfafad997a18a62b89ae175c44f20129511da02360b1a0ce8d2b",
+        "light.log": "930ee57ee0d9bc1a82e015d19ae9f2b2d09accb9384c84a8f3807a6aedbf17f1",
+        "server.log": "668b51bbda994123ed70447de61fe19ab4b43e857b1c711f547943b4b83d3078",
+        "force-trace.jsonl": "39ecedd71111d5b4755c0b86501743912b8dd5a0a9af4d517d19cd5a60490281"
+      },
+      "pace_trace_sha256": "fbb7624cba81106ffdc85a28a7ff492858b687153274cc52377d7298fb70f317",
+      "owners": {
+        "dark": {
+          "player": "Bot_BobaFett",
+          "slot": 1,
+          "sector": 18,
+          "expected_item": 34,
+          "expected_weapon": "repeater",
+          "first_target": 34,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 34,
+              "pack": false,
+              "direct": true,
+              "line": 267
+            }
+          ],
+          "target_sequence": [
+            34
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "repeater",
+            "line": 285
+          },
+          "sampled_first_weapons": [
+            "repeater"
+          ],
+          "owner_first_life_gain_s": {
+            "repeater": 1.36
+          },
+          "qualified_weapon": "repeater",
+          "qualified_gain_s": 1.36,
+          "unresolved_reason": null
+        },
+        "light": {
+          "player": "Bot_JanOrs",
+          "slot": 2,
+          "sector": 41,
+          "expected_item": 29,
+          "expected_weapon": "concussion_rifle",
+          "first_target": 29,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 29,
+              "pack": false,
+              "direct": true,
+              "line": 186
+            }
+          ],
+          "target_sequence": [
+            29
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "concussion_rifle",
+            "line": 199
+          },
+          "sampled_first_weapons": [
+            "concussion_rifle"
+          ],
+          "owner_first_life_gain_s": {
+            "concussion_rifle": 1.156
+          },
+          "qualified_weapon": "concussion_rifle",
+          "qualified_gain_s": 1.156,
+          "unresolved_reason": null
+        }
+      },
+      "clocks": {
+        "host": {
+          "observed_rate": 1.000003,
+          "game_seconds": 22.1,
+          "wall_seconds": 22.099941,
+          "samples": 131,
+          "first": {
+            "role": "host",
+            "pid": 185683,
+            "rate": 1,
+            "frame": 155,
+            "game_ms": 5270,
+            "mono_ns": 138958817050895,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "host",
+            "pid": 185683,
+            "rate": 1,
+            "frame": 805,
+            "game_ms": 27370,
+            "mono_ns": 138980916992393,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            169.89117,
+            169.997268,
+            170.12323
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 185683,
+          "first_sample_lag_wall_s": 0.040688,
+          "cutoff_after_last_sample_wall_s": 0.056733
+        },
+        "dark": {
+          "observed_rate": 1.000002,
+          "game_seconds": 22.1,
+          "wall_seconds": 22.099958,
+          "samples": 131,
+          "first": {
+            "role": "dark",
+            "pid": 185696,
+            "rate": 1,
+            "frame": 85,
+            "game_ms": 2890,
+            "mono_ns": 138958842445173,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "dark",
+            "pid": 185696,
+            "rate": 1,
+            "frame": 735,
+            "game_ms": 24990,
+            "mono_ns": 138980942403344,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            169.846508,
+            169.999742,
+            170.150834
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 185696,
+          "first_sample_lag_wall_s": 0.066082,
+          "cutoff_after_last_sample_wall_s": 0.031322,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 0.999991,
+            "samples": 9,
+            "wall_seconds": 1.360012,
+            "game_ms": 1360,
+            "first_sample_minus_release_game_ms": 0,
+            "last_sample_minus_pickup_game_ms": 0,
+            "non_nominal_applied_samples": 0
+          }
+        },
+        "light": {
+          "observed_rate": 0.999999,
+          "game_seconds": 22.1,
+          "wall_seconds": 22.100028,
+          "samples": 131,
+          "first": {
+            "role": "light",
+            "pid": 185709,
+            "rate": 1,
+            "frame": 10,
+            "game_ms": 340,
+            "mono_ns": 138958870332039,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "light",
+            "pid": 185709,
+            "rate": 1,
+            "frame": 660,
+            "game_ms": 22440,
+            "mono_ns": 138980970360526,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            169.695484,
+            170.001221,
+            170.31681
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 185709,
+          "first_sample_lag_wall_s": 0.093969,
+          "cutoff_after_last_sample_wall_s": 0.003365,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 1.000001,
+            "samples": 8,
+            "wall_seconds": 1.189998,
+            "game_ms": 1190,
+            "first_sample_minus_release_game_ms": 0,
+            "last_sample_minus_pickup_game_ms": 34,
+            "non_nominal_applied_samples": 0
+          }
+        }
+      },
+      "video": {
+        "sha256": "1f0a05fff5b53e09417d726116ace84f508db6050d6fd27fd5c4c9039c3ce96a",
+        "frames": 116,
+        "seconds": 23.495,
+        "receipt_sha256": "96601d353c55e559212a62920b70628fe45d70cdd7e613dba23206647b85b303",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 116,
+        "station_sector": 41
+      },
+      "shared_wall_seconds": 22.28,
+      "launcher_elapsed_wall_s": 29.72
+    },
+    {
+      "index": 10,
+      "pair": 5,
+      "first": "boba",
+      "starts": "swapped",
+      "speed": 2,
+      "name": "pace-10-swapped-boba-2x",
+      "source_receipt_sha256": "6bd5cdd0c873c8259526f32026c68dc85b7678339a29a98c1a12d978044e430a",
+      "log_sha256": {
+        "dark.log": "31ae467d4b41d99a9bf67390c3c094fe07a792dfe01d07ce80814f23f2d8b5be",
+        "light.log": "aea478f5ca65da8aaa9d37b1189c4947cc4f6226bac32bf0dd99926411b3736a",
+        "server.log": "586fecdeb539040ed63444adac40b3a38a1705ee932e4823fe6067008c4a3ce3",
+        "force-trace.jsonl": "6944475cab4c873838cb8fd70b202e0916573026e3015c1cc4a7c861e251eb2f"
+      },
+      "pace_trace_sha256": "91ce8d2af42f5dc23c0f5c8598e1aca3b4ca5b584f8a290f166b29e4553abafe",
+      "owners": {
+        "dark": {
+          "player": "Bot_BobaFett",
+          "slot": 1,
+          "sector": 18,
+          "expected_item": 34,
+          "expected_weapon": "repeater",
+          "first_target": 34,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 34,
+              "pack": false,
+              "direct": true,
+              "line": 282
+            }
+          ],
+          "target_sequence": [
+            34
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "repeater",
+            "line": 301
+          },
+          "sampled_first_weapons": [
+            "repeater"
+          ],
+          "owner_first_life_gain_s": {
+            "repeater": 1.326
+          },
+          "qualified_weapon": "repeater",
+          "qualified_gain_s": 1.326,
+          "unresolved_reason": null
+        },
+        "light": {
+          "player": "Bot_JanOrs",
+          "slot": 2,
+          "sector": 41,
+          "expected_item": 29,
+          "expected_weapon": "concussion_rifle",
+          "first_target": 29,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 29,
+              "pack": false,
+              "direct": true,
+              "line": 186
+            }
+          ],
+          "target_sequence": [
+            29
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "concussion_rifle",
+            "line": 199
+          },
+          "sampled_first_weapons": [
+            "concussion_rifle"
+          ],
+          "owner_first_life_gain_s": {
+            "concussion_rifle": 1.156
+          },
+          "qualified_weapon": "concussion_rifle",
+          "qualified_gain_s": 1.156,
+          "unresolved_reason": null
+        }
+      },
+      "clocks": {
+        "host": {
+          "observed_rate": 2.000001,
+          "game_seconds": 22.1,
+          "wall_seconds": 11.049994,
+          "samples": 131,
+          "first": {
+            "role": "host",
+            "pid": 185774,
+            "rate": 2,
+            "frame": 185,
+            "game_ms": 6290,
+            "mono_ns": 138986919097039,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "host",
+            "pid": 185774,
+            "rate": 2,
+            "frame": 835,
+            "game_ms": 28390,
+            "mono_ns": 138997969091235,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            84.880562,
+            84.994792,
+            85.103208
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 185774,
+          "first_sample_lag_wall_s": 0.057127,
+          "cutoff_after_last_sample_wall_s": 0.032875
+        },
+        "dark": {
+          "observed_rate": 1.999995,
+          "game_seconds": 22.1,
+          "wall_seconds": 11.050027,
+          "samples": 131,
+          "first": {
+            "role": "dark",
+            "pid": 185782,
+            "rate": 2,
+            "frame": 105,
+            "game_ms": 3570,
+            "mono_ns": 138986945853424,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "dark",
+            "pid": 185782,
+            "rate": 2,
+            "frame": 755,
+            "game_ms": 25670,
+            "mono_ns": 138997995880216,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            84.869694,
+            85.000545,
+            85.095045
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 185782,
+          "first_sample_lag_wall_s": 0.083883,
+          "cutoff_after_last_sample_wall_s": 0.006086,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 1.999633,
+            "samples": 9,
+            "wall_seconds": 0.680125,
+            "game_ms": 1360,
+            "first_sample_minus_release_game_ms": -34,
+            "last_sample_minus_pickup_game_ms": 0,
+            "non_nominal_applied_samples": 0
+          }
+        },
+        "light": {
+          "observed_rate": 2.000003,
+          "game_seconds": 22.1,
+          "wall_seconds": 11.049985,
+          "samples": 131,
+          "first": {
+            "role": "light",
+            "pid": 185791,
+            "rate": 2,
+            "frame": 10,
+            "game_ms": 340,
+            "mono_ns": 138986891864129,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "light",
+            "pid": 185791,
+            "rate": 2,
+            "frame": 660,
+            "game_ms": 22440,
+            "mono_ns": 138997941849573,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            84.880228,
+            84.99674,
+            85.124939
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 185791,
+          "first_sample_lag_wall_s": 0.029894,
+          "cutoff_after_last_sample_wall_s": 0.060116,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 2.000299,
+            "samples": 8,
+            "wall_seconds": 0.594911,
+            "game_ms": 1190,
+            "first_sample_minus_release_game_ms": 0,
+            "last_sample_minus_pickup_game_ms": 34,
+            "non_nominal_applied_samples": 0
+          }
+        }
+      },
+      "video": {
+        "sha256": "1731766de454e379e68143c620ad1d2cde208709fdeb3bf69a2ec74178c6edff",
+        "frames": 58,
+        "seconds": 11.629,
+        "receipt_sha256": "4f749930714ec93dab74a57382d7869de185063584cacb6778b2cff6a15c5d98",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 58,
+        "station_sector": 41
+      },
+      "shared_wall_seconds": 11.16,
+      "launcher_elapsed_wall_s": 16.57
+    },
+    {
+      "index": 11,
+      "pair": 6,
+      "first": "jan",
+      "starts": "swapped",
+      "speed": 2,
+      "name": "pace-11-swapped-jan-2x",
+      "source_receipt_sha256": "7df6c719ca04127b3082b6d4a38c20862edb2ed9ce7672c11d087b50218fe950",
+      "log_sha256": {
+        "dark.log": "00b9d2ad4f214dd7c4d8653fa3e0f115597d48ec4448ec3954fd5a2567ce0c30",
+        "light.log": "c98dfee43d5a9eab8a9cc87bb78051d77c33b6d3bb38fbff9485310a2a6a5db0",
+        "server.log": "da2a7dbdc699c71920d02f5cba622d0ac0a5f87e780cc41093976d1da05f4059",
+        "force-trace.jsonl": "56aba7e2670a8951b342d64b19aff05663755e159f7d351f773ee407a359ff87"
+      },
+      "pace_trace_sha256": "3d8ee59bca6d089cae988809ecaf6fa675f2472a2a9bc6ce0cf3e48ac70397ad",
+      "owners": {
+        "dark": {
+          "player": "Bot_BobaFett",
+          "slot": 2,
+          "sector": 41,
+          "expected_item": 29,
+          "expected_weapon": "concussion_rifle",
+          "first_target": 29,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 29,
+              "pack": false,
+              "direct": true,
+              "line": 180
+            }
+          ],
+          "target_sequence": [
+            29
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "concussion_rifle",
+            "line": 194
+          },
+          "sampled_first_weapons": [
+            "concussion_rifle"
+          ],
+          "owner_first_life_gain_s": {
+            "concussion_rifle": 1.122
+          },
+          "qualified_weapon": "concussion_rifle",
+          "qualified_gain_s": 1.122,
+          "unresolved_reason": null
+        },
+        "light": {
+          "player": "Bot_JanOrs",
+          "slot": 1,
+          "sector": 18,
+          "expected_item": 34,
+          "expected_weapon": "repeater",
+          "first_target": 34,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 34,
+              "pack": false,
+              "direct": true,
+              "line": 271
+            }
+          ],
+          "target_sequence": [
+            34
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "repeater",
+            "line": 289
+          },
+          "sampled_first_weapons": [
+            "repeater"
+          ],
+          "owner_first_life_gain_s": {
+            "repeater": 1.326
+          },
+          "qualified_weapon": "repeater",
+          "qualified_gain_s": 1.326,
+          "unresolved_reason": null
+        }
+      },
+      "clocks": {
+        "host": {
+          "observed_rate": 1.999991,
+          "game_seconds": 22.1,
+          "wall_seconds": 11.050049,
+          "samples": 131,
+          "first": {
+            "role": "host",
+            "pid": 185869,
+            "rate": 2,
+            "frame": 180,
+            "game_ms": 6120,
+            "mono_ns": 139003704417616,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "host",
+            "pid": 185869,
+            "rate": 2,
+            "frame": 830,
+            "game_ms": 28220,
+            "mono_ns": 139014754467087,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            84.889612,
+            85.002558,
+            85.1134
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 185869,
+          "first_sample_lag_wall_s": 0.007458,
+          "cutoff_after_last_sample_wall_s": 0.048075
+        },
+        "dark": {
+          "observed_rate": 2.000012,
+          "game_seconds": 22.1,
+          "wall_seconds": 11.049932,
+          "samples": 131,
+          "first": {
+            "role": "dark",
+            "pid": 185887,
+            "rate": 2,
+            "frame": 10,
+            "game_ms": 340,
+            "mono_ns": 139003726025986,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "dark",
+            "pid": 185887,
+            "rate": 2,
+            "frame": 660,
+            "game_ms": 22440,
+            "mono_ns": 139014775958056,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            84.897045,
+            84.998574,
+            85.113264
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 185887,
+          "first_sample_lag_wall_s": 0.029067,
+          "cutoff_after_last_sample_wall_s": 0.026584,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 1.999905,
+            "samples": 8,
+            "wall_seconds": 0.595028,
+            "game_ms": 1190,
+            "first_sample_minus_release_game_ms": -34,
+            "last_sample_minus_pickup_game_ms": 34,
+            "non_nominal_applied_samples": 0
+          }
+        },
+        "light": {
+          "observed_rate": 1.99999,
+          "game_seconds": 22.1,
+          "wall_seconds": 11.050053,
+          "samples": 131,
+          "first": {
+            "role": "light",
+            "pid": 185877,
+            "rate": 2,
+            "frame": 100,
+            "game_ms": 3400,
+            "mono_ns": 139003747719745,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "light",
+            "pid": 185877,
+            "rate": 2,
+            "frame": 750,
+            "game_ms": 25500,
+            "mono_ns": 139014797772780,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            84.912691,
+            85.001071,
+            85.082432
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 185877,
+          "first_sample_lag_wall_s": 0.050761,
+          "cutoff_after_last_sample_wall_s": 0.004769,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 2.000073,
+            "samples": 10,
+            "wall_seconds": 0.764972,
+            "game_ms": 1530,
+            "first_sample_minus_release_game_ms": -102,
+            "last_sample_minus_pickup_game_ms": 102,
+            "non_nominal_applied_samples": 0
+          }
+        }
+      },
+      "video": {
+        "sha256": "3df2a67e077b3002d447b3c8c516f71207e5e601c766956c6a85fa8faba1f406",
+        "frames": 57,
+        "seconds": 11.425,
+        "receipt_sha256": "e77c5221e0d559271b2591e41b229acc61274281cebc3f5d6c1b77b4843be9c1",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 57,
+        "station_sector": 41
+      },
+      "shared_wall_seconds": 11.15,
+      "launcher_elapsed_wall_s": 16.49
+    },
+    {
+      "index": 12,
+      "pair": 6,
+      "first": "jan",
+      "starts": "swapped",
+      "speed": 1,
+      "name": "pace-12-swapped-jan-1x",
+      "source_receipt_sha256": "4afe7a3532b3b3f5e1616a835760d1b0f9614d302e34e160651353a2a7a35354",
+      "log_sha256": {
+        "dark.log": "b5d9861fddd423411f9d3ddf524b64ec61260257a1b66342dcc9b842b0d5195a",
+        "light.log": "9cbd47f1cf4b9dc53a081a2233b1cb42848f1f6f7df2fadb8cad5a03d36a8482",
+        "server.log": "6ce16080083075d2ac3ffeb67f695d999f1bdb1afbd729526c24338f2d2c8aff",
+        "force-trace.jsonl": "21228d3dd72628784062e5c1a547c2be1ebb6b57d6dae8a4c5e53d8fffadddeb"
+      },
+      "pace_trace_sha256": "8a2932c0673bf69ab76b24325febc447b441af0fca4541ad282ddd9577e02e60",
+      "owners": {
+        "dark": {
+          "player": "Bot_BobaFett",
+          "slot": 2,
+          "sector": 41,
+          "expected_item": 29,
+          "expected_weapon": "concussion_rifle",
+          "first_target": 29,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 29,
+              "pack": false,
+              "direct": true,
+              "line": 186
+            }
+          ],
+          "target_sequence": [
+            29
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "concussion_rifle",
+            "line": 199
+          },
+          "sampled_first_weapons": [
+            "concussion_rifle"
+          ],
+          "owner_first_life_gain_s": {
+            "concussion_rifle": 1.156
+          },
+          "qualified_weapon": "concussion_rifle",
+          "qualified_gain_s": 1.156,
+          "unresolved_reason": null
+        },
+        "light": {
+          "player": "Bot_JanOrs",
+          "slot": 1,
+          "sector": 18,
+          "expected_item": 34,
+          "expected_weapon": "repeater",
+          "first_target": 34,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 34,
+              "pack": false,
+              "direct": true,
+              "line": 267
+            }
+          ],
+          "target_sequence": [
+            34
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "repeater",
+            "line": 285
+          },
+          "sampled_first_weapons": [
+            "repeater"
+          ],
+          "owner_first_life_gain_s": {
+            "repeater": 1.292
+          },
+          "qualified_weapon": "repeater",
+          "qualified_gain_s": 1.292,
+          "unresolved_reason": null
+        }
+      },
+      "clocks": {
+        "host": {
+          "observed_rate": 0.999999,
+          "game_seconds": 22.1,
+          "wall_seconds": 22.10002,
+          "samples": 131,
+          "first": {
+            "role": "host",
+            "pid": 185977,
+            "rate": 1,
+            "frame": 155,
+            "game_ms": 5270,
+            "mono_ns": 139023130373597,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "host",
+            "pid": 185977,
+            "rate": 1,
+            "frame": 805,
+            "game_ms": 27370,
+            "mono_ns": 139045230393914,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            169.8359,
+            169.998558,
+            170.168985
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 185977,
+          "first_sample_lag_wall_s": 0.004716,
+          "cutoff_after_last_sample_wall_s": 0.103532
+        },
+        "dark": {
+          "observed_rate": 0.999999,
+          "game_seconds": 22.1,
+          "wall_seconds": 22.100022,
+          "samples": 131,
+          "first": {
+            "role": "dark",
+            "pid": 185994,
+            "rate": 1,
+            "frame": 10,
+            "game_ms": 340,
+            "mono_ns": 139023225278897,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "dark",
+            "pid": 185994,
+            "rate": 1,
+            "frame": 660,
+            "game_ms": 22440,
+            "mono_ns": 139045325301170,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            169.872184,
+            169.999052,
+            170.160914
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 185994,
+          "first_sample_lag_wall_s": 0.099622,
+          "cutoff_after_last_sample_wall_s": 0.008625,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 1.00004,
+            "samples": 8,
+            "wall_seconds": 1.189953,
+            "game_ms": 1190,
+            "first_sample_minus_release_game_ms": 0,
+            "last_sample_minus_pickup_game_ms": 34,
+            "non_nominal_applied_samples": 0
+          }
+        },
+        "light": {
+          "observed_rate": 1.000001,
+          "game_seconds": 22.1,
+          "wall_seconds": 22.099978,
+          "samples": 131,
+          "first": {
+            "role": "light",
+            "pid": 185985,
+            "rate": 1,
+            "frame": 85,
+            "game_ms": 2890,
+            "mono_ns": 139023217200900,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "light",
+            "pid": 185985,
+            "rate": 1,
+            "frame": 735,
+            "game_ms": 24990,
+            "mono_ns": 139045317178927,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            169.861148,
+            169.999861,
+            170.139547
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 185985,
+          "first_sample_lag_wall_s": 0.091544,
+          "cutoff_after_last_sample_wall_s": 0.016747,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 0.999972,
+            "samples": 10,
+            "wall_seconds": 1.530043,
+            "game_ms": 1530,
+            "first_sample_minus_release_game_ms": -136,
+            "last_sample_minus_pickup_game_ms": 102,
+            "non_nominal_applied_samples": 0
+          }
+        }
+      },
+      "video": {
+        "sha256": "b1202764ee3a4b5a08564be8a931a9bf879120b97e1a380393b73ca104693386",
+        "frames": 120,
+        "seconds": 24.243,
+        "receipt_sha256": "5d61871001692c1ffec05b54293c31db83a96821379481f405d3970e4adb944b",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 120,
+        "station_sector": 41
+      },
+      "shared_wall_seconds": 22.28,
+      "launcher_elapsed_wall_s": 30.31
+    },
+    {
+      "index": 13,
+      "pair": 7,
+      "first": "jan",
+      "starts": "normal",
+      "speed": 1,
+      "name": "pace-13-normal-jan-1x",
+      "source_receipt_sha256": "5f4ae6ca6b0bb9ce5244321baef9312730b4e086ecc9ef0fed60b5c34499f107",
+      "log_sha256": {
+        "dark.log": "91936844a321aab02c509569da19670031b79332a3c8e130171a6f1046dff88b",
+        "light.log": "12a3c4d25d5c7eedcd78b670feeaaf2e9e2ae1219af1f480aa3fb003ab6b2c53",
+        "server.log": "156fa87da92f58e1be69aca00df898be6fde12926e3c35702d8dbe4655505a9c",
+        "force-trace.jsonl": "1c27211a903c2b77e84373f7d107edbddc80a92e680b479b7f556e867d475ff3"
+      },
+      "pace_trace_sha256": "aa58f134021e20df8714dc2e8b10a7d0ed971700a33c51bcc758238092c26834",
+      "owners": {
+        "dark": {
+          "player": "Bot_BobaFett",
+          "slot": 2,
+          "sector": 18,
+          "expected_item": 34,
+          "expected_weapon": "repeater",
+          "first_target": 34,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 34,
+              "pack": false,
+              "direct": true,
+              "line": 180
+            }
+          ],
+          "target_sequence": [
+            34
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "repeater",
+            "line": 192
+          },
+          "sampled_first_weapons": [
+            "repeater"
+          ],
+          "owner_first_life_gain_s": {
+            "repeater": 1.36
+          },
+          "qualified_weapon": "repeater",
+          "qualified_gain_s": 1.36,
+          "unresolved_reason": null
+        },
+        "light": {
+          "player": "Bot_JanOrs",
+          "slot": 1,
+          "sector": 41,
+          "expected_item": 29,
+          "expected_weapon": "concussion_rifle",
+          "first_target": 29,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 29,
+              "pack": false,
+              "direct": true,
+              "line": 256
+            }
+          ],
+          "target_sequence": [
+            29
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "concussion_rifle",
+            "line": 275
+          },
+          "sampled_first_weapons": [
+            "concussion_rifle"
+          ],
+          "owner_first_life_gain_s": {
+            "concussion_rifle": 1.122
+          },
+          "qualified_weapon": "concussion_rifle",
+          "qualified_gain_s": 1.122,
+          "unresolved_reason": null
+        }
+      },
+      "clocks": {
+        "host": {
+          "observed_rate": 0.999999,
+          "game_seconds": 22.1,
+          "wall_seconds": 22.100017,
+          "samples": 131,
+          "first": {
+            "role": "host",
+            "pid": 186225,
+            "rate": 1,
+            "frame": 155,
+            "game_ms": 5270,
+            "mono_ns": 139053125211337,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "host",
+            "pid": 186225,
+            "rate": 1,
+            "frame": 805,
+            "game_ms": 27370,
+            "mono_ns": 139075225228153,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            169.823706,
+            169.997243,
+            170.180343
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 186225,
+          "first_sample_lag_wall_s": 0.067292,
+          "cutoff_after_last_sample_wall_s": 0.064318
+        },
+        "dark": {
+          "observed_rate": 0.999999,
+          "game_seconds": 22.1,
+          "wall_seconds": 22.100015,
+          "samples": 131,
+          "first": {
+            "role": "dark",
+            "pid": 186250,
+            "rate": 1,
+            "frame": 10,
+            "game_ms": 340,
+            "mono_ns": 139053149666297,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "dark",
+            "pid": 186250,
+            "rate": 1,
+            "frame": 660,
+            "game_ms": 22440,
+            "mono_ns": 139075249681048,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            169.845833,
+            169.999166,
+            170.118313
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 186250,
+          "first_sample_lag_wall_s": 0.091747,
+          "cutoff_after_last_sample_wall_s": 0.039865,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 0.999961,
+            "samples": 9,
+            "wall_seconds": 1.360053,
+            "game_ms": 1360,
+            "first_sample_minus_release_game_ms": 0,
+            "last_sample_minus_pickup_game_ms": 0,
+            "non_nominal_applied_samples": 0
+          }
+        },
+        "light": {
+          "observed_rate": 1.0,
+          "game_seconds": 22.1,
+          "wall_seconds": 22.099997,
+          "samples": 131,
+          "first": {
+            "role": "light",
+            "pid": 186239,
+            "rate": 1,
+            "frame": 85,
+            "game_ms": 2890,
+            "mono_ns": 139053179028520,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "light",
+            "pid": 186239,
+            "rate": 1,
+            "frame": 735,
+            "game_ms": 24990,
+            "mono_ns": 139075279025741,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            169.861236,
+            169.999576,
+            170.121803
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 186239,
+          "first_sample_lag_wall_s": 0.121109,
+          "cutoff_after_last_sample_wall_s": 0.01052,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 1.000003,
+            "samples": 9,
+            "wall_seconds": 1.359996,
+            "game_ms": 1360,
+            "first_sample_minus_release_game_ms": -102,
+            "last_sample_minus_pickup_game_ms": 136,
+            "non_nominal_applied_samples": 0
+          }
+        }
+      },
+      "video": {
+        "sha256": "8293219cbb97d806352de0463e7fea969bf27e4285ff1165a2f5c66e7c2d7517",
+        "frames": 115,
+        "seconds": 23.291,
+        "receipt_sha256": "d2bda6f3cd2039737a6605e05ecd67dd3150babb5422bdf62b38691677e342bd",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 115,
+        "station_sector": 41
+      },
+      "shared_wall_seconds": 22.29,
+      "launcher_elapsed_wall_s": 29.59
+    },
+    {
+      "index": 14,
+      "pair": 7,
+      "first": "jan",
+      "starts": "normal",
+      "speed": 2,
+      "name": "pace-14-normal-jan-2x",
+      "source_receipt_sha256": "acebe9e1e9cfa33b2cff453374c77a9e8b6ccedcda6fdb05b415dbc11754755c",
+      "log_sha256": {
+        "dark.log": "ca633314b7b4a8ff339e447f6fafbb233af363159a7b8cf3d22e9565dfea0b76",
+        "light.log": "f0c8bc410ed8a9e7eb8419effe9fab21d97f41ebc79016690c030fd5e9e3b3b3",
+        "server.log": "315a15f47baa9059beb7c1b6325185ec417c97d8dae2eff38c2aa828c2e864eb",
+        "force-trace.jsonl": "45ab811a61f2282d834da954412d10a891da373c6773e1149a6cc46c387953b8"
+      },
+      "pace_trace_sha256": "8f81274706efbf082f17dff595cb6d0c82cd601d12124771b29b11d51ab10ba2",
+      "owners": {
+        "dark": {
+          "player": "Bot_BobaFett",
+          "slot": 2,
+          "sector": 18,
+          "expected_item": 34,
+          "expected_weapon": "repeater",
+          "first_target": 34,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 34,
+              "pack": false,
+              "direct": true,
+              "line": 186
+            }
+          ],
+          "target_sequence": [
+            34
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "repeater",
+            "line": 201
+          },
+          "sampled_first_weapons": [
+            "repeater"
+          ],
+          "owner_first_life_gain_s": {
+            "repeater": 1.326
+          },
+          "qualified_weapon": "repeater",
+          "qualified_gain_s": 1.326,
+          "unresolved_reason": null
+        },
+        "light": {
+          "player": "Bot_JanOrs",
+          "slot": 1,
+          "sector": 41,
+          "expected_item": 29,
+          "expected_weapon": "concussion_rifle",
+          "first_target": 29,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 29,
+              "pack": false,
+              "direct": true,
+              "line": 282
+            }
+          ],
+          "target_sequence": [
+            29
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "concussion_rifle",
+            "line": 301
+          },
+          "sampled_first_weapons": [
+            "concussion_rifle"
+          ],
+          "owner_first_life_gain_s": {
+            "concussion_rifle": 1.19
+          },
+          "qualified_weapon": "concussion_rifle",
+          "qualified_gain_s": 1.19,
+          "unresolved_reason": null
+        }
+      },
+      "clocks": {
+        "host": {
+          "observed_rate": 2.000008,
+          "game_seconds": 22.1,
+          "wall_seconds": 11.049958,
+          "samples": 131,
+          "first": {
+            "role": "host",
+            "pid": 186396,
+            "rate": 2,
+            "frame": 185,
+            "game_ms": 6290,
+            "mono_ns": 139081739393123,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "host",
+            "pid": 186396,
+            "rate": 2,
+            "frame": 835,
+            "game_ms": 28390,
+            "mono_ns": 139092789351589,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            84.891667,
+            84.998236,
+            85.140116
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 186396,
+          "first_sample_lag_wall_s": 0.064175,
+          "cutoff_after_last_sample_wall_s": 0.001161
+        },
+        "dark": {
+          "observed_rate": 2.000011,
+          "game_seconds": 22.1,
+          "wall_seconds": 11.049939,
+          "samples": 131,
+          "first": {
+            "role": "dark",
+            "pid": 186413,
+            "rate": 2,
+            "frame": 15,
+            "game_ms": 510,
+            "mono_ns": 139081724955523,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "dark",
+            "pid": 186413,
+            "rate": 2,
+            "frame": 665,
+            "game_ms": 22610,
+            "mono_ns": 139092774894109,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            84.897204,
+            85.00217,
+            85.139911
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 186413,
+          "first_sample_lag_wall_s": 0.049737,
+          "cutoff_after_last_sample_wall_s": 0.015618,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 2.000001,
+            "samples": 9,
+            "wall_seconds": 0.68,
+            "game_ms": 1360,
+            "first_sample_minus_release_game_ms": -34,
+            "last_sample_minus_pickup_game_ms": 0,
+            "non_nominal_applied_samples": 0
+          }
+        },
+        "light": {
+          "observed_rate": 2.000007,
+          "game_seconds": 22.1,
+          "wall_seconds": 11.049963,
+          "samples": 131,
+          "first": {
+            "role": "light",
+            "pid": 186404,
+            "rate": 2,
+            "frame": 105,
+            "game_ms": 3570,
+            "mono_ns": 139081729787631,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "light",
+            "pid": 186404,
+            "rate": 2,
+            "frame": 755,
+            "game_ms": 25670,
+            "mono_ns": 139092779751128,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            84.397556,
+            85.000152,
+            85.598414
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 186404,
+          "first_sample_lag_wall_s": 0.05457,
+          "cutoff_after_last_sample_wall_s": 0.010761,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 1.999929,
+            "samples": 9,
+            "wall_seconds": 0.680024,
+            "game_ms": 1360,
+            "first_sample_minus_release_game_ms": -136,
+            "last_sample_minus_pickup_game_ms": 34,
+            "non_nominal_applied_samples": 0
+          }
+        }
+      },
+      "video": {
+        "sha256": "31e365a2873652e14e781e0bb13be4aced8be08183ce29397f467b8f3d2616d7",
+        "frames": 51,
+        "seconds": 10.201,
+        "receipt_sha256": "1e5eaca0add0c6796a990064897887ad31d6bce3fe7c9e64b259495b5cfa4da0",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 51,
+        "station_sector": 41
+      },
+      "shared_wall_seconds": 11.14,
+      "launcher_elapsed_wall_s": 17.01
+    },
+    {
+      "index": 15,
+      "pair": 8,
+      "first": "boba",
+      "starts": "normal",
+      "speed": 2,
+      "name": "pace-15-normal-boba-2x",
+      "source_receipt_sha256": "942fff202c8580b69ffe4580a83125250cd39a917c5d6633d04abcf26bec411d",
+      "log_sha256": {
+        "dark.log": "3c21a81073b24fb3e4dbdc3bd714558ab4cde57bcb9c862e33b05f4fa5426159",
+        "light.log": "e98e87d6f802b0b292a12b18790ec69ad6423cae946a7021db8d089213924a15",
+        "server.log": "0a33c2dd6374690c20e1bbbfbcb42f8c38f0bc10e4470e75c71bd0b20b8f5e0a",
+        "force-trace.jsonl": "266fbc33921d22f88d0232e1bc13a5ce466c3e25b4aa00f811c19bd0375add5b"
+      },
+      "pace_trace_sha256": "7635d0ce6dd01230ef4fab22829d315cf09642a25aaf61c371dcb9be2c21ef94",
+      "owners": {
+        "dark": {
+          "player": "Bot_BobaFett",
+          "slot": 1,
+          "sector": 41,
+          "expected_item": 29,
+          "expected_weapon": "concussion_rifle",
+          "first_target": 29,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 29,
+              "pack": false,
+              "direct": true,
+              "line": 282
+            }
+          ],
+          "target_sequence": [
+            29
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "concussion_rifle",
+            "line": 301
+          },
+          "sampled_first_weapons": [
+            "concussion_rifle"
+          ],
+          "owner_first_life_gain_s": {
+            "concussion_rifle": 1.19
+          },
+          "qualified_weapon": "concussion_rifle",
+          "qualified_gain_s": 1.19,
+          "unresolved_reason": null
+        },
+        "light": {
+          "player": "Bot_JanOrs",
+          "slot": 2,
+          "sector": 18,
+          "expected_item": 34,
+          "expected_weapon": "repeater",
+          "first_target": 34,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 34,
+              "pack": false,
+              "direct": true,
+              "line": 186
+            }
+          ],
+          "target_sequence": [
+            34
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "repeater",
+            "line": 201
+          },
+          "sampled_first_weapons": [
+            "repeater"
+          ],
+          "owner_first_life_gain_s": {
+            "repeater": 1.326
+          },
+          "qualified_weapon": "repeater",
+          "qualified_gain_s": 1.326,
+          "unresolved_reason": null
+        }
+      },
+      "clocks": {
+        "host": {
+          "observed_rate": 1.999999,
+          "game_seconds": 22.1,
+          "wall_seconds": 11.050007,
+          "samples": 131,
+          "first": {
+            "role": "host",
+            "pid": 186475,
+            "rate": 2,
+            "frame": 180,
+            "game_ms": 6120,
+            "mono_ns": 139099007887011,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "host",
+            "pid": 186475,
+            "rate": 2,
+            "frame": 830,
+            "game_ms": 28220,
+            "mono_ns": 139110057894009,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            84.878695,
+            84.999986,
+            85.120653
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 186475,
+          "first_sample_lag_wall_s": 0.006864,
+          "cutoff_after_last_sample_wall_s": 0.031546
+        },
+        "dark": {
+          "observed_rate": 1.999999,
+          "game_seconds": 22.1,
+          "wall_seconds": 11.050008,
+          "samples": 131,
+          "first": {
+            "role": "dark",
+            "pid": 186483,
+            "rate": 2,
+            "frame": 100,
+            "game_ms": 3400,
+            "mono_ns": 139099033711417,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "dark",
+            "pid": 186483,
+            "rate": 2,
+            "frame": 750,
+            "game_ms": 25500,
+            "mono_ns": 139110083719481,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            84.718935,
+            84.998749,
+            85.222325
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 186483,
+          "first_sample_lag_wall_s": 0.032688,
+          "cutoff_after_last_sample_wall_s": 0.005721,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 1.999956,
+            "samples": 9,
+            "wall_seconds": 0.680015,
+            "game_ms": 1360,
+            "first_sample_minus_release_game_ms": -136,
+            "last_sample_minus_pickup_game_ms": 34,
+            "non_nominal_applied_samples": 0
+          }
+        },
+        "light": {
+          "observed_rate": 2.000009,
+          "game_seconds": 22.1,
+          "wall_seconds": 11.049952,
+          "samples": 131,
+          "first": {
+            "role": "light",
+            "pid": 186492,
+            "rate": 2,
+            "frame": 10,
+            "game_ms": 340,
+            "mono_ns": 139099027726717,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "light",
+            "pid": 186492,
+            "rate": 2,
+            "frame": 660,
+            "game_ms": 22440,
+            "mono_ns": 139110077678663,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            84.855863,
+            84.997794,
+            85.13006
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 186492,
+          "first_sample_lag_wall_s": 0.026703,
+          "cutoff_after_last_sample_wall_s": 0.011762,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 2.000114,
+            "samples": 9,
+            "wall_seconds": 0.679961,
+            "game_ms": 1360,
+            "first_sample_minus_release_game_ms": -34,
+            "last_sample_minus_pickup_game_ms": 0,
+            "non_nominal_applied_samples": 0
+          }
+        }
+      },
+      "video": {
+        "sha256": "3a699d182d336303bb063c2bb3424df93cf458d38001bf4620cacae688b7ed1e",
+        "frames": 51,
+        "seconds": 10.201,
+        "receipt_sha256": "96179d88ac7eb830093288569feed031c1a8991a3ca9d5ef4d26551a561939b7",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 51,
+        "station_sector": 41
+      },
+      "shared_wall_seconds": 11.11,
+      "launcher_elapsed_wall_s": 16.95
+    },
+    {
+      "index": 16,
+      "pair": 8,
+      "first": "boba",
+      "starts": "normal",
+      "speed": 1,
+      "name": "pace-16-normal-boba-1x",
+      "source_receipt_sha256": "93e352352c9653e0cb3f1689c0fd407a791dbde9f9a320e7e222fefdd0c27b79",
+      "log_sha256": {
+        "dark.log": "1184c4e22aaea2922e5b7058a1c43cd756bc7727fc921a262f357af58b5a14c2",
+        "light.log": "820b76fa1b1aae4904a31ad3357bfa45c3bc250713261723ff4f42cb820cc030",
+        "server.log": "813cdc17d330c99c83f27ffad708a40d25f234b65a423ee79083c39d2d94e736",
+        "force-trace.jsonl": "8139ab81ac0d3d306fbccad18345d680814f7aa50b30db76958f899d11d40f5e"
+      },
+      "pace_trace_sha256": "c674a3c89dd6b986e211192e50d2e5a6a1ea70c4b88fb0f3a62b6e31d76fef73",
+      "owners": {
+        "dark": {
+          "player": "Bot_BobaFett",
+          "slot": 1,
+          "sector": 41,
+          "expected_item": 29,
+          "expected_weapon": "concussion_rifle",
+          "first_target": 29,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 29,
+              "pack": false,
+              "direct": true,
+              "line": 267
+            }
+          ],
+          "target_sequence": [
+            29
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "concussion_rifle",
+            "line": 286
+          },
+          "sampled_first_weapons": [
+            "concussion_rifle"
+          ],
+          "owner_first_life_gain_s": {
+            "concussion_rifle": 1.156
+          },
+          "qualified_weapon": "concussion_rifle",
+          "qualified_gain_s": 1.156,
+          "unresolved_reason": null
+        },
+        "light": {
+          "player": "Bot_JanOrs",
+          "slot": 2,
+          "sector": 18,
+          "expected_item": 34,
+          "expected_weapon": "repeater",
+          "first_target": 34,
+          "first_plan_direct": true,
+          "initial_target_correct": true,
+          "plans": [
+            {
+              "item": 34,
+              "pack": false,
+              "direct": true,
+              "line": 186
+            }
+          ],
+          "target_sequence": [
+            34
+          ],
+          "path_endpoint": "first_monitored_pickup_hud",
+          "pickup_hud": {
+            "weapon": "repeater",
+            "line": 198
+          },
+          "sampled_first_weapons": [
+            "repeater"
+          ],
+          "owner_first_life_gain_s": {
+            "repeater": 1.36
+          },
+          "qualified_weapon": "repeater",
+          "qualified_gain_s": 1.36,
+          "unresolved_reason": null
+        }
+      },
+      "clocks": {
+        "host": {
+          "observed_rate": 0.999999,
+          "game_seconds": 22.1,
+          "wall_seconds": 22.100025,
+          "samples": 131,
+          "first": {
+            "role": "host",
+            "pid": 186550,
+            "rate": 1,
+            "frame": 155,
+            "game_ms": 5270,
+            "mono_ns": 139117976322690,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "host",
+            "pid": 186550,
+            "rate": 1,
+            "frame": 805,
+            "game_ms": 27370,
+            "mono_ns": 139140076347608,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            169.865799,
+            170.000862,
+            170.149202
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 186550,
+          "first_sample_lag_wall_s": 0.045667,
+          "cutoff_after_last_sample_wall_s": 0.06677
+        },
+        "dark": {
+          "observed_rate": 1.000001,
+          "game_seconds": 22.1,
+          "wall_seconds": 22.099981,
+          "samples": 131,
+          "first": {
+            "role": "dark",
+            "pid": 186558,
+            "rate": 1,
+            "frame": 85,
+            "game_ms": 2890,
+            "mono_ns": 139118000123721,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "dark",
+            "pid": 186558,
+            "rate": 1,
+            "frame": 735,
+            "game_ms": 24990,
+            "mono_ns": 139140100104596,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            169.79125,
+            169.998423,
+            170.155545
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 186558,
+          "first_sample_lag_wall_s": 0.069468,
+          "cutoff_after_last_sample_wall_s": 0.043013,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 1.000067,
+            "samples": 8,
+            "wall_seconds": 1.18992,
+            "game_ms": 1190,
+            "first_sample_minus_release_game_ms": 0,
+            "last_sample_minus_pickup_game_ms": 34,
+            "non_nominal_applied_samples": 0
+          }
+        },
+        "light": {
+          "observed_rate": 0.999999,
+          "game_seconds": 22.1,
+          "wall_seconds": 22.100018,
+          "samples": 131,
+          "first": {
+            "role": "light",
+            "pid": 186568,
+            "rate": 1,
+            "frame": 10,
+            "game_ms": 340,
+            "mono_ns": 139118032506363,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "last": {
+            "role": "light",
+            "pid": 186568,
+            "rate": 1,
+            "frame": 660,
+            "game_ms": 22440,
+            "mono_ns": 139140132523943,
+            "step_ms": 34,
+            "applied_ms": 34
+          },
+          "marker_wall_ms_min_median_max": [
+            169.860213,
+            170.002761,
+            170.085166
+          ],
+          "marker_game_ms_min_median_max": [
+            170,
+            170.0,
+            170
+          ],
+          "nonfive_frame_gaps": 0,
+          "non_nominal_game_intervals": 0,
+          "observed_tail_game_s": 0.1,
+          "pid": 186568,
+          "first_sample_lag_wall_s": 0.101851,
+          "cutoff_after_last_sample_wall_s": 0.010594,
+          "opening_rate": {
+            "status": "bracketed",
+            "observed_rate": 1.000001,
+            "samples": 9,
+            "wall_seconds": 1.359998,
+            "game_ms": 1360,
+            "first_sample_minus_release_game_ms": 0,
+            "last_sample_minus_pickup_game_ms": 0,
+            "non_nominal_applied_samples": 0
+          }
+        }
+      },
+      "video": {
+        "sha256": "7150304d9315862a96fa1e87111342c344ee30afd6cfb8b40695a8d344ef6ae9",
+        "frames": 114,
+        "seconds": 23.087,
+        "receipt_sha256": "8278670e6022a65b39a0df3edda4dafd5119a54821f2d8d59fbb2c28ad70b548",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 114,
+        "station_sector": 41
+      },
+      "shared_wall_seconds": 22.27,
+      "launcher_elapsed_wall_s": 29.73
+    }
+  ]
+}

@@ -251,3 +251,55 @@ ld 2.46. The paired studies use the binary with SHA-256
 `885234aa2c9de16406f9c01da5bfefe733d65777d86edf7a89336cf255561b69`.
 
 [Native patch](planner-go.patch) and [build receipt](planner-go-build.json)
+
+## Paced native training images
+
+The Linux training build produces a dedicated host and a planner-GO bot client
+for local instrumented duels. Both pace conditions use the same host image,
+the same client image for both seats, and the original networking libraries.
+The ordinary server distribution remains the default when launching a game.
+
+Run the rebuild on x86-64 Linux with the Ubuntu toolchain identified in the
+[pace receipt](pace-build.json), the two packaged relink archives, the pinned
+bot-patched engine sources, and the generated `globals.h` used by the planner
+build above. Each `--source` is a candidate root containing `src/`. The
+builder checks the original input hashes and the exact rebuilt planner object
+before inserting the four timing hooks. Use a fresh output path outside a
+checkout for each rebuild.
+
+```sh
+python3 -B native/build_arena_pace.py \
+  --source /path/to/bot-patched-engine \
+  --globals-header /path/to/generated/globals.h \
+  --output /outside-checkouts/pace-build
+python3 -B native/tests/test_arena_pace_clock.py
+```
+
+The launcher selects `host/openjkdf2` and two copies of `bot/jk-bot-client`
+from that output, with the matching `libGameNetworkingSockets.so` for each
+image. Set `ADJOIN_PACE_RATE=1` or `2` on every engine process and pass
+`ADJOIN_PACE_ROLE=host`, `dark`, or `light` for its assigned seat. Keep the
+host and both clients on the same rate.
+
+Each outer gameplay step advances the stock engine clock by exactly 34 ms.
+Both the integer millisecond timer used by COGs and microsecond input used
+for fractional physics time derive from the same virtual step. The stock
+physics accumulator, control sampling, COGs and multiplayer update order
+execute normally. At 1× a step is scheduled every 34 real ms and at 2×
+every 17 real ms. Each process has its own deadline. After a substantial
+stall the scheduler restarts from current wall time and preserves every
+simulated step. This intentionally preserves tick size under CPU pressure.
+
+The networking library, OS delivery, observer, leases and launcher continue
+using wall time. The dedicated engine can still need a graphics context
+without a visible main window. These modes establish neither a synchronized
+packet schedule nor a deterministic multiplayer replay. Compare the
+instrumented 1× case to the ordinary runner when calibrating behavior.
+For the first frame and every fifth frame each engine emits `ARENA_PACE`
+on stderr with its role, PID, rate, frame counter, actual game milliseconds,
+undilated Linux monotonic nanoseconds, configured step and measured applied
+milliseconds. Qualify achieved speed on all three engines during the same
+post-GO interval. The standalone clock test checks integer and fractional
+steps against each archived clock object, separately from full-match evidence.
+
+[Clock implementation](arena_pace.c) · [Verified relinker](build_arena_pace.py)

@@ -1,0 +1,150 @@
+{
+  "schema": 1,
+  "frozen_utc": "2026-11-25T10:38:58.817340+00:00",
+  "scenario": "Canyon Oasis m10.jkl, headless native host and two players, rank 8, both planners start on GO, 22 game seconds of shared observation",
+  "speeds": [
+    1,
+    2
+  ],
+  "planner": "on",
+  "agreement_band_game_s": 0.2,
+  "secondary_band_game_s": 0.1,
+  "design": "Eight consecutive pairs. Each join order and layout occurs twice per pace. Balance which pace runs first. No RNG seed set or observed.",
+  "outcomes": [
+    "Compare both initial item IDs and changes of target through the corroborated first-life pickup HUD, ignoring repeated plans for the same item. Track weapon and slot on each owner.",
+    "Report each signed delta (accelerated minus ordinary) on the owner game clock, from physical release to first sampled gain. Report exact, within 0.10 s, and within 0.20 s. Missing or mismatched weapons cannot count as timing agreement.",
+    "Verify acceleration independently in all three live native processes against unscaled monotonic wall time over the opening. Report observed rates, including any cadence deviations."
+  ],
+  "interpretation": "The 0.20 s band allows about two nominal inventory samples; it is a descriptive limit chosen before these trials. Matching sample times does not certify identical paths, engine ticks, or wins.",
+  "attempts": "Retain failed attempts and stopped or diagnostic runs. Count a physically valid match even if its choice or pickup diverges. Freeze runtime and launcher before the scored sequence.",
+  "runs": [
+    {
+      "index": 1,
+      "pair": 1,
+      "first": "boba",
+      "starts": "normal",
+      "speed": 1,
+      "name": "pace-01-normal-boba-1x"
+    },
+    {
+      "index": 2,
+      "pair": 1,
+      "first": "boba",
+      "starts": "normal",
+      "speed": 2,
+      "name": "pace-02-normal-boba-2x"
+    },
+    {
+      "index": 3,
+      "pair": 2,
+      "first": "jan",
+      "starts": "normal",
+      "speed": 2,
+      "name": "pace-03-normal-jan-2x"
+    },
+    {
+      "index": 4,
+      "pair": 2,
+      "first": "jan",
+      "starts": "normal",
+      "speed": 1,
+      "name": "pace-04-normal-jan-1x"
+    },
+    {
+      "index": 5,
+      "pair": 3,
+      "first": "jan",
+      "starts": "swapped",
+      "speed": 1,
+      "name": "pace-05-swapped-jan-1x"
+    },
+    {
+      "index": 6,
+      "pair": 3,
+      "first": "jan",
+      "starts": "swapped",
+      "speed": 2,
+      "name": "pace-06-swapped-jan-2x"
+    },
+    {
+      "index": 7,
+      "pair": 4,
+      "first": "boba",
+      "starts": "swapped",
+      "speed": 2,
+      "name": "pace-07-swapped-boba-2x"
+    },
+    {
+      "index": 8,
+      "pair": 4,
+      "first": "boba",
+      "starts": "swapped",
+      "speed": 1,
+      "name": "pace-08-swapped-boba-1x"
+    },
+    {
+      "index": 9,
+      "pair": 5,
+      "first": "boba",
+      "starts": "swapped",
+      "speed": 1,
+      "name": "pace-09-swapped-boba-1x"
+    },
+    {
+      "index": 10,
+      "pair": 5,
+      "first": "boba",
+      "starts": "swapped",
+      "speed": 2,
+      "name": "pace-10-swapped-boba-2x"
+    },
+    {
+      "index": 11,
+      "pair": 6,
+      "first": "jan",
+      "starts": "swapped",
+      "speed": 2,
+      "name": "pace-11-swapped-jan-2x"
+    },
+    {
+      "index": 12,
+      "pair": 6,
+      "first": "jan",
+      "starts": "swapped",
+      "speed": 1,
+      "name": "pace-12-swapped-jan-1x"
+    },
+    {
+      "index": 13,
+      "pair": 7,
+      "first": "jan",
+      "starts": "normal",
+      "speed": 1,
+      "name": "pace-13-normal-jan-1x"
+    },
+    {
+      "index": 14,
+      "pair": 7,
+      "first": "jan",
+      "starts": "normal",
+      "speed": 2,
+      "name": "pace-14-normal-jan-2x"
+    },
+    {
+      "index": 15,
+      "pair": 8,
+      "first": "boba",
+      "starts": "normal",
+      "speed": 2,
+      "name": "pace-15-normal-boba-2x"
+    },
+    {
+      "index": 16,
+      "pair": 8,
+      "first": "boba",
+      "starts": "normal",
+      "speed": 1,
+      "name": "pace-16-normal-boba-1x"
+    }
+  ]
+}

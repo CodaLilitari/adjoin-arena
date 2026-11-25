@@ -203,3 +203,34 @@ python3 -B -m scripts.bot_development.analysis.planner_start \
 ```
 
 The comparison verifies the camera, owner inventories, native gate markers and first gear plans against the raw logs. The final two runs form a separate confirmation pair. The report includes incomplete pickups and gives an opening without a confirmed pickup no credit for taking a direct route.
+
+### Run the same opening at normal and double speed
+
+Use Bash on Linux with `jq`, `ip`, and the native capture dependencies above. Set `REPO` to this checkout, `OWNED_JK` to your local game data, `PACE_BUILD` to the directory containing the [paced native training images](../../../native/README.md#paced-native-training-images), and `RUN_ROOT` to a fresh directory outside Git. Each match uses its own loopback network, native headless host, two bot processes, and rifle-overlook camera. Both planners start at their owner's physical GO. The duration is measured in game seconds.
+
+```bash
+set -euo pipefail
+mkdir "$RUN_ROOT"
+schedule="$REPO/qa/adjoin-arena-opening-pace-schedule.json"
+while IFS=$'\t' read -r name first starts speed; do
+  flags=()
+  if [[ $first == jan ]]; then flags+=(--jan-first); fi
+  if [[ $starts == swapped ]]; then flags+=(--swap-starts); fi
+  unshare -Urn -- sh -c 'ip link set lo up && exec "$@"' sh \
+    python3 -B "$REPO/scripts/bot_development/legacy/native_force_observation.py" \
+    --repo "$REPO" --data "$OWNED_JK" --output "$RUN_ROOT/$name" \
+    --arena-baseline --ready-gate --observe-repeater --map m10.jkl --duration 22 \
+    --camera rifle-overlook --pace-build "$PACE_BUILD" --pace-rate "$speed" \
+    "${flags[@]}" > "$RUN_ROOT/$name.log" 2>&1
+  printf '%s\n' "$RUN_ROOT/$name" >> "$RUN_ROOT/qualified-paths.txt"
+done < <(jq -r '.runs[] | [.name,.first,.starts,.speed] | @tsv' "$schedule")
+```
+
+Keep the match directory and console log if a run stops. The schedule pairs runs by join order and starting layout. Compare the first item and any changes of target through the HUD pickup, then subtract local GO time from the owner's first inventory sample showing the weapon. The [prespecified timing bands](../../../qa/adjoin-arena-opening-pace-schedule.json) apply to those per-player game-clock differences.
+
+From the checkout root, generate the comparison from the 16 completed match directories.
+
+```sh
+python3 -B -m scripts.bot_development.analysis.opening_pace \
+  --paths "$RUN_ROOT/qualified-paths.txt" --output "$RUN_ROOT/opening-pace.json"
+```

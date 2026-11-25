@@ -28,7 +28,7 @@ The script builds one fixture and uses it for both modes. Use `--help` for the p
 
 The same Canyon Oasis water exit ran three times at 1× and three times uncapped on Ubuntu under WSL, using GCC 15.2.0 and the PR #2 web engine sources compiled as a native fixture. All six runs produced byte-identical start, input and state traces across 268 control ticks and 1,608 physics steps. The actor reached sector 10 with 100 health after 10.720 simulated seconds and 38 consecutive grounded steps.
 
-Median elapsed time fell from 10.798 seconds (range 10.748–11.453) to 0.667 seconds (range 0.617–0.918), a **16.19× speedup for this single-actor case**. Timing includes process startup, initialization and trace output. The two-player experiments below use ordinary 1× game speed. [Six-run receipt and source hashes](qa/adjoin-arena-m0-pool90.json)
+Median elapsed time fell from 10.798 seconds (range 10.748–11.453) to 0.667 seconds (range 0.617–0.918), a **16.19× speedup for this single-actor case**. Timing includes process startup, initialization and trace output. The two-player series below first establishes an ordinary-speed baseline and then measures a matched 2× opening. [Six-run receipt and source hashes](qa/adjoin-arena-m0-pool90.json)
 
 ## Two-player Canyon Oasis baseline
 
@@ -94,6 +94,26 @@ Jan and Boba each changed targets in all four ordinary openings where they joine
 The native markers locate the difference at release. With ordinary planning, slot 1 already had 3.44 to 4.39 s on its policy clock and had selected gear in every run. With planning held, both players' policy clocks read zero at release and every first gear plan came afterward. The change delays planning and perception together, so the particular timer or observation responsible for the former detour is still open. The confirmation uses the same map, and the game seeds were unrecorded. Duel strength and accelerated multiplayer require their own comparisons.
 
 [Per-match results](qa/adjoin-arena-planner-start.json) | [Experimental design](docs/superpowers/plans/2026-11-24-planner-start.md) | [Trial schedule](qa/adjoin-arena-planner-start-schedule.json) | [Rebuild and reproduce](scripts/bot_development/legacy/README.md#compare-ordinary-planning-with-a-start-on-go)
+
+### Do the openings carry over to double speed?
+
+Yes for the observed gear decisions. In 16 headless matches, Jan and Boba kept the same target through pickup in every paired comparison. Each player chose the concussion rifle when starting in sector 41 and the repeater when starting in sector 18. Both starting layouts and join orders were tested twice at each speed. Each bot started planning at its own physical GO.
+
+| Eight matched 1×/2× pairs | Result |
+|---|---:|
+| Same first target, target sequence and weapon collected | 16 of 16 player comparisons |
+| Identical release-to-possession time on the owning game clock | 4 of 16 |
+| Within 0.10 game seconds | 16 of 16 |
+| Median absolute time difference | 0.034 s |
+| Largest absolute difference | 0.068 s |
+
+The median signed difference (2× minus 1×) was zero. Boba's largest difference was 0.034 s and Jan's was 0.068 s. Pickup times come from the first sampled inventory gain after local release, corroborated by the stock pickup message. For comparison, repeated runs at ordinary speed in the earlier study differed by up to 0.068 s under the same join order and layout.
+
+The research host and both clients use 34 ms simulation steps at each pace. The 1× control schedules a step every 34 real ms and the 2× condition every 17 real ms. All 48 process measurements covered 22.100 game seconds. That took 22.100 and 11.050 wall seconds respectively at the median. Across the shorter release-to-pickup intervals the two owners also independently measured the intended pace. Including startup, joins and spectator-video processing, median launcher time fell from 29.91 to 16.76 seconds, a 1.78× speedup.
+
+Use 2× for repeated measurements of this opening. Keep 1× as the comparison for new scenarios. The game seeds were unrecorded, and these observations end at the opening pickup. All 16 scored runs qualified on the first attempt. Two successful pilots and an earlier host-loading timeout before either player joined were kept separately. The matches ran in a loopback-only Linux network.
+
+[Matched outcomes and measured clocks](qa/adjoin-arena-opening-pace.json) | [Frozen trial schedule](qa/adjoin-arena-opening-pace-schedule.json) | [Rebuild and reproduce](scripts/bot_development/legacy/README.md#run-the-same-opening-at-normal-and-double-speed)
 
 ## Inherited JK Cross Server documentation
 

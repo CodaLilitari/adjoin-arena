@@ -105,12 +105,13 @@ def compare_seat(a, b):
     return result
 
 
-def read_observer(directory, receipt, names, *, sides=SIDES):
+def read_observer(directory, receipt, names, *, sides=SIDES, expected_host_sha=None):
     camera_path = directory / "spectator" / "observer-receipt.json"
     require(sha(camera_path) == receipt["observer_receipt_sha256"], "Observer receipt hash mismatch")
     camera = json.loads(camera_path.read_bytes())
+    host_sha = receipt["sha256"][HOST] if expected_host_sha is None else expected_host_sha
     require(receipt["observer_status"] == camera["status"] == "recorded"
-            and camera["match"]["map"] == "m10.jkl" and camera["match"]["engine_sha256"] == receipt["sha256"][HOST],
+            and camera["match"]["map"] == "m10.jkl" and camera["match"]["engine_sha256"] == host_sha,
             "Incomplete or different observer session")
     players = sorted(camera["joined_roster"], key=lambda p: p["slot"])
     roster = [p["name"] for p in players]

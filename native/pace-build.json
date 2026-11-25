@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "step_ms": 34,
+  "rates": [
+    1,
+    2
+  ],
+  "pace_source_sha256": "7d1b50ab4f78b6ae6f61e748691b823d8ca8f3eec3efe6440872addbeedfb993",
+  "builder_sha256": "b83bf815faab6ac51c9bb1c50241b5dfd54671b3712b71bf65d57ee7b48ebc62",
+  "hooks": {
+    "Gameplay/sithTime": {
+      "stdPlatform_GetTimeMsec": "arena_clock_ms",
+      "Linux_TimeUs": "arena_clock_us"
+    },
+    "Main/jkMain": {
+      "jkPlayer_fpslimit": "arena_uncapped_fps"
+    },
+    "Main/sithMain": {
+      "sithTime_Advance": "arena_advance"
+    },
+    "Win95/Window": {
+      "SDL_Delay": "arena_window_delay"
+    }
+  },
+  "toolchain": {
+    "cc": "cc (Ubuntu 15.2.0-16ubuntu1) 15.2.0",
+    "c++": "c++ (Ubuntu 15.2.0-16ubuntu1) 15.2.0",
+    "ld": "GNU ld (GNU Binutils for Ubuntu) 2.46",
+    "objcopy": "GNU objcopy (GNU Binutils for Ubuntu) 2.46"
+  },
+  "host": {
+    "archive_sha256": "8abea7457b84141777bef76685ad7f91eec9710a40811811bda12293fddb88d2",
+    "base_binary_sha256": "16944b47e2ceecf3f09cc2820af26372e2af8642057c2b0a963e353ff090c745",
+    "binary_sha256": "2bcba96b53b8dd6e0693b2b3de44e574252477da6aa6ee9a2b60e670c3b9ea3e",
+    "gns_sha256": "45797fcd310f0812af9f55354ff22663859ca68c2d8bb0005efb88a748c471e7"
+  },
+  "bot": {
+    "archive_sha256": "a9d6ac49ff89d662c8ef4d56973994d572701a27ff6ba944c069df0c21ff3d21",
+    "base_binary_sha256": "885234aa2c9de16406f9c01da5bfefe733d65777d86edf7a89336cf255561b69",
+    "planner_object_sha256": "f2c42f370b748df7c4534f2193c125ac6f9c079f8b6dc8761c24d65b8a28f9d8",
+    "binary_sha256": "7879511c1c9f1739cebe66de31da3514d56ad0578d369076727f25824e99bfd6",
+    "gns_sha256": "8246a869b1d72115ecc849309629aa1abbce0bf1a0f23cc70deaded98d82d8e9"
+  }
+}
