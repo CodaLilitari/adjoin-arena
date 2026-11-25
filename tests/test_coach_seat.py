@@ -144,6 +144,15 @@ class Seat(unittest.TestCase):
         self.assertEqual(len(self.hub.sent), n)
         self.assertTrue(any('"kind": "error"' in l or "error" in l for l in self.lines))
 
+    def test_commands_arriving_together_are_all_sent(self):
+        """Live JKWeb run: 'set' then 'strategy' in one batch lost the 'set'."""
+        seat = self.make(start="manual")
+        seat.command("set run=1")
+        seat.command("strategy pressure ttl=8")
+        self.ticks(seat, 5)
+        self.assertEqual([r for r, _ in self.hub.sent[-2:]], ["tactics", "strategy"])
+        self.assertEqual(self.hub.sent[-2][1], {"values": {"run": 1.0}})
+
     def test_refused_manual_command_is_reported(self):
         seat = self.make(statuses=["rate_limited"], start="manual")
         seat.command("preset dry")

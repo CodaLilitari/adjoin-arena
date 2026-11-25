@@ -122,12 +122,18 @@ def child_relay(path):
 
 
 class Host:
-    def __init__(self, data, engine, runtime, room, model, chat, mode="ff-guns", *, adaptive_lily=False, external=None):
+    def __init__(self, data, engine, runtime, room, model, chat, mode="ff-guns", *, adaptive_lily=False, external=None,
+                 hosted=None):
         if mode not in ARENA_MODES:
             raise ValueError("Unknown arena mode. Choose one of " + ", ".join(ARENA_MODES) + ".")
+        if external and hosted:
+            raise ValueError("A seat either joins a listed room or hosts one.")
         self.mode = mode
         self.external = external
-        seat_ids = (external.seat,) if external else tuple(SEATS)
+        # PR4: one seat that hosts an ordinary WSRelay room on a chosen relay
+        # (web_bots.headless host). Other players join it by its lobby ID.
+        self.hosted = hosted
+        seat_ids = (external.seat,) if external else (hosted.seat,) if hosted else tuple(SEATS)
         if not isinstance(room,str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,31}",room) or room != room.strip():
             raise ValueError("Room must be 1..31 ASCII letters, digits, underscores or hyphens.")
         self.room, self.engine, self.runtime = room, Path(engine), Path(runtime)
@@ -163,6 +169,7 @@ class Host:
         private_json(self.runtime/"run.json", {"url":self.url,"status":self.url+"/status","room":self.room,"mode":self.mode,
             "adaptive_lily":bool("lily" in self.seats and self.hub.bots["lily"].adaptive_lily),
             **({"external":self.external.public()} if self.external else {}),
+            **({"hosted":self.hosted.public()} if self.hosted else {}),
             "pages":{i:self.url+"/bot/"+i for i in self.seats}, "companion":self.hub.url,
             "engine_credentials":"engines","companion_credentials":"companion"})
 
@@ -226,7 +233,12 @@ class Host:
             raise web.HTTPNotFound()
         return web.FileResponse(HERE/"index.html",headers={"Content-Security-Policy":
             "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'unsafe-inline'; "
-            "worker-src 'self' blob:; connect-src 'self' ws://127.0.0.1:"+str(self.port)+(" "+self.external.relay if self.external else "")+"; frame-ancestors 'none'; base-uri 'none'"})
+            "worker-src 'self' blob:; connect-src 'self' ws://127.0.0.1:"+str(self.port)+(" "+self.outside_relay if self.outside_relay else "")+"; frame-ancestors 'none'; base-uri 'none'"})
+
+    @property
+    def outside_relay(self):
+        room = self.external or self.hosted
+        return room.relay if room else None
 
     async def javascript(self, request):
         return web.FileResponse(HERE/"client.js",headers={"Content-Type":"text/javascript"})
@@ -273,13 +285,14 @@ class Host:
         name,model,sound,side = ROOM_PLAYERS[ident]
         if ident == "lily" and self.model:
             model,sound="dlil.3do","dlil.snd"
-        role = "host" if ident=="lily" else "join"
+        role = "host" if ident=="lily" or self.hosted else "join"
         response = web.json_response({"id":ident,
-            **({"relay":self.external.relay} if self.external else {}),
+            **({"relay":self.outside_relay} if self.outside_relay else {}),
             "assets":[{"path":path,"url":f"/engine/{ident}/assets/{n}"} for n,(path,_) in enumerate(self.assets)],
             "mod":self.model,"env":{"JK_BOT_WEB_ROLE":"external" if self.external else role,"JK_BOT_WEB_ROOM":self.room,"JK_BOT_WEB_MODE":self.mode,
                 **({"JK_BOT_LILY":"1"} if self.hub.bots[ident].adaptive_lily else {}),
                 **({"JK_BOT_WEB_EPISODE":self.external.episode,"JK_BOT_WEB_MAP":self.external.level} if self.external else {}),
+                **({"JK_BOT_WEB_MAX_PLAYERS":str(self.hosted.max_players),"JK_BOT_WEB_MAP":self.hosted.level} if self.hosted else {}),
                 "JK_BOT_WEB_NAME":name,"JK_BOT_WEB_MODEL":model,"JK_BOT_WEB_SOUND":sound,
                 "JK_BOT_WEB_SABER_COLOR":"red" if ident=="lily" else "green",
                 "JK_BOT_TRACE_FORCE":"1" if os.environ.get("JK_BOT_TRACE_FORCE")=="1" else "0",

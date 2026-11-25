@@ -75,7 +75,7 @@
     const data = Uint8Array.from(atob(encoded), c => c.charCodeAt(0));
     if (data.length < 28 || data.length > 512) return;
     const view = new DataView(data.buffer);
-    const allowed = [16,17,18].includes(data[5]) || (adaptiveLily && [19,20].includes(data[5]));
+    const allowed = [16,17,18,21].includes(data[5]) || (adaptiveLily && [19,20].includes(data[5]));
     if (!allowed || view.getUint16(6,true) !== data.length-20) return;
     // Charge the full poll latency against TTL. Absolute clock origins in
     // Python and Emscripten need not agree. Dequeued commands are sent once.

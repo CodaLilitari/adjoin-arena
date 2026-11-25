@@ -33,6 +33,7 @@ import http.client
 import json
 from pathlib import Path
 import queue
+import signal
 import secrets
 import shlex
 import sys
@@ -87,6 +88,7 @@ class CoachSeat:
         self.request, self.clock, self.out, self.control = request, clock, log, control
         self.mode = start            # auto | manual | hold | released
         self.lease = None
+        self.queued = []
         self.pending = None          # (kind, label, request_id, coach_preset or None)
         self.last = {}
         self.manual = None           # description of what the operator applied
@@ -176,7 +178,7 @@ class CoachSeat:
                 self.say("takeover", dropped_window_of=self.coach.current)
             self.mode = "manual"
             self.coach.current = None  # the open window is dropped, never graded
-        self.queued = action
+        self.queued.append(action)  # FIFO: commands arriving together are all sent, in order
 
     # -- lease and coaching ----------------------------------------------
     def release(self):
@@ -188,13 +190,11 @@ class CoachSeat:
             self.say("released")
         self.lease = self.pending = None
 
-    queued = None
-
     def tick(self):
         observed = self.request(self.cred, "observation")
         self.last = observed
         fence = {key: observed[key] for key in FENCE}
-        if self.mode == "released" and self.queued is None:
+        if self.mode == "released" and not self.queued:
             return
         if self.lease is None or any(self.lease[key] != fence[key] for key in FENCE):
             self.lease = self.pending = None
@@ -222,8 +222,7 @@ class CoachSeat:
                         self.manual = label
             return
         if self.queued:
-            route, body, label = self.queued
-            self.queued = None
+            route, body, label = self.queued.pop(0)
             self.send(route, body, label)
             return
         if self.mode == "auto":
@@ -310,6 +309,9 @@ def main(argv=None) -> int:
     args = p.parse_args(argv)
     if args.run and not args.seat:
         p.error("--run needs --seat")
+    def stop(signum, frame):  # SIGTERM releases the lease (run()'s finally) instead of holding it 30 s
+        raise KeyboardInterrupt
+    signal.signal(signal.SIGTERM, stop)
     try:
         arms = [name for name in args.presets.split(",") if name]
         unknown = [name for name in arms if name not in tactics.PRESETS]
