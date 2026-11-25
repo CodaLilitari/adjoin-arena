@@ -1,0 +1,1666 @@
+{
+  "schema": 1,
+  "schedule_sha256": "f0a67928fd7427d9eec6f914097431f20223f2ddf65d01408d3a65a692ccf2a4",
+  "matches": [
+    {
+      "name": "mode-01-ffa-guns-force-on",
+      "attempt": "mode-01-ffa-guns-force-on-r1",
+      "receipt_sha256": "97ecc994f2adbea4443f34c4bb930d9ec92f4c808561f79848b91855f0c4d67e",
+      "qualification": "gameplay_verified_after_media_failure",
+      "missing_horizontal_control": [],
+      "map": "m10.jkl",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+      "episode_sha256": "27a4b3642e0965753232f35b1e8e846c91df1eca1da77398b5efda66ca369a2e",
+      "build_sha256": "1c491dcc76238b883253c52285e1f9a36d3598bc138cf5ee05fdad0f8712e048",
+      "first": "boba_fett",
+      "first_move_before_second_join_wall_s": 1.576380003,
+      "duration": 50,
+      "pace": 2,
+      "measured_rates": {
+        "host": 1.9999982733414707,
+        "dark": 1.9999998233300254,
+        "light": 1.9999977543395107
+      },
+      "video": "error",
+      "policy_selection": {
+        "controller": "teacher",
+        "reason": "missing_live_model_movement_class",
+        "sha256": null
+      },
+      "owners": {
+        "dark": {
+          "native_scope": "ffa/guns/force",
+          "teams": [
+            0
+          ],
+          "nodes": 556,
+          "map_sectors": 69,
+          "visited_sectors": 18,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 0,
+          "nav_events": {},
+          "objectives": {},
+          "effective_duel_models": {
+            "teacher": 310
+          },
+          "labels": {
+            "1": 310
+          },
+          "join_to_first_eligible_wall_s": 0.020144934,
+          "flags": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ]
+          ]
+        },
+        "light": {
+          "native_scope": "ffa/guns/force",
+          "teams": [
+            0
+          ],
+          "nodes": 556,
+          "map_sectors": 69,
+          "visited_sectors": 22,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 0,
+          "nav_events": {
+            "BOT_NAV_FALLBACK": 1
+          },
+          "objectives": {},
+          "effective_duel_models": {
+            "teacher": 386
+          },
+          "labels": {
+            "1": 386
+          },
+          "join_to_first_eligible_wall_s": 0.020477976,
+          "flags": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ]
+          ]
+        }
+      },
+      "stock_ctf_captures": null
+    },
+    {
+      "name": "mode-02-tdm-guns-force-off",
+      "attempt": "mode-02-tdm-guns-force-off",
+      "receipt_sha256": "cac8aaf70be0e918a87d32c33308d803779c3cfd282a5f1a0097f16ed617d44d",
+      "qualification": "verified",
+      "missing_horizontal_control": [],
+      "map": "m2.jkl",
+      "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a",
+      "episode_sha256": "27a4b3642e0965753232f35b1e8e846c91df1eca1da77398b5efda66ca369a2e",
+      "build_sha256": "1c491dcc76238b883253c52285e1f9a36d3598bc138cf5ee05fdad0f8712e048",
+      "first": "jan_ors",
+      "first_move_before_second_join_wall_s": 2.686007142,
+      "duration": 50,
+      "pace": 2,
+      "measured_rates": {
+        "host": 1.9940503868907118,
+        "dark": 1.9999991234300951,
+        "light": 1.9999995929811396
+      },
+      "video": "recorded",
+      "policy_selection": {
+        "controller": "teacher",
+        "reason": "no_qualified_gear_model",
+        "sha256": null
+      },
+      "owners": {
+        "dark": {
+          "native_scope": "tdm/guns/noforce",
+          "teams": [
+            0,
+            1
+          ],
+          "nodes": 641,
+          "map_sectors": 116,
+          "visited_sectors": 14,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 0,
+          "nav_events": {
+            "BOT_NAV_LEARN/stall": 3,
+            "BOT_NAV_COST": 3
+          },
+          "objectives": {},
+          "effective_duel_models": {},
+          "labels": {},
+          "join_to_first_eligible_wall_s": 0.02140162,
+          "flags": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ]
+          ]
+        },
+        "light": {
+          "native_scope": "tdm/guns/noforce",
+          "teams": [
+            0,
+            2
+          ],
+          "nodes": 640,
+          "map_sectors": 116,
+          "visited_sectors": 11,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 0,
+          "nav_events": {},
+          "objectives": {},
+          "effective_duel_models": {},
+          "labels": {},
+          "join_to_first_eligible_wall_s": 0.020737977,
+          "flags": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ]
+          ]
+        }
+      },
+      "stock_ctf_captures": null
+    },
+    {
+      "name": "mode-03-ctf-guns-force-on",
+      "attempt": "mode-03-ctf-guns-force-on",
+      "receipt_sha256": "41d50aa9044a2a2670e46e78a2fb4ec408ec5a509b9076be663875921b1076a3",
+      "qualification": "verified",
+      "missing_horizontal_control": [],
+      "map": "c1.jkl",
+      "map_sha256": "349fb5beffba7c84fd573fe1184f3fbb569d4fcdad07d2d9b26fcb8afdb849e0",
+      "episode_sha256": "da98fe3fc769168f1bb562cc1f6532560b12d8e920fd6c34586d69b424b5b1fc",
+      "build_sha256": "1c491dcc76238b883253c52285e1f9a36d3598bc138cf5ee05fdad0f8712e048",
+      "first": "boba_fett",
+      "first_move_before_second_join_wall_s": 3.03395958,
+      "duration": 90,
+      "pace": 2,
+      "measured_rates": {
+        "host": 1.997050601448938,
+        "dark": 2.000000614162231,
+        "light": 1.9999998741398524
+      },
+      "video": "recorded",
+      "policy_selection": {
+        "controller": "teacher",
+        "reason": "v1_gear_task_outside_objective_or_saber_contract",
+        "sha256": null
+      },
+      "owners": {
+        "dark": {
+          "native_scope": "ctf/guns/force",
+          "teams": [
+            0,
+            1
+          ],
+          "nodes": 1040,
+          "map_sectors": 289,
+          "visited_sectors": 46,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 0,
+          "nav_events": {
+            "BOT_NAV_LEARN/stall": 4,
+            "BOT_NAV_COST": 4
+          },
+          "objectives": {
+            "join": 7,
+            "capture": 121,
+            "return": 196,
+            "intercept": 179
+          },
+          "effective_duel_models": {},
+          "labels": {},
+          "join_to_first_eligible_wall_s": 0.025422206,
+          "flags": [
+            [
+              142,
+              143
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ],
+            [
+              -1,
+              111
+            ],
+            [
+              112,
+              -1
+            ]
+          ]
+        },
+        "light": {
+          "native_scope": "ctf/guns/force",
+          "teams": [
+            0,
+            2
+          ],
+          "nodes": 1042,
+          "map_sectors": 289,
+          "visited_sectors": 38,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 0,
+          "nav_events": {
+            "BOT_NAV_FALLBACK": 1,
+            "BOT_NAV_LEARN/stall": 6,
+            "BOT_NAV_COST": 6
+          },
+          "objectives": {
+            "join": 9,
+            "capture": 85,
+            "intercept": 202,
+            "return": 177
+          },
+          "effective_duel_models": {},
+          "labels": {},
+          "join_to_first_eligible_wall_s": 0.023579773,
+          "flags": [
+            [
+              142,
+              143
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ],
+            [
+              -1,
+              111
+            ],
+            [
+              112,
+              -1
+            ]
+          ]
+        }
+      },
+      "stock_ctf_captures": {
+        "red": 2,
+        "gold": 2
+      }
+    },
+    {
+      "name": "mode-04-ffa-saber-force-off",
+      "attempt": "mode-04-ffa-saber-force-off",
+      "receipt_sha256": "6cd19694354a3fb170fe61c027933c1dfae6c620b797d05a75e8bf3a85adf145",
+      "qualification": "verified",
+      "missing_horizontal_control": [],
+      "map": "m4.jkl",
+      "map_sha256": "150eda1c2e6c7f316c8b76a0f2f060ce5d49dcc9ae24bb43e4fb42a5df20d89c",
+      "episode_sha256": "27a4b3642e0965753232f35b1e8e846c91df1eca1da77398b5efda66ca369a2e",
+      "build_sha256": "1c491dcc76238b883253c52285e1f9a36d3598bc138cf5ee05fdad0f8712e048",
+      "first": "jan_ors",
+      "first_move_before_second_join_wall_s": 3.053683735,
+      "duration": 50,
+      "pace": 2,
+      "measured_rates": {
+        "host": 1.9894508228810646,
+        "dark": 1.9999986770098481,
+        "light": 2.0000001910269374
+      },
+      "video": "recorded",
+      "policy_selection": {
+        "controller": "teacher",
+        "reason": "v1_gear_task_outside_objective_or_saber_contract",
+        "sha256": null
+      },
+      "owners": {
+        "dark": {
+          "native_scope": "ffa/sabers/noforce",
+          "teams": [
+            0
+          ],
+          "nodes": 704,
+          "map_sectors": 164,
+          "visited_sectors": 30,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 0,
+          "nav_events": {
+            "BOT_NAV_FALLBACK": 1,
+            "BOT_NAV_LEARN/stall": 1,
+            "BOT_NAV_COST": 1
+          },
+          "objectives": {},
+          "effective_duel_models": {},
+          "labels": {},
+          "join_to_first_eligible_wall_s": 0.021966167,
+          "flags": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ]
+          ]
+        },
+        "light": {
+          "native_scope": "ffa/sabers/noforce",
+          "teams": [
+            0
+          ],
+          "nodes": 702,
+          "map_sectors": 164,
+          "visited_sectors": 24,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 0,
+          "nav_events": {
+            "BOT_NAV_FALLBACK": 1,
+            "BOT_NAV_LEARN/stall": 1,
+            "BOT_NAV_COST": 1
+          },
+          "objectives": {},
+          "effective_duel_models": {},
+          "labels": {},
+          "join_to_first_eligible_wall_s": 0.022252995,
+          "flags": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ]
+          ]
+        }
+      },
+      "stock_ctf_captures": null
+    },
+    {
+      "name": "mode-05-tdm-saber-force-on",
+      "attempt": "mode-05-tdm-saber-force-on-r1",
+      "receipt_sha256": "19361b4042a08df7cb6b0cfff6991d02e7204d2c8659aa0b1aa91ee398acab2b",
+      "qualification": "verified",
+      "missing_horizontal_control": [],
+      "map": "m4.jkl",
+      "map_sha256": "150eda1c2e6c7f316c8b76a0f2f060ce5d49dcc9ae24bb43e4fb42a5df20d89c",
+      "episode_sha256": "27a4b3642e0965753232f35b1e8e846c91df1eca1da77398b5efda66ca369a2e",
+      "build_sha256": "1c491dcc76238b883253c52285e1f9a36d3598bc138cf5ee05fdad0f8712e048",
+      "first": "boba_fett",
+      "first_move_before_second_join_wall_s": 2.759230173,
+      "duration": 50,
+      "pace": 2,
+      "measured_rates": {
+        "host": 1.9999954935295958,
+        "dark": 1.9999987428123556,
+        "light": 1.999998635853373
+      },
+      "video": "not_requested",
+      "policy_selection": {
+        "controller": "teacher",
+        "reason": "v1_gear_task_outside_objective_or_saber_contract",
+        "sha256": null
+      },
+      "owners": {
+        "dark": {
+          "native_scope": "tdm/sabers/force",
+          "teams": [
+            0,
+            1
+          ],
+          "nodes": 702,
+          "map_sectors": 164,
+          "visited_sectors": 28,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 3,
+          "nav_events": {
+            "BOT_NAV_COST": 2,
+            "BOT_NAV_LEARN/stall": 1
+          },
+          "objectives": {},
+          "effective_duel_models": {},
+          "labels": {},
+          "join_to_first_eligible_wall_s": 0.02194018,
+          "flags": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ]
+          ]
+        },
+        "light": {
+          "native_scope": "tdm/sabers/force",
+          "teams": [
+            0,
+            2
+          ],
+          "nodes": 708,
+          "map_sectors": 164,
+          "visited_sectors": 23,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 1,
+          "nav_events": {
+            "BOT_NAV_FALLBACK": 2,
+            "BOT_NAV_COST": 3,
+            "BOT_NAV_LEARN/stall": 2
+          },
+          "objectives": {},
+          "effective_duel_models": {},
+          "labels": {},
+          "join_to_first_eligible_wall_s": 0.022035885,
+          "flags": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ]
+          ]
+        }
+      },
+      "stock_ctf_captures": null
+    },
+    {
+      "name": "mode-06-ctf-saber-force-off",
+      "attempt": "mode-06-ctf-saber-force-off",
+      "receipt_sha256": "ee56ece35b6b4ec30eac4ce3dfc062ff179a56ba26eceaee62fe6313dbcfdc4b",
+      "qualification": "verified",
+      "missing_horizontal_control": [],
+      "map": "c2.jkl",
+      "map_sha256": "bc9975eb3c93ee45e83928307d27dfd5d8f94ad4eea3216fa3fecf784e593ade",
+      "episode_sha256": "da98fe3fc769168f1bb562cc1f6532560b12d8e920fd6c34586d69b424b5b1fc",
+      "build_sha256": "1c491dcc76238b883253c52285e1f9a36d3598bc138cf5ee05fdad0f8712e048",
+      "first": "jan_ors",
+      "first_move_before_second_join_wall_s": 4.536671411,
+      "duration": 90,
+      "pace": 2,
+      "measured_rates": {
+        "host": 2.00000021411767,
+        "dark": 2.000002181178849,
+        "light": 2.0000001570699344
+      },
+      "video": "not_requested",
+      "policy_selection": {
+        "controller": "teacher",
+        "reason": "v1_gear_task_outside_objective_or_saber_contract",
+        "sha256": null
+      },
+      "owners": {
+        "dark": {
+          "native_scope": "ctf/sabers/noforce",
+          "teams": [
+            0,
+            1
+          ],
+          "nodes": 1709,
+          "map_sectors": 359,
+          "visited_sectors": 45,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 0,
+          "nav_events": {
+            "BOT_NAV_FALLBACK": 3,
+            "BOT_NAV_LEARN/stall": 3,
+            "BOT_NAV_COST": 2
+          },
+          "objectives": {
+            "join": 30,
+            "capture": 304,
+            "return": 55,
+            "intercept": 67
+          },
+          "effective_duel_models": {},
+          "labels": {},
+          "join_to_first_eligible_wall_s": 0.02432604,
+          "flags": [
+            [
+              104,
+              105
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ],
+            [
+              -1,
+              193
+            ],
+            [
+              192,
+              -1
+            ]
+          ]
+        },
+        "light": {
+          "native_scope": "ctf/sabers/noforce",
+          "teams": [
+            0,
+            2
+          ],
+          "nodes": 1709,
+          "map_sectors": 359,
+          "visited_sectors": 59,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 0,
+          "nav_events": {
+            "BOT_NAV_FALLBACK": 3,
+            "BOT_NAV_LEARN/stall": 2,
+            "BOT_NAV_COST": 2
+          },
+          "objectives": {
+            "join": 39,
+            "capture": 336,
+            "intercept": 57,
+            "return": 68
+          },
+          "effective_duel_models": {},
+          "labels": {},
+          "join_to_first_eligible_wall_s": 0.024372546,
+          "flags": [
+            [
+              104,
+              105
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ],
+            [
+              -1,
+              193
+            ],
+            [
+              192,
+              -1
+            ]
+          ]
+        }
+      },
+      "stock_ctf_captures": {
+        "red": 1,
+        "gold": 1
+      }
+    },
+    {
+      "name": "mode-07-ffa-guns-force-off",
+      "attempt": "mode-07-ffa-guns-force-off",
+      "receipt_sha256": "93508f407cec8edfa82953a79b54830919766fdc47c65b146c4b92a5a95f00c8",
+      "qualification": "verified",
+      "missing_horizontal_control": [],
+      "map": "m2.jkl",
+      "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a",
+      "episode_sha256": "27a4b3642e0965753232f35b1e8e846c91df1eca1da77398b5efda66ca369a2e",
+      "build_sha256": "1c491dcc76238b883253c52285e1f9a36d3598bc138cf5ee05fdad0f8712e048",
+      "first": "boba_fett",
+      "first_move_before_second_join_wall_s": 2.635781615,
+      "duration": 50,
+      "pace": 2,
+      "measured_rates": {
+        "host": 1.9999962292394124,
+        "dark": 1.9999946386584397,
+        "light": 1.9999967453692045
+      },
+      "video": "not_requested",
+      "policy_selection": {
+        "controller": "teacher",
+        "reason": "no_qualified_gear_model",
+        "sha256": null
+      },
+      "owners": {
+        "dark": {
+          "native_scope": "ffa/guns/noforce",
+          "teams": [
+            0
+          ],
+          "nodes": 640,
+          "map_sectors": 116,
+          "visited_sectors": 14,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 0,
+          "nav_events": {},
+          "objectives": {},
+          "effective_duel_models": {
+            "teacher": 690
+          },
+          "labels": {
+            "1": 514,
+            "0": 176
+          },
+          "join_to_first_eligible_wall_s": 0.023445901,
+          "flags": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ]
+          ]
+        },
+        "light": {
+          "native_scope": "ffa/guns/noforce",
+          "teams": [
+            0
+          ],
+          "nodes": 640,
+          "map_sectors": 116,
+          "visited_sectors": 10,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 0,
+          "nav_events": {
+            "BOT_NAV_LEARN/stall": 2,
+            "BOT_NAV_COST": 2
+          },
+          "objectives": {},
+          "effective_duel_models": {
+            "teacher": 579
+          },
+          "labels": {
+            "1": 434,
+            "0": 145
+          },
+          "join_to_first_eligible_wall_s": 0.020941445,
+          "flags": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ]
+          ]
+        }
+      },
+      "stock_ctf_captures": null
+    },
+    {
+      "name": "mode-08-tdm-guns-force-on",
+      "attempt": "mode-08-tdm-guns-force-on",
+      "receipt_sha256": "0342780276d00bd241580b3cf10624ad125111767f96d2dcb27f648a6b4ce88f",
+      "qualification": "verified",
+      "missing_horizontal_control": [],
+      "map": "m10.jkl",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+      "episode_sha256": "27a4b3642e0965753232f35b1e8e846c91df1eca1da77398b5efda66ca369a2e",
+      "build_sha256": "1c491dcc76238b883253c52285e1f9a36d3598bc138cf5ee05fdad0f8712e048",
+      "first": "jan_ors",
+      "first_move_before_second_join_wall_s": 1.540422215,
+      "duration": 50,
+      "pace": 2,
+      "measured_rates": {
+        "host": 1.9999998799601268,
+        "dark": 2.000000330847512,
+        "light": 2.000000509511595
+      },
+      "video": "not_requested",
+      "policy_selection": {
+        "controller": "teacher",
+        "reason": "no_qualified_gear_model",
+        "sha256": null
+      },
+      "owners": {
+        "dark": {
+          "native_scope": "tdm/guns/force",
+          "teams": [
+            0,
+            1
+          ],
+          "nodes": 556,
+          "map_sectors": 69,
+          "visited_sectors": 19,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 0,
+          "nav_events": {
+            "BOT_NAV_FALLBACK": 1
+          },
+          "objectives": {},
+          "effective_duel_models": {
+            "teacher": 466
+          },
+          "labels": {
+            "1": 446,
+            "0": 20
+          },
+          "join_to_first_eligible_wall_s": 0.020180952,
+          "flags": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ]
+          ]
+        },
+        "light": {
+          "native_scope": "tdm/guns/force",
+          "teams": [
+            0,
+            2
+          ],
+          "nodes": 556,
+          "map_sectors": 69,
+          "visited_sectors": 18,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 0,
+          "nav_events": {
+            "BOT_NAV_LEARN/stall": 2,
+            "BOT_NAV_COST": 2
+          },
+          "objectives": {},
+          "effective_duel_models": {
+            "teacher": 482
+          },
+          "labels": {
+            "1": 463,
+            "0": 19
+          },
+          "join_to_first_eligible_wall_s": 0.020131351,
+          "flags": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ]
+          ]
+        }
+      },
+      "stock_ctf_captures": null
+    },
+    {
+      "name": "mode-09-ctf-guns-force-off",
+      "attempt": "mode-09-ctf-guns-force-off",
+      "receipt_sha256": "5ce32d8e5ad7e9fa7536545ed191e2eba1aa36e675f99fc2899400f4fae58d98",
+      "qualification": "verified",
+      "missing_horizontal_control": [],
+      "map": "c3.jkl",
+      "map_sha256": "b4d804591cebebbd59f05ad42a8e059178dc468e24172bd6bc5b7d6ba1c2f0a7",
+      "episode_sha256": "da98fe3fc769168f1bb562cc1f6532560b12d8e920fd6c34586d69b424b5b1fc",
+      "build_sha256": "1c491dcc76238b883253c52285e1f9a36d3598bc138cf5ee05fdad0f8712e048",
+      "first": "boba_fett",
+      "first_move_before_second_join_wall_s": 6.443248222,
+      "duration": 90,
+      "pace": 2,
+      "measured_rates": {
+        "host": 1.9999994191344639,
+        "dark": 1.9999997759378718,
+        "light": 1.9999985786913541
+      },
+      "video": "not_requested",
+      "policy_selection": {
+        "controller": "teacher",
+        "reason": "v1_gear_task_outside_objective_or_saber_contract",
+        "sha256": null
+      },
+      "owners": {
+        "dark": {
+          "native_scope": "ctf/guns/noforce",
+          "teams": [
+            0,
+            1
+          ],
+          "nodes": 2776,
+          "map_sectors": 794,
+          "visited_sectors": 17,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 0,
+          "nav_events": {
+            "BOT_NAV_LEARN/stall": 2,
+            "BOT_NAV_COST": 2
+          },
+          "objectives": {
+            "join": 97,
+            "capture": 421
+          },
+          "effective_duel_models": {},
+          "labels": {},
+          "join_to_first_eligible_wall_s": 0.03632422,
+          "flags": [
+            [
+              43,
+              48
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ]
+          ]
+        },
+        "light": {
+          "native_scope": "ctf/guns/noforce",
+          "teams": [
+            0,
+            2
+          ],
+          "nodes": 2776,
+          "map_sectors": 794,
+          "visited_sectors": 18,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 0,
+          "nav_events": {
+            "BOT_NAV_FALLBACK": 3,
+            "BOT_NAV_LEARN/stall": 1,
+            "BOT_NAV_COST": 1,
+            "BOT_NAV_LEARN/arrive": 1
+          },
+          "objectives": {
+            "join": 233,
+            "capture": 222
+          },
+          "effective_duel_models": {},
+          "labels": {},
+          "join_to_first_eligible_wall_s": 0.031765988,
+          "flags": [
+            [
+              43,
+              48
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ]
+          ]
+        }
+      },
+      "stock_ctf_captures": {}
+    },
+    {
+      "name": "mode-10-ffa-saber-force-on",
+      "attempt": "mode-10-ffa-saber-force-on",
+      "receipt_sha256": "272896b9aee7005f2556777541c6f1bcb580a7af0fb4a96e8f71fba5e1605176",
+      "qualification": "verified",
+      "missing_horizontal_control": [],
+      "map": "m10.jkl",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+      "episode_sha256": "27a4b3642e0965753232f35b1e8e846c91df1eca1da77398b5efda66ca369a2e",
+      "build_sha256": "1c491dcc76238b883253c52285e1f9a36d3598bc138cf5ee05fdad0f8712e048",
+      "first": "jan_ors",
+      "first_move_before_second_join_wall_s": 1.494622328,
+      "duration": 50,
+      "pace": 2,
+      "measured_rates": {
+        "host": 2.0000009090333144,
+        "dark": 1.999997478766887,
+        "light": 2.0000001511465717
+      },
+      "video": "not_requested",
+      "policy_selection": {
+        "controller": "teacher",
+        "reason": "v1_gear_task_outside_objective_or_saber_contract",
+        "sha256": null
+      },
+      "owners": {
+        "dark": {
+          "native_scope": "ffa/sabers/force",
+          "teams": [
+            0
+          ],
+          "nodes": 556,
+          "map_sectors": 69,
+          "visited_sectors": 6,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 0,
+          "nav_events": {
+            "BOT_NAV_FALLBACK": 1
+          },
+          "objectives": {},
+          "effective_duel_models": {},
+          "labels": {},
+          "join_to_first_eligible_wall_s": 0.020571689,
+          "flags": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ]
+          ]
+        },
+        "light": {
+          "native_scope": "ffa/sabers/force",
+          "teams": [
+            0
+          ],
+          "nodes": 556,
+          "map_sectors": 69,
+          "visited_sectors": 6,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 0,
+          "nav_events": {
+            "BOT_NAV_LEARN/stall": 3,
+            "BOT_NAV_COST": 3
+          },
+          "objectives": {},
+          "effective_duel_models": {},
+          "labels": {},
+          "join_to_first_eligible_wall_s": 0.020620317,
+          "flags": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ]
+          ]
+        }
+      },
+      "stock_ctf_captures": null
+    },
+    {
+      "name": "mode-11-tdm-saber-force-off",
+      "attempt": "mode-11-tdm-saber-force-off",
+      "receipt_sha256": "b3e8d091a24777a5d5af4f135d501615290a28426dc9e871e8ea878b488e830d",
+      "qualification": "verified",
+      "missing_horizontal_control": [],
+      "map": "m2.jkl",
+      "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a",
+      "episode_sha256": "27a4b3642e0965753232f35b1e8e846c91df1eca1da77398b5efda66ca369a2e",
+      "build_sha256": "1c491dcc76238b883253c52285e1f9a36d3598bc138cf5ee05fdad0f8712e048",
+      "first": "boba_fett",
+      "first_move_before_second_join_wall_s": 2.643168252,
+      "duration": 50,
+      "pace": 2,
+      "measured_rates": {
+        "host": 1.9999927568756832,
+        "dark": 2.0000012701104777,
+        "light": 2.000000617348147
+      },
+      "video": "not_requested",
+      "policy_selection": {
+        "controller": "teacher",
+        "reason": "v1_gear_task_outside_objective_or_saber_contract",
+        "sha256": null
+      },
+      "owners": {
+        "dark": {
+          "native_scope": "tdm/sabers/noforce",
+          "teams": [
+            0,
+            1
+          ],
+          "nodes": 640,
+          "map_sectors": 116,
+          "visited_sectors": 27,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 0,
+          "nav_events": {
+            "BOT_NAV_FALLBACK": 2,
+            "BOT_NAV_LEARN/stall": 2,
+            "BOT_NAV_COST": 2
+          },
+          "objectives": {},
+          "effective_duel_models": {},
+          "labels": {},
+          "join_to_first_eligible_wall_s": 0.02082985,
+          "flags": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ]
+          ]
+        },
+        "light": {
+          "native_scope": "tdm/sabers/noforce",
+          "teams": [
+            0,
+            2
+          ],
+          "nodes": 639,
+          "map_sectors": 116,
+          "visited_sectors": 15,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 0,
+          "nav_events": {
+            "BOT_NAV_FALLBACK": 2
+          },
+          "objectives": {},
+          "effective_duel_models": {},
+          "labels": {},
+          "join_to_first_eligible_wall_s": 0.021223567,
+          "flags": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ]
+          ]
+        }
+      },
+      "stock_ctf_captures": null
+    },
+    {
+      "name": "mode-12-ctf-saber-force-on",
+      "attempt": "mode-12-ctf-saber-force-on",
+      "receipt_sha256": "a602e9ae011d64971c17ddb4451e18702589f3cb74f8fb2f4aac943a4e1236b4",
+      "qualification": "verified",
+      "missing_horizontal_control": [],
+      "map": "c1.jkl",
+      "map_sha256": "349fb5beffba7c84fd573fe1184f3fbb569d4fcdad07d2d9b26fcb8afdb849e0",
+      "episode_sha256": "da98fe3fc769168f1bb562cc1f6532560b12d8e920fd6c34586d69b424b5b1fc",
+      "build_sha256": "1c491dcc76238b883253c52285e1f9a36d3598bc138cf5ee05fdad0f8712e048",
+      "first": "jan_ors",
+      "first_move_before_second_join_wall_s": 3.054578098,
+      "duration": 90,
+      "pace": 2,
+      "measured_rates": {
+        "host": 2.000000198579376,
+        "dark": 2.000002064774607,
+        "light": 1.9999984162498667
+      },
+      "video": "not_requested",
+      "policy_selection": {
+        "controller": "teacher",
+        "reason": "v1_gear_task_outside_objective_or_saber_contract",
+        "sha256": null
+      },
+      "owners": {
+        "dark": {
+          "native_scope": "ctf/sabers/force",
+          "teams": [
+            0,
+            1
+          ],
+          "nodes": 1040,
+          "map_sectors": 289,
+          "visited_sectors": 50,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 0,
+          "nav_events": {
+            "BOT_NAV_FALLBACK": 1,
+            "BOT_NAV_LEARN/stall": 5,
+            "BOT_NAV_COST": 5
+          },
+          "objectives": {
+            "join": 12,
+            "intercept": 208,
+            "recover": 14,
+            "capture": 125,
+            "return": 96
+          },
+          "effective_duel_models": {},
+          "labels": {},
+          "join_to_first_eligible_wall_s": 0.023704583,
+          "flags": [
+            [
+              142,
+              143
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ],
+            [
+              -1,
+              112
+            ],
+            [
+              111,
+              -1
+            ]
+          ]
+        },
+        "light": {
+          "native_scope": "ctf/sabers/force",
+          "teams": [
+            0,
+            2
+          ],
+          "nodes": 1040,
+          "map_sectors": 289,
+          "visited_sectors": 36,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 0,
+          "nav_events": {
+            "BOT_NAV_FALLBACK": 1,
+            "BOT_NAV_LEARN/stall": 11,
+            "BOT_NAV_COST": 11
+          },
+          "objectives": {
+            "join": 11,
+            "capture": 121,
+            "return": 271,
+            "intercept": 83
+          },
+          "effective_duel_models": {},
+          "labels": {},
+          "join_to_first_eligible_wall_s": 0.023498781,
+          "flags": [
+            [
+              142,
+              143
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ],
+            [
+              -1,
+              112
+            ],
+            [
+              111,
+              -1
+            ]
+          ]
+        }
+      },
+      "stock_ctf_captures": {
+        "gold": 1,
+        "red": 1
+      }
+    },
+    {
+      "name": "unseen-01-jhs-first",
+      "attempt": "unseen-01-jhs-first",
+      "receipt_sha256": "163ccd532c99a9fd794cca1e00e504080f72e0db2edacc7d5566ae8b0060b999",
+      "qualification": "completed_with_missing_horizontal_control",
+      "missing_horizontal_control": [
+        "dark"
+      ],
+      "map": "jhs.jkl",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "episode_sha256": "a62c94789c521af2746cc8378301a4940a59a24f6fb44dd4c443caacc0211b04",
+      "build_sha256": "07cf5843c6856e87a3ee18079902db910a12fba5ec484ec569feec910a21c197",
+      "first": "boba_fett",
+      "first_move_before_second_join_wall_s": null,
+      "duration": 75,
+      "pace": 2,
+      "measured_rates": {
+        "host": 2.0000021049263568,
+        "dark": 2.0000017603954805,
+        "light": 2.000001101677477
+      },
+      "video": "not_requested",
+      "policy_selection": {
+        "controller": "teacher",
+        "reason": "no_evidence_for_exact_rules_and_map",
+        "sha256": null
+      },
+      "owners": {
+        "dark": {
+          "native_scope": "ffa/guns/force",
+          "teams": [
+            0
+          ],
+          "nodes": 1313,
+          "map_sectors": 216,
+          "visited_sectors": 1,
+          "graph_ready": true,
+          "movement_seen": false,
+          "previous_edges_loaded": 0,
+          "nav_events": {},
+          "objectives": {},
+          "effective_duel_models": {},
+          "labels": {},
+          "join_to_first_eligible_wall_s": 0.024822924,
+          "flags": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "verified_custom_identity_before_control": {
+            "admission_line": 75,
+            "world_line": 138,
+            "first_control_line": 139
+          }
+        },
+        "light": {
+          "native_scope": "ffa/guns/force",
+          "teams": [
+            0
+          ],
+          "nodes": 1313,
+          "map_sectors": 216,
+          "visited_sectors": 25,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 0,
+          "nav_events": {
+            "BOT_NAV_FALLBACK": 1
+          },
+          "objectives": {},
+          "effective_duel_models": {
+            "teacher": 21
+          },
+          "labels": {
+            "1": 21
+          },
+          "join_to_first_eligible_wall_s": 0.024927397,
+          "flags": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "verified_custom_identity_before_control": {
+            "admission_line": 75,
+            "world_line": 138,
+            "first_control_line": 139
+          }
+        }
+      },
+      "stock_ctf_captures": null
+    },
+    {
+      "name": "unseen-02-jhs-repeat",
+      "attempt": "unseen-02-jhs-repeat",
+      "receipt_sha256": "d8e0490339366ea9814fadc69eb30ebeaca49fbac0ffe5448bf79b757d34d9cc",
+      "qualification": "completed_with_missing_horizontal_control",
+      "missing_horizontal_control": [
+        "light"
+      ],
+      "map": "jhs.jkl",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "episode_sha256": "a62c94789c521af2746cc8378301a4940a59a24f6fb44dd4c443caacc0211b04",
+      "build_sha256": "07cf5843c6856e87a3ee18079902db910a12fba5ec484ec569feec910a21c197",
+      "first": "jan_ors",
+      "first_move_before_second_join_wall_s": null,
+      "duration": 75,
+      "pace": 2,
+      "measured_rates": {
+        "host": 1.9999992201759762,
+        "dark": 1.9999996531807893,
+        "light": 2.000001848604317
+      },
+      "video": "not_requested",
+      "policy_selection": {
+        "controller": "teacher",
+        "reason": "no_evidence_for_exact_rules_and_map",
+        "sha256": null
+      },
+      "owners": {
+        "dark": {
+          "native_scope": "ffa/guns/force",
+          "teams": [
+            0
+          ],
+          "nodes": 1313,
+          "map_sectors": 216,
+          "visited_sectors": 26,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 0,
+          "nav_events": {},
+          "objectives": {},
+          "effective_duel_models": {
+            "teacher": 3
+          },
+          "labels": {
+            "1": 3
+          },
+          "join_to_first_eligible_wall_s": 0.025507119,
+          "flags": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "verified_custom_identity_before_control": {
+            "admission_line": 75,
+            "world_line": 138,
+            "first_control_line": 139
+          }
+        },
+        "light": {
+          "native_scope": "ffa/guns/force",
+          "teams": [
+            0
+          ],
+          "nodes": 1313,
+          "map_sectors": 216,
+          "visited_sectors": 1,
+          "graph_ready": true,
+          "movement_seen": false,
+          "previous_edges_loaded": 0,
+          "nav_events": {},
+          "objectives": {},
+          "effective_duel_models": {},
+          "labels": {},
+          "join_to_first_eligible_wall_s": 0.025265884,
+          "flags": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "verified_custom_identity_before_control": {
+            "admission_line": 75,
+            "world_line": 138,
+            "first_control_line": 139
+          }
+        }
+      },
+      "stock_ctf_captures": null
+    },
+    {
+      "name": "unseen-03-independent-map",
+      "attempt": "unseen-03-independent-map",
+      "receipt_sha256": "2d44fa68e76ec933819b7c986af71a031dccff9453e29d24457d77f02de49d5c",
+      "qualification": "verified",
+      "missing_horizontal_control": [],
+      "map": "m5.jkl",
+      "map_sha256": "61713ac79aa60bba1b558f8457a1351f720b076c242469110975ac26b2dcff38",
+      "episode_sha256": "27a4b3642e0965753232f35b1e8e846c91df1eca1da77398b5efda66ca369a2e",
+      "build_sha256": "1c491dcc76238b883253c52285e1f9a36d3598bc138cf5ee05fdad0f8712e048",
+      "first": "boba_fett",
+      "first_move_before_second_join_wall_s": 3.482155458,
+      "duration": 75,
+      "pace": 2,
+      "measured_rates": {
+        "host": 1.999999847325005,
+        "dark": 1.9999970753303349,
+        "light": 2.000002109557722
+      },
+      "video": "not_requested",
+      "policy_selection": {
+        "controller": "teacher",
+        "reason": "no_qualified_gear_model",
+        "sha256": null
+      },
+      "owners": {
+        "dark": {
+          "native_scope": "ffa/guns/force",
+          "teams": [
+            0
+          ],
+          "nodes": 1290,
+          "map_sectors": 379,
+          "visited_sectors": 44,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 0,
+          "nav_events": {
+            "BOT_NAV_FALLBACK": 1,
+            "BOT_NAV_LEARN/stall": 1,
+            "BOT_NAV_COST": 1
+          },
+          "objectives": {},
+          "effective_duel_models": {},
+          "labels": {},
+          "join_to_first_eligible_wall_s": 0.024610755,
+          "flags": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ]
+          ]
+        },
+        "light": {
+          "native_scope": "ffa/guns/force",
+          "teams": [
+            0
+          ],
+          "nodes": 1287,
+          "map_sectors": 379,
+          "visited_sectors": 47,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 0,
+          "nav_events": {
+            "BOT_NAV_FALLBACK": 1,
+            "BOT_NAV_LEARN/stall": 6,
+            "BOT_NAV_COST": 6
+          },
+          "objectives": {},
+          "effective_duel_models": {},
+          "labels": {},
+          "join_to_first_eligible_wall_s": 0.024838121,
+          "flags": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ]
+          ]
+        }
+      },
+      "stock_ctf_captures": null
+    },
+    {
+      "name": "unseen-04-independent-repeat",
+      "attempt": "unseen-04-independent-repeat",
+      "receipt_sha256": "2ad585fe7a171a801a3bff49e6c09dfd85e8ddbc310bdcf6174151e6ca6d1a65",
+      "qualification": "verified",
+      "missing_horizontal_control": [],
+      "map": "m5.jkl",
+      "map_sha256": "61713ac79aa60bba1b558f8457a1351f720b076c242469110975ac26b2dcff38",
+      "episode_sha256": "27a4b3642e0965753232f35b1e8e846c91df1eca1da77398b5efda66ca369a2e",
+      "build_sha256": "1c491dcc76238b883253c52285e1f9a36d3598bc138cf5ee05fdad0f8712e048",
+      "first": "jan_ors",
+      "first_move_before_second_join_wall_s": 3.492351716,
+      "duration": 75,
+      "pace": 2,
+      "measured_rates": {
+        "host": 1.9999994712271827,
+        "dark": 2.000000126270969,
+        "light": 2.0000000954485007
+      },
+      "video": "not_requested",
+      "policy_selection": {
+        "controller": "teacher",
+        "reason": "no_qualified_gear_model",
+        "sha256": null
+      },
+      "owners": {
+        "dark": {
+          "native_scope": "ffa/guns/force",
+          "teams": [
+            0
+          ],
+          "nodes": 1291,
+          "map_sectors": 379,
+          "visited_sectors": 34,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 1,
+          "nav_events": {
+            "BOT_NAV_FALLBACK": 1,
+            "BOT_NAV_COST": 1
+          },
+          "objectives": {},
+          "effective_duel_models": {},
+          "labels": {},
+          "join_to_first_eligible_wall_s": 0.024868752,
+          "flags": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ]
+          ]
+        },
+        "light": {
+          "native_scope": "ffa/guns/force",
+          "teams": [
+            0
+          ],
+          "nodes": 1290,
+          "map_sectors": 379,
+          "visited_sectors": 34,
+          "graph_ready": true,
+          "movement_seen": true,
+          "previous_edges_loaded": 6,
+          "nav_events": {
+            "BOT_NAV_COST": 14,
+            "BOT_NAV_LEARN/stall": 13
+          },
+          "objectives": {},
+          "effective_duel_models": {},
+          "labels": {},
+          "join_to_first_eligible_wall_s": 0.025387237,
+          "flags": [
+            [
+              -1,
+              -1
+            ]
+          ],
+          "carriers": [
+            [
+              -1,
+              -1
+            ]
+          ]
+        }
+      },
+      "stock_ctf_captures": null
+    }
+  ],
+  "other_attempts": [
+    {
+      "name": "mode-01-ffa-guns-force-on",
+      "status": "failed",
+      "receipt_sha256": "b3de6698c68ddf5721010c250453c0f7d2483107a9b156d977df359a15296fee"
+    },
+    {
+      "name": "mode-05-tdm-saber-force-on",
+      "status": "failed",
+      "receipt_sha256": "a849653233f8b32258f1675f3cc93c5c8106ee6f4e7de14215d3cbe06ccfd7ff"
+    }
+  ]
+}

@@ -1,0 +1,278 @@
+{
+  "design_sha256": "a8bed2f2de5e11e3a1ea809a5e2bc4c50a8882acabe64010874f890c59ccb005",
+  "platform_baseline_sha256": "1e8a9e0ab70fa28eeb17816969382bfd3a63f76ca848d63018e86de7fbb96b67",
+  "original_comparison_sha256": "3a917c466f78c852ac3a94045d648eaef7ff241dea3a01f208f23ab05ecd252d",
+  "route_sha256": "c9a86f5b438146d8f7c27d76f90af1d253ead33e1e0d47b748a310aad2b1f92c",
+  "runs": [
+    {
+      "name": "jhs-hints-01-first",
+      "receipt_sha256": "ff2c9e80b069f3764dfcf922c2108c22ad87d10b5e8d7c09c9c0272a0888cf4c",
+      "status": "live_join_and_loadout_verified",
+      "error": null,
+      "owners": {
+        "dark": {
+          "loaded": true,
+          "first_sector": 5,
+          "visited_sectors": [
+            3,
+            5,
+            7,
+            9,
+            75,
+            174,
+            180,
+            195,
+            199,
+            206
+          ],
+          "lives": {
+            "1": {
+              "started": true,
+              "steering_samples": 29,
+              "arrivals": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8
+              ],
+              "blocked": {
+                "footing": 71
+              },
+              "exits": [
+                {
+                  "line": 1245,
+                  "sector": 7,
+                  "fixture": 181,
+                  "pos": "-0.62770,-9.10066,0.13181"
+                }
+              ],
+              "start": {
+                "line": 141,
+                "sector": 5,
+                "fixture": 184,
+                "pos": "-0.75000,-12.44000,0.12000"
+              }
+            }
+          },
+          "five_to_seven_transitions_during_verified_completed_hint_lives": [
+            {
+              "line": 1245,
+              "life": "1",
+              "from": 5,
+              "to": 7
+            }
+          ]
+        },
+        "light": {
+          "loaded": true,
+          "first_sector": 5,
+          "visited_sectors": [
+            5,
+            7,
+            9,
+            15,
+            16,
+            23,
+            24,
+            33,
+            45,
+            50,
+            60,
+            66,
+            67,
+            73,
+            75,
+            76,
+            85,
+            86,
+            133,
+            149,
+            168,
+            195,
+            197
+          ],
+          "lives": {
+            "1": {
+              "started": true,
+              "steering_samples": 40,
+              "arrivals": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "blocked": {},
+              "exits": [],
+              "start": {
+                "line": 142,
+                "sector": 5,
+                "fixture": 184,
+                "pos": "-0.42000,-12.44000,0.12000"
+              }
+            },
+            "2": {
+              "started": true,
+              "steering_samples": 47,
+              "arrivals": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "blocked": {},
+              "exits": [],
+              "start": {
+                "line": 908,
+                "sector": 5,
+                "fixture": 184,
+                "pos": "-0.75000,-12.44000,0.13269"
+              }
+            },
+            "3": {
+              "started": true,
+              "steering_samples": 46,
+              "arrivals": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8
+              ],
+              "blocked": {},
+              "exits": [
+                {
+                  "line": 2903,
+                  "sector": 7,
+                  "fixture": 181,
+                  "pos": "-0.61307,-9.09208,0.13182"
+                }
+              ],
+              "start": {
+                "line": 1978,
+                "sector": 5,
+                "fixture": 184,
+                "pos": "-0.42000,-12.44000,0.13269"
+              }
+            }
+          },
+          "five_to_seven_transitions_during_verified_completed_hint_lives": [
+            {
+              "line": 2903,
+              "life": "3",
+              "from": 5,
+              "to": 7
+            }
+          ]
+        }
+      },
+      "clock": {
+        "host": 1.9999996644131517,
+        "dark": 1.999999010647282,
+        "light": 1.999996978977148
+      }
+    },
+    {
+      "name": "jhs-hints-02-repeat",
+      "receipt_sha256": "429cdd4ba79fb4164f48f7308ced003b5e700fda67c93dd6b24c29989cce25c1",
+      "status": "live_join_and_loadout_verified",
+      "error": null,
+      "owners": {
+        "dark": {
+          "loaded": true,
+          "first_sector": 199,
+          "visited_sectors": [
+            16,
+            17,
+            23,
+            24,
+            33,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            60,
+            66,
+            73,
+            75,
+            76,
+            85,
+            86,
+            87,
+            88,
+            95,
+            99,
+            129,
+            133,
+            148,
+            168,
+            174,
+            180,
+            195,
+            197,
+            199,
+            206
+          ],
+          "lives": {},
+          "five_to_seven_transitions_during_verified_completed_hint_lives": []
+        },
+        "light": {
+          "loaded": true,
+          "first_sector": 5,
+          "visited_sectors": [
+            5
+          ],
+          "lives": {
+            "1": {
+              "started": true,
+              "steering_samples": 29,
+              "arrivals": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8
+              ],
+              "blocked": {
+                "footing": 153
+              },
+              "exits": [],
+              "start": {
+                "line": 141,
+                "sector": 5,
+                "fixture": 184,
+                "pos": "-0.42000,-12.44000,0.12000"
+              }
+            }
+          },
+          "five_to_seven_transitions_during_verified_completed_hint_lives": []
+        }
+      },
+      "clock": {
+        "host": 1.9999996989619828,
+        "dark": 2.0000004150652977,
+        "light": 1.9999984513719735
+      }
+    }
+  ]
+}

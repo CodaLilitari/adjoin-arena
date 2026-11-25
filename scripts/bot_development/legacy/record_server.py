@@ -7,6 +7,7 @@ import json
 import math
 from pathlib import Path
 import secrets
+import shutil
 import struct
 import subprocess
 import sys
@@ -47,15 +48,15 @@ def encode(frames, out, captured, video_name="native-follow.mp4"):
     subprocess.run(["ffmpeg","-nostdin","-n","-hide_banner","-loglevel","error","-threads","1",
                     "-safe","0","-f","concat","-i",str(ffconcat),"-an","-threads","2",
                     "-fps_mode","vfr","-c:v","libx264","-bf","0","-preset","veryfast","-crf","20",
-                    "-pix_fmt","yuv420p","-movflags","+faststart",str(video)],check=True,timeout=45)
+                    "-pix_fmt","yuv420p","-movflags","+faststart",str(video)],check=True,timeout=150)
     probe = json.loads(subprocess.check_output(["ffprobe","-v","error","-select_streams","v:0","-show_entries",
                     "stream=codec_name,width,height,nb_frames,duration:packet=pts_time:format=duration",
-                    "-of","json",str(video)],timeout=12))
+                    "-of","json",str(video)],timeout=30))
     encoded = probe["streams"][0]
     actual = [float(packet["pts_time"]) for packet in probe["packets"]]
     elapsed = [stamp - stamps[0] for stamp in stamps]
     subprocess.run(["ffmpeg","-nostdin","-v","error","-xerror","-threads","2","-i",str(video),
-                    "-an","-f","null","-"],check=True,timeout=30)
+                    "-an","-f","null","-"],check=True,timeout=70)
     if len(actual) != len(captured) or int(encoded["nb_frames"]) != len(captured):
         raise ValueError("Encoded frame count differs from the number of native frames")
     max_error = max(abs(t - expected) for t, expected in zip(actual, elapsed))
@@ -200,7 +201,13 @@ async def session(command, env, output, port, prepared, launched, recording_dir,
                 # An early camera cap or a lost follow target can finish capture
                 # while the match is still playing. Keep the captured files alive.
                 _encode_allowed.wait()  # dedicated recorder thread; native IPC is closed
-                receipt["video"]=encode(frames,out,records,video_name)
+                try:
+                    receipt["video"]=encode(frames,out,records,video_name)
+                except (OSError, subprocess.SubprocessError, ValueError):
+                    recovery = out / "recovery-frames"
+                    shutil.copytree(frames, recovery)
+                    receipt["recovery_frames"] = recovery.name
+                    raise
                 receipt["status"]="recorded"
             else:
                 receipt["status"]="insufficient_live_frames"
@@ -272,7 +279,7 @@ def finish():
     stop_capture()
     _encode_allowed.set()
     if _thread:
-        _thread.join(timeout=100)
+        _thread.join(timeout=300)
         if _thread.is_alive():
             raise TimeoutError("observer did not flush the clip")
         _thread = None

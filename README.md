@@ -8,6 +8,8 @@ Six matches supplied 4,948 examples from Red. In four fresh scripted matches the
 
 Practice keeps learning locally between games. In two subsequent games Jan used the previous practice model and Boba loaded the new version that Jan’s game had qualified. The match runner records which weights each player actually used. The scored comparison can therefore be repeated while practice continues. [How to run the learner](docs/RED_DECISION_EXPERIMENT.md) · [Sixteen native match results](qa/adjoin-arena-red-runtime.json)
 
+The native arena also runs free-for-all, team deathmatch and CTF with guns or saber-only controls and Force on or off. Four stock CTF games produced eight completed flag captures. Both bots reused remembered route costs on a second visit to a held-out stock level. On Jedi's High School an editable ten-point route guides Red's controller off the raised starting pad and across three catwalks. Its first test produced two completed crossings in three encounters. [CTF, unfamiliar levels and the annotated JHS route](docs/RED_TRANSFER_OBSERVATIONS.md) · [Run the bots on your own level](docs/RUN_RED_ARENA.md)
+
 ## Starting revisions
 
 | Branch in this repository | Starting point |

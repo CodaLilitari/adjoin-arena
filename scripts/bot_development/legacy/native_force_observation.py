@@ -342,7 +342,8 @@ def run(args, receipt, tmp):
         if args.red_policy_build:
             import native_red_match as red_tools
             bot, build = red_tools.resolve_client(repo, args.red_policy_build.resolve(), pace_build, digest,
-                                                  transfer=bool(args.transfer_build))
+                                                  transfer=bool(args.transfer_build), custom=bool(args.custom_build),
+                                                  platform_build=bool(args.platform_build), hint_build=bool(args.hint_build))
             args.red_tools = red_tools
             receipt["kind"] = "adjoin-arena-stock-red-policy"
             receipt["red_policy"] = {"build":build, "elite":True, "model_side":args.model_side,
@@ -374,6 +375,13 @@ def run(args, receipt, tmp):
         receipt["mode_transfer"] = {"content":asset,"mode":args.mode,"weapons":args.weapons,"force":args.force,
                                     "policy_selection":{k:v for k,v in policy.items() if k!="path"},
                                     "registry_side":args.registry_side}
+        if args.custom_build:
+            receipt["mode_transfer"]["custom_admission"] = transfer.custom_environment(asset, args.mode)
+        if args.platform_build:
+            receipt["mode_transfer"]["mesh_support"] = True
+        if args.hint_build:
+            hint_path = tmp / "active-route.hint"
+            receipt["mode_transfer"]["route_hint"] = transfer.stage_route_hint(args, asset, hint_path)
         receipt["red_policy"].update(model_side=args.model_side,weights_sha256=policy["sha256"])
     else:
         hashes["jk1mp.gob"] = digest(gob)
@@ -490,6 +498,10 @@ def run(args, receipt, tmp):
                 if args.transfer_build:
                     cache=transfer.cache_directory(args.nav_cache, pid, repo, source, output)
                     env["ADJOIN_NAV_CACHE"]=str(cache)
+                    env.update(receipt["mode_transfer"].get("custom_admission", {}))
+                    if args.hint_build:
+                        env.update(ADJOIN_ROUTE_HINT=str(hint_path),
+                                   ADJOIN_ROUTE_HINT_SHA256=receipt["mode_transfer"]["route_hint"]["sha256"])
                 if side == args.model_side:
                     env.update(ADJOIN_RED_MODEL=str(args.policy_weights.resolve()),
                                ADJOIN_RED_MODEL_SHA256=receipt["red_policy"]["weights_sha256"])
@@ -641,6 +653,15 @@ def main():
                         help="Play an ungated stock match with the pinned native Red decision client.")
     parser.add_argument("--transfer-build", type=Path, metavar="DIRECTORY",
                         help="Use the pinned map- and mode-aware research client for an ungated match.")
+    parser.add_argument("--custom-build", type=Path, metavar="DIRECTORY",
+                        help="Use the separately pinned client that admits a locally verified custom episode.")
+    parser.add_argument("--platform-build", type=Path, metavar="DIRECTORY",
+                        help="Use the pinned custom client that recognizes supported walking surfaces over pits.")
+    parser.add_argument("--hint-build", type=Path, metavar="DIRECTORY",
+                        help="Use the pinned platform client with explicit map-scoped route hints.")
+    parser.add_argument("--route-hint", type=Path, help="A local RED_ROUTE_HINT_V1 file.")
+    parser.add_argument("--route-hint-sha256", help="Expected SHA-256 of the entire route file.")
+    parser.add_argument("--route-hint-scope", help="The intended mode, weapons and Force preset, e.g. ffa/guns/force.")
     parser.add_argument("--mode", choices=("ffa","tdm","ctf"))
     parser.add_argument("--weapons", choices=("guns","sabers"))
     parser.add_argument("--force", choices=("on","off"))
@@ -659,6 +680,21 @@ def main():
     parser.add_argument("--camera", choices=("follow", "rifle-overlook"),
                         help="Record the selected native camera (implies --record).")
     args = parser.parse_args()
+    hint = (args.route_hint, args.route_hint_sha256, args.route_hint_scope)
+    if args.hint_build:
+        if args.platform_build or args.custom_build or args.transfer_build or not all(hint):
+            parser.error("--hint-build requires one route file, its SHA-256 and its exact scope")
+        args.platform_build = args.hint_build
+    elif any(hint):
+        parser.error("route hint settings require --hint-build")
+    if args.platform_build:
+        if args.custom_build or args.transfer_build:
+            parser.error("select a single transfer, custom, or platform build")
+        args.custom_build = args.platform_build
+    if args.custom_build:
+        if args.transfer_build:
+            parser.error("select one of --custom-build and --transfer-build")
+        args.transfer_build = args.custom_build
     transfer_settings=(args.mode,args.weapons,args.force,args.episode_file,args.episode_sha256,args.map_sha256,args.nav_cache)
     trial = (args.trial_scope,args.trial_map_sha256,args.trial_weights_sha256)
     if args.transfer_build:

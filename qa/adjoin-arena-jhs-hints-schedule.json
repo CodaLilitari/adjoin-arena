@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "frozen_utc": "2026-11-25T13:45:48.980694+00:00",
+  "route_sha256": "c9a86f5b438146d8f7c27d76f90af1d253ead33e1e0d47b748a310aad2b1f92c",
+  "original_pair_sha256": "3a917c466f78c852ac3a94045d648eaef7ff241dea3a01f208f23ab05ecd252d",
+  "platform_only_pair_sha256": "1e8a9e0ab70fa28eeb17816969382bfd3a63f76ca848d63018e86de7fbb96b67",
+  "source_map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+  "scope": "ffa/guns/force",
+  "comparison": "Attach the same ten-waypoint JHS school-entry route to both otherwise identical Red platform players. Use untouched original archived episode, genuine immediate stock joins, new independent empty per-profile cache and reversed roster in the repeat. Prior no-hint observations and platform-only confirmations stay fixed.",
+  "settings": "75 game seconds, 2x for both players and host, no official spectator. No spawn forcing or reroll for exposure. No neural weights selected for this map.",
+  "success": "Both native players verify unchanged content and scope before the first control. A supported raised start receives the exact file SHA, actual waypoints drive native axes, then original physics carries that same living player from sector 5 through the fixture chain to sector 7 over mapped portal surface 74; report choices, blockages, partial traversal and absence of an exposed actor separately.",
+  "matrix": [
+    {
+      "name": "jhs-hints-01-first",
+      "map": "jhs.jkl",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "mode": "ffa",
+      "weapons": "guns",
+      "force": "on",
+      "first": "boba",
+      "game_seconds": 75,
+      "episode": "JHS"
+    },
+    {
+      "name": "jhs-hints-02-repeat",
+      "map": "jhs.jkl",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "mode": "ffa",
+      "weapons": "guns",
+      "force": "on",
+      "first": "jan",
+      "game_seconds": 75,
+      "episode": "JHS"
+    }
+  ]
+}

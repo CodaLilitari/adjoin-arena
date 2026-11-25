@@ -1,0 +1,46 @@
+--- a/src/Gui/jkGUIMultiplayer.c
++++ b/src/Gui/jkGUIMultiplayer.c
+@@ -1,5 +1,6 @@
+ #include "jkGUIMultiplayer.h"
+ #include "AI/jkBot.h"
++#include "AI/red_custom.h"
+ #include "AI/jkBotPersona.h"
+ #include "AI/jkBotLoadout.h"
+ #include "Gameplay/sithPlayer.h"
+@@ -457,11 +458,14 @@
+         SDL_Delay(100);
+     }
+     entry = jkGuiMultiplayer_aEntries[0];
+-    int isCtf = !__strcmpi(entry.episodeGobName, "JK1CTF");
++    int custom=Custom_Admission(endpoint,entry.episodeGobName,entry.mapJklFname,
++        !!(entry.multiModeFlags&MULTIMODEFLAG_TEAMS),!!(entry.multiModeFlags&MULTIMODEFLAG_100));
++    if (custom<0) { fprintf(stderr,"BOT_JOIN_REJECTED custom_admission_mismatch\n"); exit(6); }
++    int isCtf = custom==2 || !__strcmpi(entry.episodeGobName, "JK1CTF");
+     int allowedModes = MULTIMODEFLAG_TEAMS | MULTIMODEFLAG_2 | MULTIMODEFLAG_4 |
+         MULTIMODEFLAG_TIMELIMIT | MULTIMODEFLAG_SCORELIMIT | MULTIMODEFLAG_20 |
+         MULTIMODEFLAG_SINGLE_LEVEL | MULTIMODEFLAG_100;
+-    if ((!isCtf && __strcmpi(entry.episodeGobName, "JK1MP")) || entry.field_E0 != 10 ||
++    if ((!custom && !isCtf && __strcmpi(entry.episodeGobName, "JK1MP")) || entry.field_E0 != 10 ||
+         entry.maxRank < 0 || entry.maxRank > 8
+         || entry.wPassword[0] || (entry.sessionFlags & (SESSIONFLAG_PASSWORD | SESSIONFLAG_20))
+         || (entry.multiModeFlags & ~allowedModes) ||
+--- a/src/AI/jkBot.c
++++ b/src/AI/jkBot.c
+@@ -1217,6 +1217,7 @@
+ }
+ 
+ #include "red_policy.inc"
++#include "red_custom.h"
+ static int transferLoadedModel;
+ 
+ static void Bot_Combat(SithThing *self, SithThing *target)
+@@ -1709,6 +1710,9 @@
+         memset(&traps,0,sizeof(traps));
+         Bot_BuildNodes(self); bot.progressPos=self->position; bot.stuckAt=bot.now;
+         Transfer_Context(self,1);
++        if (!Custom_World(bot.world->map_jkl_fname,transfer.map,Transfer_Mode(nav.ctf,sithNet_MultiModeFlags))) {
++            fprintf(stderr,"BOT_JOIN_REJECTED custom_world_mismatch\n"); exit(6);
++        }
+         bot.nextRecovery=bot.routeStallTime=0;
+     } else {
+         Transfer_Context(self,0);

@@ -26,7 +26,7 @@
     },
     "README.md": {
       "mode": 420,
-      "sha256": "d20d3e13d881d8c2e384c2d04032874300315b02583feacbd303c1ce04573b05"
+      "sha256": "c0f1f7175092d04b312aad7262812e246fa6cd0518be865fd92877286b4edc20"
     },
     "Start-Server.command": {
       "mode": 493,
@@ -200,6 +200,10 @@
       "mode": 420,
       "sha256": "3756863cb46ee220f2c5bd03d6706ebce861677b2f58c125248e4462e2465c39"
     },
+    "bots/routes/jhs-school-entry.route": {
+      "mode": 420,
+      "sha256": "c9a86f5b438146d8f7c27d76f90af1d253ead33e1e0d47b748a310aad2b1f92c"
+    },
     "bots/run.py": {
       "mode": 420,
       "sha256": "3d6e0a2b90303b01d917c7158414bc8ac81c568c8c21abc87461a35063b34691"
@@ -340,6 +344,14 @@
       "mode": 420,
       "sha256": "730c6d185b547cadb4a5d5b4e4eb1357c8c347532052192643f612ecc75a7e60"
     },
+    "docs/RED_TRANSFER_OBSERVATIONS.md": {
+      "mode": 420,
+      "sha256": "fb317972978e999ad7c4ae83aa005760ebaa5a34c30cee33a081e90f3457bdd9"
+    },
+    "docs/RUN_RED_ARENA.md": {
+      "mode": 420,
+      "sha256": "e46124b8f46fee13d19e5ea9e968337863f87282805140d5de2d9c793b121e63"
+    },
     "docs/SPECTATOR.md": {
       "mode": 420,
       "sha256": "d6c2b956ee804df6beb95709af2db90575d091507b1f506184033320c207d55a"
@@ -367,6 +379,10 @@
     "docs/images/spectator-view.png": {
       "mode": 420,
       "sha256": "41ebed83ae07f42521654bb54b3df23862b6c0b89d9b5ab84f9986ebeaa296be"
+    },
+    "docs/jhs-school-entry.png": {
+      "mode": 420,
+      "sha256": "965260dcdfb4a3541c0f9b73e483d5c429549de94303395cb91509b547b19831"
     },
     "docs/reviews/2026-11-22-elite-bot-feedback.md": {
       "mode": 420,
@@ -762,7 +778,7 @@
     },
     "native/README.md": {
       "mode": 420,
-      "sha256": "eca4a8413c9422165000f7ac5c892e702dc4eb5cb614898237cf0aea32e85629"
+      "sha256": "828bc4251cb249aaf5d87cc3ebc29ff4376a103413e94d37884183f91321bce8"
     },
     "native/arena_pace.c": {
       "mode": 420,
@@ -791,6 +807,18 @@
     "native/build_planner_go.py": {
       "mode": 420,
       "sha256": "1b507e59eb41a9646b40c3810138f90728d8221d2fa93dfe035ebed871e514ee"
+    },
+    "native/build_red_custom.py": {
+      "mode": 420,
+      "sha256": "2789c205bde757191cb73ffc7f0af26cb2e02ce3a8f61cacb8d57c16ae68fc8e"
+    },
+    "native/build_red_hint.py": {
+      "mode": 420,
+      "sha256": "5999e43ab9ed2e973b7bd9a753f22cca86676d31cdb2ac3be2108d0bbfcac9e9"
+    },
+    "native/build_red_platform.py": {
+      "mode": 420,
+      "sha256": "170968ad613f9ed56167ec97b99efe9bc95bd8a1a1ac119359c74599515a30e0"
     },
     "native/build_red_policy.py": {
       "mode": 420,
@@ -832,6 +860,30 @@
       "mode": 420,
       "sha256": "f67f50bc0de4e9113373c7dddac2f9a2802c25ade618ce39e1f00bb4647db494"
     },
+    "native/red-custom-build.json": {
+      "mode": 420,
+      "sha256": "9b7218b9d0f7ec8018b88a1a8fd1eacd135e255fa4f033b984eed813a10cf4e1"
+    },
+    "native/red-custom.patch": {
+      "mode": 420,
+      "sha256": "b2405f6d4887201225d53acc07cd87eaf3fdb4e8aba8d54fc0c2fbfe81100163"
+    },
+    "native/red-hint-build.json": {
+      "mode": 420,
+      "sha256": "4491b0f56d84a43680204e2ec38394a87fe94b298a1c9726e33cdf9013313eac"
+    },
+    "native/red-hint.patch": {
+      "mode": 420,
+      "sha256": "861a525da895df7456a92221dc9e631e2a9f3356676d6c70845e66346417c581"
+    },
+    "native/red-platform-build.json": {
+      "mode": 420,
+      "sha256": "d0e9c69aa32543fec11b19f89caf557ea7dbb6e0bc9e6c991023d81a0618e45f"
+    },
+    "native/red-platform.patch": {
+      "mode": 420,
+      "sha256": "1720cae3fd48acb1bca69192b0aba5c41b161ae0fc236ff78b2d94a96db988e3"
+    },
     "native/red-policy-build.json": {
       "mode": 420,
       "sha256": "2ab4ec3862fabc55d328a2de2ec464b1d19f6cf3e5002d1f26bf994bad89d5e2"
@@ -848,9 +900,21 @@
       "mode": 420,
       "sha256": "8e8b6986a4cf1b6236dc5b240f11cdbf9bd6bc2ae2b91282eda73a768388af33"
     },
+    "native/red_custom.h": {
+      "mode": 420,
+      "sha256": "62adcb460f8eb296f085af119f9417f67a0c5d882bbfd565da04b2a37300f4c4"
+    },
+    "native/red_hint.inc": {
+      "mode": 420,
+      "sha256": "51fcbdb57e9a459bad7a46b1ab05c8b865b6c05ac152f476f0f99f2ddfc8e1f1"
+    },
     "native/red_nav_recall.h": {
       "mode": 420,
       "sha256": "fa4cfd06343249e059991926ece8edcbb87b1d6eac7410f94a2b6bbc01f509bf"
+    },
+    "native/red_platform.inc": {
+      "mode": 420,
+      "sha256": "21ddcc25e76a7d966553f60a1dbe28e930e6b02e6de13c44ab73b6aadf5f3415"
     },
     "native/red_policy.inc": {
       "mode": 420,
@@ -902,7 +966,7 @@
     },
     "native/tests/run_red_transfer_tests.py": {
       "mode": 420,
-      "sha256": "a0486de298ec8b2e64eb1b3e2d4d4c4c9ad2997dcca692296c93ebbf323ef45f"
+      "sha256": "106b7b20986c9588842a9b398f4c4d5c31c0e5be8bf7ee5bee874c75a26cc563"
     },
     "native/tests/run_server_admin_tests.py": {
       "mode": 420,
@@ -1076,13 +1140,17 @@
       "mode": 420,
       "sha256": "0ded44ee50232c4b8a3bee30f1d856b5cd38cfa36438f1af59a7d2a885f8b8f3"
     },
+    "native/tests/test_red_custom.py": {
+      "mode": 420,
+      "sha256": "b7ac61b6f1e0a488384a5293a3318da1a7204f598dd76753050476bc26115d49"
+    },
     "native/tests/test_red_policy.py": {
       "mode": 420,
       "sha256": "2a2309494b8ae56995b02fffc5b0b8ceec4859c115212ca7e5920a3ae516bea8"
     },
     "native/tests/test_red_transfer_driver.c": {
       "mode": 420,
-      "sha256": "1622005aa38aef01418cbab833919157e46c4e856ca8baaca2056f8c81280916"
+      "sha256": "c42e679599a17932f6cccab9cc73b1080c01f99d291527080188a8a2f5dbe68d"
     },
     "native/tests/test_server_admin.c": {
       "mode": 420,
@@ -1136,6 +1204,26 @@
       "mode": 420,
       "sha256": "51afaa9cbd7042833d83dd842bc4654721bed802b40132f614c615d97885d0f3"
     },
+    "qa/adjoin-arena-jhs-hints-results.json": {
+      "mode": 420,
+      "sha256": "b99f24a4c84b89fae0d855a07a26133295cd719c0f6be8f19d34d7f289b2f333"
+    },
+    "qa/adjoin-arena-jhs-hints-schedule.json": {
+      "mode": 420,
+      "sha256": "a8bed2f2de5e11e3a1ea809a5e2bc4c50a8882acabe64010874f890c59ccb005"
+    },
+    "qa/adjoin-arena-jhs-platform-results.json": {
+      "mode": 420,
+      "sha256": "1e8a9e0ab70fa28eeb17816969382bfd3a63f76ca848d63018e86de7fbb96b67"
+    },
+    "qa/adjoin-arena-jhs-platform-schedule.json": {
+      "mode": 420,
+      "sha256": "ea71ee438fc8368ba17edd11ae9b33a6d62748afa74436c3f7c0feb8e1d02331"
+    },
+    "qa/adjoin-arena-jhs-route-geometry.json": {
+      "mode": 420,
+      "sha256": "2f72b28493721e7cb1fa163dca19b3aaa1b31d2c5da69dabd909f3c7dbbf6724"
+    },
     "qa/adjoin-arena-join-crossover.json": {
       "mode": 420,
       "sha256": "a6fdf37ba92085285d18fc57d0bf82ca324dfa39bd7dc2a19815515ccdf5c2b3"
@@ -1143,6 +1231,14 @@
     "qa/adjoin-arena-m0-pool90.json": {
       "mode": 420,
       "sha256": "74632f161afcf7056850b7459411ea1341826175bd8b39f832c8b69cb921ab4a"
+    },
+    "qa/adjoin-arena-mode-coverage-jhs-schedule.json": {
+      "mode": 420,
+      "sha256": "f0a67928fd7427d9eec6f914097431f20223f2ddf65d01408d3a65a692ccf2a4"
+    },
+    "qa/adjoin-arena-mode-coverage-observed.json": {
+      "mode": 420,
+      "sha256": "487e0415e0f3dc437bcd9a1086f6aa1240d7b32371e9bc974704ea77a3093a82"
     },
     "qa/adjoin-arena-mode-coverage-schedule.json": {
       "mode": 420,
@@ -2272,9 +2368,17 @@
       "mode": 420,
       "sha256": "f4da171f3082a7f3c91ec957264029609477b93580dd62b8790e712d0994fac2"
     },
+    "scripts/bot_development/analysis/audit_platform_openings.py": {
+      "mode": 420,
+      "sha256": "2c3b7758e0e0bf5e54a80a9e28317975f052c503373e84ecb17a33c625821cde"
+    },
     "scripts/bot_development/analysis/audit_recovery_learning.py": {
       "mode": 420,
       "sha256": "265440f5ba2d8b5a055558c431af66f3fe4a4111caf84fe317806ea279202215"
+    },
+    "scripts/bot_development/analysis/audit_transfer_navigation.py": {
+      "mode": 420,
+      "sha256": "3adba0defd42ea89114291fc82523bab53b33028441247e88b9dad0fd8dc3693"
     },
     "scripts/bot_development/analysis/compare_gameplay.py": {
       "mode": 420,
@@ -2295,6 +2399,10 @@
     "scripts/bot_development/analysis/inspect_pool_context.py": {
       "mode": 420,
       "sha256": "fcc1f9b978196478442eb491b39031d7dab6a26db0efc49ed3841785cab696b4"
+    },
+    "scripts/bot_development/analysis/jhs_route_geometry.py": {
+      "mode": 420,
+      "sha256": "b2bcbf8789d13887422935d602e885076d252200a90c41650b4ba82a2b2717ac"
     },
     "scripts/bot_development/analysis/join_crossover.py": {
       "mode": 420,
@@ -2335,6 +2443,10 @@
     "scripts/bot_development/analysis/qualify_red_policies.py": {
       "mode": 420,
       "sha256": "66085e0a5db3441c174fff90c91b6a5440aa831aeb13ff5732f360eb78e7c9ff"
+    },
+    "scripts/bot_development/analysis/red_mode_evidence.py": {
+      "mode": 420,
+      "sha256": "edc5fd560aa73fdbe7910e935047e9a73294796a062581b88a37c77e76a08917"
     },
     "scripts/bot_development/analysis/red_policy_stream.py": {
       "mode": 420,
@@ -2422,11 +2534,11 @@
     },
     "scripts/bot_development/legacy/native_force_observation.py": {
       "mode": 420,
-      "sha256": "37fb4eaf8322ccdcd077227d9b5f2a89806638806c108190ccd5dce4c4da2c0c"
+      "sha256": "78b7a05eddc1c5d30679fa5073d485508fd33117f0ec4133418797116cb53286"
     },
     "scripts/bot_development/legacy/native_mode_transfer.py": {
       "mode": 420,
-      "sha256": "81312ff3339bcdda4eb8d7a5d5276b98d67916b4ce87752c4b0fde41e2369f73"
+      "sha256": "e21d0bf7394a318573636b66c75c89c83c01c32280a5cad27b0934fc6b333620"
     },
     "scripts/bot_development/legacy/native_observation_pace.py": {
       "mode": 420,
@@ -2434,7 +2546,7 @@
     },
     "scripts/bot_development/legacy/native_red_match.py": {
       "mode": 420,
-      "sha256": "b01b4f729ae6497019eeae489f08a90bdb269b46f91bd9fe78f9b46b249fdd55"
+      "sha256": "88147c543d1d721ce965fe2b6742513d02833006312b38213126dfb25b4f5741"
     },
     "scripts/bot_development/legacy/rebuild_native_pair.py": {
       "mode": 420,
@@ -2442,7 +2554,7 @@
     },
     "scripts/bot_development/legacy/record_server.py": {
       "mode": 420,
-      "sha256": "4d69067faf1a578c3e386e860ca1bd73d184f68fe5c5ec5bee727281a01e052a"
+      "sha256": "8f3f57c48523e943995b886e555b677d77b111ab7384a4937e9e71970aee6aee"
     },
     "scripts/bot_development/legacy/windows_force_bridge.py": {
       "mode": 420,
@@ -2534,7 +2646,7 @@
     },
     "tests/test_arena_recorder_startup.py": {
       "mode": 420,
-      "sha256": "b53ab4c3bcec1e574692bef8ede59daff760f8a5ec162c21d853af46d2450dd9"
+      "sha256": "b0b5143708da4d8de6f5e8e93c07b5f5d4a70e385a5d48bb4c3afa6892dd42f0"
     },
     "tests/test_arena_red_stream.py": {
       "mode": 420,
@@ -2682,7 +2794,7 @@
     },
     "tests/test_native_mode_transfer.py": {
       "mode": 420,
-      "sha256": "a243f267a2c64374b91e61e2ef96219d6065598742868cf88605d78dce1f78ff"
+      "sha256": "d8c36bc66c071849ef0cdc8711dfbf079df5087d841ebe203835fafa34d0073b"
     },
     "tests/test_native_observation_pace.py": {
       "mode": 420,

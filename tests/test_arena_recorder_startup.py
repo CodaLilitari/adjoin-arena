@@ -1,5 +1,6 @@
 """Exercise the native recorder startup handoff without launching game processes."""
 import io
+import json
 from pathlib import Path
 import sys
 import tempfile
@@ -42,7 +43,7 @@ class RecorderStartupTests(unittest.TestCase):
         return recorder.boot_server([sys.executable], self.root, {}, io.BytesIO(),
                                     Path(__file__).resolve().parents[1], self.out)
 
-    def test_early_clip_cap_stages_all_collected_frames_until_finish(self):
+    def prepare_three_frames(self):
         # Native frame receipt times are 45 seconds apart without requiring a real
         # game or a 45-second test. Encoding must wait for the launcher's finish.
         ipc = MagicMock()
@@ -59,6 +60,9 @@ class RecorderStartupTests(unittest.TestCase):
         self.obs.frame.side_effect = [
             {"sequence": i, "pixels": bytes([i] * 4), "received": stamp, "width": 1, "height": 1}
             for i, stamp in enumerate((1., 2., 46.), start=1)]
+
+    def test_early_clip_cap_stages_all_collected_frames_until_finish(self):
+        self.prepare_three_frames()
         encoded = threading.Event()
         def encode(folder, out, records, filename):
             self.assertEqual(len(records), 3)
@@ -73,6 +77,19 @@ class RecorderStartupTests(unittest.TestCase):
         self.assertFalse(encoded.is_set())
         self.assertEqual(recorder.finish()["status"], "recorded")
         self.assertTrue(encoded.is_set())
+
+    def test_failed_encoder_retains_original_frames_and_receipt_for_repair(self):
+        self.prepare_three_frames()
+        self.enterContext(patch.object(recorder, "encode", side_effect=OSError("encoder unavailable")))
+        self.launch()
+        self.assertTrue(self.closed.wait(3))
+        with self.assertRaises(RuntimeError):
+            recorder.finish()
+        out = self.out / "spectator"
+        receipt = json.loads((out / "observer-receipt.json").read_bytes())
+        self.assertEqual(receipt["status"], "error")
+        self.assertEqual(len(receipt["captured"]), 3)
+        self.assertEqual(len(list((out / receipt["recovery_frames"]).glob("*.png"))), 3)
 
     def test_post_spawn_observer_failure_leaves_child_in_callers_hands(self):
         self.assertIs(self.launch(), self.child)

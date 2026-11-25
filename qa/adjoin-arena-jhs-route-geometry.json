@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+  "route_sha256": "c9a86f5b438146d8f7c27d76f90af1d253ead33e1e0d47b748a310aad2b1f92c",
+  "fixtures": {
+    "184": {
+      "model": "landpad.3do",
+      "model_sha256": "14030b15765473655b6dffd4189cd7d3ac257e1e347e787bc04302b78f9afd3b",
+      "origin": [
+        -0.635,
+        -13.425,
+        -0.13
+      ]
+    },
+    "183": {
+      "model": "c3x10.3do",
+      "model_sha256": "695482cb198cfa1736f066e23598340f2e63ad8b7e0777253b9fb012d8c27029",
+      "origin": [
+        -0.605,
+        -11.48,
+        0.005
+      ]
+    },
+    "182": {
+      "model": "c3x10.3do",
+      "model_sha256": "695482cb198cfa1736f066e23598340f2e63ad8b7e0777253b9fb012d8c27029",
+      "origin": [
+        -0.605,
+        -10.535,
+        0.0
+      ]
+    },
+    "181": {
+      "model": "c3x10.3do",
+      "model_sha256": "695482cb198cfa1736f066e23598340f2e63ad8b7e0777253b9fb012d8c27029",
+      "origin": [
+        -0.605,
+        -9.575,
+        0.0
+      ]
+    }
+  },
+  "exit_portal_surface": 74,
+  "exit_sector": 7,
+  "waypoints": 10,
+  "support_samples": 2094,
+  "maximum_sample_spacing": 0.005,
+  "side_offsets": [
+    -0.04,
+    0,
+    0.04
+  ],
+  "interpretation": "Static projected support check. The native client checks height, support, walls and movement in the live world."
+}

@@ -8,8 +8,22 @@ RED_BASE_PATCH = "6950c859f9e82aca8285daac011e1b72cb2a57644f01d2a465987312100ac5
 RED_ARCHIVE = "ca63beaa5c3a283639950be045df0d5ffa5a2fb39cc259db479c3deee4a4a123"
 
 
-def resolve_client(repo, directory, pace_build, digest, *, transfer=False):
-    manifest = repo / ("native/red-transfer-build.json" if transfer else "native/red-policy-build.json")
+def resolve_client(repo, directory, pace_build, digest, *, transfer=False, custom=False, platform_build=False,
+                   hint_build=False):
+    manifest_name = "red-transfer-build.json" if transfer else "red-policy-build.json"
+    if custom:
+        if not transfer:
+            raise ValueError("custom admission requires the transfer client")
+        manifest_name = "red-custom-build.json"
+    if platform_build:
+        if not custom:
+            raise ValueError("platform support requires the custom-admission client")
+        manifest_name = "red-platform-build.json"
+    if hint_build:
+        if not platform_build:
+            raise ValueError("route hints require the platform-aware client")
+        manifest_name = "red-hint-build.json"
+    manifest = repo / "native" / manifest_name
     build = json.loads(manifest.read_bytes())
     client = directory / "jk-bot-client"
     library = directory / "libGameNetworkingSockets.so"
@@ -20,6 +34,27 @@ def resolve_client(repo, directory, pace_build, digest, *, transfer=False):
         pins.update({"native/red-policy-build.json":"duel_receipt_sha256","native/red-transfer.patch":"transfer_patch_sha256",
                      "native/red_transfer.inc":"transfer_source_sha256","native/red_nav_recall.h":"nav_recall_sha256",
                      "native/build_red_transfer.py":"transfer_builder_sha256"})
+    if custom:
+        pins.update({"native/red-transfer-build.json": "transfer_receipt_sha256",
+                     "native/red-custom.patch": "custom_patch_sha256",
+                     "native/red_custom.h": "custom_source_sha256",
+                     "native/build_red_custom.py": "custom_builder_sha256"})
+    if platform_build:
+        pins.update({"native/red-custom-build.json": "custom_receipt_sha256",
+                     "native/red-platform.patch": "platform_patch_sha256",
+                     "native/red_platform.inc": "platform_source_sha256",
+                     "native/build_red_platform.py": "platform_builder_sha256"})
+        previous = json.loads((repo / "native/red-custom-build.json").read_bytes())
+        if build.get("custom_binary_sha256") != previous["binary_sha256"]:
+            raise ValueError("native_platform_base_client_mismatch")
+    if hint_build:
+        pins.update({"native/red-platform-build.json": "platform_receipt_sha256",
+                     "native/red-hint.patch": "hint_patch_sha256",
+                     "native/red_hint.inc": "hint_source_sha256",
+                     "native/build_red_hint.py": "hint_builder_sha256"})
+        previous = json.loads((repo / "native/red-platform-build.json").read_bytes())
+        if build.get("platform_binary_sha256") != previous["binary_sha256"]:
+            raise ValueError("native_hint_base_client_mismatch")
     if (digest(directory / manifest.name) != digest(manifest)
             or any(digest(repo / name) != build[key] for name, key in pins.items())
             or build["red_commit"] != TEACHER_REVISION or build["red_overlay_sha256"] != TEACHER_OVERLAY

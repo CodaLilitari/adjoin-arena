@@ -1,0 +1,19 @@
+--- a/src/AI/jkBot.c
++++ b/src/AI/jkBot.c
+@@ -1682,6 +1682,7 @@
+ }
+ 
+ #include "red_platform.inc"
++#include "red_hint.inc"
+ 
+ void jkBot_Tick(flex_t dt)
+ {
+@@ -1807,7 +1808,7 @@
+         Bot_Confinement(self);
+         if (!Bot_DeadEnd(self)) Bot_Recovery(self);
+         if (!releasingPower) Bot_TryMovementSpeed(self);
+-        Platform_Recover(self);
++        if (!Hint_Walk(self)) Platform_Recover(self);
+         Bot_MoveTelemetry(self);
+     }
+     Red_FinishDecision();

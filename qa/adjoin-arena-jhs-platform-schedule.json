@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "date_utc": "2026-11-25T13:36:59.967406+00:00",
+  "baseline_schedule_sha256": "f0a67928fd7427d9eec6f914097431f20223f2ddf65d01408d3a65a692ccf2a4",
+  "original_pair_audit_sha256": "3a917c466f78c852ac3a94045d648eaef7ff241dea3a01f208f23ab05ecd252d",
+  "task": "Fresh confirmation of an observed JHS raised-platform navigation fault after a separately pinned native correction. Preserve the original cold and repeat games in all outcomes.",
+  "pace": 2,
+  "game_seconds": 75,
+  "unseeded_spawns": true,
+  "settings": "Same original GOB and JKL, dedicated host, FFA/guns/Force, immediate native controls, isolated loopback. Empty new per-profile cache namespace before first match; same namespace for the repeat. No repositioning or rerolling a start. Record actual coordinates and native support/route data to distinguish support from empty lethal drop.",
+  "success": "Both native peers pass the signed asset admission/world and immediate nonzero-input checks. For a repair claim the actual failed raised pad/catwalk at the sector 5 stock start must be exercised by a real player or true native geometry fixture. Observe real X/Y displacement away from that start with subsequent traversal, keeping exposed ledges rejected. General successful runs elsewhere are reported separately.",
+  "camera": "Official confirmation pair without optional spectator to preserve matched 2x. A separate 1x recording can diagnose behavior without becoming a scored result.",
+  "matrix": [
+    {
+      "name": "jhs-platform-01-first",
+      "map": "jhs.jkl",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "mode": "ffa",
+      "weapons": "guns",
+      "force": "on",
+      "first": "boba",
+      "game_seconds": 75,
+      "episode": "JHS"
+    },
+    {
+      "name": "jhs-platform-02-repeat",
+      "map": "jhs.jkl",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "mode": "ffa",
+      "weapons": "guns",
+      "force": "on",
+      "first": "jan",
+      "game_seconds": 75,
+      "episode": "JHS"
+    }
+  ]
+}

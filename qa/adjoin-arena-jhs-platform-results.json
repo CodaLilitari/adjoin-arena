@@ -1,0 +1,431 @@
+{
+  "design_sha256": "ea71ee438fc8368ba17edd11ae9b33a6d62748afa74436c3f7c0feb8e1d02331",
+  "original_audit_sha256": "3a917c466f78c852ac3a94045d648eaef7ff241dea3a01f208f23ab05ecd252d",
+  "runs": [
+    {
+      "name": "jhs-platform-01-first",
+      "sha256": "615997fa7286db0b387fe5c7b1a98313ab35fdf65a503e3b063aab53857dfd33",
+      "status": "live_join_and_loadout_verified",
+      "error": null,
+      "roles": {
+        "host": 1.9999982956096505,
+        "dark": 2.000000034229439,
+        "light": 2.000001818686775
+      },
+      "owners": {
+        "dark": {
+          "first_sector": "5",
+          "visited_sectors": 1,
+          "first_planar_axis_line": 143,
+          "initial_loaded_edges": "0",
+          "graph_nodes": "1313",
+          "mesh_support": {
+            "native_support_events": 70,
+            "sampled_per_life_and_fixture": [
+              {
+                "line": 140,
+                "life": 1,
+                "event": {
+                  "name": "Bot_BobaFett",
+                  "t": "0.034",
+                  "sector": "5",
+                  "fixture": "184",
+                  "next_fixture": "184",
+                  "pos": "-0.75000,-12.44000,0.12000",
+                  "ahead": "-0.71416,-12.20269,0.13918",
+                  "probes": "18",
+                  "void_rejects": "0",
+                  "exit_sector": "7",
+                  "fwd": "0.64271",
+                  "slide": "0.13868"
+                },
+                "post_marker_positions": 8,
+                "max_xy_displacement": 2.2211674858056054,
+                "reached_another_sector": false,
+                "farthest_position_line": 1838,
+                "farthest_position": "-0.614,-10.223,0.132",
+                "farthest_sector": "5"
+              },
+              {
+                "line": 176,
+                "life": 1,
+                "event": {
+                  "name": "Bot_BobaFett",
+                  "t": "1.666",
+                  "sector": "5",
+                  "fixture": "183",
+                  "next_fixture": "183",
+                  "pos": "-0.67275,-11.87018,0.13682",
+                  "ahead": "-0.65653,-11.55059,0.13742",
+                  "probes": "24",
+                  "void_rejects": "0",
+                  "exit_sector": "7",
+                  "fwd": "0.65000",
+                  "slide": "0.00062"
+                },
+                "post_marker_positions": 8,
+                "max_xy_displacement": 1.648227385678322,
+                "reached_another_sector": false,
+                "farthest_position_line": 1838,
+                "farthest_position": "-0.614,-10.223,0.132",
+                "farthest_sector": "5"
+              },
+              {
+                "line": 223,
+                "life": 1,
+                "event": {
+                  "name": "Bot_BobaFett",
+                  "t": "3.842",
+                  "sector": "5",
+                  "fixture": "182",
+                  "next_fixture": "182",
+                  "pos": "-0.62720,-10.93622,0.13197",
+                  "ahead": "-0.62198,-10.61626,0.13242",
+                  "probes": "24",
+                  "void_rejects": "0",
+                  "exit_sector": "7",
+                  "fwd": "0.65000",
+                  "slide": "-0.00008"
+                },
+                "post_marker_positions": 8,
+                "max_xy_displacement": 0.7133421397898765,
+                "reached_another_sector": false,
+                "farthest_position_line": 1838,
+                "farthest_position": "-0.614,-10.223,0.132",
+                "farthest_sector": "5"
+              }
+            ]
+          },
+          "native_sec5_pad_life1": [
+            {
+              "line": 140,
+              "life": 1,
+              "event": {
+                "name": "Bot_BobaFett",
+                "t": "0.034",
+                "sector": "5",
+                "fixture": "184",
+                "next_fixture": "184",
+                "pos": "-0.75000,-12.44000,0.12000",
+                "ahead": "-0.71416,-12.20269,0.13918",
+                "probes": "18",
+                "void_rejects": "0",
+                "exit_sector": "7",
+                "fwd": "0.64271",
+                "slide": "0.13868"
+              },
+              "post_marker_positions": 8,
+              "max_xy_displacement": 2.2211674858056054,
+              "reached_another_sector": false,
+              "farthest_position_line": 1838,
+              "farthest_position": "-0.614,-10.223,0.132",
+              "farthest_sector": "5"
+            },
+            {
+              "line": 176,
+              "life": 1,
+              "event": {
+                "name": "Bot_BobaFett",
+                "t": "1.666",
+                "sector": "5",
+                "fixture": "183",
+                "next_fixture": "183",
+                "pos": "-0.67275,-11.87018,0.13682",
+                "ahead": "-0.65653,-11.55059,0.13742",
+                "probes": "24",
+                "void_rejects": "0",
+                "exit_sector": "7",
+                "fwd": "0.65000",
+                "slide": "0.00062"
+              },
+              "post_marker_positions": 8,
+              "max_xy_displacement": 1.648227385678322,
+              "reached_another_sector": false,
+              "farthest_position_line": 1838,
+              "farthest_position": "-0.614,-10.223,0.132",
+              "farthest_sector": "5"
+            }
+          ]
+        },
+        "light": {
+          "first_sector": "5",
+          "visited_sectors": 31,
+          "first_planar_axis_line": 144,
+          "initial_loaded_edges": "0",
+          "graph_nodes": "1313",
+          "mesh_support": {
+            "native_support_events": 33,
+            "sampled_per_life_and_fixture": [
+              {
+                "line": 141,
+                "life": 1,
+                "event": {
+                  "name": "Bot_JanOrs",
+                  "t": "0.034",
+                  "sector": "5",
+                  "fixture": "184",
+                  "next_fixture": "184",
+                  "pos": "-0.59000,-12.44000,0.12000",
+                  "ahead": "-0.59375,-12.20003,0.13918",
+                  "probes": "18",
+                  "void_rejects": "0",
+                  "exit_sector": "7",
+                  "fwd": "0.64992",
+                  "slide": "-0.01451"
+                },
+                "post_marker_positions": 0,
+                "max_xy_displacement": 0.0,
+                "reached_another_sector": false
+              },
+              {
+                "line": 188,
+                "life": 1,
+                "event": {
+                  "name": "Bot_JanOrs",
+                  "t": "1.666",
+                  "sector": "5",
+                  "fixture": "183",
+                  "next_fixture": "183",
+                  "pos": "-0.60532,-11.87002,0.13682",
+                  "ahead": "-0.60524,-11.55002,0.13742",
+                  "probes": "24",
+                  "void_rejects": "0",
+                  "exit_sector": "7",
+                  "fwd": "0.64999",
+                  "slide": "0.00485"
+                },
+                "post_marker_positions": 0,
+                "max_xy_displacement": 0.0,
+                "reached_another_sector": false
+              },
+              {
+                "line": 238,
+                "life": 1,
+                "event": {
+                  "name": "Bot_JanOrs",
+                  "t": "3.842",
+                  "sector": "5",
+                  "fixture": "182",
+                  "next_fixture": "182",
+                  "pos": "-0.61417,-10.96008,0.13307",
+                  "ahead": "-0.61205,-10.64009,0.13242",
+                  "probes": "24",
+                  "void_rejects": "0",
+                  "exit_sector": "7",
+                  "fwd": "0.64999",
+                  "slide": "0.00461"
+                },
+                "post_marker_positions": 0,
+                "max_xy_displacement": 0.0,
+                "reached_another_sector": false
+              }
+            ]
+          },
+          "native_sec5_pad_life1": [
+            {
+              "line": 141,
+              "life": 1,
+              "event": {
+                "name": "Bot_JanOrs",
+                "t": "0.034",
+                "sector": "5",
+                "fixture": "184",
+                "next_fixture": "184",
+                "pos": "-0.59000,-12.44000,0.12000",
+                "ahead": "-0.59375,-12.20003,0.13918",
+                "probes": "18",
+                "void_rejects": "0",
+                "exit_sector": "7",
+                "fwd": "0.64992",
+                "slide": "-0.01451"
+              },
+              "post_marker_positions": 0,
+              "max_xy_displacement": 0.0,
+              "reached_another_sector": false
+            },
+            {
+              "line": 188,
+              "life": 1,
+              "event": {
+                "name": "Bot_JanOrs",
+                "t": "1.666",
+                "sector": "5",
+                "fixture": "183",
+                "next_fixture": "183",
+                "pos": "-0.60532,-11.87002,0.13682",
+                "ahead": "-0.60524,-11.55002,0.13742",
+                "probes": "24",
+                "void_rejects": "0",
+                "exit_sector": "7",
+                "fwd": "0.64999",
+                "slide": "0.00485"
+              },
+              "post_marker_positions": 0,
+              "max_xy_displacement": 0.0,
+              "reached_another_sector": false
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "jhs-platform-02-repeat",
+      "sha256": "8c48ac54a3e37fc5bd87148651fef80e4ac03185de520a5d6ed5b20929d2da82",
+      "status": "live_join_and_loadout_verified",
+      "error": null,
+      "roles": {
+        "host": 1.9999995224382296,
+        "dark": 1.9999988021833102,
+        "light": 2.0000005594891106
+      },
+      "owners": {
+        "dark": {
+          "first_sector": "135",
+          "visited_sectors": 23,
+          "first_planar_axis_line": 143,
+          "initial_loaded_edges": "15",
+          "graph_nodes": "1313",
+          "mesh_support": {
+            "native_support_events": 0,
+            "sampled_per_life_and_fixture": []
+          },
+          "native_sec5_pad_life1": []
+        },
+        "light": {
+          "first_sector": "5",
+          "visited_sectors": 7,
+          "first_planar_axis_line": 143,
+          "initial_loaded_edges": "0",
+          "graph_nodes": "1313",
+          "mesh_support": {
+            "native_support_events": 64,
+            "sampled_per_life_and_fixture": [
+              {
+                "line": 140,
+                "life": 1,
+                "event": {
+                  "name": "Bot_JanOrs",
+                  "t": "0.034",
+                  "sector": "5",
+                  "fixture": "184",
+                  "next_fixture": "184",
+                  "pos": "-0.75000,-12.44000,0.12000",
+                  "ahead": "-0.71416,-12.20269,0.13918",
+                  "probes": "18",
+                  "void_rejects": "0",
+                  "exit_sector": "7",
+                  "fwd": "0.64271",
+                  "slide": "0.13868"
+                },
+                "post_marker_positions": 7,
+                "max_xy_displacement": 2.2003947373141934,
+                "reached_another_sector": false,
+                "farthest_position_line": 1572,
+                "farthest_position": "-0.611,-10.244,0.132",
+                "farthest_sector": "5"
+              },
+              {
+                "line": 176,
+                "life": 1,
+                "event": {
+                  "name": "Bot_JanOrs",
+                  "t": "1.666",
+                  "sector": "5",
+                  "fixture": "183",
+                  "next_fixture": "183",
+                  "pos": "-0.67275,-11.87018,0.13682",
+                  "ahead": "-0.65653,-11.55059,0.13742",
+                  "probes": "24",
+                  "void_rejects": "0",
+                  "exit_sector": "7",
+                  "fwd": "0.65000",
+                  "slide": "0.00062"
+                },
+                "post_marker_positions": 7,
+                "max_xy_displacement": 1.6273519763407052,
+                "reached_another_sector": false,
+                "farthest_position_line": 1572,
+                "farthest_position": "-0.611,-10.244,0.132",
+                "farthest_sector": "5"
+              },
+              {
+                "line": 223,
+                "life": 1,
+                "event": {
+                  "name": "Bot_JanOrs",
+                  "t": "3.842",
+                  "sector": "5",
+                  "fixture": "182",
+                  "next_fixture": "182",
+                  "pos": "-0.62720,-10.93622,0.13197",
+                  "ahead": "-0.62198,-10.61626,0.13242",
+                  "probes": "24",
+                  "void_rejects": "0",
+                  "exit_sector": "7",
+                  "fwd": "0.65000",
+                  "slide": "-0.00008"
+                },
+                "post_marker_positions": 7,
+                "max_xy_displacement": 0.6924095380625551,
+                "reached_another_sector": false,
+                "farthest_position_line": 1572,
+                "farthest_position": "-0.611,-10.244,0.132",
+                "farthest_sector": "5"
+              }
+            ]
+          },
+          "native_sec5_pad_life1": [
+            {
+              "line": 140,
+              "life": 1,
+              "event": {
+                "name": "Bot_JanOrs",
+                "t": "0.034",
+                "sector": "5",
+                "fixture": "184",
+                "next_fixture": "184",
+                "pos": "-0.75000,-12.44000,0.12000",
+                "ahead": "-0.71416,-12.20269,0.13918",
+                "probes": "18",
+                "void_rejects": "0",
+                "exit_sector": "7",
+                "fwd": "0.64271",
+                "slide": "0.13868"
+              },
+              "post_marker_positions": 7,
+              "max_xy_displacement": 2.2003947373141934,
+              "reached_another_sector": false,
+              "farthest_position_line": 1572,
+              "farthest_position": "-0.611,-10.244,0.132",
+              "farthest_sector": "5"
+            },
+            {
+              "line": 176,
+              "life": 1,
+              "event": {
+                "name": "Bot_JanOrs",
+                "t": "1.666",
+                "sector": "5",
+                "fixture": "183",
+                "next_fixture": "183",
+                "pos": "-0.67275,-11.87018,0.13682",
+                "ahead": "-0.65653,-11.55059,0.13742",
+                "probes": "24",
+                "void_rejects": "0",
+                "exit_sector": "7",
+                "fwd": "0.65000",
+                "slide": "0.00062"
+              },
+              "post_marker_positions": 7,
+              "max_xy_displacement": 1.6273519763407052,
+              "reached_another_sector": false,
+              "farthest_position_line": 1572,
+              "farthest_position": "-0.611,-10.244,0.132",
+              "farthest_sector": "5"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+--- a/src/AI/jkBot.c
++++ b/src/AI/jkBot.c
+@@ -259,21 +259,22 @@
+     return clear;
+ }
+ 
+-static int Bot_Floor(rdVector3 p, SithSector *hint, flex_t depth,
+-                     rdVector3 *standing, SithSector **outSector)
++static int Bot_StandingFloor(rdVector3 p, SithSector *hint, flex_t depth,
++                             rdVector3 *standing, SithSector **outSector, int platform, int *fixture)
+ {
+     rdVector3 down={0,0,-1};
+     SithCollision *hit;
+     SithSector *sector=Bot_SectorAt(&p,hint);
+     int found=0;
+-    if (!Bot_SectorSafe(sector)) return 0;
++    if (!Bot_SectorSafe(sector) && !(platform && sector && (sector->flags&SITH_SECTOR_FALLDEATH) &&
++        !(sector->flags&SITH_SECTOR_NOACTORENTER))) return 0;
+     /* A stationary mesh can overhang its owner sector across an adjoin. */
+     sithCollision_SearchForCollisions(sector,NULL,&p,&down,depth,0.0f,
+         RAYCAST_200|RAYCAST_800|RAYCAST_2000);
+     while ((hit=sithCollision_PopStack())!=NULL) {
+         if ((hit->type&SITHCOLLISION_ADJOINCROSS) && hit->surface &&
+             hit->surface->pAdjoin && !Bot_SectorSafe(hit->surface->pAdjoin->sector)) break;
+-        SithSector *supportSector=NULL;
++        SithSector *supportSector=NULL; SithThing *mesh=NULL;
+         if (hit->type&SITHCOLLISION_WORLD) {
+             if (!hit->surface || hit->hitNorm.z<0.55f ||
+                 (hit->surface->flags&(SITH_SURFACE_WATER|SITH_SURFACE_VERYDEEPWATER))) break;
+@@ -281,16 +282,25 @@
+         } else if ((hit->type&SITHCOLLISION_THING) && Bot_StaticFixture(hit->pThingCollided)) {
+             /* Stock catwalks/crates can be mesh COGs with no travel frames. */
+             if (hit->hitNorm.z<0.55f) continue;
+-            supportSector=hit->pThingCollided->sector;
++            mesh=hit->pThingCollided; supportSector=mesh->sector;
+         } else continue;
+         *standing=p; standing->z=p.z-hit->distance+BOT_FOOT_HEIGHT;
+         /* The standing point can belong to the adjacent sector even when
+            its support fixture is stored in the other sector's thing list. */
+         *outSector=Bot_SectorAt(standing,supportSector);
+-        found=Bot_SectorSafe(*outSector); break;
++        found=Bot_SectorSafe(*outSector);
++        if (!found && platform && *outSector && ((*outSector)->flags&SITH_SECTOR_FALLDEATH) &&
++            !((*outSector)->flags&SITH_SECTOR_NOACTORENTER) && mesh && (mesh->flags&SITH_TF_STANDABLE)) found=1;
++        if (found && fixture) *fixture=mesh ? (int)(mesh-bot.world->aThings) : -1;
++        break;
+     }
+     sithCollision_DecreaseStackLevel();
+     return found;
++}
++
++static int Bot_Floor(rdVector3 p, SithSector *hint, flex_t depth, rdVector3 *standing, SithSector **outSector)
++{
++    return Bot_StandingFloor(p,hint,depth,standing,outSector,0,NULL);
+ }
+ 
+ static int Bot_ForceReady(SithThing *self,int bin,flex_t cost);
+@@ -1671,6 +1681,8 @@
+     return bot.now-bot.deadAt>1.5f && fmodf(bot.now-bot.deadAt,1.4f)<0.18f;
+ }
+ 
++#include "red_platform.inc"
++
+ void jkBot_Tick(flex_t dt)
+ {
+     red.decision.pending=0; red.readMask=0;
+@@ -1795,6 +1807,7 @@
+         Bot_Confinement(self);
+         if (!Bot_DeadEnd(self)) Bot_Recovery(self);
+         if (!releasingPower) Bot_TryMovementSpeed(self);
++        Platform_Recover(self);
+         Bot_MoveTelemetry(self);
+     }
+     Red_FinishDecision();

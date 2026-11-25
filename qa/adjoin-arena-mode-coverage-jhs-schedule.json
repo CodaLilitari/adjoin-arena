@@ -1,0 +1,206 @@
+{
+  "schema": 1,
+  "scope": "JK competitive modes with native host and two native bots. FFA, skin-team deathmatch, Capture the Flag; guns or saber-only, Force enabled or disabled. Same immediate stock joins. Mode qualification is separate from policy strength.",
+  "rates": {
+    "target": 2,
+    "fallback": "Use 1x under a separate labeled run if 2x cannot be measured at the requested scenario."
+  },
+  "matrix": [
+    {
+      "name": "mode-01-ffa-guns-force-on",
+      "mode": "ffa",
+      "weapons": "guns",
+      "force": "on",
+      "episode": "JK1MP",
+      "map": "m10.jkl",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+      "first": "boba",
+      "game_seconds": 50
+    },
+    {
+      "name": "mode-02-tdm-guns-force-off",
+      "mode": "tdm",
+      "weapons": "guns",
+      "force": "off",
+      "episode": "JK1MP",
+      "map": "m2.jkl",
+      "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a",
+      "first": "jan",
+      "game_seconds": 50
+    },
+    {
+      "name": "mode-03-ctf-guns-force-on",
+      "mode": "ctf",
+      "weapons": "guns",
+      "force": "on",
+      "episode": "JK1CTF",
+      "map": "c1.jkl",
+      "map_sha256": "349fb5beffba7c84fd573fe1184f3fbb569d4fcdad07d2d9b26fcb8afdb849e0",
+      "first": "boba",
+      "game_seconds": 90
+    },
+    {
+      "name": "mode-04-ffa-saber-force-off",
+      "mode": "ffa",
+      "weapons": "saber",
+      "force": "off",
+      "episode": "JK1MP",
+      "map": "m4.jkl",
+      "map_sha256": "150eda1c2e6c7f316c8b76a0f2f060ce5d49dcc9ae24bb43e4fb42a5df20d89c",
+      "first": "jan",
+      "game_seconds": 50
+    },
+    {
+      "name": "mode-05-tdm-saber-force-on",
+      "mode": "tdm",
+      "weapons": "saber",
+      "force": "on",
+      "episode": "JK1MP",
+      "map": "m4.jkl",
+      "map_sha256": "150eda1c2e6c7f316c8b76a0f2f060ce5d49dcc9ae24bb43e4fb42a5df20d89c",
+      "first": "boba",
+      "game_seconds": 50
+    },
+    {
+      "name": "mode-06-ctf-saber-force-off",
+      "mode": "ctf",
+      "weapons": "saber",
+      "force": "off",
+      "episode": "JK1CTF",
+      "map": "c2.jkl",
+      "map_sha256": "bc9975eb3c93ee45e83928307d27dfd5d8f94ad4eea3216fa3fecf784e593ade",
+      "first": "jan",
+      "game_seconds": 90
+    },
+    {
+      "name": "mode-07-ffa-guns-force-off",
+      "mode": "ffa",
+      "weapons": "guns",
+      "force": "off",
+      "episode": "JK1MP",
+      "map": "m2.jkl",
+      "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a",
+      "first": "boba",
+      "game_seconds": 50
+    },
+    {
+      "name": "mode-08-tdm-guns-force-on",
+      "mode": "tdm",
+      "weapons": "guns",
+      "force": "on",
+      "episode": "JK1MP",
+      "map": "m10.jkl",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+      "first": "jan",
+      "game_seconds": 50
+    },
+    {
+      "name": "mode-09-ctf-guns-force-off",
+      "mode": "ctf",
+      "weapons": "guns",
+      "force": "off",
+      "episode": "JK1CTF",
+      "map": "c3.jkl",
+      "map_sha256": "b4d804591cebebbd59f05ad42a8e059178dc468e24172bd6bc5b7d6ba1c2f0a7",
+      "first": "boba",
+      "game_seconds": 90
+    },
+    {
+      "name": "mode-10-ffa-saber-force-on",
+      "mode": "ffa",
+      "weapons": "saber",
+      "force": "on",
+      "episode": "JK1MP",
+      "map": "m10.jkl",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+      "first": "jan",
+      "game_seconds": 50
+    },
+    {
+      "name": "mode-11-tdm-saber-force-off",
+      "mode": "tdm",
+      "weapons": "saber",
+      "force": "off",
+      "episode": "JK1MP",
+      "map": "m2.jkl",
+      "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a",
+      "first": "boba",
+      "game_seconds": 50
+    },
+    {
+      "name": "mode-12-ctf-saber-force-on",
+      "mode": "ctf",
+      "weapons": "saber",
+      "force": "on",
+      "episode": "JK1CTF",
+      "map": "c1.jkl",
+      "map_sha256": "349fb5beffba7c84fd573fe1184f3fbb569d4fcdad07d2d9b26fcb8afdb849e0",
+      "first": "jan",
+      "game_seconds": 90
+    }
+  ],
+  "unseen": [
+    {
+      "name": "unseen-01-jhs-first",
+      "map": "jhs.jkl",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "mode": "ffa",
+      "weapons": "guns",
+      "force": "on",
+      "first": "boba",
+      "game_seconds": 75,
+      "episode": "JHS"
+    },
+    {
+      "name": "unseen-02-jhs-repeat",
+      "map": "jhs.jkl",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "mode": "ffa",
+      "weapons": "guns",
+      "force": "on",
+      "first": "jan",
+      "game_seconds": 75,
+      "episode": "JHS"
+    },
+    {
+      "name": "unseen-03-independent-map",
+      "map": "m5.jkl",
+      "map_sha256": "61713ac79aa60bba1b558f8457a1351f720b076c242469110975ac26b2dcff38",
+      "mode": "ffa",
+      "weapons": "guns",
+      "force": "on",
+      "episode": "JK1MP",
+      "first": "boba",
+      "game_seconds": 75
+    },
+    {
+      "name": "unseen-04-independent-repeat",
+      "map": "m5.jkl",
+      "map_sha256": "61713ac79aa60bba1b558f8457a1351f720b076c242469110975ac26b2dcff38",
+      "mode": "ffa",
+      "weapons": "guns",
+      "force": "on",
+      "episode": "JK1MP",
+      "first": "jan",
+      "game_seconds": 75
+    }
+  ],
+  "custom_episode_sha256": "a62c94789c521af2746cc8378301a4940a59a24f6fb44dd4c443caacc0211b04",
+  "measure": [
+    "Actual per-player input, team/flag markers and movement under the selected mode and rules, scripted fallback/weights ownership, game time. Report full flag cycles only when observed.",
+    "A map absent from training should navigate from its loaded geometry before any learning. Record native route discoveries, actual failures and reuse/expiry of learned costs, and demonstrate separation across content and modes.",
+    "When an objective or mandatory recovery takes precedence, leave it to Red and exclude that tick from the pickup classifier. Record labels and held-out evidence separately for mode-specific variants. Unknown or insufficient evidence uses the scripted decision."
+  ],
+  "failure_handling": "Keep all data and distinguish inability to load, join, navigate, learn or perform an objective. Further independent trials may clarify sparse events; label them separately.",
+  "amendment": {
+    "utc": "2026-11-25T13:29:54.015198+00:00",
+    "prior_schedule_sha256": "f6b7d30326d8adc781328194c974d9d3c9474d96aaec8f08adaf02bd193ae3d0",
+    "reason": "Andrei selected Jedi's High School for the custom-level comparison. The twelve stock ruleset rows and two stock m5 rows carry forward unchanged. Earlier custom-map work is excluded from this pair.",
+    "custom_archive_title": "Jedi's High School",
+    "author": "PeD_HeAd",
+    "version": "1.0",
+    "zip_sha256": "a30e2b74db290b580effe442ac1345b9158a36b9803234a4a347a997039c0411",
+    "source_url": "https://www.jkdf2.net/JKBot/JKArchive/JKDF2/JKDF2/Game%20Files/jkmp/jhs.zip",
+    "protocol": "Start both owners with a fresh JHS navigation cache. Play 75 game seconds of FFA with guns and Force on, first Boba then Jan. Reuse that cache between the two games. Start at 2x. If pacing fails, retain the attempt and run the comparison at 1x using a fresh cache for the pair. Record native map and archive identity, prior edge costs and first game inputs. Spectator video is optional."
+  }
+}

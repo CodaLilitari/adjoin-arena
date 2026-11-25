@@ -447,3 +447,100 @@ establish a completed flag capture.
 
 [Transfer build receipt](red-transfer-build.json) · [Native implementation](red_transfer.inc) ·
 [Controlled pathfinder regression](tests/test_red_transfer_driver.c)
+
+## Playtesting a locally owned custom episode
+
+The custom research client accepts an explicitly selected multiplayer episode
+on a loopback server. Build it alongside the previous clients and run the
+admission tests on Linux with OpenSSL development headers.
+
+```sh
+python3 -B native/build_red_custom.py --red-export "$RED_EXPORT" \
+  --source "$ENGINE_SOURCE" --globals-header "$GLOBALS_HEADER" --output "$NEW_OUTPUT"
+python3 -B native/tests/test_red_custom.py
+```
+
+The launcher validates the selected multiplayer episode entry, stages the
+archive as `episode/<lowercase-episode-name>.gob` in each player's private
+game directory, then gives each process five values:
+`ADJOIN_CUSTOM_EPISODE` (advertised episode name), `ADJOIN_CUSTOM_MAP`
+(advertised JKL filename with extension), `ADJOIN_CUSTOM_GOB_SHA256`,
+`ADJOIN_CUSTOM_MAP_SHA256` (both lowercase SHA-256), and `ADJOIN_CUSTOM_MODE`
+(`ffa`, `tdm` or `ctf`). With all five unset, ordinary stock discovery applies.
+A partial configuration, mismatched content or unsupported rules fail admission.
+
+Each owner first checks the advertised session and hashes its staged archive.
+After loading the world it checks the map name, SHA-256 of the bytes opened
+through the engine resource layer, and observed mode before applying its first
+movement. Both checks emit a `BOT_RED_CUSTOM` record with the phase, process
+ID and digests. Relative to the frozen transfer build, only the bot and
+multiplayer menu objects differ. The standalone test exercises three distinct
+multiplayer archive fixtures, wrong names/digests/rules, incomplete input and
+remote addresses. The geometry and playability of an unfamiliar level still
+need a live match.
+
+[Custom build receipt](red-custom-build.json) · [Admission checks](red_custom.h) ·
+[Engine integration](red-custom.patch)
+
+### Standing on a bridge over a lethal fall
+
+The platform client adds a local recovery for a player standing on a stationary,
+standable mesh in a sector marked `FALLDEATH`. The stock engine applies its
+fall-kill rule when an unattached player is descending faster than three world
+units per second. An authored bridge or landing pad can be playable above that
+drop. Red’s normal graph excludes that sector, including the deck.
+
+When a live player on that mesh has no route and zero forward and slide inputs,
+the fallback can steer toward an open movement adjoin. It uses existing mesh
+positions to aim along bridge panels. At each 0.04-unit step it checks actual
+centre and lateral footing, the surface normal, elevation change and body
+clearance. In a lethal sector only a stationary standable mesh can supply that
+footing. It drives the usual movement axes at reduced walking thrust. Once
+ordinary routing or another movement action supplies input, the fallback yields.
+
+`BOT_PLATFORM_SUPPORT` records the physical support thing, accepted probe
+endpoint, steering axes and rejected support samples. Each trace represents
+a movement decision. Compare actual XY positions within one life and whether
+the player reached another sector to establish passage.
+
+```sh
+python3 -B native/build_red_platform.py --red-export "$RED_EXPORT" \
+  --source "$ENGINE_SOURCE" --globals-header "$GLOBALS_HEADER" --output "$NEW_OUTPUT"
+python3 -B native/tests/run_red_transfer_tests.py --platform --red-export "$RED_EXPORT" \
+  --source "$ENGINE_SOURCE" --globals-header "$GLOBALS_HEADER"
+```
+
+[Platform build receipt](red-platform-build.json) · [Local steering](red_platform.inc) ·
+[Floor probe integration](red-platform.patch)
+
+### Pre-mapped walking routes
+
+The hint client accepts a small external route for a fixed level digest. The
+Jedi's High School route uses ten points on the original landing pad, three
+catwalk panels and the sector-7 entrance. Its coordinates come from the
+original map and mesh geometry. Review the points like any other Red script
+input and issue a new digest after editing them.
+
+Build with `native/build_red_hint.py`, using the same arguments and a new
+output directory. Run the production driver suite with
+`native/tests/run_red_transfer_tests.py --hint`. To opt in, set
+`ADJOIN_ROUTE_HINT` to the absolute route filename and
+`ADJOIN_ROUTE_HINT_SHA256` to its exact SHA-256. The first line is
+`RED_ROUTE_HINT_V1 <JKL SHA-256> <point count>`. Each subsequent row supplies
+sector ID, support thing ID, and player standing X, Y and Z in thousandths of
+a world unit. The final point uses support ID -1 in an ordinary sector. The
+client validates the loaded world and each fixed support. Other maps or a
+rejected artifact use ordinary navigation.
+
+The route can guide a player already on its first platform. Live collisions
+and footing still qualify each movement. Red retains aim and fire and resumes
+ordinary route planning on arrival. The map’s directed-edge learning remains
+available during ordinary navigation. Missing support defers to the existing
+controller. Each `BOT_ROUTE_HINT` record names the map, artifact, owner, life
+and waypoint. `phase=arrive` records measured proximity on the named fixture.
+`phase=exit` requires physical entry into the terminal sector during that
+life. The source includes a separate reader for comparing horizontal motion
+with earlier runs.
+
+[JHS route](../bots/routes/jhs-school-entry.route) · [Hint build receipt](red-hint-build.json) ·
+[Native waypoint controller](red_hint.inc) · [Opening evidence reader](../scripts/bot_development/analysis/audit_platform_openings.py)
