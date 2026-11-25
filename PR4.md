@@ -65,3 +65,24 @@ The environment for these runs: box Linux x86-64, Chrome headless with ANGLE/Swi
 - `SHA256SUMS` / `release-manifest.json` are not regenerated here. That belongs to the release build (`tools/build_release.py`).
 - Two native fixtures fail on the web tree exactly as they do on main (see above).
 - The pickup returnability check is not ported.
+
+## Update (2026-11-25 PM): spectator feed, host isolation, watchdog, reboot resume
+
+**Spectator keyframe feed (black screen fix).** Spectators of our hosted JKZone room saw *"Waiting for the first picture"* forever. Our engine had been built on tristamus/OpenJKDF2 `web-mp` `7a6f95c`, which predates the engine half of spectator mode (Feed steps 1–4, `fc63679`/`0917b94` and later). So the host never opened `/feed/<room>` and never made a keyframe. In addition, the bot page's CSP allowed only the relay URL, which would have blocked the feed socket.
+- The three overlays are rebased onto `web-mp` `6f6d376` (2026-11-24). There were six include-guard conflicts, resolved with upstream's blocks first. The engine is rebuilt with emsdk 6.0.12 (`openjkdf2.wasm` 4,059,461 bytes). `engine_patches.BASE`, the patches and BUILD.json are updated. The regenerated patch stack reproduces the built source exactly.
+- Upstream's own feed code now runs unchanged (`feedKeyBegin`/`feedKeyEnd` in stdComm_WSRelay.c, `sithMulti_FeedKeyframe`). The keyframe is `JKF1`+level JSON, then the world as a joiner gets it, then `JKF1{"v":1,"end":true}`. It goes out on feed open, on every new level, every 60 s, and on the feed's `key`.
+- The CSP now allows `<relay origin>/feed/`.
+- `client.js` mirrors the engine network log to the console: `feed:` lines always, and every line with `?netlog` (`headless --netlog`).
+- Upstream's transport suite (`packaging/wasm/test/transport-test.mjs`, 94 checks) passes on the rebased source. That includes *"the host makes a keyframe once its feed is open, at a new level, every minute and when the feed asks"*.
+- Local lobby check (upstream jkdf2mp-bb-server under `wrangler dev`): host `feed: sending to …/feed/1` at 3.9 s, `feed: keyframe, 169 packets in 1 chunks, 9.8 KiB` at 4.8 s and again at 64.8 s. A watcher connecting early gets `feed waiting` → `feed first 30000` (0.6 s) → the JKF1 keyframe at 30.6 s.
+- Live check (room 1149 on jediknight.zone): a watcher gets `feed 30` and then a JKF1 keyframe 0.2–0.4 s after connecting (`"map":"m10.jkl"`). The host logs a keyframe every 60 s at about 4 KiB/s of feed.
+
+**Host isolation and crash evidence.** The 11-minute drop of room 1147 was not an OOM: all six engines shared one Chrome (one SwiftShader GPU process), and the launcher never noticed the host had gone.
+- Lily now hosts in her own Chrome (256×144, 25 fps cap, 1 raster thread). The five joiners run in a second Chrome at nice +10 (240×135, 20 fps).
+- `headless.py` keeps `chrome.log` and `crashes/` per run, watches page crash/close and browser disconnect, and exits non-zero when the host seat drops. That lets a supervisor restart it.
+
+**Coach seat.** A bot whose state is briefly stale (`409 Waiting for native state`) no longer makes the seat drop its own lease and then lock itself out for 30 s (`A controller holds this bot`). There is a regression test for this.
+
+**Watchdog and reboot resume** (box-side, under `adjoin-arena-match/live/`, not in the repo):
+- `watchdog.py` hosts the room, joins the five, attaches the coach on Red, samples CPU/RSS every 15 s, checks the listing every 30 s, and relaunches everything when the host, the joiners or the listing drop. It runs until an absolute end time.
+- `resume.sh` recreates the venv when a reset has removed it, stops stale processes and starts the watchdog. It is documented in the RUNBOOK.
