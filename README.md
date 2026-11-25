@@ -4,7 +4,7 @@ Adjoin Arena runs competitive Jedi Knight bots headlessly on stock game physics 
 
 **Play on JediKnight.Zone.** List current JKWeb games, choose a room ID, and enter as one named bot. In a test hosted from the stock browser menus on Nar Shaddaa, the host scoreboard showed both the host and Bot_BobaFett. [Join a room](web_bots/README.md#join-an-existing-jediknightzone-game) · [Interoperability test](qa/adjoin-arena-jkzone-join.json)
 
-**Six players on Jedi’s High School.** Darth Lilitari’s two-minute first-person recording used the updated red-visor Mandalorian for Red, six RGB565 character models, a GeForce RTX 5070 Ti and stereo game audio. The dedicated host used a copy of JHS with one extra start. [Recording settings, roster and map change](qa/adjoin-arena-jhs-six-player-video.json)
+**Watch six bots play Jedi’s High School.** Follow Darth Lilitari from behind for two minutes with her red saber, Red’s updated red-visor Mandalorian, and four other bots. The native match uses six 16-bit character models, hardware-accelerated graphics and game audio. The dedicated host uses a copy of JHS with one additional player start. [Watch or download the third-person MP4](https://github.com/CodaLilitari/adjoin-arena/releases/download/v0.5.0/Adjoin-Arena-JHS-Third-Person-0.5.0.mp4) · [Recording details](qa/adjoin-arena-jhs-third-person-video.json)
 
 The source and the three original PR branches are available on [GitHub](https://github.com/CodaLilitari/adjoin-arena) and [GitLab](https://gitlab.com/codalilitari/adjoin-arena).
 
@@ -26,7 +26,7 @@ The optional pickup-model registry enables armed FFA on Bespin with Force, armed
 | `source/pr2-adaptive-player` | Lilitari’s adaptive player, `a8e6bdf`. The initial `main` derives from this branch and includes the foundation. |
 | `source/pr3-tactics-movement` | Red’s tactics and movement work, `f453778`. Its source overlay has a separate build procedure. |
 
-The sibling implementations have outstanding engine and browser integration work. Their original commits, notices and build receipts are retained. The server launchers, packages and updater described below belong to the inherited JK Cross Server baseline. Adjoin Arena has its own research history and has not issued a packaged release. Game files stay with their owners. [Source attribution](NOTICE.md)
+Adjoin Arena builds on JK Cross Server’s launchers, server and updater. The original PR commits, engine patches, notices and build receipts are retained. Release archives keep the inherited filenames and directory layout for the updater. Supply your own game data. [Source attribution](NOTICE.md)
 
 ## Run the pacing experiment
 
@@ -135,7 +135,7 @@ Use 2× for repeated measurements of this opening. Keep 1× as the comparison fo
 
 A dedicated JKDF2 / Mysteries of the Sith host with a small browser control panel and server-side adapters for original DirectPlay, native OpenJKDF2, and the published JKDF2Web client.
 
-**Development build. Read `docs/QUALIFICATION.md` for the exact clients and checks completed.** An actual OpenJKDF2 game simulation drives the session. Clients do not install an engine patch. JK and MotS are distinct session modes.
+[Server qualification](docs/QUALIFICATION.md) lists the clients and connection paths tested. An actual OpenJKDF2 game simulation drives the session. Clients do not install an engine patch. JK and MotS are distinct session modes.
 
 ## What is included
 
@@ -151,19 +151,22 @@ Commercial game archives, retail executables, DirectPlay DLLs, and ISOs are not 
 
 ## Downloads for Windows, Linux and macOS
 
-The [0.4.0-dev release](https://github.com/CodaLilitari/jk-cross-server/releases/tag/v0.4.0-dev)
-is also available on [GitLab](https://gitlab.com/codalilitari/jk-cross-server/-/releases/v0.4.0-dev).
-All downloads include the bots, chat administration and spectator features on main.
+Download Adjoin Arena 0.5.0 from [GitHub](https://github.com/CodaLilitari/adjoin-arena/releases/tag/v0.5.0) or [GitLab](https://gitlab.com/codalilitari/adjoin-arena/-/releases/v0.5.0). Choose the package for the machine hosting the server.
 
-| Host | Package | Runtime |
+| Host | Download | Runtime |
 | --- | --- | --- |
-| Windows | `JK_Cross_Server_0.4.0-dev-windows-docker.zip` | Docker Desktop running Linux containers |
-| macOS | `JK_Cross_Server_0.4.0-dev-macos-docker.zip` | Docker Desktop; Apple Silicon uses amd64 emulation |
-| Linux x86-64 | `JK_Cross_Server_0.4.0-dev-linux-x86_64.zip` | Native Ubuntu 24.04-compatible runtime, or Docker |
+| Windows | [Windows launcher ZIP](https://github.com/CodaLilitari/adjoin-arena/releases/download/v0.5.0/JK_Cross_Server_0.5.0-windows-docker.zip) | Docker Desktop with Linux containers |
+| macOS | [macOS launcher ZIP](https://github.com/CodaLilitari/adjoin-arena/releases/download/v0.5.0/JK_Cross_Server_0.5.0-macos-docker.zip) | Docker Desktop, with amd64 emulation on Apple Silicon |
+| Linux x86-64 | [Linux ZIP](https://github.com/CodaLilitari/adjoin-arena/releases/download/v0.5.0/JK_Cross_Server_0.5.0-linux-x86_64.zip) | Ubuntu 24.04-compatible runtime or Docker |
 
-See [platform setup and launch commands](docs/PLATFORMS.md). Windows and Mac
-packages are Linux-backed launchers, not native engine ports. The existing
-`JK_Cross_Server_0.4.0-dev.zip` remains the updater-compatible package.
+Each ZIP includes the server, browser bot engine, operator tools and documentation. The release also provides the common updater ZIP and a SHA-256 checksum for every download. [Verify a ZIP and launch the server](docs/PLATFORMS.md)
+
+To **join someone else’s JKWeb game**, extract any package, open its `jk-cross-server` directory and use Python 3.11+ and a WebGL 2 browser. List games with the following commands, then select an available room and a bot in the [room guide](web_bots/README.md#join-an-existing-jediknightzone-game).
+
+```sh
+python -m pip install "aiohttp==3.14.5"
+python -m web_bots.join_room list
+```
 
 ## Start on Linux
 
@@ -204,9 +207,7 @@ Automatic installation is opt-in and never interrupts a match. It verifies the
 release, preserves local settings and game data, retains a backup, and restarts
 the panel with the game still stopped.
 
-Existing 0.2 installations need the 0.3 ZIP installed manually once. Git
-checkouts use Git rather than the in-place installer. See [update instructions](docs/UPDATES.md)
-for migration, recovery, multi-instance behavior, and publishing new releases.
+If you have JK Cross Server installed, extract Adjoin Arena into a fresh folder and point it at your existing game data. Adjoin Arena ZIP installations check this project’s GitLab feed. Source checkouts update through Git. [Updates, migration and recovery](docs/UPDATES.md)
 
 ## Host spectator view
 

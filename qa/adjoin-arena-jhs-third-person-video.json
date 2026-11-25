@@ -1,0 +1,93 @@
+{
+  "schema": 1,
+  "game": "Jedi Knight: Dark Forces II",
+  "level": "Jedi's High School",
+  "content": "Recording copy with one additional player start",
+  "episode_sha256": "4031bb340a46e6fd14e2a3ba413b2ef7054e029081666cc9c995dcccc6aef186",
+  "jkl_sha256": "55d29a9928f3821f93405737f255c6deb7dbddf34219ed2db34411138cfb8247",
+  "navigation_route_sha256": "93a65769c85caacf637677a111aee640bbce4d3cbb6041983b2eeb8921c598fe",
+  "roster_pack_sha256": "5006ae2cd2228683cf941e7660e8a462693631ffd5cbf5d217f2f62651a04b2d",
+  "players": [
+    {
+      "player": "Bot_CrownBraid",
+      "model": "redmandoh.3do",
+      "slot": 1,
+      "rgb565_body_materials": 15
+    },
+    {
+      "player": "Bot_Lilivane",
+      "model": "lvane.3do",
+      "slot": 2,
+      "rgb565_body_materials": 41
+    },
+    {
+      "player": "Bot_BiddyBlas",
+      "model": "biddybl.3do",
+      "slot": 3,
+      "rgb565_body_materials": 9
+    },
+    {
+      "player": "Bot_T800Hybrid",
+      "model": "t800hy4.3do",
+      "slot": 4,
+      "rgb565_body_materials": 5
+    },
+    {
+      "player": "Bot_Red",
+      "model": "redmando.3do",
+      "slot": 5,
+      "rgb565_body_materials": 15
+    },
+    {
+      "player": "Bot_Lilitari",
+      "model": "dlil.3do",
+      "slot": 6,
+      "rgb565_body_materials": 49
+    }
+  ],
+  "source": "native selected player GL_BACK before SDL swap, without X11 screen capture",
+  "camera": "Darth Lilitari's local stock chase camera, cycle slot 1 / type 4",
+  "followed_actor": {
+    "name": "Bot_Lilitari",
+    "model": "dlil.3do",
+    "sound": "dlil.snd",
+    "side": "saberred1.mat",
+    "tip": "saberred0.mat",
+    "source": "mpc_readback"
+  },
+  "verified_self_focus_and_body_draw_tick_frames": 3600,
+  "gpu": "Mesa D3D12 (NVIDIA GeForce RTX 5070 Ti)",
+  "width": 960,
+  "height": 540,
+  "seconds": 120,
+  "frames": 3600,
+  "frames_per_second": 30,
+  "unique_native_frames": 3515,
+  "per_frame_weapon_slot_counts": {
+    "10": 3360,
+    "2": 240
+  },
+  "run_clock_rates": {
+    "server": 0.99999957,
+    "Bot_CrownBraid": 0.99999977,
+    "Bot_Lilivane": 0.99999976,
+    "Bot_BiddyBlas": 0.99999977,
+    "Bot_T800Hybrid": 0.99999999,
+    "Bot_Red": 1.00000025,
+    "Bot_Lilitari": 1.00000051
+  },
+  "audio": "Darth Lilitari's local OpenAL game mix, AAC stereo at 48 kHz",
+  "video_codec": "H.264",
+  "final_file": "Adjoin-Arena-JHS-Third-Person-0.5.0.mp4",
+  "bytes": 196383874,
+  "sha256": "268809a7239cb3e70a30e342e928aff394bc9e6e863c70781c1f28f9baa47135",
+  "capture_log_sha256": "cd1ae3fd242a64783dd733a9ff6d592c25aa09698fe465ab390f536fb45ace47",
+  "runtime_receipt_sha256": "647f904f1bc70cded3a3872a17abd654e55285ba0c7fee4f79d56ad49db5237c",
+  "verification": "Checked camera, focused actor, and body draw tick on every sampled frame. Decoded both muxed streams to the end.",
+  "weapon_slot_key": {
+    "10": "red lightsaber",
+    "2": "Bryar sidearm"
+  },
+  "respawn": "During a respawn a single engine status sample observed the default first-person camera. The recorder skipped that render. Every encoded frame used the chase camera.",
+  "capture_audio_alignment": "Frame-zero GL capture time matched to the median local OpenAL sample-clock estimate from 94 observations."
+}

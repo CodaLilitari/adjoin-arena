@@ -109,7 +109,7 @@ function renderUpdates(value){
   byId('update-detail').textContent=[value.error,value.install_block_reason].filter(Boolean).join(' ');
   byId('update-restart').hidden=!value.restart_required||value.restart_pending;
   const link=byId('update-release');
-  link.href=value.release_url?.startsWith('https://gitlab.com/codalilitari/jk-cross-server/')?value.release_url:'https://gitlab.com/codalilitari/jk-cross-server/-/releases';
+  link.href=value.release_url?.startsWith('https://gitlab.com/codalilitari/adjoin-arena/-/releases/')?value.release_url:'https://gitlab.com/codalilitari/adjoin-arena/-/releases';
   byId('update-checked').textContent=value.last_checked?'Last checked: '+new Date(value.last_checked).toLocaleString():'';
 }
 function byteLabel(value){

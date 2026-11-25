@@ -1,8 +1,8 @@
 # GitLab release updates
 
-JK Cross Server 0.3.0-dev introduces updates for the installed server package.
-It uses the public releases of **codalilitari/jk-cross-server** on GitLab. It
-does not require a GitLab login, access token, Git client, or client engine patch.
+Adjoin Arena checks its public GitLab releases for verified updates to ZIP
+installations. The panel can check and download packages anonymously.
+[Adjoin Arena releases](https://gitlab.com/codalilitari/adjoin-arena/-/releases)
 
 ## Using the control panel
 
@@ -33,22 +33,25 @@ Preferences are saved separately in `update-settings.json` inside the selected
 state directory (normally `runtime`). The updater always targets this project's
 public GitLab endpoint. No account credentials are read or transmitted.
 
-## Upgrading an existing 0.2 installation
+## Moving from JK Cross Server
 
-Version 0.2 did not contain an updater or a release manifest. **Install 0.3
-manually once**; subsequent compatible packaged releases can use the updater.
+JK Cross Server introduced the updater in 0.3.0-dev. Its existing releases
+check the JK Cross Server project. To choose Adjoin Arena, download its
+release ZIP and matching SHA-256 sidecar, verify the ZIP, and install it
+manually once. Subsequent checks in that installation use the Adjoin Arena feed.
+This also applies to a 0.2 installation, which predates the updater.
 
 1. Stop every session and control-panel process using the installation.
 2. Keep a backup of that installation.
-3. Extract the new ZIP into a temporary directory, then copy its
+3. Extract the verified ZIP into a temporary directory, then copy its
    `jk-cross-server/` contents into the existing installation, replacing the
    included application files. Preserve executable permissions when copying.
    The ZIP does not contain your `config/`, `runtime/`, virtual environment,
    game data, mods, downloaded browser client, or Wine prefix.
 4. Run `python app.py` with the same arguments as before. Check **Server updates**.
 
-The 0.3 update introduces no new Python dependencies. Keeping the same install
-directory also keeps existing absolute engine and bridge paths valid. If you
+Keeping the same install directory also keeps existing absolute engine and
+bridge paths valid. If you
 choose a different directory, update those paths in the panel before starting.
 
 For a Git checkout, pull and review changes through Git. The panel can check
@@ -116,8 +119,16 @@ generated files as release assets:
 - `JK_Cross_Server_<VERSION>.zip`
 - `JK_Cross_Server_<VERSION>.zip.sha256`
 
-Use this project's GitLab Generic Package Registry for the assets, with project
-release download links pointing to them. The automatically generated GitLab
+Use GitLab project `89451115` (`codalilitari/adjoin-arena`) for both assets.
+For example, the Generic Package Registry asset paths for 0.5.0 are
+`/api/v4/projects/89451115/packages/generic/adjoin-arena/0.5.0/JK_Cross_Server_0.5.0.zip`
+and the same path with `.sha256` appended. On the `v0.5.0` release,
+give each asset link its exact filename as its display name and
+`/<filename>` as its direct asset path. The updater accepts anonymous HTTPS
+downloads and redirects within this project's approved GitLab paths.
+The package retains the `JK_Cross_Server_` filename prefix and the
+`jk-cross-server/` archive root for installer compatibility.
+The automatically generated GitLab
 source archives are not the installable package. The packager excludes local
 state and game archives, rejects symlinks and ambiguous paths, and refuses a
 build if the manifest no longer matches the files.

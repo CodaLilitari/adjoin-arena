@@ -100,11 +100,16 @@ class VersionTests(unittest.TestCase):
                 Version(bad)
 
     def test_exact_project_https_and_redirect_policy(self):
-        _trusted_url("https://gitlab.com/api/v4/projects/codalilitari%2Fjk-cross-server/packages/generic/jk-cross-server/v0%2E3%2E0-dev/file.zip")
-        for url in ("http://gitlab.com/api/v4/projects/88054997/releases", "https://gitlab.com/other/project/file.zip",
-                    "https://gitlab.com.evil.invalid/api/v4/projects/88054997/releases", "https://gitlab.com:4430/api/v4/projects/88054997/releases",
-                    "https://gitlab.com/api/v4/projects/88054997/../another/releases",
-                    "https://user:secret@gitlab.com/api/v4/projects/88054997/releases"):
+        self.assertEqual(API_URL, "https://gitlab.com/api/v4/projects/89451115/releases")
+        self.assertEqual(PROJECT_URL, "https://gitlab.com/codalilitari/adjoin-arena")
+        _trusted_url(API_URL)
+        _trusted_url("https://gitlab.com/api/v4/projects/codalilitari%2Fadjoin-arena/packages/generic/adjoin-arena/0%2E5%2E0/file.zip")
+        for url in ("http://gitlab.com/api/v4/projects/89451115/releases", "https://gitlab.com/other/project/file.zip",
+                    "https://gitlab.com.evil.invalid/api/v4/projects/89451115/releases", "https://gitlab.com:4430/api/v4/projects/89451115/releases",
+                    "https://gitlab.com/api/v4/projects/89451115/../another/releases",
+                    "https://user:secret@gitlab.com/api/v4/projects/89451115/releases",
+                    "https://gitlab.com/api/v4/projects/88054997/releases",
+                    "https://gitlab.com/api/v4/projects/codalilitari%2Fjk-cross-server/packages/generic/jk-cross-server/0.4.0/file.zip"):
             with self.subTest(url=url), self.assertRaises(UpdateError):
                 _trusted_url(url)
         with self.assertRaises(UpdateError):

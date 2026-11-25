@@ -14,7 +14,7 @@
     },
     "CHANGELOG.md": {
       "mode": 420,
-      "sha256": "0d8a959f9b382a5b7771e793594cddaa490a232e18cfe90e4ae83fd59826cdf0"
+      "sha256": "d02801ee10b900b7ff4971a7475b0196321450ae192fbc9b10548a3aadff8566"
     },
     "LICENSE": {
       "mode": 420,
@@ -26,7 +26,7 @@
     },
     "README.md": {
       "mode": 420,
-      "sha256": "fcbf19ec54fbec82972eae44e79e7ab5eabdc590b0d18539fac4f621d3c8f52f"
+      "sha256": "f97a479599e28751201e9391163171dfd3a4da4227468b817f2954daaa541560"
     },
     "Start-Server.command": {
       "mode": 493,
@@ -38,7 +38,7 @@
     },
     "VERSION": {
       "mode": 420,
-      "sha256": "0dbec988e5c9fecb60bdf0f155f2147c6a376b0f35e5fab2d39d2672cceaf03c"
+      "sha256": "a0ad50640139a524f86591157145bf1d4674ea9c065bfea21558f0f7b04430c8"
     },
     "app.py": {
       "mode": 420,
@@ -342,7 +342,7 @@
     },
     "docs/PLATFORMS.md": {
       "mode": 420,
-      "sha256": "1a9b703e23918cae01ee4a245f87fff72ccef13700e6eea4f23214287163a497"
+      "sha256": "d80d5e5e9fe155eab3794b65a65a349cad8b209fc84730e2d2032b1966794a7e"
     },
     "docs/QUALIFICATION.md": {
       "mode": 420,
@@ -378,7 +378,7 @@
     },
     "docs/UPDATES.md": {
       "mode": 420,
-      "sha256": "e5126acb2ed6b67dc9670836973b4e8973f84abf81aa2f7747397e7cac119dc9"
+      "sha256": "bce223c1e6ae629e67ae121627f4ba82daaf976f68b93eaac1d1297d7d839615"
     },
     "docs/images/jkweb-stock-host-scoreboard.png": {
       "mode": 420,
@@ -758,11 +758,11 @@
     },
     "manager/ui/app.js": {
       "mode": 420,
-      "sha256": "e735ba12c868854fe01754b61bed4fbd697d1143c5ecfda28d7244e82a0a0c7f"
+      "sha256": "84fd52c3dd33e2bb8b245d8da1d8a5db6f9dbfa0a2f7cfc21ed419d70233e3a8"
     },
     "manager/ui/index.html": {
       "mode": 420,
-      "sha256": "ccf9f21af3384bad013c93446c0dcac7b105b44b4a4993622cf7f3a3e2cd8df3"
+      "sha256": "84896e1b481ef42c76f7ffdf2864ae3139afd69b133f079caabe1b572ddf1f58"
     },
     "manager/ui/spectator-geometry.js": {
       "mode": 420,
@@ -778,7 +778,7 @@
     },
     "manager/updater.py": {
       "mode": 420,
-      "sha256": "5071f083a60437332e52c7c94367964e4c7d1ef90b2c0b44e338646780ef176e"
+      "sha256": "bc1b3729298f2b15877aced4781eecc683a8f6d7d3f52dbdca5cf3610df88ebf"
     },
     "manager/updates.py": {
       "mode": 420,
@@ -1210,7 +1210,7 @@
     },
     "packaging/compose.yaml": {
       "mode": 420,
-      "sha256": "2fad892bb56394e3f86260dc9edf61876a98af615d1a0e024f90d42e65bda2ee"
+      "sha256": "8dd321f5238fee02678e502a6919507c8506442f24371b3f9d3f8ca964f50739"
     },
     "packaging/container_runtime.py": {
       "mode": 420,
@@ -1243,6 +1243,10 @@
     "qa/adjoin-arena-jhs-six-player-video.json": {
       "mode": 420,
       "sha256": "e792701588d059e5855f9c6e1f8ca7f3058843398799ab8a4d750a50466f00d8"
+    },
+    "qa/adjoin-arena-jhs-third-person-video.json": {
+      "mode": 420,
+      "sha256": "2b0ea7dd8aaec2c5e7402982f528e931194a48d3e280bf690d0e8b93f09b2b6f"
     },
     "qa/adjoin-arena-jkweb-room-package.json": {
       "mode": 420,
@@ -2638,7 +2642,7 @@
     },
     "scripts/build_platform_releases.py": {
       "mode": 420,
-      "sha256": "82eb3b977e55bd48494f0011e6018c5fbeeab61af092c451314c11ad5ada7926"
+      "sha256": "35019fe32610d196344fef898db28f4d7ffa4635fc70e002eaf26382f181a9ce"
     },
     "scripts/build_release.py": {
       "mode": 420,
@@ -2874,7 +2878,7 @@
     },
     "tests/test_panel_ui.js": {
       "mode": 420,
-      "sha256": "7fa9c288c38ca0fcbac39328678383dbac1d14701d287baee4f4c2eb4af3c572"
+      "sha256": "3f873b4f9ec35a62563c679ad978920ad739e0c2b98edf174253f69b55cbe985"
     },
     "tests/test_platform_releases.py": {
       "mode": 420,
@@ -2922,7 +2926,7 @@
     },
     "tests/test_updater.py": {
       "mode": 420,
-      "sha256": "584b5ca4d382637b30be50fdddd028138a13253a5f877abdd9d837c5e7bfe1ca"
+      "sha256": "2cb7efd53c3ff604ea6eb787eaf695cd74a6cc308371472e960deea85f2aa8c0"
     },
     "tests/test_updates.py": {
       "mode": 420,
@@ -3074,5 +3078,5 @@
     }
   },
   "schema": 1,
-  "version": "0.4.0-dev"
+  "version": "0.5.0"
 }

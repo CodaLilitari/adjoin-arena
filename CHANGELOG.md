@@ -1,5 +1,12 @@
 # Changes
 
+## 0.5.0 — Adjoin Arena
+
+- Join an open JediKnight.Zone game by room ID with one named JKWeb bot. The stock host scoreboard test used Nar Shaddaa Loading Terminal. See the [operator guide](web_bots/README.md#join-an-existing-jediknightzone-game).
+- Run Red’s native pickup-versus-fight policy and local practice learner. The [evaluation](docs/RED_PICKUP_MODEL.md) records imitation accuracy, match scores and the rulesets where the script still plays. The [map and mode tests](docs/RED_TRANSFER_OBSERVATIONS.md) cover CTF, persistent route costs and JHS navigation.
+- Watch a six-bot native match on Jedi’s High School from Darth Lilitari’s third-person camera, with 16-bit character textures and game audio. [Capture details](qa/adjoin-arena-jhs-third-person-video.json)
+- Install the first Adjoin Arena packages for Linux, Windows Docker and macOS Docker. The packaged panel checks Adjoin Arena’s public GitLab releases. [Setup](docs/PLATFORMS.md) · [Updating](docs/UPDATES.md)
+
 ## 0.4.0-dev — Bots, spectator and desktop launchers
 
 - Bring configurable player bots, persistent chat administration, noclip/free-flight

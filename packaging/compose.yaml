@@ -1,6 +1,6 @@
 services:
   server:
-    image: jk-cross-server:0.4.0-dev
+    image: adjoin-arena:0.5.0
     platform: linux/amd64
     build:
       context: ..
@@ -31,4 +31,4 @@ services:
 
 volumes:
   application:
-    name: jk-cross-server-app-0.4.0-dev
+    name: adjoin-arena-app-0.5.0

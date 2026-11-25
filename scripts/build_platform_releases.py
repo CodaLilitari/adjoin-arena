@@ -107,7 +107,7 @@ def read_payload(source: Path) -> tuple[str, dict[str, tuple[bytes, int]]]:
 
 
 def platform_readme(platform: str, version: str) -> bytes:
-    intro = f"# JK Cross Server {version}: {platform}\n\n"
+    intro = f"# Adjoin Arena {version} ({platform})\n\n"
     common = """
 This is the complete server distribution, including bots and host spectator
 code. Commercial game files are not included. Extract the whole ZIP and read

@@ -29,8 +29,8 @@ try:
 except ImportError:
     fcntl = None
 
-PROJECT_ID = 88054997
-PROJECT_PATH = "codalilitari/jk-cross-server"
+PROJECT_ID = 89451115
+PROJECT_PATH = "codalilitari/adjoin-arena"
 PROJECT_URL = "https://gitlab.com/" + PROJECT_PATH
 API_URL = f"https://gitlab.com/api/v4/projects/{PROJECT_ID}/releases"
 MANIFEST = "release-manifest.json"
@@ -206,7 +206,7 @@ class _Redirects(HTTPRedirectHandler):
 def fetch_public(url, limit):
     """Bounded anonymous HTTPS request. No local GitLab credentials are used."""
     _trusted_url(url)
-    request = Request(url, headers={"User-Agent": "JK-Cross-Server-Updater/1", "Accept": "application/json, */*"})
+    request = Request(url, headers={"User-Agent": "Adjoin-Arena-Updater/1", "Accept": "application/json, */*"})
     started = time.monotonic()
     try:
         with build_opener(_Redirects()).open(request, timeout=20) as response:

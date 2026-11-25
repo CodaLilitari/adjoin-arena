@@ -107,7 +107,7 @@ test('static panel preserves unique required controls, legacy settings and scrip
     'web_bind web_port directplay_bridge wine wine_prefix ipc_port broker_port engine_display spectator_rendering '+
     'game_flags web_origins web_ice_servers bots_enabled bots_taunts bots_engine bots_sabers_only bots_fists_peace '+
     'bots_force_enabled').split(' '))assert.ok(names.has(name),'missing saved setting '+name);
-  assert.match(html,/<title>JK Cross Server<\/title>/);
+  assert.match(html,/<title>Adjoin Arena<\/title>/);
   const scripts=nodes.filter(node=>node.tag==='script');
   assert.deepEqual(scripts.map(node=>node.attributes.src),['/ui/spectator-geometry.js','/ui/spectator.js','/ui/app.js']);
   for(const script of scripts)assert.ok(Object.hasOwn(script.attributes,'defer'));
