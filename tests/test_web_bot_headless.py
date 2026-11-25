@@ -92,6 +92,9 @@ class HostedSeat(unittest.TestCase):
         self.addCleanup(host.close)
         self.assertEqual(tuple(host.seats), ("lily",))
         self.assertEqual(host.outside_relay, LOCAL)
+        # The page's CSP must allow the spectator feed beside the relay, or the
+        # host's keyframes never leave the page (the black-screen bug).
+        self.assertEqual(host.outside_feed, "ws://127.0.0.1:18080/feed/")
         with self.assertRaises(ValueError):
             Host(data, engine, root / "run2", "Canyon_T", None, False, external=object(), hosted=hosted)
 

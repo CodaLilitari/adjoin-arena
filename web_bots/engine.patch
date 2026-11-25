@@ -1,6 +1,6 @@
 diff --git a/src/AI/jkBot.c b/src/AI/jkBot.c
 new file mode 100644
-index 0000000..221699a
+index 00000000..221699ac
 --- /dev/null
 +++ b/src/AI/jkBot.c
 @@ -0,0 +1,1046 @@
@@ -1052,7 +1052,7 @@ index 0000000..221699a
 +}
 diff --git a/src/AI/jkBot.h b/src/AI/jkBot.h
 new file mode 100644
-index 0000000..94d16a2
+index 00000000..94d16a2d
 --- /dev/null
 +++ b/src/AI/jkBot.h
 @@ -0,0 +1,31 @@
@@ -1089,7 +1089,7 @@ index 0000000..94d16a2
 +#endif
 diff --git a/src/AI/jkBotBehavior.h b/src/AI/jkBotBehavior.h
 new file mode 100644
-index 0000000..7854b22
+index 00000000..7854b221
 --- /dev/null
 +++ b/src/AI/jkBotBehavior.h
 @@ -0,0 +1,12 @@
@@ -1107,7 +1107,7 @@ index 0000000..7854b22
 +#endif
 diff --git a/src/AI/jkBotBehavior.inc b/src/AI/jkBotBehavior.inc
 new file mode 100644
-index 0000000..e09c9c9
+index 00000000..e09c9c99
 --- /dev/null
 +++ b/src/AI/jkBotBehavior.inc
 @@ -0,0 +1,190 @@
@@ -1303,7 +1303,7 @@ index 0000000..e09c9c9
 +}
 diff --git a/src/AI/jkBotCombat.inc b/src/AI/jkBotCombat.inc
 new file mode 100644
-index 0000000..0cac724
+index 00000000..0cac724a
 --- /dev/null
 +++ b/src/AI/jkBotCombat.inc
 @@ -0,0 +1,348 @@
@@ -1657,7 +1657,7 @@ index 0000000..0cac724
 +}
 diff --git a/src/AI/jkBotCompanion.inc b/src/AI/jkBotCompanion.inc
 new file mode 100644
-index 0000000..b890dc5
+index 00000000..b890dc5f
 --- /dev/null
 +++ b/src/AI/jkBotCompanion.inc
 @@ -0,0 +1,421 @@
@@ -2084,7 +2084,7 @@ index 0000000..b890dc5
 +}
 diff --git a/src/AI/jkBotForce.inc b/src/AI/jkBotForce.inc
 new file mode 100644
-index 0000000..83528da
+index 00000000..83528da2
 --- /dev/null
 +++ b/src/AI/jkBotForce.inc
 @@ -0,0 +1,480 @@
@@ -2570,7 +2570,7 @@ index 0000000..83528da
 +{ Bot_ForceControl(self,target,aimError,1); }
 diff --git a/src/AI/jkBotHearing.inc b/src/AI/jkBotHearing.inc
 new file mode 100644
-index 0000000..3761a38
+index 00000000..3761a381
 --- /dev/null
 +++ b/src/AI/jkBotHearing.inc
 @@ -0,0 +1,337 @@
@@ -2913,7 +2913,7 @@ index 0000000..3761a38
 +}
 diff --git a/src/AI/jkBotLily.inc b/src/AI/jkBotLily.inc
 new file mode 100644
-index 0000000..7186390
+index 00000000..71863904
 --- /dev/null
 +++ b/src/AI/jkBotLily.inc
 @@ -0,0 +1,337 @@
@@ -3256,7 +3256,7 @@ index 0000000..7186390
 +static int Lily_SenseDue(double now) { return lily.enabled && now>=lily.nextSense; }
 diff --git a/src/AI/jkBotLoadout.h b/src/AI/jkBotLoadout.h
 new file mode 100644
-index 0000000..d167eb8
+index 00000000..d167eb8e
 --- /dev/null
 +++ b/src/AI/jkBotLoadout.h
 @@ -0,0 +1,59 @@
@@ -3321,7 +3321,7 @@ index 0000000..d167eb8
 +#endif
 diff --git a/src/AI/jkBotNavigate.inc b/src/AI/jkBotNavigate.inc
 new file mode 100644
-index 0000000..9e56419
+index 00000000..9e564192
 --- /dev/null
 +++ b/src/AI/jkBotNavigate.inc
 @@ -0,0 +1,592 @@
@@ -3919,7 +3919,7 @@ index 0000000..9e56419
 +}
 diff --git a/src/AI/jkBotNavigation.inc b/src/AI/jkBotNavigation.inc
 new file mode 100644
-index 0000000..6d82309
+index 00000000..6d823092
 --- /dev/null
 +++ b/src/AI/jkBotNavigation.inc
 @@ -0,0 +1,1528 @@
@@ -5453,7 +5453,7 @@ index 0000000..6d82309
 +}
 diff --git a/src/AI/jkBotPersona.c b/src/AI/jkBotPersona.c
 new file mode 100644
-index 0000000..d94f22c
+index 00000000..d94f22cb
 --- /dev/null
 +++ b/src/AI/jkBotPersona.c
 @@ -0,0 +1,155 @@
@@ -5614,7 +5614,7 @@ index 0000000..d94f22c
 +}
 diff --git a/src/AI/jkBotPersona.h b/src/AI/jkBotPersona.h
 new file mode 100644
-index 0000000..ab67201
+index 00000000..ab672014
 --- /dev/null
 +++ b/src/AI/jkBotPersona.h
 @@ -0,0 +1,6 @@
@@ -5626,7 +5626,7 @@ index 0000000..ab67201
 +#endif
 diff --git a/src/AI/jkBotWaterExit.inc b/src/AI/jkBotWaterExit.inc
 new file mode 100644
-index 0000000..f307ed4
+index 00000000..f307ed4f
 --- /dev/null
 +++ b/src/AI/jkBotWaterExit.inc
 @@ -0,0 +1,228 @@
@@ -5859,7 +5859,7 @@ index 0000000..f307ed4
 +    return 0;
 +}
 diff --git a/src/Cog/sithCog.c b/src/Cog/sithCog.c
-index d623064..c982231 100644
+index d6230644..c9822318 100644
 --- a/src/Cog/sithCog.c
 +++ b/src/Cog/sithCog.c
 @@ -1,4 +1,7 @@
@@ -5886,11 +5886,13 @@ index d623064..c982231 100644
      if ((sithMulti_multiModeFlags & MULTIMODEFLAG_COOP) && messageType == SITH_MESSAGE_USER0 && sithCog_g_pMasterCog && pCog->idx == sithCog_g_pMasterCog->idx && sithNet_isMulti)
      {
 diff --git a/src/Devices/sithControl.c b/src/Devices/sithControl.c
-index 70dd227..0753cd8 100644
+index e425f345..e8495c7e 100644
 --- a/src/Devices/sithControl.c
 +++ b/src/Devices/sithControl.c
-@@ -1,4 +1,9 @@
- #include "sithControl.h"
+@@ -4,6 +4,11 @@
+ #include "Gameplay/sithDuel.h"
+ #include "Main/sithCommand.h"
+ #endif
 +#include "AI/jkBot.h"
 +#include "AI/jkBotPersona.h"
 +#if defined(ARCH_WASM) && defined(PLATFORM_WSRELAY)
@@ -5899,7 +5901,7 @@ index 70dd227..0753cd8 100644
  
  #include "General/sithStrTable.h"
  #include "Platform/stdControl.h"
-@@ -397,6 +402,15 @@ void sithControl_Update(flex_t secDeltaTime, int msecDeltaTime)
+@@ -430,6 +435,15 @@ void sithControl_Update(flex_t secDeltaTime, int msecDeltaTime)
      if ( !sithControl_bOpened )
          return;
  
@@ -5915,7 +5917,7 @@ index 70dd227..0753cd8 100644
      // MOTS altered
      if ( !sithPlayer_g_pLocalPlayerThing
        || (sithPlayer_g_pLocalPlayerThing->actorParams.flags & (Main_bMotsCompat ? (SITH_AF_NOIDLECAMERA|SITH_AF_SCOPEHUD|SITH_AF_ARACHNID) : SITH_AF_NOIDLECAMERA))
-@@ -865,6 +879,7 @@ int sithControl_WriteConf()
+@@ -930,6 +944,7 @@ int sithControl_WriteConf()
  
  int sithControl_GetKey(int keyId, int *pState)
  {
@@ -5923,7 +5925,7 @@ index 70dd227..0753cd8 100644
      uint32_t v2; // ebx
      stdControlKeyInfoEntry *v3; // esi
      unsigned int v4; // eax
-@@ -913,6 +928,7 @@ void sithControl_FinishRead()
+@@ -997,6 +1012,7 @@ void sithControl_FinishRead()
  
  flex_t sithControl_GetKeyAsAxisNormalized(int axisId)
  {
@@ -5931,7 +5933,7 @@ index 70dd227..0753cd8 100644
      uint32_t v1; // ebp
      stdControlKeyInfoEntry *entryIter; // esi
      int v3; // ebx
-@@ -987,6 +1003,7 @@ LABEL_23:
+@@ -1071,6 +1087,7 @@ LABEL_23:
  
  flex_t sithControl_GetKeyAsAxis(int axisId)
  {
@@ -5939,7 +5941,7 @@ index 70dd227..0753cd8 100644
      uint32_t v1; // ebp
      stdControlKeyInfoEntry *v2; // esi
      int v3; // ebx
-@@ -1082,6 +1099,8 @@ static flex_t sithControl_GetMouseLook(int axisId)
+@@ -1166,6 +1183,8 @@ static flex_t sithControl_GetMouseLook(int axisId)
  
  flex_t sithControl_GetAxis(int axisId)
  {
@@ -5949,7 +5951,7 @@ index 70dd227..0753cd8 100644
      stdControlKeyInfoEntry *v2; // esi
      uint32_t v3; // ebp
 diff --git a/src/Devices/sithSoundMixer.c b/src/Devices/sithSoundMixer.c
-index e245886..07547f3 100644
+index 3a0ed32b..daf4865b 100644
 --- a/src/Devices/sithSoundMixer.c
 +++ b/src/Devices/sithSoundMixer.c
 @@ -1,4 +1,5 @@
@@ -6022,7 +6024,7 @@ index e245886..07547f3 100644
      hChannel->vol_2 = stdMath_Clamp(volume, 0.0, 1.5);
      if (!hChannel->pSoundBuf)
          return;
-@@ -1306,6 +1332,8 @@ int32_t sithSoundMixer_GetThingSoundIdx(SithThing *thing, sithSound *sound)
+@@ -1395,6 +1421,8 @@ int32_t sithSoundMixer_GetThingSoundIdx(SithThing *thing, sithSound *sound)
  void sithSoundMixer_StopSound(sithPlayingSound *hChannel)
  {
      if (!hChannel) return; // Added
@@ -6032,7 +6034,7 @@ index e245886..07547f3 100644
      if ( (hChannel->flags & SITHSOUNDFLAG_PLAYING) != 0 )
      {
 diff --git a/src/Devices/sithSoundMixer.h b/src/Devices/sithSoundMixer.h
-index 4923346..5f453e6 100644
+index 9c5a72fe..0775ce72 100644
 --- a/src/Devices/sithSoundMixer.h
 +++ b/src/Devices/sithSoundMixer.h
 @@ -56,6 +56,8 @@ void sithSoundMixer_StopAll();
@@ -6045,18 +6047,20 @@ index 4923346..5f453e6 100644
  sithPlayingSound* sithSoundMixer_PlaySoundThing(sithSound *hSnd, SithThing *a2, flex_t volume, flex_t minRadius, flex_t maxRadius, int playflags);
  void sithSoundMixer_PlayingSoundReset(sithPlayingSound *sound);
 diff --git a/src/Dss/jkDSS.c b/src/Dss/jkDSS.c
-index 9fe974e..7deab95 100644
+index d96e7b02..0d5e0b8c 100644
 --- a/src/Dss/jkDSS.c
 +++ b/src/Dss/jkDSS.c
-@@ -1,4 +1,7 @@
- #include "jkDSS.h"
+@@ -2,6 +2,9 @@
+ #ifdef PLATFORM_WSRELAY
+ #include "Gameplay/sithDuelCombat.h"
+ #endif
 +#if defined(ARCH_WASM) && defined(PLATFORM_WSRELAY)
 +#include "AI/jkBot.h"
 +#endif
  
  #include "Cog/sithCog.h"
  #include "Dss/sithMulti.h"
-@@ -835,6 +838,10 @@ int jkDSS_ProcessJKSetWeaponMesh(SithMessage *msg)
+@@ -853,6 +856,10 @@ int jkDSS_ProcessJKSetWeaponMesh(SithMessage *msg)
          rdThing_NewEntry(&pPlayerInfo->rd_thing, 0);
          rdThing_SetModel3(&pPlayerInfo->rd_thing, pModel);
      }
@@ -6068,18 +6072,20 @@ index 9fe974e..7deab95 100644
      pPlayerInfo->twinkleSpawnRate = arg3;
      return 1;
 diff --git a/src/Dss/sithMulti.c b/src/Dss/sithMulti.c
-index 968c17d..d4c2444 100644
+index f0257480..ebd700d5 100644
 --- a/src/Dss/sithMulti.c
 +++ b/src/Dss/sithMulti.c
-@@ -1,4 +1,7 @@
- #include "sithMulti.h"
+@@ -3,6 +3,9 @@
+ #include "Gameplay/sithDuel.h"
+ #include "Platform/Networking/Imperial/stdComm_Imperial.h"
+ #endif
 +#if defined(ARCH_WASM) && defined(PLATFORM_WSRELAY)
 +#include "AI/jkBot.h"
 +#endif
  
  #include "Win95/stdComm.h"
  #include "Gameplay/sithEvent.h"
-@@ -92,19 +95,28 @@ void sithMulti_SendChatTo(const char *pStr, int arg0, int arg1, int idTo)
+@@ -97,19 +100,28 @@ void sithMulti_SendChatTo(const char *pStr, int arg0, int arg1, int idTo)
  // MOTS altered
  int sithMulti_ProcessChat(SithMessage *pMsg)
  {
@@ -6122,7 +6128,7 @@ index 968c17d..d4c2444 100644
  #ifdef PLATFORM_WSRELAY
      // Added: a viewer's own message, back from the host's game through the
 diff --git a/src/Gui/jkGUIMultiplayer.c b/src/Gui/jkGUIMultiplayer.c
-index f62a779..eea7bbd 100644
+index f62a7792..eea7bbda 100644
 --- a/src/Gui/jkGUIMultiplayer.c
 +++ b/src/Gui/jkGUIMultiplayer.c
 @@ -21,6 +21,275 @@
@@ -6402,7 +6408,7 @@ index f62a779..eea7bbd 100644
  static int32_t jkGuiMultiplayer_aElements2_aIdk[2] = {0xd, 0xe};
  static int32_t jkGuiMultiplayer_aElements3_aIdk[2] = {0xd, 0xe};
 diff --git a/src/Gui/jkGUIMultiplayer.h b/src/Gui/jkGUIMultiplayer.h
-index 4a9a45e..7209767 100644
+index 4a9a45eb..7209767f 100644
 --- a/src/Gui/jkGUIMultiplayer.h
 +++ b/src/Gui/jkGUIMultiplayer.h
 @@ -31,6 +31,10 @@
@@ -6417,7 +6423,7 @@ index 4a9a45e..7209767 100644
  void jkGuiMultiplayer_Shutdown();
  int jkGuiMultiplayer_Show();
 diff --git a/src/Main/Main.c b/src/Main/Main.c
-index a4fb777..56f04eb 100644
+index a4fb7770..56f04eb5 100644
 --- a/src/Main/Main.c
 +++ b/src/Main/Main.c
 @@ -567,6 +567,13 @@ int Main_Startup(const char *cmdline)
@@ -6435,7 +6441,7 @@ index a4fb777..56f04eb 100644
                  if (Main_StartupDedicated(Main_bDedicatedServer))
                  {
 diff --git a/src/Win95/stdSound.c b/src/Win95/stdSound.c
-index 69336f0..adc5630 100644
+index d8b99471..d26b47b2 100644
 --- a/src/Win95/stdSound.c
 +++ b/src/Win95/stdSound.c
 @@ -125,6 +125,14 @@ int stdSound_GetNativeOutputRate()
@@ -6518,7 +6524,7 @@ index 69336f0..adc5630 100644
      
      if (sound->format == AL_FORMAT_STEREO24 || sound->format == AL_FORMAT_MONO24)
      {
-@@ -410,7 +425,7 @@ int stdSound_BufferPlay(stdSound_buffer_t* buf, int loop)
+@@ -419,7 +434,7 @@ int stdSound_BufferPlay(stdSound_buffer_t* buf, int loop)
  {
      ALint source_type;
  
@@ -6527,7 +6533,7 @@ index 69336f0..adc5630 100644
  
      //alSourceStop(buf->source);
      
-@@ -461,7 +476,7 @@ int stdSound_BufferQueueAfterAnother(stdSound_buffer_t* bufPrev, stdSound_buffer
+@@ -470,7 +485,7 @@ int stdSound_BufferQueueAfterAnother(stdSound_buffer_t* bufPrev, stdSound_buffer
      ALint source_state = 0;
      ALint processed = 0;
      ALint source_type = AL_UNDETERMINED;
@@ -6536,7 +6542,7 @@ index 69336f0..adc5630 100644
  
      if (!bufPrev->source)
      {
-@@ -514,7 +529,7 @@ int stdSound_BufferQueueAfterAnother(stdSound_buffer_t* bufPrev, stdSound_buffer
+@@ -523,7 +538,7 @@ int stdSound_BufferQueueAfterAnother(stdSound_buffer_t* bufPrev, stdSound_buffer
  void stdSound_BufferUnqueueProcessed(stdSound_buffer_t* buf)
  {
      ALint processed = 0;
@@ -6545,7 +6551,7 @@ index 69336f0..adc5630 100644
      if (!buf || !buf->source) return;
  
      alGetSourcei(buf->source, AL_BUFFERS_PROCESSED, &processed);
-@@ -529,7 +544,7 @@ void stdSound_BufferRelease(stdSound_buffer_t* sound)
+@@ -538,7 +553,7 @@ void stdSound_BufferRelease(stdSound_buffer_t* sound)
  {
      ALint source_state;
      
@@ -6554,7 +6560,7 @@ index 69336f0..adc5630 100644
          goto end;
  
      //sound->refcnt--;
-@@ -568,7 +583,7 @@ end:
+@@ -577,7 +592,7 @@ end:
  
  int stdSound_BufferReset(stdSound_buffer_t* sound)
  {
@@ -6563,7 +6569,7 @@ index 69336f0..adc5630 100644
  
      //alSourcef(sound->source, AL_PITCH, 1.0);
  	//alSourcef(sound->source, AL_GAIN, 1.0);
-@@ -599,7 +614,7 @@ void stdSound_BufferSetPan(stdSound_buffer_t* a1, flex_t a2)
+@@ -608,7 +623,7 @@ void stdSound_BufferSetPan(stdSound_buffer_t* a1, flex_t a2)
  
  void stdSound_BufferSetFrequency(stdSound_buffer_t* sound, int freq)
  {
@@ -6572,7 +6578,7 @@ index 69336f0..adc5630 100644
  
      flex_t pitch = (flex_d_t)freq / (flex_d_t)sound->nSamplesPerSec;
  
-@@ -658,7 +673,7 @@ void stdSound_IA3D_idk(flex_t a)
+@@ -667,7 +682,7 @@ void stdSound_IA3D_idk(flex_t a)
  
  int stdSound_BufferStop(stdSound_buffer_t* buf)
  {
@@ -6581,7 +6587,7 @@ index 69336f0..adc5630 100644
  
      if (buf->source)
      {
-@@ -670,7 +685,7 @@ int stdSound_BufferStop(stdSound_buffer_t* buf)
+@@ -679,7 +694,7 @@ int stdSound_BufferStop(stdSound_buffer_t* buf)
  
  void stdSound_BufferSetVolume(stdSound_buffer_t* sound, flex_t vol)
  {
@@ -6590,7 +6596,7 @@ index 69336f0..adc5630 100644
      if (!sound) return;
  
      stdSound_SetSourceVolume(sound, vol, 0);
-@@ -710,7 +725,7 @@ void stdSound_SetPositionOrientation(rdVector3 *pos, rdVector3 *lvec, rdVector3
+@@ -719,7 +734,7 @@ void stdSound_SetPositionOrientation(rdVector3 *pos, rdVector3 *lvec, rdVector3
      memcpy(stdSound_listenerPos, newPos, sizeof(newPos));
      memcpy(stdSound_listenerOri, newOri, sizeof(newOri));
  
@@ -6599,7 +6605,7 @@ index 69336f0..adc5630 100644
  
      if (bPosChanged)
          alListenerfv(AL_POSITION, stdSound_listenerPos);
-@@ -744,7 +759,7 @@ void stdSound_SetPosition(stdSound_buffer_t* pSoundBuf, rdVector3 *pos)
+@@ -753,7 +768,7 @@ void stdSound_SetPosition(stdSound_buffer_t* pSoundBuf, rdVector3 *pos)
      if (!pSoundBuf->source)
          return;
  
@@ -6608,7 +6614,7 @@ index 69336f0..adc5630 100644
  
      if (!bHadPos)
          alSourcei(pSoundBuf->source, AL_SOURCE_RELATIVE, AL_FALSE);
-@@ -770,7 +785,7 @@ void stdSound_SetVelocity(stdSound_buffer_t* pSoundBuf, rdVector3 *vel)
+@@ -779,7 +794,7 @@ void stdSound_SetVelocity(stdSound_buffer_t* pSoundBuf, rdVector3 *vel)
      if (!pSoundBuf->source)
          return;
  
@@ -6617,7 +6623,7 @@ index 69336f0..adc5630 100644
  
      // A source with a position is already not relative (see above).
      if (!pSoundBuf->bHasPos)
-@@ -794,7 +809,7 @@ int stdSound_IsPlaying(stdSound_buffer_t* pSoundBuf, rdVector3 *pos)
+@@ -803,7 +818,7 @@ int stdSound_IsPlaying(stdSound_buffer_t* pSoundBuf, rdVector3 *pos)
      if (pSoundBuf->vol == 0.0)
          return 0;
  
@@ -6627,16 +6633,18 @@ index 69336f0..adc5630 100644
      ALint source_state;
      alGetSourcei(pSoundBuf->source, AL_SOURCE_STATE, &source_state);
 diff --git a/src/World/sithItem.c b/src/World/sithItem.c
-index a43e4d6..545ebad 100644
+index 40d95d58..442bf67a 100644
 --- a/src/World/sithItem.c
 +++ b/src/World/sithItem.c
-@@ -1,4 +1,5 @@
- #include "sithItem.h"
+@@ -2,6 +2,7 @@
+ #ifdef PLATFORM_WSRELAY
+ #include "Gameplay/sithDuelCombat.h"
+ #endif
 +#include "AI/jkBot.h"
  
  #include "General/stdConffile.h"
  #include "Gameplay/sithTime.h"
-@@ -23,6 +24,7 @@ int sithItem_PlayerCollisionHandler(SithThing *pItem, SithThing *pPlayer, SithCo
+@@ -29,6 +30,7 @@ int sithItem_PlayerCollisionHandler(SithThing *pItem, SithThing *pPlayer, SithCo
  
          if ( sithCollision_HasLOS(pPlayer, pItem, 0) && pItem->itemParams.msecLastTouchTime < sithTime_g_msecGameTime )
          {
@@ -6645,7 +6653,7 @@ index a43e4d6..545ebad 100644
              pItem->itemParams.msecLastTouchTime = sithTime_g_msecGameTime + 500;
          }
 diff --git a/src/World/sithSoundClass.c b/src/World/sithSoundClass.c
-index a02049a..04e1b9e 100644
+index a02049a2..04e1b9e8 100644
 --- a/src/World/sithSoundClass.c
 +++ b/src/World/sithSoundClass.c
 @@ -1,4 +1,5 @@
@@ -6731,18 +6739,20 @@ index a02049a..04e1b9e 100644
      sithPlayingSound *v5; // edi
  
 diff --git a/src/World/sithThing.c b/src/World/sithThing.c
-index 433fd43..4c6fc9b 100644
+index 3b4f3b82..be2af26e 100644
 --- a/src/World/sithThing.c
 +++ b/src/World/sithThing.c
-@@ -1,4 +1,7 @@
- #include "sithThing.h"
+@@ -2,6 +2,9 @@
+ #ifdef PLATFORM_WSRELAY
+ #include "Gameplay/sithDuelCombat.h"
+ #endif
 +#if defined(ARCH_WASM) && defined(PLATFORM_WSRELAY)
 +#include "AI/jkBot.h"
 +#endif
  
  #include "General/stdHashtbl.h"
  #include "General/util.h"
-@@ -503,6 +506,10 @@ flex_t sithThing_DamageThing(SithThing *pThing, SithThing *pDamageThing, flex_t
+@@ -510,6 +513,10 @@ static flex_t sithThing_ApplyDamage(SithThing *pThing, SithThing *pDamageThing,
      // Added: ?nettest counts hits by things no player fired.
      if ( sithNet_isMulti && pThing->type == SITH_THING_PLAYER && pDamageThing )
          stdComm_WSRelay_TestHit(pThing, pDamageThing, damage);
@@ -6754,23 +6764,23 @@ index 433fd43..4c6fc9b 100644
      if ( (pThing->flags & SITH_TF_CAPTURED) != 0 && (pThing->flags & SITH_TF_INVULN) == 0 )
      {
 diff --git a/src/World/sithWeapon.c b/src/World/sithWeapon.c
-index 98b1a4b..9019f10 100644
+index ee0e0922..487d9413 100644
 --- a/src/World/sithWeapon.c
 +++ b/src/World/sithWeapon.c
 @@ -1,3 +1,4 @@
 +#include "AI/jkBot.h"
  #include "sithWeapon.h"
- 
- #include "World/sithThing.h"
-@@ -539,6 +540,7 @@ SithThing* sithWeapon_WeaponFireProjectile(SithThing *pShooter, SithThing *pProj
- 
-     if ( pProjectileTemplate )
-     {
+ #ifdef PLATFORM_WSRELAY
+ #include "Gameplay/sithDuelCombat.h"
+@@ -546,6 +547,7 @@ SithThing* sithWeapon_WeaponFireProjectile(SithThing *pShooter, SithThing *pProj
+         if (!sithDuelCombat_AllowsProjectile(pShooter))
+             return NULL;
+ #endif
 +        jkBot_ObserveProjectile(pShooter,pProjectileTemplate,pFireDir);
          rdMatrix_BuildFromLook34(&a3a, pFireDir);
  
          flex_t fVar3, fVar2;
-@@ -633,7 +635,7 @@ SithThing* sithWeapon_WeaponFireProjectile(SithThing *pShooter, SithThing *pProj
+@@ -640,7 +642,7 @@ SithThing* sithWeapon_WeaponFireProjectile(SithThing *pShooter, SithThing *pProj
  
  LABEL_31:
      if ( hFireSnd ) {

@@ -116,7 +116,8 @@ class Launcher:
         host.set_port(runner.addresses[0][1])
         self.hosts[ident], self.runners[ident] = host, runner
         self.manifest["seats"][ident] = {
-            "role": role, "page": host.url + "/bot/" + ident, "status": host.url + "/status",
+            "role": role, "page": host.url + "/bot/" + ident + ("?netlog" if self.args.netlog else ""),
+            "status": host.url + "/status",
             "companion_credential": str((host.runtime / "companion" / (ident + ".json")).resolve()),
             "engine_credential": str((host.secrets_dir / (ident + ".json")).resolve()),
             "run": str((host.runtime / "run.json").resolve())}
@@ -331,6 +332,8 @@ def build_parser():
                        help="Render WebGL through SwiftShader (default; no GPU needed).")
         c.add_argument("--width", type=int, default=480)
         c.add_argument("--height", type=int, default=300)
+        c.add_argument("--netlog", action="store_true",
+                       help="Open seats with ?netlog: every engine network-log line goes to the console log.")
         c.add_argument("--fps-cap", type=float, default=0.0, help="Throttle requestAnimationFrame to N fps (0 = uncapped).")
         c.add_argument("--raster-threads", type=int, default=0, help="Chromium --num-raster-threads (0 = default).")
         c.add_argument("--exit-on-drop", action=argparse.BooleanOptionalAction, default=True,

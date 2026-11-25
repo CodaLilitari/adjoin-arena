@@ -8,7 +8,7 @@ import tarfile
 import tempfile
 
 
-BASE = "7a6f95c9a3399e59acbf019dc6b25f9981d29dff"
+BASE = "6f6d376063954f86b8d01561aad03c26fec2e4ed"
 PATCHES = ("engine.patch", "external-room.patch", "bot-tactics-web.patch")
 
 

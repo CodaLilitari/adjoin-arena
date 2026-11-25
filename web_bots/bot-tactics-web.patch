@@ -1,3 +1,5 @@
+diff --git a/src/AI/jkBot.c b/src/AI/jkBot.c
+index 221699ac..420283a0 100644
 --- a/src/AI/jkBot.c
 +++ b/src/AI/jkBot.c
 @@ -38,13 +38,30 @@
@@ -32,7 +34,7 @@
  
  typedef struct BotEdge { int to; flex_t cost; int drop; } BotEdge;
  typedef struct BotNode {
-@@ -61,7 +78,7 @@
+@@ -61,7 +78,7 @@ static struct {
      flex_t nextForceTrace, nextSpeedProbe, nextFireTrace;
      int tracedFireMode;
      char behaviorFile[4096];
@@ -41,7 +43,7 @@
      int forceBin, forceTarget, forceCancel, forceEffectBin, forceEffectTarget, forceAvoid;
      struct { uint32_t idx, netId, guid, signature; } gripTarget;
      BotPeer peers[JKPLAYER_NUM_INFOS];
-@@ -71,6 +88,7 @@
+@@ -71,6 +88,7 @@ static struct {
      flex_t reactionUntil, seenAt, deadAt, stuckAt, nextRecovery;
      flex_t previousHealth, hurtUntil;
      flex_t axes[INPUT_FUNC_MAX];
@@ -49,7 +51,7 @@
      unsigned char keys[INPUT_FUNC_MAX], previous[INPUT_FUNC_MAX], presses[INPUT_FUNC_MAX];
      SithWorld *world;
      BotNode nodes[BOT_NODES];
-@@ -82,13 +100,50 @@
+@@ -82,13 +100,50 @@ static struct {
      flex_t routeStallTime;
      rdVector3 seenPos, progressPos;
      int armItem, armNode, armDirect; /* one-based thing and optional approach node */
@@ -100,7 +102,7 @@
  } bot;
  
  /* numThings is the highest used index, not the allocation length. */
-@@ -113,6 +168,7 @@
+@@ -113,6 +168,7 @@ static flex_t Bot_Horizontal(rdVector3 a) { return sqrtf(a.x*a.x+a.y*a.y); }
  static rdVector3 Bot_Mix(rdVector3 a, rdVector3 b, flex_t t)
  { rdVector3 v={a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t,a.z+(b.z-a.z)*t}; return v; }
  static int Bot_CtfOpponent(SithThing *self,int slot);
@@ -108,7 +110,7 @@
  #include "AI/jkBotBehavior.inc"
  
  static uint32_t Bot_Random(void)
-@@ -123,6 +179,31 @@
+@@ -123,6 +179,31 @@ static uint32_t Bot_Random(void)
      return bot.random;
  }
  static flex_t Bot_Unit(void) { return (Bot_Random()&65535u)/65535.0f; }
@@ -140,7 +142,7 @@
  static int Bot_SectorSafe(SithSector *s)
  {
      return s && !(s->flags&(SITH_SECTOR_FALLDEATH|SITH_SECTOR_NOACTORENTER));
-@@ -297,7 +378,7 @@
+@@ -297,7 +378,7 @@ static SithThing *Bot_UpdateTarget(SithThing *self)
              SithThing *t=jkPlayer_playerInfos[i].pLocalPlayer;
              if (!Bot_CanAcquire(self,t)) continue;
              flex_t d=Bot_Distance(t->position,self->position);
@@ -149,7 +151,7 @@
              if (companion.policy.mode && companion.policy.net==jkPlayer_playerInfos[i].playerNetId &&
                  companion.policy.guid==t->guid && companion.policy.signature==t->signature) score*=0.45f;
              if (score<best) { best=score; bestSlot=(int)i; }
-@@ -326,6 +407,17 @@
+@@ -326,6 +407,17 @@ static flex_t Bot_Aim(SithThing *self, rdVector3 at, int combat)
      flex_t yaw=-atan2f(Bot_Dot(d,self->orient.rvec),Bot_Dot(d,self->orient.lvec))*BOT_DEG;
      flex_t pitch=atan2f(d.z,horizontal)*BOT_DEG-self->actorParams.headPYR.x;
      flex_t yawRate=Bot_Max(45.0f,self->actorParams.maxRotVelocity);
@@ -167,7 +169,7 @@
      /* A committed traversal owns the heading. Combat still measures the
         physical aim error for weapon and Force eligibility on this frame. */
      if (!combat || !bot.routeAim) {
-@@ -388,15 +480,147 @@
+@@ -388,15 +480,147 @@ static int Bot_SafeDirection(SithThing *self, rdVector3 direction, int allowDrop
      return Bot_GroundCorridor(self,direction,allowDrop,lookahead,0,blockedAt);
  }
  
@@ -316,7 +318,7 @@
          /* Steer around players/props without blind strafing over ledges. */
          int found=0;
          static const flex_t angles[]={0.45f,-0.45f,0.85f,-0.85f};
-@@ -405,25 +629,61 @@
+@@ -405,25 +629,61 @@ static void Bot_Move(SithThing *self, rdVector3 desired, int allowDrop)
              rdVector3 side={desired.x*cosf(a)-desired.y*sinf(a),desired.x*sinf(a)+desired.y*cosf(a),0};
              if (Bot_SafeDirection(self,side,0,len,&blocked)) { desired=side; found=1; break; }
          }
@@ -383,7 +385,7 @@
  {
      /* Finish or cancel existing powers through the ordinary Force controls.
         A required look-away or held key takes precedence over the jump. */
-@@ -432,7 +692,22 @@
+@@ -432,7 +692,22 @@ static void Bot_ContinueWaterExit(SithThing *self)
          nav.waterExitUntil=0; bot.goal=-1; bot.nextPlan=0;
          return;
      }
@@ -406,7 +408,7 @@
  }
  
  /* Equipment goals keep a stock thing identity and a verified contact, never
-@@ -476,6 +751,7 @@
+@@ -476,6 +751,7 @@ static flex_t Bot_EquipmentValue(SithThing *self,int index)
      if (!item || item->type!=SITH_THING_ITEM || !Bot_SectorSafe(item->sector) ||
          (item->flags&(SITH_TF_DISABLED|SITH_TF_DEAD))) return 0;
      if (Bot_LivePack(item)) return Bot_PackValue(self,item);
@@ -414,7 +416,7 @@
      BotPickupKind k=Bot_PickupType(item);
      if (k.kind==BOT_ITEM_WEAPON && (k.bin==SITHBIN_BRYARPISTOL || k.bin==SITHBIN_LIGHTSABER)) return 0;
      if (k.kind==BOT_ITEM_AMMO && !Bot_UsesAmmo(self,k.bin)) return 0;
-@@ -491,6 +767,15 @@
+@@ -491,6 +767,15 @@ static flex_t Bot_EquipmentValue(SithThing *self,int index)
      return value;
  }
  
@@ -430,7 +432,7 @@
  static int Bot_EquipmentSpan(SithThing *self,BotNode *from,BotNode *to)
  {
      flex_t d=Bot_Distance(from->pos,to->pos);
-@@ -511,6 +796,14 @@
+@@ -511,6 +796,14 @@ static int Bot_AtEquipment(SithThing *self,SithThing *item)
      return Bot_Distance(self->position,item->position)<0.025f;
  }
  
@@ -445,7 +447,7 @@
  static void Bot_ClearEquipment(const char *reason)
  {
      if (bot.armItem && bot.traceForce)
-@@ -597,6 +890,115 @@
+@@ -597,6 +890,115 @@ static void Bot_CheckGearDive(SithThing *self)
      Bot_ReturnFromDive("air-return");
  }
  
@@ -561,7 +563,7 @@
  static void Bot_FindEquipment(SithThing *self)
  {
      BotEquipmentRank racks[BOT_EQUIP_PROBES]={0},packs[BOT_EQUIP_PROBES+1]={0};
-@@ -609,17 +1011,17 @@
+@@ -609,17 +1011,17 @@ static void Bot_FindEquipment(SithThing *self)
      bot.armNext=bot.now+0.75f;
      for (int i=0;i<bot.nNodes;i++) {
          BotNode *node=&bot.nodes[i]; SithThing *item=Bot_NavThing(node->item);
@@ -582,7 +584,7 @@
          /* Keep a real graph route even when the nearest four apparent
             shortcuts prove to be in disconnected rooms. */
          if (cost<1e19f && i!=start) {
-@@ -630,13 +1032,20 @@
+@@ -630,13 +1032,20 @@ static void Bot_FindEquipment(SithThing *self)
          if (cost>=1e19f) continue;
          Bot_RankEquipment(racks,i,value/(1.0f+0.28f*cost));
      }
@@ -608,7 +610,7 @@
          Bot_RankPackProbe(packs,i,value/(1.0f+0.28f*Bot_Distance(here.pos,item->position)),bot.armPackProbe);
      }
      Bot_RotatePackProbe(packs,&bot.armPackProbe);
-@@ -648,28 +1057,50 @@
+@@ -648,28 +1057,50 @@ static void Bot_FindEquipment(SithThing *self)
          int walk=Bot_EquipmentSpan(self,&here,node);
          if (!walk && (start<0 || start==i || distance[i]>=1e19f)) continue;
          flex_t cost=walk ? Bot_Distance(here.pos,node->pos) : distance[i]+Bot_Distance(here.pos,bot.nodes[start].pos);
@@ -664,7 +666,7 @@
                  if (candidate==start && !Bot_EquipmentSpan(self,&here,&bot.nodes[start])) continue;
                  if (!Bot_EquipmentSpan(self,&bot.nodes[candidate],&end)) continue;
                  approach=candidate;
-@@ -678,10 +1109,24 @@
+@@ -678,10 +1109,24 @@ static void Bot_FindEquipment(SithThing *self)
              }
              if (approach<0) continue;
          }
@@ -691,7 +693,7 @@
      if (index<0) { Bot_ClearEquipment("no-route"); return; }
      SithThing *item=Bot_NavThing(index);
      const BotGoalPaths *chosen=safe!=&all && Bot_OptionalSupply(self,item) ? safe : &all;
-@@ -691,8 +1136,15 @@
+@@ -691,8 +1136,15 @@ static void Bot_FindEquipment(SithThing *self)
      } else if (direct && bot.armItem && !bot.armDirect) Bot_ClearEquipment("final-leg");
      if (bot.traceForce && (bot.armItem!=index+1 || bot.armNode!=anchor+1 || bot.armDirect!=direct))
          fprintf(stderr,"BOT_GEAR name=%s t=%.2f event=plan item=%d guid=%u signature=%u pack=%d anchor=%d direct=%d\n",
@@ -708,7 +710,7 @@
      bot.armNode=anchor+1; bot.armItem=index+1; bot.armDirect=direct;
      bot.armGuid=item->guid; bot.armSignature=item->signature; bot.armPosition=item->position;
      bot.armContact=contact; nav.pursuitNet=0;
-@@ -706,7 +1158,7 @@
+@@ -706,7 +1158,7 @@ static int Bot_ArmingMove(SithThing *self,flex_t enemyDistance)
          (!self->attach_flags && !(self->sector->flags&SITH_SECTOR_UNDERWATER))) return 0;
      SithThing *item=Bot_NavThing(bot.armItem-1);
      if (bot.armItem && (!item || item->guid!=bot.armGuid || item->signature!=bot.armSignature ||
@@ -717,7 +719,7 @@
          (Bot_DeferSupplyApproaches(self) && Bot_OnDeferredCrossing() && Bot_OptionalSupply(self,item))))
          Bot_ClearEquipment("state-or-contact");
      else if (item && Bot_AtEquipment(self,item)) {
-@@ -718,7 +1170,7 @@
+@@ -718,7 +1170,7 @@ static int Bot_ArmingMove(SithThing *self,flex_t enemyDistance)
      if (!bot.armItem) return 0;
      /* Reach the transient pack by its checked final span before the ordinary
         graph follower retires the approach node at its arrival radius. */
@@ -726,7 +728,7 @@
          Bot_Distance(self->position,bot.nodes[bot.armNode-1].pos)<0.22f) {
          BotNode here={.pos=self->position,.sector=self->sector};
          if (Bot_EquipmentSpan(self,&here,&bot.armContact)) {
-@@ -742,6 +1194,13 @@
+@@ -742,6 +1194,13 @@ static int Bot_ArmingMove(SithThing *self,flex_t enemyDistance)
              bot.axes[INPUT_FUNC_FORWARD]=0.4f*Bot_Dot(direction,self->orient.lvec);
              bot.axes[INPUT_FUNC_SLIDE]=0.4f*Bot_Dot(direction,self->orient.rvec);
          }
@@ -740,7 +742,7 @@
          bot.followingRoute=1; bot.routeMode=swim ? BOT_ROUTE_SWIM : BOT_ROUTE_WALK;
          if (swim) { bot.routeAim=1; Bot_Aim(self,to,0); }
          return 1;
-@@ -752,7 +1211,7 @@
+@@ -752,7 +1211,7 @@ static int Bot_ArmingMove(SithThing *self,flex_t enemyDistance)
  static flex_t Bot_EngagementForward(int melee,flex_t distance)
  {
      if (!companion.policy.mode)
@@ -749,7 +751,7 @@
      flex_t range=companion.policy.range;
      if (!range) {
          if (companion.policy.mode==CP_RECOVER) range=4.0f;
-@@ -788,13 +1247,23 @@
+@@ -788,13 +1247,23 @@ static void Bot_Combat(SithThing *self, SithThing *target)
              routed=bot.goal>=0 || bot.routeAim;
          }
      }
@@ -774,7 +776,7 @@
      Bot_TryCombatJump(self,target);
      Bot_FireGunShot(self,target,weapon,&shot,error,distance);
      Bot_ForceTick(self,target,error);
-@@ -808,13 +1277,115 @@
+@@ -808,13 +1277,115 @@ static void Bot_Combat(SithThing *self, SithThing *target)
      if (h>0.001f) {
          d.x/=h; d.y/=h; d.z=0;
          flex_t forward=Bot_EngagementForward(melee,distance);
@@ -892,7 +894,7 @@
  static void Bot_Recovery(SithThing *self)
  {
      int recovering=bot.nextRecovery>0;
-@@ -848,18 +1419,166 @@
+@@ -848,18 +1419,166 @@ static void Bot_Recovery(SithThing *self)
      /* Charge only the route actually driven across this failed interval.
         Movement on the deadline frame still belongs to recovery. */
      if (node>=0 && bot.routeStallTime+0.001f>=(recovering ? 1.5f : 2.0f)) {
@@ -1062,7 +1064,7 @@
  #include "AI/jkBotLily.inc"
  
  int jkBot_IsEnabled(void) { return bot.enabled; }
-@@ -891,10 +1610,11 @@
+@@ -891,10 +1610,11 @@ static void Bot_TraceForce(SithThing *self)
  void jkBot_Configure(const char *name, const char *skin)
  {
      (void)skin;
@@ -1076,7 +1078,7 @@
      bot.competitiveForce=jkBotLoadout_Style(getenv("JK_BOT_FORCE_STYLE"))==JKBOT_STYLE_COMPETITIVE;
      bot.forceBin=bot.forceTarget=bot.forceEffectBin=bot.forceEffectTarget=-1;
      const char *elite=getenv("JK_BOT_ELITE");
-@@ -910,6 +1630,7 @@
+@@ -910,6 +1630,7 @@ void jkBot_Configure(const char *name, const char *skin)
      if (!bot.random) bot.random=1;
      bot.goal=bot.targetSlot=-1;
      Bot_ReloadBehavior();
@@ -1084,7 +1086,7 @@
  }
  
  void jkBot_OnJoined(void)
-@@ -919,6 +1640,8 @@
+@@ -919,6 +1640,8 @@ void jkBot_OnJoined(void)
      Companion_ResetPlan();
      bot.joined=1; bot.world=NULL; bot.now=bot.nextForceTrace=bot.nextSpeedProbe=0;
      bot.tracedFireMode=-1; bot.nextFireTrace=0; bot.nextLog=10.0f;
@@ -1093,7 +1095,7 @@
      bot.targetSlot=-1; bot.goal=-1; bot.routeCount=bot.routePos=0;
      bot.wasDead=0; bot.nextScan=bot.nextPlan=bot.nextSelect=0;
      bot.forceBin=bot.forceTarget=bot.forceEffectBin=bot.forceEffectTarget=-1; bot.nextForce=bot.forceUntil=0;
-@@ -927,22 +1650,41 @@
+@@ -927,22 +1650,41 @@ void jkBot_OnJoined(void)
      memset(bot.previous,0,sizeof(bot.previous)); memset(bot.presses,0,sizeof(bot.presses));
  }
  
@@ -1135,7 +1137,7 @@
      SithThing *self=sithPlayer_g_pLocalPlayerThing;
      if (self->type!=SITH_THING_PLAYER || !self->sector || !self->actorParams.pPlayer) return;
      Bot_TraceForce(self);
-@@ -952,12 +1694,17 @@
+@@ -952,12 +1694,17 @@ void jkBot_Tick(flex_t dt)
          Companion_NewWorld();
          memset(bot.peers,0,sizeof(bot.peers));
          bot.forceBin=bot.forceTarget=bot.forceEffectBin=bot.forceEffectTarget=-1;
@@ -1153,7 +1155,7 @@
      Bot_ObservePeers(self);
      int dead=(self->flags&SITH_TF_DEAD)!=0 || self->actorParams.health<=0;
      Companion_Tick(self,dead);
-@@ -968,21 +1715,25 @@
+@@ -968,21 +1715,25 @@ void jkBot_Tick(flex_t dt)
      bot.previousHealth=self->actorParams.health;
      if (dead) {
          if (!bot.wasDead) { Bot_ResetHearing(); bot.deadAt=bot.now; bot.targetSlot=-1; bot.goal=-1; }
@@ -1183,7 +1185,7 @@
              fprintf(stderr,"BOT_RESPAWN name=%s health=%.1f\n",bot.name,(double)self->actorParams.health);
              fflush(stderr);
          }
-@@ -994,12 +1745,18 @@
+@@ -994,12 +1745,18 @@ void jkBot_Tick(flex_t dt)
          if (!Lily_Drive(self)) {
              if (bot.armItem && !Bot_EquipmentMode()) Bot_ClearEquipment("mode");
              Bot_CheckGearDive(self);
@@ -1204,7 +1206,7 @@
              else {
                  Bot_SelectWeapon(self,2.0f);
                  if (bot.nextRecovery>0 || nav.combatJumpUntil>bot.now || Bot_ObjectiveUrgent(self) || Bot_SupplyOrder() ||
-@@ -1007,8 +1764,12 @@
+@@ -1007,8 +1764,12 @@ void jkBot_Tick(flex_t dt)
                      Bot_Navigate(self);
                  Bot_ForceTick(self,NULL,180.0f);
              }
@@ -1218,7 +1220,7 @@
          }
      }
      Companion_Publish(self,dead);
-@@ -1028,6 +1789,28 @@
+@@ -1028,6 +1789,28 @@ void jkBot_Tick(flex_t dt)
              (double)Bot_Max(0,bot.nextRecovery-bot.now),nav.waterExitUntil>0 ? nav.waterExitPhase : -1,
              nav.waterExitFrom,nav.waterExitTo,bot.keys[INPUT_FUNC_JUMP],bot.keys[INPUT_FUNC_DUCK],
              (unsigned)self->physicsParams.flags,(double)bot.frameDt,(unsigned)self->actorParams.endurance);
@@ -1247,7 +1249,7 @@
          fflush(stderr);
      }
  }
-@@ -1037,6 +1820,15 @@
+@@ -1037,6 +1820,15 @@ flex_t jkBot_GetAxis(int functionId)
      return functionId>=0 && functionId<INPUT_FUNC_MAX ? bot.axes[functionId] : 0.0f;
  }
  
@@ -1263,9 +1265,11 @@
  int jkBot_GetKey(int functionId, int *presses)
  {
      if (presses) *presses=0;
+diff --git a/src/AI/jkBot.h b/src/AI/jkBot.h
+index 94d16a2d..11d4f4fb 100644
 --- a/src/AI/jkBot.h
 +++ b/src/AI/jkBot.h
-@@ -7,6 +7,7 @@
+@@ -7,6 +7,7 @@ void jkBot_Configure(const char *name, const char *skin);
  void jkBot_OnJoined(void);
  void jkBot_Tick(flex_t dt);
  flex_t jkBot_GetAxis(int functionId);
@@ -1273,9 +1277,11 @@
  int jkBot_GetKey(int functionId, int *presses);
  typedef struct jkBotHearing {
      int kind;
+diff --git a/src/AI/jkBotBehavior.inc b/src/AI/jkBotBehavior.inc
+index e09c9c99..00270b7c 100644
 --- a/src/AI/jkBotBehavior.inc
 +++ b/src/AI/jkBotBehavior.inc
-@@ -86,6 +86,11 @@
+@@ -86,6 +86,11 @@ void jkBot_ObserveSkill(SithThing *victim, SithThing *source, int bin)
          (bin>=SITHBIN_F_THROW && bin<=SITHBIN_F_DEADLYSIGHT)) {
          Bot_Provoke(victim,source,"force_target"); bot.forceThreatUntil=bot.now+5.0f;
      }
@@ -1287,7 +1293,7 @@
  }
  void jkBot_ObserveProjectile(SithThing *shooter, const SithThing *projectile, const rdVector3 *direction)
  {
-@@ -99,6 +104,13 @@
+@@ -99,6 +104,13 @@ void jkBot_ObserveProjectile(SithThing *shooter, const SithThing *projectile, co
      flex_t along=Bot_Dot(delta,*direction)/len;
      flex_t miss2=Bot_Dot(delta,delta)-along*along;
      flex_t margin=Bot_Max(0.16f,self->collideSize+0.08f);
@@ -1301,7 +1307,7 @@
      if (along>0 && miss2<=margin*margin) {
          int fist=0;
  #ifdef SITH_DEBUG_STRUCT_NAMES
-@@ -181,6 +193,9 @@
+@@ -181,6 +193,9 @@ static void Bot_ReloadBehavior(void)
      FILE *f=fopen(bot.behaviorFile,"r"); if (!f) return;
      int saber,peace,force; int ok=Bot_ReadBehavior(f,&saber,&peace,&force); fclose(f);
      if (!ok) return;
@@ -1311,9 +1317,11 @@
      if (saber!=bot.sabersOnly || peace!=bot.fistsPeace || force!=bot.forceEnabled) {
          bot.sabersOnly=saber; bot.fistsPeace=peace; bot.forceEnabled=force;
          bot.nextSelect=bot.nextScan=bot.nextPlan=0; bot.goal=-1;
+diff --git a/src/AI/jkBotCombat.inc b/src/AI/jkBotCombat.inc
+index 0cac724a..05cc15a9 100644
 --- a/src/AI/jkBotCombat.inc
 +++ b/src/AI/jkBotCombat.inc
-@@ -6,6 +6,28 @@
+@@ -6,6 +6,28 @@ static int Bot_CombatJumpRecoilGun(int weapon)
      return weapon==SITHBIN_CONCUSSION_RIFLE || weapon==SITHBIN_RAIL_DETONATOR;
  }
  
@@ -1342,7 +1350,7 @@
  static int Bot_HasWeapon(SithThing *self, int weapon)
  {
      if (!sithInventory_IsInventoryAvailable(self,weapon) || sithInventory_GetInventory(self,weapon)<=0) return 0;
-@@ -154,16 +176,19 @@
+@@ -154,16 +176,19 @@ static int Bot_BeamHits(SithThing *self,SithThing *target,const SithThing *beam,
      return reaches;
  }
  
@@ -1364,7 +1372,7 @@
      /* Stock primaries spawn 0.15 forward and slightly right. A thin piece
         of level geometry may block this path even when the camera can see. */
      rdVector3 end=shot->aim;
-@@ -173,29 +198,44 @@
+@@ -173,29 +198,44 @@ static int Bot_GunSafe(SithThing *self, SithThing *target, const BotGunShot *sho
      muzzle.x+=end.x-shot->aim.x; muzzle.y+=end.y-shot->aim.y;
      SithSector *sector=Bot_SectorAt(&muzzle,self->sector);
      if (!sector || !Bot_Clear(self,self->sector,self->position,muzzle,shot->radius,1) ||
@@ -1417,7 +1425,7 @@
      /* A safe floor blast remains useful against a grounded, predictable target.
         Prefer the beam for a direct or crossing shot, unsafe splash, or a low cell reserve. */
      if (primary.floorAim && sithInventory_GetInventory(self,SITHBIN_POWER)>=16 &&
-@@ -228,13 +268,38 @@
+@@ -228,13 +268,38 @@ static int Bot_CloseSaberOpportunity(SithThing *self,SithThing *target,flex_t di
      return fabsf(future.z)<=body && Bot_Len(future)<=reach+0.025f;
  }
  
@@ -1458,7 +1466,7 @@
      int melee=weapon==SITHBIN_FISTS || weapon==SITHBIN_LIGHTSABER;
      if (melee && distance>=0.60f) return;
      if (weapon==SITHBIN_TUSKEN_PROD && Bot_ProtectedNear(self,self->position,8.0f)) return;
-@@ -242,8 +307,11 @@
+@@ -242,8 +307,11 @@ static void Bot_FireGunShot(SithThing *self,SithThing *target,int weapon,
      if (shot->beam)
          tolerance=Bot_Min(0.8f,atan2f(target->collideSize*0.5f,distance)*BOT_DEG);
      if (shot->blast>0) tolerance=Bot_Min(tolerance,atan2f(shot->blast*0.22f,distance)*BOT_DEG);
@@ -1472,7 +1480,7 @@
      if (shot->beam) {
          rdMatrix34 aim=self->orient;
          rdMatrix_PreRotate34(&aim,&self->actorParams.headPYR);
-@@ -260,7 +328,13 @@
+@@ -260,7 +328,13 @@ static void Bot_FireGunShot(SithThing *self,SithThing *target,int weapon,
          alternate=(!bot.elite || spreadRadius<=target->collideSize) &&
              Bot_SafeShot(self,target,shot->aim,0,0.12f);
      }
@@ -1487,7 +1495,7 @@
          /* Pressing either trigger disables stock autoblock. Hold guard when
             outside ordinary contact, including while closing on a light blaster. */
          flex_t contact=Bot_Clamp(self->collideSize+target->collideSize,0.08f,0.20f)+0.10f;
-@@ -271,8 +345,13 @@
+@@ -271,8 +345,13 @@ static void Bot_FireGunShot(SithThing *self,SithThing *target,int weapon,
      }
      /* Release the old mode for one control frame. The stock handler checks
         secondary before primary and may otherwise reactivate both on a swap. */
@@ -1503,7 +1511,7 @@
  }
  
  /* Log only changes in the final attack input, after Force and navigation
-@@ -294,17 +373,21 @@
+@@ -294,17 +373,21 @@ static int Bot_SelectWeapon(SithThing *self, flex_t distance)
  {
      int chosen=0, current=sithInventory_GetCurrentWeapon(self);
      flex_t best=-1e9f;
@@ -1527,7 +1535,7 @@
              !Bot_HasWeapon(self,weapon) || (bot.sabersOnly && weapon!=SITHBIN_LIGHTSABER)) continue;
          /* Mines/hand grenades need authored traps and ballistic arcs; do not
             blindly drop them in crowds. All ordinary guns have a policy below. */
-@@ -333,7 +416,17 @@
+@@ -333,7 +416,17 @@ static int Bot_SelectWeapon(SithThing *self, flex_t distance)
          if (weapon==SITHBIN_CONCUSSION_RIFLE || weapon==SITHBIN_RAIL_DETONATOR) {
              if (target) {
                  BotGunShot shot=Bot_ChooseGunShot(self,target,weapon);
@@ -1546,7 +1554,7 @@
              } else if (!readyHeavy) continue;
          }
          /* Keep range boundaries stable, but let the starter pistol yield
-@@ -343,6 +436,12 @@
+@@ -343,6 +436,12 @@ static int Bot_SelectWeapon(SithThing *self, flex_t distance)
      }
      if (chosen && current!=chosen && bot.now>=bot.nextSelect) {
          bot.keys[INPUT_FUNC_SELECT1+chosen-1]=1; bot.nextSelect=bot.now+0.8f;
@@ -1559,6 +1567,8 @@
      }
      return current;
  }
+diff --git a/src/AI/jkBotCompanion.inc b/src/AI/jkBotCompanion.inc
+index b890dc5f..79f191b9 100644
 --- a/src/AI/jkBotCompanion.inc
 +++ b/src/AI/jkBotCompanion.inc
 @@ -15,7 +15,8 @@
@@ -1571,7 +1581,7 @@
  enum { CP_APPLIED, CP_REJECTED, CP_EXPIRED, CP_STALE, CP_RATE };
  enum { CP_OK, CP_INVALID, CP_UNAVAILABLE, CP_OBSOLETE, CP_RESERVED, CP_TOO_FAST, CP_TOO_LATE };
  enum { CP_AUTO, CP_PRESSURE, CP_RESOURCE, CP_RECOVER };
-@@ -265,10 +266,11 @@
+@@ -265,10 +266,11 @@ static void Companion_Command(SithThing *self,const unsigned char *frame,int n,d
      if (n<20 || n>512 || memcmp(frame,"JKCP",4) || frame[4]!=1) return;
      int kind=frame[5], size=frame[6]|(frame[7]<<8);
      uint32_t seq=Companion_Word(frame+16);
@@ -1586,7 +1596,7 @@
          Companion_Ack(Companion_Word(frame+8),Companion_Word(frame+12),seq,kind,CP_REJECTED,CP_INVALID); return;
      }
      uint32_t world=Companion_Word(frame+8), life=Companion_Word(frame+12);
-@@ -293,8 +295,15 @@
+@@ -293,8 +295,15 @@ static void Companion_Command(SithThing *self,const unsigned char *frame,int n,d
      if (!isfinite(expiry) || expiry>now+30) { status=CP_REJECTED; reason=CP_INVALID; }
      else if (expiry<=now) { status=CP_EXPIRED; reason=CP_TOO_LATE; }
      else if (kind==CP_RELEASE) { Lily_Clear(1); Companion_ResetPlan(); }
@@ -1603,9 +1613,11 @@
          reason=Lily_Command(kind,p,size,seq,expiry);
          if (reason) status=reason==CP_OBSOLETE ? CP_STALE : CP_REJECTED;
      } else if (kind==CP_STRATEGY) {
+diff --git a/src/AI/jkBotForce.inc b/src/AI/jkBotForce.inc
+index 83528da2..6561bd2c 100644
 --- a/src/AI/jkBotForce.inc
 +++ b/src/AI/jkBotForce.inc
-@@ -43,9 +43,23 @@
+@@ -43,9 +43,23 @@ static void Bot_ForceLookAway(SithThing *self)
      bot.axes[INPUT_FUNC_TURN]=0.5f;
  }
  static int Bot_HostileForce(int bin);
@@ -1630,7 +1642,7 @@
      if ((bin==SITHBIN_F_DEADLYSIGHT || bin==SITHBIN_F_THROW) &&
          (bot.fistsPeace || (sithNet_MultiModeFlags&MULTIMODEFLAG_TEAMS))) return 0;
      if (bin==SITHBIN_F_THROW && !Bot_ForceVictim(bin,&victim)) return 0;
-@@ -55,6 +69,13 @@
+@@ -55,6 +69,13 @@ static int Bot_ForceReady(SithThing *self, int bin, flex_t cost)
           ((self->actorParams.flags&SITH_AF_BLIND) && Bot_HostileForce(bin))) ||
          !sithInventory_IsInventoryAvailable(self,bin) || sithInventory_GetInventory(self,bin)<=0 ||
          sithInventory_IsInventoryActivated(self,bin) || Bot_PowerKey(bin)<0) return 0;
@@ -1644,7 +1656,7 @@
      return self->actorParams.pPlayer->aItems[bin].binWait<=sithTime_g_secGameTime &&
          (bin==SITHBIN_F_PROTECTION || sithInventory_GetInventory(self,SITHBIN_FORCEMANA)>=cost);
  }
-@@ -83,7 +104,7 @@
+@@ -83,7 +104,7 @@ static int Bot_GripIdentityMatches(int slot)
  }
  static int Bot_GripMarkerMatches(void)
  {
@@ -1653,7 +1665,7 @@
      return Bot_ForceVictim(SITHBIN_F_GRIP,&victim) && victim>=0 && (uint32_t)victim==bot.gripTarget.idx;
  }
  static int Bot_ActiveCompetitiveGrip(SithThing *self)
-@@ -189,11 +210,23 @@
+@@ -189,11 +210,23 @@ static int Bot_SupplySwimRunway(SithThing *self)
                         self->moveSize+0.015f);
  }
  
@@ -1680,7 +1692,7 @@
          nav.waterExitUntil>0 || nav.seekingSurface || nav.crossingEntry ||
          bot.keys[INPUT_FUNC_ACTIVATE] || !Bot_SectorSafe(self->sector) ||
          (self->sector->flags&(SITH_SECTOR_USETHRUST|SITH_SECTOR_NOGRAVITY)) ||
-@@ -201,30 +234,41 @@
+@@ -201,30 +234,41 @@ static void Bot_TryMovementSpeed(SithThing *self)
          (self->actorParams.flags&SITH_AF_IMMOBILE) ||
          ((self->attach_flags&SITH_ATTACH_SURFACE) && self->attachedSurface &&
           (self->attachedSurface->flags&(SITH_SURFACE_WATER|SITH_SURFACE_VERYDEEPWATER))) ||
@@ -1731,7 +1743,7 @@
      bot.nextSpeedProbe=bot.now+0.40f;
      if (forward<0) forward*=0.5f;
      slide*=0.7f;
-@@ -232,7 +276,9 @@
+@@ -232,7 +276,9 @@ static void Bot_TryMovementSpeed(SithThing *self)
                           self->orient.lvec.y*forward+self->orient.rvec.y*slide,0}, blocked;
      if (swim ? Bot_SupplySwimRunway(self) : Bot_GroundCorridor(self,direction,0,runway,1,&blocked))
          Bot_RequestForce(self,SITHBIN_F_SPEED,0.10f,-1);
@@ -1741,7 +1753,7 @@
  
  /* Ground drag can slow a charging player. Once the stock COG releases, zero
     movement axes keep the player's existing horizontal momentum independent
-@@ -300,11 +346,42 @@
+@@ -300,11 +346,42 @@ static int Bot_CombatJumpSpace(SithThing *self,rdVector3 waypoint,int rank,flex_
      return 1;
  }
  
@@ -1785,7 +1797,7 @@
          return;
      }
      if (!bot.competitiveForce || !bot.elite || bot.sabersOnly || !bot.armItem ||
-@@ -344,10 +421,198 @@
+@@ -344,10 +421,198 @@ static void Bot_TryCombatJump(SithThing *self,SithThing *target)
      flex_t flight;
      if (!Bot_CombatJumpSpace(self,toward->pos,(int)sithInventory_GetInventory(self,SITHBIN_F_JUMP),&flight) ||
          !Bot_RequestForce(self,SITHBIN_F_JUMP,0.08f,-1)) return;
@@ -1986,7 +1998,7 @@
  }
  
  static void Bot_ForceControl(SithThing *self, SithThing *target, flex_t aimError,int autonomous)
-@@ -359,6 +624,7 @@
+@@ -359,6 +624,7 @@ static void Bot_ForceControl(SithThing *self, SithThing *target, flex_t aimError
          (!bot.forceEnabled || bot.fistsPeace || (sithNet_MultiModeFlags&MULTIMODEFLAG_TEAMS))) {
          Bot_ForceLookAway(self); return;
      }
@@ -1994,7 +2006,7 @@
      if (bot.forceBin>=0) {
          int bin=bot.forceBin, key=Bot_PowerKey(bin);
          int hostile=Bot_HostileForce(bin);
-@@ -368,7 +634,7 @@
+@@ -368,7 +634,7 @@ static void Bot_ForceControl(SithThing *self, SithThing *target, flex_t aimError
               !Bot_ProtectedNear(self,self->position,8.0f)));
          if (allowed && bot.competitiveForce && bin==SITHBIN_F_PULL) {
              SithThing *intended=jkPlayer_playerInfos[bot.forceTarget].pLocalPlayer;
@@ -2003,7 +2015,7 @@
              BotPeer *peer=Bot_Peer(bot.forceTarget);
              allowed=peer && peer->pullThingIdx==intended->idx && peer->pullPendingWeapon &&
                  peer->pullPendingWeapon==Bot_PullWeapon(intended) &&
-@@ -390,7 +656,7 @@
+@@ -390,7 +656,7 @@ static void Bot_ForceControl(SithThing *self, SithThing *target, flex_t aimError
          /* Throw's deselected only hides its marker. Keep the key held and
             look away until its normal pulse loses the target, then release. */
          if ((!allowed || bot.forceCancel) && bin==SITHBIN_F_THROW) {
@@ -2012,7 +2024,7 @@
              bot.forceCancel=1; Bot_ForceLookAway(self);
              if (!Bot_ForceVictim(bin,&victim) || victim>=0) { bot.keys[key]=1; return; }
              bot.forceBin=bot.forceTarget=bot.forceEffectBin=-1; bot.forceCancel=0; return;
-@@ -399,6 +665,7 @@
+@@ -399,6 +665,7 @@ static void Bot_ForceControl(SithThing *self, SithThing *target, flex_t aimError
          if ((!allowed || bot.forceCancel) && hostile &&
              (bin==SITHBIN_F_PULL || bin==SITHBIN_F_GRIP || bin==SITHBIN_F_BLINDING)) {
              if (self->actorParams.pPlayer->curPower==bin) {
@@ -2020,7 +2032,7 @@
                  bot.keys[key]=1;
                  bot.keys[INPUT_FUNC_NEXTSKILL]=!bot.previous[INPUT_FUNC_NEXTSKILL];
                  bot.forceCancel=1; return;
-@@ -411,6 +678,12 @@
+@@ -411,6 +678,12 @@ static void Bot_ForceControl(SithThing *self, SithThing *target, flex_t aimError
              if (hostile) bot.keys[INPUT_FUNC_FIRE1]=bot.keys[INPUT_FUNC_FIRE2]=0;
              return;
          }
@@ -2033,7 +2045,7 @@
          if (bot.competitiveForce && bin==SITHBIN_F_PULL) Bot_FinishPull(self,1);
          bot.forceBin=-1; bot.forceTarget=-1; return; /* Normal key release. */
      }
-@@ -424,7 +697,25 @@
+@@ -424,7 +697,25 @@ static void Bot_ForceControl(SithThing *self, SithThing *target, flex_t aimError
          else bot.forceEffectBin=-1;
          return;
      }
@@ -2060,7 +2072,7 @@
      /* Bacta is an inventory item, independent of the Force checkbox. */
      if (self->actorParams.health<=65 && sithInventory_IsInventoryAvailable(self,SITHBIN_BACTATANK) &&
          sithInventory_GetInventory(self,SITHBIN_BACTATANK)>0 &&
-@@ -432,6 +723,13 @@
+@@ -432,6 +723,13 @@ static void Bot_ForceControl(SithThing *self, SithThing *target, flex_t aimError
          int key=Bot_PowerKey(SITHBIN_BACTATANK);
          if (key>=0) { bot.keys[key]=1; bot.nextForce=bot.now+1.2f; return; }
      }
@@ -2074,7 +2086,7 @@
      if (!bot.forceEnabled || activeGrip) return;
      if (self->actorParams.health<=60 && Bot_RequestForce(self,SITHBIN_F_HEALING,0.1f,-1)) return;
      if (!sithInventory_IsInventoryActivated(self,SITHBIN_F_SEEING) && Bot_NeedsSeeing(self) &&
-@@ -446,6 +744,8 @@
+@@ -446,6 +744,8 @@ static void Bot_ForceControl(SithThing *self, SithThing *target, flex_t aimError
          Bot_RequestForce(self,SITHBIN_F_PROTECTION,0.1f,-1)) return;
      if (self->actorParams.health<35 && Bot_RequestForce(self,SITHBIN_F_PERSUASION,0.1f,-1)) return;
      if (!target || !Bot_EnemyAllowed(self,Bot_PlayerSlot(target))) {
@@ -2083,9 +2095,11 @@
          if (!bot.competitiveForce && bot.routePos<bot.routeCount && bot.route[bot.routePos]>=0 && bot.route[bot.routePos]<bot.nNodes) {
              BotNode here={0}; here.pos=self->position; here.sector=self->sector;
              BotNode *goal=&bot.nodes[bot.route[bot.routePos]]; int drop=0;
+diff --git a/src/AI/jkBotHearing.inc b/src/AI/jkBotHearing.inc
+index 3761a381..f70fabfc 100644
 --- a/src/AI/jkBotHearing.inc
 +++ b/src/AI/jkBotHearing.inc
-@@ -331,7 +331,9 @@
+@@ -331,7 +331,9 @@ static int Bot_InvestigateSound(SithThing *self)
      }
      rdVector3 d=Bot_Sub(r->cue.position,self->position);
      flex_t error=Bot_Aim(self,r->cue.position,1);
@@ -2096,6 +2110,8 @@
 +    }
      return 1;
  }
+diff --git a/src/AI/jkBotLily.inc b/src/AI/jkBotLily.inc
+index 71863904..386b76ee 100644
 --- a/src/AI/jkBotLily.inc
 +++ b/src/AI/jkBotLily.inc
 @@ -2,8 +2,8 @@
@@ -2109,7 +2125,7 @@
  typedef struct LilyStep {
      unsigned duration,buttons,weapon,force;
      float axes[4];
-@@ -20,6 +20,8 @@
+@@ -20,6 +20,8 @@ static struct {
      struct { uint32_t id; double time; } samples[32];
      int choices[8],choiceCount;
      double offeredAt,tickMs,nextSense;
@@ -2118,7 +2134,7 @@
      LilyAction active,queued;
      struct { unsigned char data[24]; int repeats; } terminal[4];
      unsigned terminalCursor;
-@@ -32,6 +34,11 @@
+@@ -32,6 +34,11 @@ static void Lily_Configure(void)
      memset(&lily,0,sizeof(lily));
      const char *enabled=getenv("JK_BOT_LILY");
      lily.enabled=enabled && !strcmp(enabled,"1");
@@ -2130,7 +2146,7 @@
  }
  static int Lily_Routing(void) { return lily.active.owner==LILY_ROUTE; }
  
-@@ -50,6 +57,7 @@
+@@ -50,6 +57,7 @@ static void Lily_Progress(const LilyAction *a,int phase,int reason,int outcome)
  static void Lily_Finish(LilyAction *a,int phase,int reason,int outcome)
  {
      if (!a->seq) return;
@@ -2138,7 +2154,7 @@
      Lily_Progress(a,phase,reason,outcome);
      if (a==&lily.active && a->owner==LILY_ROUTE) {
          bot.goal=-1; bot.routeCount=bot.routePos=0; bot.nextPlan=0;
-@@ -138,14 +146,31 @@
+@@ -138,14 +146,31 @@ static int Lily_RouteStart(SithThing *self,int node)
      Bot_ClearEquipment("lily-route"); nav.pursuitNet=0; nav.objectiveRouteNode=-1;
      return Bot_SetRoute(paths.start,node,paths.parent);
  }
@@ -2173,7 +2189,7 @@
      return 1;
  }
  static int Lily_FireAllowed(SithThing *self,int weapon)
-@@ -238,11 +263,22 @@
+@@ -238,11 +263,22 @@ static int Lily_Drive(SithThing *self)
      if (Bot_NeedsAir(self) || nav.diveEscape) {
          Lily_Finish(&lily.active,LILY_INTERRUPTED,LILY_SURVIVAL,0); return 0;
      }
@@ -2197,7 +2213,7 @@
      else { Bot_Navigate(self); Bot_ForceControl(self,NULL,180,0); }
      if (Lily_Routing()) {
          Bot_Recovery(self);
-@@ -297,7 +333,7 @@
+@@ -297,7 +333,7 @@ static void Lily_Publish(SithThing *self,int dead)
  {
      if (!lily.enabled) return;
      lily.nextSense=companion.now+0.05;
@@ -2206,7 +2222,7 @@
      LilyAction *a=lily.active.seq ? &lily.active : &lily.queued;
      lily.sample=Companion_Next(lily.sample);
      lily.samples[lily.sample%32].id=lily.sample; lily.samples[lily.sample%32].time=companion.now;
-@@ -325,7 +361,19 @@
+@@ -325,7 +361,19 @@ static void Lily_Publish(SithThing *self,int dead)
          Companion_Put(q,i); Companion_Put(q+4,player->playerNetId); Companion_Put(q+8,t->guid);
          Companion_Put(q+12,t->sector->id); Companion_Vector(q+16,t->position); Companion_Vector(q+28,t->physicsParams.vel);
      }
@@ -2227,9 +2243,11 @@
      if (!lily.offer || companion.now-lily.offeredAt>=1) Lily_Offers(self,dead);
      for (int i=0;i<4;i++) if (lily.terminal[i].repeats) {
          lily.terminal[i].repeats--;
+diff --git a/src/AI/jkBotNavigate.inc b/src/AI/jkBotNavigate.inc
+index 9e564192..6a1360b7 100644
 --- a/src/AI/jkBotNavigate.inc
 +++ b/src/AI/jkBotNavigate.inc
-@@ -55,6 +55,20 @@
+@@ -55,6 +55,20 @@ static int Bot_NavDirectMove(SithThing *self, rdVector3 target, int swim)
              bot.axes[INPUT_FUNC_SLIDE]*=scale;
          }
      }
@@ -2250,7 +2268,7 @@
      if (swim) {
          if (delta.z>0.05f) {
              if (Bot_NeedsAir(self) && delta.z>0.16f &&
-@@ -117,6 +131,81 @@
+@@ -117,6 +131,81 @@ static void Bot_WaterSteer(SithThing *self,rdVector3 direction)
      bot.axes[INPUT_FUNC_SLIDE]=Bot_Clamp(Bot_Dot(direction,self->orient.rvec)/0.7f,-1,1)*throttle;
  }
  
@@ -2332,7 +2350,7 @@
  static int Bot_StockWaterMotion(SithThing *self)
  {
      uint32_t required=SITH_PF_USETHRUST|SITH_PF_USEGRAVITY;
-@@ -134,7 +223,10 @@
+@@ -134,7 +223,10 @@ static void Bot_ExitWaterMove(SithThing *self)
      rdVector3 toward=Bot_Sub(dry->pos,self->position), aim=dry->pos;
      flex_t distance=Bot_Horizontal(toward);
      aim.z=self->position.z;
@@ -2344,7 +2362,7 @@
      if (self->sector==dry->sector && self->attach_flags && distance<0.14f && fabsf(toward.z)<0.15f) {
          nav.waterExitUntil=0;
          return;
-@@ -150,7 +242,7 @@
+@@ -150,7 +242,7 @@ static void Bot_ExitWaterMove(SithThing *self)
      }
      if (bot.now>=nav.waterExitUntil || !Bot_StockWaterMotion(self) || !Bot_SectorSafe(self->sector) ||
          (nav.waterExitPhase<2 && self->sector!=wet->sector)) {
@@ -2353,7 +2371,7 @@
          nav.waterExitUntil=0; bot.goal=-1; bot.routeCount=0; bot.nextPlan=0;
          return;
      }
-@@ -171,6 +263,14 @@
+@@ -171,6 +263,14 @@ static void Bot_ExitWaterMove(SithThing *self)
      }
      int surface=(self->physicsParams.flags&SITH_PF_ONWATERSURFACE)!=0;
      if (!nav.waterExitPhase) {
@@ -2368,7 +2386,7 @@
          if (!surface && Bot_NeedsAir(self) && self->position.z<nav.waterExitStart.z-0.075f) {
              rdVector3 above=nav.waterExitStart;
              above.z=self->position.z+0.8f;
-@@ -200,8 +300,7 @@
+@@ -200,8 +300,7 @@ static void Bot_ExitWaterMove(SithThing *self)
              else bot.keys[INPUT_FUNC_JUMP]=1;
          }
          if (!surface || self->position.z<nav.waterExitStart.z || error>0.025f ||
@@ -2378,7 +2396,7 @@
          if (self->physicsParams.flags&SITH_PF_CROUCHING) {
              /* A crouched water jump has only 70% of normal impulse. Clear
                 crouch through the usual dry controls before the bank run-up. */
-@@ -230,6 +329,182 @@
+@@ -230,6 +329,182 @@ static void Bot_ExitWaterMove(SithThing *self)
      }
  }
  
@@ -2561,7 +2579,7 @@
  static int Bot_LiftMove(SithThing *self, int from, int to)
  {
      int id=nav.liftForNode[to];
-@@ -239,30 +514,75 @@
+@@ -239,30 +514,75 @@ static int Bot_LiftMove(SithThing *self, int from, int to)
      if (!thing || thing->moveType!=SITH_MT_PATH || !thing->trackParams.aFrames || thing->trackParams.loadedFrames!=2) return 0;
      int riding=(self->attach_flags&(SITH_ATTACH_THING|SITH_ATTACH_THINGFACE)) && self->attachedThing==thing;
      int frame=(lift->node[1]==to || (nav.liftForNode[to]==0 && lift->node[1]==from)) ? 1 : 0;
@@ -2648,7 +2666,7 @@
      return 1;
  }
  
-@@ -280,7 +600,7 @@
+@@ -280,7 +600,7 @@ static int Bot_JoinMove(SithThing *self)
      BotTeamEntry *entry=&nav.entries[index];
      if (entry->team!=nav.requestedTeam || entry->node<0 || entry->node>=bot.nNodes) return 0;
      if (nav.crossingEntry && bot.now>=nav.crossingUntil) {
@@ -2657,7 +2675,7 @@
          nav.crossingEntry=0; nav.selectedEntry=-1; nav.waitUntil=0;
          bot.goal=-1; bot.nextPlan=0; return 0;
      }
-@@ -305,6 +625,52 @@
+@@ -305,6 +625,52 @@ static int Bot_JoinMove(SithThing *self)
      return 1;
  }
  
@@ -2710,7 +2728,7 @@
  static int Bot_StartForceJump(SithThing *self,BotNode *landing,flex_t flight,flex_t hold)
  {
      if (!Bot_RequestForce(self,SITHBIN_F_JUMP,hold,-1)) return 0;
-@@ -391,6 +757,45 @@
+@@ -391,6 +757,45 @@ static int Bot_ApproachShore(SithThing *self,const BotNode *bank)
      return 1;
  }
  
@@ -2756,7 +2774,7 @@
  static void Bot_Navigate(SithThing *self)
  {
      bot.followingRoute=1;
-@@ -400,7 +805,7 @@
+@@ -400,7 +805,7 @@ static void Bot_Navigate(SithThing *self)
              (self->sector->flags&SITH_SECTOR_UNDERWATER)) nav.combatJumpUntil=0;
          else {
              bot.axes[INPUT_FUNC_SLIDE]=bot.axes[INPUT_FUNC_FORWARD]=0;
@@ -2765,7 +2783,7 @@
              return; /* Keep actual gun aim available through the ballistic coast. */
          }
      }
-@@ -422,6 +827,7 @@
+@@ -422,6 +827,7 @@ static void Bot_Navigate(SithThing *self)
                 the stock script decides whether there is a takeoff. */
              if (bot.forceBin==SITHBIN_F_JUMP) bot.forceUntil=bot.now;
              nav.forceJumpPending=0; bot.goal=-1; bot.routeCount=0; bot.nextPlan=0;
@@ -2773,7 +2791,7 @@
              return;
          }
          if (!self->attach_flags && bot.now>=nav.forceChargeUntil) {
-@@ -431,11 +837,11 @@
+@@ -431,11 +837,11 @@ static void Bot_Navigate(SithThing *self)
              bot.axes[INPUT_FUNC_FORWARD]=bot.axes[INPUT_FUNC_SLIDE]=0;
              Bot_Aim(self,nav.jumpTarget,0); return;
          } else {
@@ -2787,7 +2805,7 @@
          else {
              bot.routeAim=1;
              Bot_Aim(self,nav.jumpTarget,0);
-@@ -479,7 +885,7 @@
+@@ -479,7 +885,7 @@ static void Bot_Navigate(SithThing *self)
          }
          bot.routePos++;
          if (bot.routePos>=bot.routeCount) {
@@ -2796,7 +2814,7 @@
              bot.goal=-1; bot.nextPlan=0; nav.liftWaitAt=0; return;
          }
          nodeIndex=bot.route[bot.routePos]; node=&bot.nodes[nodeIndex];
-@@ -487,6 +893,8 @@
+@@ -487,6 +893,8 @@ static void Bot_Navigate(SithThing *self)
      }
      int mode=BOT_ROUTE_WALK;
      int from=(bot.routePos>0) ? bot.route[bot.routePos-1] : Bot_Nearest(self);
@@ -2805,7 +2823,7 @@
      if (from>=0) for (int i=0;i<bot.nodes[from].nEdges;i++) {
          BotEdge *edge=&bot.nodes[from].edges[i];
          if (edge->to==nodeIndex) { mode=edge->drop; break; }
-@@ -509,10 +917,29 @@
+@@ -509,10 +917,29 @@ static void Bot_Navigate(SithThing *self)
          BotNode actual={.pos=self->position,.sector=self->sector}; int drop=0;
          if (Bot_Walkable(&actual,node,&drop) && !drop) mode=BOT_ROUTE_WALK;
      }
@@ -2835,7 +2853,7 @@
      Bot_Aim(self,aim,0);
      if (mode==BOT_ROUTE_WATER_EXIT && from>=0) {
          if (bot.forceBin>=0 || bot.forceAvoid || bot.forceCancel) return;
-@@ -521,9 +948,37 @@
+@@ -521,9 +948,37 @@ static void Bot_Navigate(SithThing *self)
              nav.waterExitFrom=from; nav.waterExitTo=nodeIndex;
              nav.waterExitPhase=0; nav.waterExitUntil=bot.now+4.0f;
              Bot_ExitWaterMove(self);
@@ -2874,7 +2892,7 @@
      if (Bot_EnterWater(self,node,mode,from)) return;
      if (mode==BOT_ROUTE_SWIM || mode==BOT_ROUTE_WATER_ENTRY || (self->sector->flags&SITH_SECTOR_UNDERWATER)) {
          /* Dijkstra omits the start anchor. At a portal the actual swimmer
-@@ -552,14 +1007,68 @@
+@@ -552,14 +1007,68 @@ static void Bot_Navigate(SithThing *self)
                  Bot_NavDirectMove(self,bot.nodes[from].pos,1);
                  return;
              }
@@ -2945,7 +2963,7 @@
      if (mode==BOT_ROUTE_FORCEJUMP && from>=0 && (self->attach_flags&(SITH_ATTACH_SURFACE|SITH_ATTACH_THINGFACE)) && bot.now>=bot.nextJump) {
          BotNode actual=*node; actual.pos=self->position; actual.sector=self->sector;
          flex_t duration, hold, horizontal=Bot_Horizontal(d);
-@@ -569,7 +1078,7 @@
+@@ -569,7 +1078,7 @@ static void Bot_Navigate(SithThing *self)
              bot.axes[INPUT_FUNC_FORWARD]=bot.axes[INPUT_FUNC_SLIDE]=0;
              nav.waitUntil=bot.now+0.3f;
              if (Bot_Horizontal(self->physicsParams.vel)>0.12f) return;
@@ -2954,7 +2972,7 @@
              return;
          }
          if (!bot.forceEnabled || sithInventory_GetInventory(self,SITHBIN_FORCEMANA)<20) {
-@@ -585,8 +1094,53 @@
+@@ -585,8 +1094,53 @@ static void Bot_Navigate(SithThing *self)
              Bot_Jumpable(&actual,node,&duration)) {
              bot.keys[INPUT_FUNC_JUMP]=1; bot.nextJump=bot.now+duration+0.5f;
              nav.jumpTarget=node->pos; nav.jumpStarted=bot.now; nav.jumpUntil=bot.now+duration+0.4f;
@@ -3008,6 +3026,8 @@
 +    }
      Bot_Move(self,d,mode==BOT_ROUTE_DROP && self->actorParams.health>=30);
  }
+diff --git a/src/AI/jkBotNavigation.inc b/src/AI/jkBotNavigation.inc
+index 6d823092..636c3e11 100644
 --- a/src/AI/jkBotNavigation.inc
 +++ b/src/AI/jkBotNavigation.inc
 @@ -7,7 +7,19 @@
@@ -3031,7 +3051,7 @@
  enum { BOT_OBJECTIVE_NONE, BOT_OBJECTIVE_JOIN, BOT_OBJECTIVE_CAPTURE,
         BOT_OBJECTIVE_RETURN, BOT_OBJECTIVE_RECOVER, BOT_OBJECTIVE_ESCORT,
         BOT_OBJECTIVE_DEFEND, BOT_OBJECTIVE_INTERCEPT, BOT_OBJECTIVE_AIR };
-@@ -33,8 +45,25 @@
+@@ -33,8 +45,25 @@ typedef struct BotDiveFailure {
  } BotDiveFailure;
  
  typedef struct BotPickupKind { int kind, bin, ammo; flex_t cap; } BotPickupKind;
@@ -3058,7 +3078,7 @@
  static struct {
      int ctf, flag[2], base[2], mark[2], requestedTeam;
      int objective, objectiveThing, objectiveTeam, objectiveValid;
-@@ -50,8 +79,20 @@
+@@ -50,8 +79,20 @@ static struct {
      unsigned char unavailable[BOT_NODES];
      flex_t waterSince, waitUntil, liftWaitAt, jumpUntil, jumpStarted, nextObjectiveLog;
      flex_t jumpVelocity, maxRunSpeed;
@@ -3079,7 +3099,7 @@
      int combatJumpAirborne;
      int hadBreathDebt, diveEscape, diveBank;
      flex_t diveBankUntil, diveOverflowUntil;
-@@ -63,14 +104,29 @@
+@@ -63,14 +104,29 @@ static struct {
          BotFailedApproach failed[BOT_FAILED_APPROACHES];
      } supplyApproach;
      int waterExitFrom, waterExitTo, waterExitPhase, seekingSurface;
@@ -3109,7 +3129,7 @@
  } nav;
  
  static int Bot_NameIs(const char *a, const char *b)
-@@ -149,11 +205,19 @@
+@@ -149,11 +205,19 @@ static SithThing *Bot_FlagCarrier(int team)
  static int Bot_ObjectiveCarrier(SithThing *thing)
  { return thing && nav.ctf && (Bot_FlagCarrier(1)==thing || Bot_FlagCarrier(2)==thing); }
  
@@ -3131,7 +3151,7 @@
  }
  
  static int Bot_ObjectiveUrgent(SithThing *self)
-@@ -165,7 +229,14 @@
+@@ -165,7 +229,14 @@ static int Bot_ObjectiveUrgent(SithThing *self)
  }
  
  static int Bot_NavigationWaiting(SithThing *self)
@@ -3147,7 +3167,7 @@
  
  static const char *Bot_ItemName(SithThing *item)
  {
-@@ -261,10 +332,26 @@
+@@ -261,10 +332,26 @@ static int Bot_PickupContactAt(SithThing *self,SithThing *item,rdVector3 probe,
  {
      probe.z+=BOT_FOOT_HEIGHT+0.02f;
      SithSector *sector=Bot_SectorAt(&probe,item->sector);
@@ -3174,7 +3194,7 @@
          if (Bot_SectorAt(&pos,sector)!=sector) return 0;
      } else if (!Bot_Floor(probe,sector,0.45f,&pos,&sector)) return 0;
      if (sector==covered || !sithIntersect_IsSphereInSector(&pos,self->moveSize,sector) ||
-@@ -356,11 +443,42 @@
+@@ -356,11 +443,42 @@ static int Bot_LivePack(const SithThing *item)
             !(item->flags&(SITH_TF_DISABLED|SITH_TF_DESTROYED|SITH_TF_DEAD));
  }
  
@@ -3218,7 +3238,7 @@
          !(self->moveSize>0 && pack->collideSize>0)) return 0;
      flex_t reach=self->moveSize+pack->collideSize;
      if (!(reach<=0.5f)) return 0;
-@@ -740,10 +858,23 @@
+@@ -740,10 +858,23 @@ static int Bot_FullForceJump(BotNode *a,BotNode *b,flex_t charge,flex_t *seconds
      rdVector3 delta=Bot_Sub(b->pos,a->pos);
      flex_t length=Bot_Horizontal(delta);
      const int unsafe=SITH_SECTOR_UNDERWATER|SITH_SECTOR_USETHRUST|SITH_SECTOR_NOGRAVITY;
@@ -3243,7 +3263,7 @@
      if (!(dt>0 && dt<=0.067f && control<=0.10f)) return 0;
      rdVector3 pos=a->pos, swept=pos;
      SithSector *sector=a->sector;
-@@ -789,6 +920,18 @@
+@@ -789,6 +920,18 @@ static int Bot_ForceJumpProfile(BotNode *a, BotNode *b, int rank, flex_t *durati
         Prefer the small jump; taller verified routes need a stronger rank
         and a longer ordinary key hold. Avoid the <.15 tap-to-maximum rule. */
      if (rank<1 || rank>4) return 0;
@@ -3262,7 +3282,7 @@
      flex_t highDuration;
      if (Bot_ArcClear(a,b,2.75f,0.95f,0.65f,1,duration) &&
          Bot_ArcClear(a,b,2.85f,0.95f,0.65f,1,&highDuration)) {
-@@ -841,6 +984,7 @@
+@@ -841,6 +984,7 @@ static int Bot_WaterEntry(const BotNode *a, const BotNode *b)
  
  #include "AI/jkBotWaterExit.inc"
  
@@ -3270,7 +3290,7 @@
  static int Bot_EdgeMode(int from, int to)
  {
      BotNode *a=&bot.nodes[from], *b=&bot.nodes[to];
-@@ -879,6 +1023,17 @@
+@@ -879,6 +1023,17 @@ static int Bot_EdgeMode(int from, int to)
          if (nav.liftForNode[from] && nav.liftForNode[from]==nav.liftForNode[to]) return BOT_ROUTE_LIFT;
          if (length<0.6f && fabsf(delta.z)<0.10f && Bot_Clear(NULL,a->sector,a->pos,b->pos,0.045f,1))
              return BOT_ROUTE_LIFT;
@@ -3288,7 +3308,7 @@
          return -1;
      }
      int drop=0;
-@@ -889,16 +1044,21 @@
+@@ -889,16 +1044,21 @@ static int Bot_EdgeMode(int from, int to)
      return -1;
  }
  
@@ -3312,7 +3332,7 @@
      bot.graphEdges++;
  }
  
-@@ -906,6 +1066,7 @@
+@@ -906,6 +1066,7 @@ static void Bot_NavCoverage(SithThing *self);
  
  static void Bot_BuildGraphStep(void)
  {
@@ -3320,7 +3340,7 @@
      /* Work is split across ticks so a large stock map continues networking.
         Reserve candidate/edge space for other sectors: dense floor samples in
         one room must not crowd out its portal connections. */
-@@ -930,8 +1091,8 @@
+@@ -930,8 +1091,8 @@ static void Bot_BuildGraphStep(void)
                  candidates[k]=j; distances[k]=distance; break;
              }
          }
@@ -3331,7 +3351,7 @@
                  int j=candidates[rank+group*BOT_CANDIDATES/2];
                  if (j<0) continue;
                  int mode=Bot_EdgeMode(i,j);
-@@ -939,6 +1100,7 @@
+@@ -939,6 +1100,7 @@ static void Bot_BuildGraphStep(void)
              }
          }
      }
@@ -3339,7 +3359,7 @@
      if (!bot.graphDone && bot.buildNode==bot.nNodes) {
          bot.graphDone=1;
          fprintf(stderr,"BOT_NAV_READY nodes=%d directed_edges=%d name=%s map=%s item_nodes=%d missing_item_nodes=%d truncated=%d\n",
-@@ -985,12 +1147,68 @@
+@@ -985,12 +1147,68 @@ static flex_t Bot_PackUtility(SithThing *self,SithThing *pack,int *restocksOwned
              best=Bot_Max(best,usable*(have<guns[i].cap*0.15f ? 5.0f : 1.0f));
          }
      }
@@ -3408,7 +3428,7 @@
  static flex_t Bot_ItemValue(SithThing *self, int itemIndex)
  {
      if (itemIndex<0 || itemIndex>=Bot_ThingCount()) return 0;
-@@ -1015,28 +1233,30 @@
+@@ -1015,28 +1233,30 @@ static flex_t Bot_ItemValue(SithThing *self, int itemIndex)
      flex_t quantity=pickup.bin ? sithInventory_GetInventory(self,pickup.bin) : 0;
      switch (pickup.kind) {
          case BOT_ITEM_WEAPON:
@@ -3454,7 +3474,7 @@
              break;
          case BOT_ITEM_HEALTH:
              if (self->actorParams.health<100) value=self->actorParams.health<40 ? 16.0f : 5.0f;
-@@ -1128,6 +1348,14 @@
+@@ -1128,6 +1348,14 @@ static int Bot_WetDestination(const BotNode *node)
      return (sector->flags&SITH_SECTOR_UNDERWATER)!=0;
  }
  
@@ -3469,7 +3489,7 @@
  static int Bot_UsesAmmo(SithThing *self,int bin)
  {
      if (bin==SITHBIN_ENERGY) return sithInventory_GetInventory(self,SITHBIN_BRYARPISTOL)>0 ||
-@@ -1166,9 +1394,13 @@
+@@ -1166,9 +1394,13 @@ static int Bot_NearestApproach(SithThing *self,int defer)
  {
      int best=-1;
      flex_t distance=1e20f;
@@ -3484,7 +3504,7 @@
          if (pass && defer && (n->sector->flags&SITH_SECTOR_UNDERWATER) &&
              Bot_ApproachDeferred(Bot_ApproachBank(self),n->sector)) continue;
          flex_t d=Bot_Distance(n->pos,self->position);
-@@ -1282,9 +1514,27 @@
+@@ -1282,9 +1514,27 @@ static void Bot_SearchPaths(SithThing *self,int start,flex_t *distance,int *pare
              if (defer && e->drop==BOT_ROUTE_WATER_ENTRY && Bot_ApproachDeferred(n->sector,bot.nodes[e->to].sector)) continue;
              if (e->drop==BOT_ROUTE_DROP && self->actorParams.health<30) continue;
              if (e->drop==BOT_ROUTE_FORCEJUMP && !forceJump) continue;
@@ -3512,7 +3532,7 @@
              if (d<distance[e->to]) {
                  distance[e->to]=d; parent[e->to]=v;
                  if (positions[e->to]<0) { positions[e->to]=count; heap[count++]=e->to; }
-@@ -1388,7 +1638,7 @@
+@@ -1388,7 +1638,7 @@ static int Bot_ObjectiveNode(SithThing *self, const flex_t *distance)
  static int Bot_ElitePursuit(SithThing *self,int start,const flex_t *distance,int *slot)
  {
      if (!bot.elite || nav.objective!=BOT_OBJECTIVE_NONE || self->actorParams.health<40 ||
@@ -3521,7 +3541,7 @@
      int best=-1;
      flex_t lowest=1e20f;
      for (unsigned i=0;i<jkPlayer_maxPlayers && i<JKPLAYER_NUM_INFOS;i++) {
-@@ -1401,6 +1651,7 @@
+@@ -1401,6 +1651,7 @@ static int Bot_ElitePursuit(SithThing *self,int start,const flex_t *distance,int
                  nav.liftForNode[j] || distance[j]>=1e19f) continue;
              flex_t remaining=Bot_Distance(n->pos,t->position);
              flex_t cost=distance[j]+remaining*2.0f;
@@ -3529,7 +3549,7 @@
              if (companion.policy.net && companion.policy.net==jkPlayer_playerInfos[i].playerNetId &&
                  companion.policy.guid==t->guid && companion.policy.signature==t->signature) cost*=0.60f;
              if (cost<lowest) { lowest=cost; best=j; *slot=(int)i; }
-@@ -1465,11 +1716,13 @@
+@@ -1465,11 +1716,13 @@ static void Bot_Plan(SithThing *self)
      /* Keep an unreached goal even after it becomes the nearest start node. */
      if (goal<0 && pursuit<0 && !oldPursuit && bot.goal>=0 && bot.goal<bot.nNodes) {
          BotNode *prior=&bot.nodes[bot.goal];
@@ -3547,7 +3567,7 @@
              goal=bot.goal; chosen=paths;
          }
      }
-@@ -1479,7 +1732,7 @@
+@@ -1479,7 +1732,7 @@ static void Bot_Plan(SithThing *self)
          flex_t best=-1e20f,backupScore=-1e20f;
          int backup=-1;
          if (pursuit>=0) {
@@ -3556,7 +3576,7 @@
          }
          for (int i=0;i<bot.nNodes;i++) {
              BotNode *n=&bot.nodes[i];
-@@ -1487,7 +1740,8 @@
+@@ -1487,7 +1740,8 @@ static void Bot_Plan(SithThing *self)
                  (Bot_Distance(self->position,n->pos)<0.20f &&
                   (!Bot_PickupNeedsContact(self,n) || Bot_ItemValue(self,n->item)<=0.05f))) continue;
              flex_t unseen=Bot_Clamp((bot.now-n->visited)/30.0f,0.0f,1.0f);
@@ -3566,7 +3586,7 @@
              const BotGoalPaths *paths=safe!=&all && Bot_OptionalPatrolNode(self,n,pickup) ? safe : &all;
              if (paths->distance[i]>=1e19f) {
                  /* If this crossing is the only way to move, keep a dry
-@@ -1504,7 +1758,7 @@
+@@ -1504,7 +1758,7 @@ static void Bot_Plan(SithThing *self)
                  flex_t separation=Bot_Distance(n->pos,companion.pursuitAt);
                  value+=(4.0f+3.0f*companion.policy.risk)/(0.5f+separation);
              }
@@ -3575,6 +3595,9 @@
              flex_t score=value/(0.8f+paths->distance[i]*travelCost);
              if (score>best) { best=score; goal=i; chosen=paths; }
          }
+diff --git a/src/AI/jkBotOrdnance.inc b/src/AI/jkBotOrdnance.inc
+new file mode 100644
+index 00000000..4e46fb8a
 --- /dev/null
 +++ b/src/AI/jkBotOrdnance.inc
 @@ -0,0 +1,368 @@
@@ -3946,6 +3969,9 @@
 +        nav.waterExitUntil<=0 && nav.combatJumpUntil<=bot.now) Bot_EscapeHazard(self);
 +    Bot_MineTick(self,target);
 +}
+diff --git a/src/AI/jkBotRunJump.inc b/src/AI/jkBotRunJump.inc
+new file mode 100644
+index 00000000..42b456c9
 --- /dev/null
 +++ b/src/AI/jkBotRunJump.inc
 @@ -0,0 +1,735 @@
@@ -4684,6 +4710,9 @@
 +    if (Bot_Horizontal(toNode)>0.03f) Bot_Move(self,toNode,0);
 +    return 1;
 +}
+diff --git a/src/AI/jkBotTactics.inc b/src/AI/jkBotTactics.inc
+new file mode 100644
+index 00000000..77d40b07
 --- /dev/null
 +++ b/src/AI/jkBotTactics.inc
 @@ -0,0 +1,349 @@
@@ -5036,6 +5065,9 @@
 +    Bot_TacticsApply(values,"companion");
 +    return 0;
 +}
+diff --git a/src/AI/jkBotTraps.inc b/src/AI/jkBotTraps.inc
+new file mode 100644
+index 00000000..500c84ee
 --- /dev/null
 +++ b/src/AI/jkBotTraps.inc
 @@ -0,0 +1,1000 @@
@@ -6039,9 +6071,11 @@
 +    bot.nextPlan=bot.now+0.5f;
 +    Bot_Navigate(self);
 +}
+diff --git a/src/Devices/sithControl.c b/src/Devices/sithControl.c
+index e8495c7e..03021c76 100644
 --- a/src/Devices/sithControl.c
 +++ b/src/Devices/sithControl.c
-@@ -1099,8 +1099,8 @@
+@@ -1183,8 +1183,8 @@ static flex_t sithControl_GetMouseLook(int axisId)
  
  flex_t sithControl_GetAxis(int axisId)
  {
@@ -6052,9 +6086,11 @@
      stdControlKeyInfoEntry *v1; // edi
      stdControlKeyInfoEntry *v2; // esi
      uint32_t v3; // ebp
+diff --git a/src/Gui/jkGUIMultiplayer.c b/src/Gui/jkGUIMultiplayer.c
+index ec74af78..791cd6be 100644
 --- a/src/Gui/jkGUIMultiplayer.c
 +++ b/src/Gui/jkGUIMultiplayer.c
-@@ -262,14 +262,25 @@
+@@ -262,14 +262,25 @@ int jkGuiMultiplayer_WebBotStartup(void)
          if (!jkGuiMultiplayer_WebCharacter(name,model,sound,rank)) {
              fprintf(stderr,"BOT_JOIN_REJECTED cannot prepare host's ordinary MPC\n"); return -1;
          }

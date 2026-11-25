@@ -107,6 +107,22 @@
     }
   }
 
+  // The engine's network log (Module.jkNet.log, the stock page's ?netlog):
+  // with ?netlog every line goes to the console as "netlog <line>", otherwise
+  // only the spectator feed's ("feed: ..."), so a headless run's console log
+  // shows whether the host sends its keyframes.
+  const netlogAll = /(?:^|[?&])netlog(?:[=&]|$)/.test(location.search || "");
+  function watchNetlog() {
+    const net = mod && mod.jkNet;
+    if (!net || typeof net.note !== "function" || net.__adjoinNote) return;
+    const note = net.note;
+    const show = text => { if (netlogAll || String(text).startsWith("feed:")) console.log("netlog "+text); };
+    for (const line of net.log || []) show(String(line).replace(/^\S+ /, ""));
+    net.note = function(text) { note.call(this, text); show(text); };
+    net.__adjoinNote = true;
+  }
+  if (typeof setInterval === "function") setInterval(watchNetlog, 500);
+
   async function start(auth) {
     if (token) throw new Error("An engine has already started on this page.");
     token = auth;

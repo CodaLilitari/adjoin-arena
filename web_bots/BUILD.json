@@ -1,7 +1,7 @@
 {
   "repository": "https://github.com/tristamus/OpenJKDF2",
   "branch": "web-mp",
-  "base_commit": "7a6f95c9a3399e59acbf019dc6b25f9981d29dff",
+  "base_commit": "6f6d376063954f86b8d01561aad03c26fec2e4ed",
   "emscripten": "6.0.12",
   "netcode": 2,
   "game": "JKDF2",
@@ -40,46 +40,48 @@
     "src/AI/jkBotTraps.inc": "9772e4cea3664af17767d27dfbf7ddb9e027858308234e4e44ce7a5f62ba8d01",
     "src/AI/jkBotWaterExit.inc": "2d1b36d679222c48936b8d4e920991da87fda6e536010e783ea54232dc241383",
     "src/Cog/sithCog.c": "1b6e11427af188d95868b2d652b14478d9859b74f58f2148ff95537b34343c21",
-    "src/Devices/sithControl.c": "10a836472122e5ea159c5894076cc40ac5bedc51e92ab25099355610a611652a",
-    "src/Devices/sithSoundMixer.c": "8f2d16952f4a8f77b7459ee84f182a88fba75644d27499aa30f7a096ce8aff25",
-    "src/Devices/sithSoundMixer.h": "932ae40638ffa450fe1d154118d7fc6e7813d6229a523abe3eac277958527ef9",
-    "src/Dss/jkDSS.c": "2a06406afe669368fa1f31e433947bd522fe4093966dd4028e89b6c05b4d1b09",
-    "src/Dss/sithMulti.c": "3e2129e114072fcbe4915ed66b54ad158de3a1ae0287776eff691cbd9bc6d678",
+    "src/Devices/sithControl.c": "dd2c451f7875ec2bf15c98d3756c8c3a4cb3dade87c9afac75fa8a0261b54d0f",
+    "src/Devices/sithSoundMixer.c": "6ee484cbb9a40fd99ea67e4eefe264ca52427d15d6e87e80d552778e0cd29d6e",
+    "src/Devices/sithSoundMixer.h": "41d8d29cc9a77d5cd1e55ec2219f31900a43af3fed8999f9d4808846a288b43d",
+    "src/Dss/jkDSS.c": "4247d3b91168bd08b6d7c5900acbd3a933194568dc37877b4a2ec4990bb135c1",
+    "src/Dss/sithMulti.c": "fb1199f4aee2dbd6c46a5f8849b177052fa759fb61e356ae5f741a5594b2db75",
     "src/Gui/jkGUIMultiplayer.c": "bef93eca86f99c7c8056b0624fb78f67ebc0aa806096e7c5da72fe6ba3d8db30",
     "src/Gui/jkGUIMultiplayer.h": "504d0390e4d6f4fa31f42230ce273fa3125d24d42053feec9d85cc601a0d4287",
     "src/Main/Main.c": "5bcfdaa2a985f542310b675929dda6f00b0b7bbe9c783bb0fada6ad2677ac4f7",
-    "src/Platform/Networking/WSRelay/stdComm_WSRelay.c": "b424a5bd1bafdf3652e70b09d6862910a5f731514249d9246b034423788c857f",
-    "src/Platform/Networking/WSRelay/stdComm_WSRelay.h": "68463b37704c19575a549f547356bf8a5727d706f408a495e0336adb5da7f2ca",
-    "src/Win95/stdSound.c": "8d9415e5e8e2bd25d39851183731deaa910af79c1e72e11d5e18fbc87305e321",
-    "src/World/sithItem.c": "ee735511a0a1dd4ed66e41ee3a3a332411784581f39dc9656c31985d5ea6e4e9",
+    "src/Platform/Networking/WSRelay/stdComm_WSRelay.c": "dfc0ef12f837f8918bb1949798b4a7c867ea05fe7c3d5e8f9c80802c6e963bb0",
+    "src/Platform/Networking/WSRelay/stdComm_WSRelay.h": "7afad29e84933482f6a1867628129ccdc23393e7fe92b5e7628fadd49ff2c12b",
+    "src/Win95/stdSound.c": "556fe283fdf24b7c28608b8a39db7fa8c27927eece1092328e654158b1519c0a",
+    "src/World/sithItem.c": "b3b4119b5e59ff794984ebb5f3bb57aa5cdb9d20878c7ce49aa2e7db09148b7b",
     "src/World/sithSoundClass.c": "fd8d86375f1409a59837beddc34d1e67c4b6330f0e7dae3447e3ec6746607aa0",
-    "src/World/sithThing.c": "c349b7847ef6c8d640bbf280e3091ea300099f850d8eec1ef903b0b461b4cc49",
-    "src/World/sithWeapon.c": "df37aecc57fe81d3df45eaf45f032220e602f9b970a2442087cbd874c20ec63b"
+    "src/World/sithThing.c": "0b966cc2fbbdb765a4c806a4555beba09acf0fd3cf7d703849af996e3d129bcb",
+    "src/World/sithWeapon.c": "fb2b4244a3ddb023a059d5c21838abcadfa4f52807cdb868d45bcda7ab22fb48"
   },
   "files": {
     "bin/bots-jkweb/openjkdf2.js": {
-      "sha256": "23b7401e4719bd232857995c742576821033dc62b902f3b4a73e48438b6decf8",
-      "bytes": 563119
+      "sha256": "538ffa62b66aa5912c3bf4766ab7134418ec697908be78565a8d6b4dad30cfc1",
+      "bytes": 573194
     },
     "bin/bots-jkweb/openjkdf2.wasm": {
-      "sha256": "e2aef2a15f69a1fd57b306f2d92bcc27b688e48a9344e4e9a0baad049ef021dd",
-      "bytes": 3998551
+      "sha256": "614c44494af3a044c2bb3ec31fd5d52c1d13a5d45bc74d5bd807fef7544bc675",
+      "bytes": 4059461
     },
     "web_bots/engine.patch": {
-      "sha256": "fffac050ec822d871dab29a0f38dbe4df7228c94f593c24996a0ced0091f7c0d",
-      "bytes": 330015
+      "sha256": "76804bec9637d46940fc7098a6f6a9ef512d746303018b7238667dbdecf3f088",
+      "bytes": 330425
     },
     "web_bots/external-room.patch": {
-      "sha256": "f1d7dd4ab48347bca03806a4b4b4c580da8493f792d39ac054502501cf040d57",
-      "bytes": 8289
+      "sha256": "f6ba03db229cb11d43ac45552cb03fb968ad0cefca819213f9b276969603b861",
+      "bytes": 9103
     },
     "web_bots/bot-tactics-web.patch": {
-      "sha256": "8f456777d35f86b550afba22d8a807fafbb8ec911e5ef87223649242e644cd76",
-      "bytes": 334824
+      "sha256": "f73290c9d1187b1fe183b6583a5d02330c157c69d8c632ab5a5b74da1a796f22",
+      "bytes": 343072
     },
     "web_bots/engine-relink.tar.gz": {
       "sha256": "50bc410ea8378bf087a505cd98c9da17bb711b18b3d8b5ebfdcb4458203bf864",
       "bytes": 294852
     }
-  }
+  },
+  "spectator_feed": "upstream web-mp feed (stdComm_WSRelay feedKeyBegin, sithMulti_FeedKeyframe): keyframe on feed open, new level, every 60 s, and on 'key'",
+  "relink_note": "engine-relink.tar.gz still holds the 7a6f95c-based relink inputs; regenerate with web_bots/package_engine.py before a release"
 }

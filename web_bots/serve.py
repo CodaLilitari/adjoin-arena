@@ -233,12 +233,22 @@ class Host:
             raise web.HTTPNotFound()
         return web.FileResponse(HERE/"index.html",headers={"Content-Security-Policy":
             "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'unsafe-inline'; "
-            "worker-src 'self' blob:; connect-src 'self' ws://127.0.0.1:"+str(self.port)+(" "+self.outside_relay if self.outside_relay else "")+"; frame-ancestors 'none'; base-uri 'none'"})
+            "worker-src 'self' blob:; connect-src 'self' ws://127.0.0.1:"+str(self.port)+(" "+self.outside_relay+" "+self.outside_feed if self.outside_relay else "")+"; frame-ancestors 'none'; base-uri 'none'"})
 
     @property
     def outside_relay(self):
         room = self.external or self.hosted
         return room.relay if room else None
+
+    @property
+    def outside_feed(self):
+        """The lobby's spectator feed beside its relay (wss://<host>/feed/<room>),
+        where a JKWeb host sends what it sends everyone plus keyframes."""
+        relay = self.outside_relay
+        if not relay:
+            return None
+        cut = relay.rfind("/relay")
+        return (relay[:cut] if cut >= 0 else relay.rstrip("/")) + "/feed/"
 
     async def javascript(self, request):
         return web.FileResponse(HERE/"client.js",headers={"Content-Type":"text/javascript"})
