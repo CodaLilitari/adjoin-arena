@@ -266,7 +266,9 @@ class HubTests(unittest.TestCase):
         gaps = [later[0] - earlier[0] for earlier, later in zip(applied, applied[1:])]
         self.assertTrue(all(gap >= 30 for gap in gaps), gaps)
         self.assertLess(len(applied), (self.now - started) / 30)
-        stored = json.loads(memory.read_text())["fixture"]
+        record = json.loads(memory.read_text())["fixture"]
+        self.assertEqual(record["build"], coach.UNRECORDED)  # PR4: records carry the engine build
+        stored = record["arms"]
         self.assertGreater(stored["hunter"]["plays"], stored["default"]["plays"])
         self.assertIsNone(self.hub.bots["kyle"].lease, "the session releases the bot")
         resumed = coach.Bandit(["default", "hunter"], record=coach.load_memory(memory, "fixture"))

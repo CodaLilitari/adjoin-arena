@@ -10,8 +10,9 @@ show a result. The engine enforces its own shorter commitment window as well.
 
 Results persist in a memory file under a label of your choosing (a map, an
 opponent, a rule set), so a later session resumes from what earlier ones
-learned. This is a starting point for a smarter coach, and has not yet been
-through a live match.
+learned. Each record carries the engine build it was learned on (--engine or
+--build-id); a different build starts a fresh record instead of mixing. For a
+seat a person or agent can take over, see bots.coach_seat.
 
     python -m bots.coach --credentials RUN/companion/BOT.json \\
         --memory runtime/coach.json --label oasis-ff-guns
@@ -93,6 +94,11 @@ class Coach:
             return None
         reward = max(-4.0, min(4.0, (kills - deaths) * 60.0 / elapsed))
         self.bandit.record(self.current, reward)
+        # Close the graded window at once. Until the next preset is
+        # acknowledged the current one keeps playing in a fresh window, so a
+        # refused, rate-limited or lost command cannot have the same window
+        # graded again on every poll (PR4 fix, Wren).
+        self.kills, self.deaths, self.since = state["kills"], state["deaths"], now
         chosen = self.bandit.choose()
         if chosen == self.current:
             self.begin(chosen, state, now)  # same plan, new spell: nothing to send
@@ -100,27 +106,62 @@ class Coach:
         return chosen
 
 
-def load_memory(path: Path | None, label: str) -> dict:
+UNRECORDED = "unrecorded"
+
+
+def build_id(path: Path | None) -> str:
+    """Short, stable identity of the engine build a record was learned on.
+
+    Pass the engine file the bot actually runs (bin/bots-jkweb/openjkdf2.wasm
+    for JKWeb seats, the jk-bot-client binary for native ones)."""
+    if path is None:
+        return UNRECORDED
+    import hashlib
+    return "sha256:" + hashlib.sha256(Path(path).read_bytes()).hexdigest()[:16]
+
+
+def _entry(stored, label):
+    row = stored.get(label) if type(stored) is dict else None
+    if type(row) is not dict:
+        return None, {}
+    if type(row.get("arms")) is dict:  # PR4 format: {"build": ..., "arms": {...}}
+        return row.get("build") if type(row.get("build")) is str else UNRECORDED, row["arms"]
+    return UNRECORDED, row  # PR3 format: the arms themselves, build unknown
+
+
+def load_memory(path: Path | None, label: str, build: str | None = None) -> dict:
+    """Return the arms learned under `label` on the same build.
+
+    Results from another build (or from a file that never recorded one, when
+    a build is given) are not mixed in: the coach starts fresh and the old
+    record is kept under "label@build" by save_memory."""
     if path is None or not path.is_file():
         return {}
     stored = json.loads(path.read_text(encoding="utf-8"))
-    return stored.get(label, {}) if type(stored) is dict else {}
+    recorded, arms = _entry(stored, label)
+    if build is not None and recorded is not None and recorded != build:
+        return {}
+    return arms
 
 
-def save_memory(path: Path | None, label: str, record: dict) -> None:
+def save_memory(path: Path | None, label: str, record: dict, build: str | None = None) -> None:
     if path is None:
         return
     stored = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
     if type(stored) is not dict:
         stored = {}
-    stored[label] = record
+    build = build or UNRECORDED
+    recorded, arms = _entry(stored, label)
+    if recorded is not None and recorded != build and arms:
+        stored.setdefault(f"{label}@{recorded}", {"build": recorded, "arms": arms})
+    stored[label] = {"build": build, "arms": record}
     temporary = path.with_name(path.name + ".tmp")
     temporary.write_text(json.dumps(stored, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     temporary.replace(path)
 
 
 def session(cred, coach: Coach, *, memory=None, label="default", seconds=0.0, poll=5.0,
-            clock=time.monotonic, sleep=time.sleep, request=call, log=print) -> None:
+            clock=time.monotonic, sleep=time.sleep, request=call, log=print, build=None) -> None:
     """Coach until interrupted or `seconds` pass, then release the bot.
 
     The hub drops a controller's lease whenever the bot dies or the map
@@ -151,7 +192,7 @@ def session(cred, coach: Coach, *, memory=None, label="default", seconds=0.0, po
                     before = dict(coach.bandit.plays)
                     preset = coach.step(observed["state"], now)
                     if coach.bandit.plays != before:
-                        save_memory(memory, label, coach.bandit.export())
+                        save_memory(memory, label, coach.bandit.export(), build)
                     if preset:
                         key = secrets.token_hex(12)
                         request(cred, "tactics", dict(lease, request_id=key, preset=preset))
@@ -179,14 +220,19 @@ def main(argv=None) -> int:
     parser.add_argument("--memory", type=Path, help="JSON file that keeps results between sessions.")
     parser.add_argument("--label", default="default", help="Which record in the memory file to use.")
     parser.add_argument("--seconds", type=float, default=0.0, help="Stop after this long; 0 runs until interrupted.")
+    parser.add_argument("--engine", type=Path,
+                        help="Engine file the bot runs; its hash is stored with the memory so builds are not mixed.")
+    parser.add_argument("--build-id", help="Explicit build identity instead of --engine.")
     args = parser.parse_args(argv)
     try:
         arms = [name for name in args.presets.split(",") if name]
         unknown = [name for name in arms if name not in tactics.PRESETS]
         if unknown:
             raise ValueError("Unknown presets: " + ", ".join(unknown))
-        coach = Coach(Bandit(arms, record=load_memory(args.memory, args.label)), args.dwell_seconds)
-        session(load_private(args.credentials), coach, memory=args.memory, label=args.label, seconds=args.seconds)
+        build = args.build_id or build_id(args.engine)
+        coach = Coach(Bandit(arms, record=load_memory(args.memory, args.label, build)), args.dwell_seconds)
+        session(load_private(args.credentials), coach, memory=args.memory, label=args.label, seconds=args.seconds,
+                build=build)
         return 0
     except KeyboardInterrupt:
         return 0
