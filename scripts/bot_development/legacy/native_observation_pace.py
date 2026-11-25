@@ -45,9 +45,13 @@ def resolve_build(repo, directory, hashes, digest):
 
 
 class NativePace:
-    def __init__(self, trace, experiment):
+    def __init__(self, trace, experiment, *, ungated=False):
         self.trace = trace
         self.experiment = experiment
+        self.ungated = ungated
+        self.roster_ns = None
+        self.recent_wall_ns = {}
+        self.settled_since_ns = {}
         self.acks = 0
         self.released = set()
         self.first = {}
@@ -73,6 +77,11 @@ class NativePace:
                 or row["step_ms"] != 34):
             raise ValueError("native_pace_identity_rate_or_step_mismatch")
         self.trace.write(json.dumps(row, separators=(",", ":")) + "\n")
+        if self.ungated:
+            last_wall = self.recent_wall_ns.get(role)
+            if last_wall is None or row["mono_ns"] - last_wall > 1.45 * 170e6 / row["rate"]:
+                self.settled_since_ns[role] = row["mono_ns"]
+            self.recent_wall_ns[role] = row["mono_ns"]
         if self.start is None or row["mono_ns"] < self.start:
             return
         if row["applied_ms"] != row["step_ms"]:
@@ -89,7 +98,16 @@ class NativePace:
             self.last.setdefault(role, row)
 
     def poll(self, now_ns):
-        if self.start is None and self.acks >= 2 and self.released == {"dark", "light"}:
+        if self.ungated and self.roster_ns is None:
+            self.roster_ns = self.experiment["roster_observed_monotonic_ns"] = now_ns
+        if self.ungated:
+            # Only the stopwatch waits. All native actions and ownership markers are logged from join.
+            settled = len(self.recent_wall_ns) == len(ROLES) and all(
+                self.recent_wall_ns[r] - max(self.roster_ns, self.settled_since_ns[r]) >= 1_000_000_000
+                and now_ns - self.recent_wall_ns[r] < 1.45 * 170e6 / self.experiment["speed"] for r in ROLES)
+        else:
+            settled = self.acks >= 2 and self.released == {"dark", "light"}
+        if self.start is None and settled:
             self.start = self.experiment["start_monotonic_ns"] = now_ns
         return len(self.last) == len(ROLES)
 

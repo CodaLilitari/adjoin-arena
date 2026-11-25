@@ -1,0 +1,131 @@
+--- a/src/AI/jkBotNavigation.inc
++++ b/src/AI/jkBotNavigation.inc
+@@ -1476,6 +1476,8 @@
+     } else Bot_ObjectiveSet(BOT_OBJECTIVE_CAPTURE,enemy,enemy->position,enemy->sector);
+ }
+ 
++#include "red_transfer.inc"
++
+ static void Bot_HeapUp(int *heap, int *positions, flex_t *distance, int at)
+ {
+     int node=heap[at];
+@@ -1516,7 +1518,7 @@
+             if (e->drop==BOT_ROUTE_FORCEJUMP && !forceJump) continue;
+             if (e->drop==BOT_ROUTE_RUNJUMP && !Bot_RunJumpUsable(self,v,e->to)) continue;
+             if ((e->drop==BOT_ROUTE_FORCEJUMP || e->drop==BOT_ROUTE_JUMP) && Bot_JumpFailed(v,e->to)) continue;
+-            flex_t d=distance[v]+e->cost;
++            flex_t d=distance[v]+e->cost+Transfer_Cost(v,e->to,e->drop);
+             if (e->drop==BOT_ROUTE_GATE) {
+                 flex_t gate=Bot_GateCost(v,e->to);
+                 if (gate<0) continue;
+@@ -1676,6 +1678,7 @@
+ 
+ static int Bot_SetRoute(int start,int goal,const int *parent)
+ {
++    transfer.routeStart=start;
+     if (goal!=bot.goal) bot.goalSetAt=bot.now;
+     bot.goal=goal; bot.routeCount=bot.routePos=0;
+     if (goal<0) return 0;
+--- a/src/AI/jkBotNavigate.inc
++++ b/src/AI/jkBotNavigate.inc
+@@ -796,6 +796,35 @@
+     return 0;
+ }
+ 
++/* Without a reachable graph leg, move on Red's collision-checked floor.
++ * Objective headings are retained, including the stock CTF lobby objective. */
++static int Transfer_Explore(SithThing *self)
++{
++    if (!transfer.initialized || !transfer.map[0] || bot.nextRecovery>0 || nav.seekingSurface ||
++        !(self->attach_flags & (SITH_ATTACH_SURFACE|SITH_ATTACH_THINGFACE)) ||
++        self->sector->flags&SITH_SECTOR_UNDERWATER || Bot_NavigationWaiting(self)) return 0;
++    rdVector3 desired=self->orient.lvec;
++    if (nav.objectiveValid) desired=Bot_Sub(nav.objectivePos,self->position);
++    else if (nav.ctf || nav.objective==BOT_OBJECTIVE_AIR) return 0;
++    if (Bot_Horizontal(desired)<0.12f) return 0;
++    static const flex_t angles[]={0,0.45f,-0.45f,0.95f,-0.95f};
++    for (int i=0;i<5;++i) {
++        flex_t a=angles[i]; rdVector3 blocked;
++        rdVector3 dir={desired.x*cosf(a)-desired.y*sinf(a),desired.x*sinf(a)+desired.y*cosf(a),0};
++        if (!Bot_SafeDirection(self,dir,0,0.30f,&blocked)) continue;
++        rdVector3 aim={self->position.x+dir.x,self->position.y+dir.y,self->position.z};
++        Bot_Aim(self,aim,0); Bot_Move(self,dir,0);
++        if (transfer.trace && bot.now>=transfer.nextExploreLog) {
++            transfer.nextExploreLog=bot.now+1;
++            fprintf(stderr,"BOT_NAV_FALLBACK name=%s t=%.3f objective=%d sector=%u fwd=%.5f slide=%.5f\n",
++                bot.name,(double)bot.now,nav.objective,(unsigned)self->sector->id,
++                (double)bot.axes[INPUT_FUNC_FORWARD],(double)bot.axes[INPUT_FUNC_SLIDE]);
++        }
++        return 1;
++    }
++    return 0;
++}
++
+ static void Bot_Navigate(SithThing *self)
+ {
+     bot.followingRoute=1;
+@@ -852,6 +881,7 @@
+     if (bot.now>=bot.nextPlan || bot.goal<0 || bot.routePos>=bot.routeCount) Bot_Plan(self);
+     if (Bot_JoinMove(self)) return;
+     if (bot.goal<0 || bot.routePos>=bot.routeCount) {
++        if (Transfer_Explore(self)) return;
+         bot.axes[INPUT_FUNC_TURN]=0.35f;
+         if (self->sector->flags&SITH_SECTOR_UNDERWATER) bot.keys[INPUT_FUNC_JUMP]=1;
+         return;
+@@ -882,6 +912,7 @@
+                 return;
+             }
+         }
++        Transfer_Observe(nodeIndex,0);
+         bot.routePos++;
+         if (bot.routePos>=bot.routeCount) {
+             if (bot.goal>=0) Bot_AvoidNode(&bot.nodes[bot.goal],3.0f);
+--- a/src/AI/jkBot.c
++++ b/src/AI/jkBot.c
+@@ -1217,6 +1217,7 @@
+ }
+ 
+ #include "red_policy.inc"
++static int transferLoadedModel;
+ 
+ static void Bot_Combat(SithThing *self, SithThing *target)
+ {
+@@ -1426,6 +1427,7 @@
+     /* Charge only the route actually driven across this failed interval.
+        Movement on the deadline frame still belongs to recovery. */
+     if (node>=0 && bot.routeStallTime+0.001f>=(recovering ? 1.5f : 2.0f)) {
++        if (!bot.armDirect) Transfer_Observe(node,1);
+         Bot_AvoidNode(&bot.nodes[node],6.0f);
+         if (bot.goal>=0) Bot_AvoidNode(&bot.nodes[bot.goal],7.0f);
+     }
+@@ -1628,7 +1630,7 @@
+     if (settings && strlen(settings)<sizeof(bot.behaviorFile))
+         strcpy(bot.behaviorFile,settings);
+     snprintf(bot.name,sizeof(bot.name),"%s",name ? name : "Bot_Player");
+-    Red_Configure();
++    Red_Configure(); transferLoadedModel=red.learned;
+     bot.random=0x714a21fdu;
+     for (const unsigned char *p=(const unsigned char *)bot.name;*p;p++) bot.random=(bot.random^*p)*16777619u;
+     if (!bot.random) bot.random=1;
+@@ -1706,8 +1708,12 @@
+         memset(bot.crossings,0,sizeof(bot.crossings)); bot.entryFrom=bot.entryTo=bot.airReturn=0; bot.crossing=0;
+         memset(&traps,0,sizeof(traps));
+         Bot_BuildNodes(self); bot.progressPos=self->position; bot.stuckAt=bot.now;
++        Transfer_Context(self,1);
+         bot.nextRecovery=bot.routeStallTime=0;
+-    }
++    } else {
++        Transfer_Context(self,0);
++    }
++    red.learned=transferLoadedModel && transfer.applies;
+     if (!bot.graphDone) Bot_BuildGraphStep();
+     else if (BT_ON(RUN_JUMP)) Bot_RunJumpBuildStep(self);
+     Bot_RunJumpWatch(self);
+@@ -1789,6 +1795,7 @@
+     }
+     Red_FinishDecision();
+     Red_State(self,dead);
++    Transfer_State(self);
+     Companion_Publish(self,dead);
+     bot.wasDead=dead;
+     for (int i=0;i<INPUT_FUNC_MAX;i++) bot.presses[i]=bot.keys[i] && !bot.previous[i];

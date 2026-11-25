@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "teacher_revision": "f453778a3cf670dea43c44315786ae4afc8ae440",
+  "rules_scope": "tdm/guns/force",
+  "source_matrix_sha256": "f6b7d30326d8adc781328194c974d9d3c9474d96aaec8f08adaf02bd193ae3d0",
+  "pace": 2,
+  "game_seconds": 75,
+  "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+  "collection": "Two native stock players with immediate movement. TDM seats play opposite teams. No goal or input gate. Unseeded stock spawns.",
+  "training": [
+    {
+      "name": "mode-08-tdm-guns-force-on",
+      "map": "m10.jkl",
+      "episode": "JK1MP",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+      "mode": "tdm",
+      "weapons": "guns",
+      "force": "on",
+      "first": "jan",
+      "controller": "teacher",
+      "game_seconds": 50
+    },
+    {
+      "name": "tdm-guns-force-train-02",
+      "map": "m10.jkl",
+      "episode": "JK1MP",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+      "mode": "tdm",
+      "weapons": "guns",
+      "force": "on",
+      "first": "boba",
+      "controller": "teacher",
+      "game_seconds": 75
+    }
+  ],
+  "training_extension": [
+    {
+      "name": "tdm-guns-force-extra-01",
+      "map": "m10.jkl",
+      "episode": "JK1MP",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+      "mode": "tdm",
+      "weapons": "guns",
+      "force": "on",
+      "first": "jan",
+      "controller": "teacher",
+      "game_seconds": 75
+    },
+    {
+      "name": "tdm-guns-force-extra-02",
+      "map": "m10.jkl",
+      "episode": "JK1MP",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+      "mode": "tdm",
+      "weapons": "guns",
+      "force": "on",
+      "first": "boba",
+      "controller": "teacher",
+      "game_seconds": 75
+    }
+  ],
+  "extension_rule": "Activate only on training evidence if one label is missing, occurs in fewer than two complete training matches, or has fewer than 20 eligible teacher ticks. If this persists, collect further genuine ungated encounters with explicitly disclosed settings. No adapting weights to test data.",
+  "test": [
+    {
+      "name": "tdm-guns-force-test-01-teacher",
+      "map": "m10.jkl",
+      "episode": "JK1MP",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+      "mode": "tdm",
+      "weapons": "guns",
+      "force": "on",
+      "first": "jan",
+      "controller": "teacher",
+      "game_seconds": 75,
+      "pair": 1,
+      "subject": "dark"
+    },
+    {
+      "name": "tdm-guns-force-test-01-model",
+      "map": "m10.jkl",
+      "episode": "JK1MP",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+      "mode": "tdm",
+      "weapons": "guns",
+      "force": "on",
+      "first": "jan",
+      "controller": "model",
+      "game_seconds": 75,
+      "pair": 1,
+      "subject": "dark"
+    },
+    {
+      "name": "tdm-guns-force-test-02-model",
+      "map": "m10.jkl",
+      "episode": "JK1MP",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+      "mode": "tdm",
+      "weapons": "guns",
+      "force": "on",
+      "first": "boba",
+      "controller": "model",
+      "game_seconds": 75,
+      "pair": 2,
+      "subject": "light"
+    },
+    {
+      "name": "tdm-guns-force-test-02-teacher",
+      "map": "m10.jkl",
+      "episode": "JK1MP",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+      "mode": "tdm",
+      "weapons": "guns",
+      "force": "on",
+      "first": "boba",
+      "controller": "teacher",
+      "game_seconds": 75,
+      "pair": 2,
+      "subject": "light"
+    }
+  ],
+  "qualification": "Freeze the model fitted only on these teacher training matches before playing any of the separate test matches. Require a held-out teacher sample of each class, balanced accuracy greater than constant training-majority, and model-owned nonzero engine movement read on both choices. Scoreboard strength is a separate question."
+}

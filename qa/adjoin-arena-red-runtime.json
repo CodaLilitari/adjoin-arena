@@ -1,0 +1,1479 @@
+{
+  "schema": 1,
+  "matches": [
+    {
+      "split": "training",
+      "name": "train-01-m10-boba",
+      "map": "m10.jkl",
+      "first": "boba",
+      "red_binary": "af1217b47ce9e79b86c94de3e94092b6736f761c822a93f0d7597d173df06ca4",
+      "model_side": null,
+      "model_sha256": null,
+      "source_receipt_sha256": "a5dcb677611b125e32b3ebdcc61dd55bcda39448f921b5d68ce69ad806d24c14",
+      "log_sha256": {
+        "server.log": "b97fc835231da58bf038ff69079eca86989a027f8e463a3799e26b191000309c",
+        "dark.log": "2cd9b16b22c4d7f0cb1617e1e0fbff0f0f0af7f4fa1f1580e0dcf59d3f826edc",
+        "light.log": "aa88a26d9f03ccabbd5a40f102af8505e075f910d7f6791948abe206d49a9bcf",
+        "force-trace.jsonl": "78c7ac596334433f312a5796eab2875a62e58562ab04eda0d5a5373ad7d074f2"
+      },
+      "clocks": {
+        "host": 2.0000017417551237,
+        "dark": 2.0000019518775987,
+        "light": 2.0000006388903264
+      },
+      "seats": {
+        "dark": {
+          "slot": 1,
+          "join_to_eligible_wall_s": 0.019981958,
+          "first_movement_frames_after_eligible": 0,
+          "first_movement_wall_s_after_eligible": 0.000176301,
+          "teacher_labels": {
+            "1": 300,
+            "0": 37
+          },
+          "last_score": {
+            "kills": 2,
+            "deaths": 2
+          },
+          "final_score": {
+            "kills": 2,
+            "deaths": 2
+          },
+          "weapon_bin_gains": 13
+        },
+        "light": {
+          "slot": 2,
+          "join_to_eligible_wall_s": 0.02017601,
+          "first_movement_frames_after_eligible": 1,
+          "first_movement_wall_s_after_eligible": 0.016658182,
+          "teacher_labels": {
+            "1": 288,
+            "0": 57
+          },
+          "last_score": {
+            "kills": 2,
+            "deaths": 2
+          },
+          "final_score": {
+            "kills": 2,
+            "deaths": 2
+          },
+          "weapon_bin_gains": 7
+        }
+      },
+      "first_move_before_second_join_wall_s": 1.509871096
+    },
+    {
+      "split": "training",
+      "name": "train-02-m2-jan",
+      "map": "m2.jkl",
+      "first": "jan",
+      "red_binary": "af1217b47ce9e79b86c94de3e94092b6736f761c822a93f0d7597d173df06ca4",
+      "model_side": null,
+      "model_sha256": null,
+      "source_receipt_sha256": "bf31f0e2d991fde0a31d62ff69abd52f815dba27c1989c8f07a8075741ebd199",
+      "log_sha256": {
+        "server.log": "4c9ebc04bb2a1eeb369bc1b049d3916377c800c7341b3bbca3811a6a83f3f244",
+        "dark.log": "df115a3d6ee00e4ae9a4529c5a7f998f2b19b201784cf649016180bf6783a739",
+        "light.log": "586d9d8c5b157c74b3c52417c77cdbe74fcd16d78531700e1783d04da3224ff9",
+        "force-trace.jsonl": "aa71f85ad15bda3a55cab604e8474f33f595e259f6e9accdbba5e834033eb1be"
+      },
+      "clocks": {
+        "host": 2.0000005124085662,
+        "dark": 1.999998807681066,
+        "light": 1.9999992827971493
+      },
+      "seats": {
+        "dark": {
+          "slot": 2,
+          "join_to_eligible_wall_s": 0.020827157,
+          "first_movement_frames_after_eligible": 0,
+          "first_movement_wall_s_after_eligible": 0.000154863,
+          "teacher_labels": {
+            "1": 300,
+            "0": 57
+          },
+          "last_score": {
+            "kills": 0,
+            "deaths": 2
+          },
+          "final_score": {
+            "kills": 1,
+            "deaths": 2
+          },
+          "weapon_bin_gains": 10
+        },
+        "light": {
+          "slot": 1,
+          "join_to_eligible_wall_s": 0.021259489,
+          "first_movement_frames_after_eligible": 0,
+          "first_movement_wall_s_after_eligible": 0.000150724,
+          "teacher_labels": {
+            "1": 442,
+            "0": 55
+          },
+          "last_score": {
+            "kills": 2,
+            "deaths": 2
+          },
+          "final_score": {
+            "kills": 2,
+            "deaths": 2
+          },
+          "weapon_bin_gains": 7
+        }
+      },
+      "first_move_before_second_join_wall_s": 2.601873145
+    },
+    {
+      "split": "training",
+      "name": "train-03-m10-jan",
+      "map": "m10.jkl",
+      "first": "jan",
+      "red_binary": "af1217b47ce9e79b86c94de3e94092b6736f761c822a93f0d7597d173df06ca4",
+      "model_side": null,
+      "model_sha256": null,
+      "source_receipt_sha256": "7a267baa84d8d1733d8993cf92bdeb4db7aeb3438e28417354a1d3c7ca7ddea6",
+      "log_sha256": {
+        "server.log": "328a54ffcd12d9865299b1844c1be47c800a4bf9c2f6fac79da7477872991b31",
+        "dark.log": "5d2eb57525cc7382891856869a3d88a127fa1f3acd52785a6431055f974dba98",
+        "light.log": "93a09a3de8e423dcc982bc23d1103fd2c388f623c47a2044197d20e98814941d",
+        "force-trace.jsonl": "6ef322648aac723de52f45a78f5259e6684066b8897441a27705d47d9859dee4"
+      },
+      "clocks": {
+        "host": 1.9954197983938917,
+        "dark": 2.0000002328524134,
+        "light": 2.0000002114983575
+      },
+      "seats": {
+        "dark": {
+          "slot": 2,
+          "join_to_eligible_wall_s": 0.020076991,
+          "first_movement_frames_after_eligible": 0,
+          "first_movement_wall_s_after_eligible": 9.3869e-05,
+          "teacher_labels": {
+            "1": 463,
+            "0": 172
+          },
+          "last_score": {
+            "kills": 1,
+            "deaths": 1
+          },
+          "final_score": {
+            "kills": 2,
+            "deaths": 1
+          },
+          "weapon_bin_gains": 6
+        },
+        "light": {
+          "slot": 1,
+          "join_to_eligible_wall_s": 0.020108222,
+          "first_movement_frames_after_eligible": 0,
+          "first_movement_wall_s_after_eligible": 9.6717e-05,
+          "teacher_labels": {
+            "1": 520,
+            "0": 100
+          },
+          "last_score": {
+            "kills": 1,
+            "deaths": 1
+          },
+          "final_score": {
+            "kills": 1,
+            "deaths": 2
+          },
+          "weapon_bin_gains": 7
+        }
+      },
+      "first_move_before_second_join_wall_s": 1.515905401
+    },
+    {
+      "split": "training",
+      "name": "train-04-m10-boba",
+      "map": "m10.jkl",
+      "first": "boba",
+      "red_binary": "af1217b47ce9e79b86c94de3e94092b6736f761c822a93f0d7597d173df06ca4",
+      "model_side": null,
+      "model_sha256": null,
+      "source_receipt_sha256": "eb8060fe3f5810f3656e4a3b2aa6c7ef5544ef5dc96c51007f4a10ef83c73f42",
+      "log_sha256": {
+        "server.log": "cc2d3896498435531eb28441322feeb4f383df540316efe7fe37eac9304646bc",
+        "dark.log": "dd162ab092ae1bbf387f9ef1c711efe3da309557d390f5273d470335915c777f",
+        "light.log": "4c9cddf63dc165bc2198d6cb4b122ba8ae50a874b49082320f0e1b2006ad8057",
+        "force-trace.jsonl": "18a7d7fd75fd2ff028c53d3dc40c977a8192e2d9f7a0fb77cae360c7f2540a54"
+      },
+      "clocks": {
+        "host": 2.000000188768053,
+        "dark": 1.9999961439364022,
+        "light": 2.0000008240180973
+      },
+      "seats": {
+        "dark": {
+          "slot": 1,
+          "join_to_eligible_wall_s": 0.020076193,
+          "first_movement_frames_after_eligible": 0,
+          "first_movement_wall_s_after_eligible": 0.000196193,
+          "teacher_labels": {
+            "1": 211,
+            "0": 38
+          },
+          "last_score": {
+            "kills": 0,
+            "deaths": 2
+          },
+          "final_score": {
+            "kills": 0,
+            "deaths": 2
+          },
+          "weapon_bin_gains": 13
+        },
+        "light": {
+          "slot": 2,
+          "join_to_eligible_wall_s": 0.021572069,
+          "first_movement_frames_after_eligible": 36,
+          "first_movement_wall_s_after_eligible": 0.611351505,
+          "teacher_labels": {
+            "1": 228,
+            "0": 5
+          },
+          "last_score": {
+            "kills": 2,
+            "deaths": 0
+          },
+          "final_score": {
+            "kills": 2,
+            "deaths": 0
+          },
+          "weapon_bin_gains": 5
+        }
+      },
+      "first_move_before_second_join_wall_s": 1.521881215
+    },
+    {
+      "split": "training",
+      "name": "train-05-m2-boba",
+      "map": "m2.jkl",
+      "first": "boba",
+      "red_binary": "af1217b47ce9e79b86c94de3e94092b6736f761c822a93f0d7597d173df06ca4",
+      "model_side": null,
+      "model_sha256": null,
+      "source_receipt_sha256": "b6a1f00e6bcdff39bb771396addd08b6dc4be50de7c7d68e1a91da8a52a4c091",
+      "log_sha256": {
+        "server.log": "b7c36889be3c8e0a91adeb6ea29e05614aa22247f4013f29659d42e36750e325",
+        "dark.log": "c6419c24b6d7892e343178a7b9fb5f5e53bcd70492df3afb3b85317d9afc69ce",
+        "light.log": "042daa7b145f4bf0dc387e997a3fa8dde11de1f306fd522adac98e00a0ed0676",
+        "force-trace.jsonl": "8e197e0244bb03559ed54ecc926d47c225074c9526bbada5c210cd6e7a74c8b7"
+      },
+      "clocks": {
+        "host": 1.9999996281909682,
+        "dark": 2.000002215318769,
+        "light": 2.0000002800444343
+      },
+      "seats": {
+        "dark": {
+          "slot": 1,
+          "join_to_eligible_wall_s": 0.020904377,
+          "first_movement_frames_after_eligible": 0,
+          "first_movement_wall_s_after_eligible": 0.000173186,
+          "teacher_labels": {
+            "1": 208,
+            "0": 205
+          },
+          "last_score": {
+            "kills": 1,
+            "deaths": 2
+          },
+          "final_score": {
+            "kills": 1,
+            "deaths": 2
+          },
+          "weapon_bin_gains": 9
+        },
+        "light": {
+          "slot": 2,
+          "join_to_eligible_wall_s": 0.020870285,
+          "first_movement_frames_after_eligible": 0,
+          "first_movement_wall_s_after_eligible": 0.000103114,
+          "teacher_labels": {
+            "1": 212,
+            "0": 223
+          },
+          "last_score": {
+            "kills": 2,
+            "deaths": 1
+          },
+          "final_score": {
+            "kills": 2,
+            "deaths": 1
+          },
+          "weapon_bin_gains": 4
+        }
+      },
+      "first_move_before_second_join_wall_s": 2.696803444
+    },
+    {
+      "split": "training",
+      "name": "train-06-m10-jan",
+      "map": "m10.jkl",
+      "first": "jan",
+      "red_binary": "af1217b47ce9e79b86c94de3e94092b6736f761c822a93f0d7597d173df06ca4",
+      "model_side": null,
+      "model_sha256": null,
+      "source_receipt_sha256": "75e612f00e4bb3fa1ccdc4c6a8eb9c45ed90f927c3a2f02666bacb1c93d1a048",
+      "log_sha256": {
+        "server.log": "5154b47c5e8f50317098fb946a5744578d4441ca02225642553f783a4d3c3cb3",
+        "dark.log": "4126fcb73bcbb9414d4f9e41b1cde8d3e11408705e55a90401a401970f984402",
+        "light.log": "93db038dafe33051bc044cdd85bf975931cba87949ad85959f3e91c9379c8486",
+        "force-trace.jsonl": "124e407af8bfa9ad3c0d08c13b93aabe0f1accf4615d45f3b58a840cc7af43f2"
+      },
+      "clocks": {
+        "host": 1.9999998195338673,
+        "dark": 1.9999995563596986,
+        "light": 2.000000704151191
+      },
+      "seats": {
+        "dark": {
+          "slot": 2,
+          "join_to_eligible_wall_s": 0.021609823,
+          "first_movement_frames_after_eligible": 0,
+          "first_movement_wall_s_after_eligible": 0.000160163,
+          "teacher_labels": {
+            "1": 223,
+            "0": 116
+          },
+          "last_score": {
+            "kills": 2,
+            "deaths": 1
+          },
+          "final_score": {
+            "kills": 2,
+            "deaths": 1
+          },
+          "weapon_bin_gains": 10
+        },
+        "light": {
+          "slot": 1,
+          "join_to_eligible_wall_s": 0.020898564,
+          "first_movement_frames_after_eligible": 1,
+          "first_movement_wall_s_after_eligible": 0.015787009,
+          "teacher_labels": {
+            "1": 288,
+            "0": 200
+          },
+          "last_score": {
+            "kills": 1,
+            "deaths": 2
+          },
+          "final_score": {
+            "kills": 1,
+            "deaths": 2
+          },
+          "weapon_bin_gains": 12
+        }
+      },
+      "first_move_before_second_join_wall_s": 1.491675131
+    },
+    {
+      "split": "test",
+      "name": "test-01-m10-dark-teacher",
+      "map": "m10.jkl",
+      "first": "boba",
+      "red_binary": "af1217b47ce9e79b86c94de3e94092b6736f761c822a93f0d7597d173df06ca4",
+      "model_side": null,
+      "model_sha256": null,
+      "source_receipt_sha256": "545b1c0d84aa1192c3607bef3cc623b283b79741ca33a6f830672352cc0e34d3",
+      "log_sha256": {
+        "server.log": "c889d6c385ce8c003d4367710c78d27df7e7ddaa80ea31e9828d89a03e5b6773",
+        "dark.log": "ebf7c56934ffb7af7a26e2e191d30390ea170484957edc5d4ad8814e6a43ea9b",
+        "light.log": "46a28e94d30f02b135d768e474f5bf61bd2517bd8c78f640dbe0934872720fae",
+        "force-trace.jsonl": "00fd1841d82be093a005cd09ceb7efca411645ed91d25c434fa2bce456896594"
+      },
+      "clocks": {
+        "host": 1.9999998437735969,
+        "dark": 1.999999477913566,
+        "light": 2.000000517203241
+      },
+      "seats": {
+        "dark": {
+          "slot": 1,
+          "join_to_eligible_wall_s": 0.020268678,
+          "first_movement_frames_after_eligible": 0,
+          "first_movement_wall_s_after_eligible": 0.00010364,
+          "teacher_labels": {
+            "1": 332,
+            "0": 44
+          },
+          "last_score": {
+            "kills": 1,
+            "deaths": 3
+          },
+          "final_score": {
+            "kills": 1,
+            "deaths": 3
+          },
+          "weapon_bin_gains": 10
+        },
+        "light": {
+          "slot": 2,
+          "join_to_eligible_wall_s": 0.024860563,
+          "first_movement_frames_after_eligible": 0,
+          "first_movement_wall_s_after_eligible": 0.000186963,
+          "teacher_labels": {
+            "1": 178,
+            "0": 43
+          },
+          "last_score": {
+            "kills": 2,
+            "deaths": 1
+          },
+          "final_score": {
+            "kills": 2,
+            "deaths": 1
+          },
+          "weapon_bin_gains": 12
+        }
+      },
+      "first_move_before_second_join_wall_s": 1.487957455
+    },
+    {
+      "split": "test",
+      "name": "test-01-m10-dark-model",
+      "map": "m10.jkl",
+      "first": "boba",
+      "red_binary": "af1217b47ce9e79b86c94de3e94092b6736f761c822a93f0d7597d173df06ca4",
+      "model_side": "dark",
+      "model_sha256": "23028e60d4203b06f9fb88abb29aaf0ea15082b57501cd869acef9feafdf8171",
+      "source_receipt_sha256": "b28fffec28e7b5e5eaacc176e76317f8950f8844c547f8d14e6f8a349ace88db",
+      "log_sha256": {
+        "server.log": "fb8b3056c37fdb5eb72e0b4a1695c4c06010d5c0ebae81831147f53c018bfe93",
+        "dark.log": "e638ec5be582e5b45dd28f2ffb6b3db2fb0644383bed537e7f9bc78fe68a5e8b",
+        "light.log": "6909470aa9900501c105abdf1516f42408a88250263fa2194fa45fd05084a31d",
+        "force-trace.jsonl": "d18c2c549f4b0757d30bb2ef0feabad730faa0d6dc592f4ea059d76668a8d849"
+      },
+      "clocks": {
+        "host": 1.9952250306896595,
+        "dark": 2.000002953078722,
+        "light": 2.000002244708402
+      },
+      "seats": {
+        "dark": {
+          "slot": 1,
+          "join_to_eligible_wall_s": 0.019912115,
+          "first_movement_frames_after_eligible": 0,
+          "first_movement_wall_s_after_eligible": 0.00018221,
+          "teacher_labels": {
+            "1": 294,
+            "0": 70
+          },
+          "last_score": {
+            "kills": 2,
+            "deaths": 1
+          },
+          "final_score": {
+            "kills": 2,
+            "deaths": 1
+          },
+          "weapon_bin_gains": 8
+        },
+        "light": {
+          "slot": 2,
+          "join_to_eligible_wall_s": 0.02011262,
+          "first_movement_frames_after_eligible": 0,
+          "first_movement_wall_s_after_eligible": 0.000140501,
+          "teacher_labels": {
+            "1": 294,
+            "0": 76
+          },
+          "last_score": {
+            "kills": 1,
+            "deaths": 2
+          },
+          "final_score": {
+            "kills": 1,
+            "deaths": 2
+          },
+          "weapon_bin_gains": 12
+        }
+      },
+      "first_move_before_second_join_wall_s": 1.513469376
+    },
+    {
+      "split": "test",
+      "name": "test-02-m4-dark-model",
+      "map": "m4.jkl",
+      "first": "jan",
+      "red_binary": "af1217b47ce9e79b86c94de3e94092b6736f761c822a93f0d7597d173df06ca4",
+      "model_side": "dark",
+      "model_sha256": "23028e60d4203b06f9fb88abb29aaf0ea15082b57501cd869acef9feafdf8171",
+      "source_receipt_sha256": "4409cec4ec15fcf8f8d848536eae0b8a74facc1705d264bb5a26b76a2f532221",
+      "log_sha256": {
+        "server.log": "ba57ab80f6668690d03d9c469a441ed97a7f3523128324aaba3b57ada44aaa8c",
+        "dark.log": "ca24431b8e2af12118f68794399dee0babef27081233b9eaccba4b278f85e09e",
+        "light.log": "5bd3f776a4e43af39c6d442bd98382849b3e1210be2910c16a16deda562ac1e4",
+        "force-trace.jsonl": "fcdb56802c98d805f28b65531c7db4bb9cac32179553d5660284544e19844b04"
+      },
+      "clocks": {
+        "host": 1.9923898232951691,
+        "dark": 1.9999987713215095,
+        "light": 2.0000035667988136
+      },
+      "seats": {
+        "dark": {
+          "slot": 2,
+          "join_to_eligible_wall_s": 0.021900759,
+          "first_movement_frames_after_eligible": 0,
+          "first_movement_wall_s_after_eligible": 0.000142857,
+          "teacher_labels": {
+            "1": 158,
+            "0": 137
+          },
+          "last_score": {
+            "kills": 0,
+            "deaths": 2
+          },
+          "final_score": {
+            "kills": 0,
+            "deaths": 2
+          },
+          "weapon_bin_gains": 4
+        },
+        "light": {
+          "slot": 1,
+          "join_to_eligible_wall_s": 0.021340953,
+          "first_movement_frames_after_eligible": 0,
+          "first_movement_wall_s_after_eligible": 0.000106386,
+          "teacher_labels": {
+            "1": 135,
+            "0": 129
+          },
+          "last_score": {
+            "kills": 2,
+            "deaths": 1
+          },
+          "final_score": {
+            "kills": 2,
+            "deaths": 1
+          },
+          "weapon_bin_gains": 5
+        }
+      },
+      "first_move_before_second_join_wall_s": 2.990725387
+    },
+    {
+      "split": "test",
+      "name": "test-02-m4-dark-teacher",
+      "map": "m4.jkl",
+      "first": "jan",
+      "red_binary": "af1217b47ce9e79b86c94de3e94092b6736f761c822a93f0d7597d173df06ca4",
+      "model_side": null,
+      "model_sha256": null,
+      "source_receipt_sha256": "823c52c415e808be04c96ee77bbc794cee961d1575647b7f825bf31d4a0b21b6",
+      "log_sha256": {
+        "server.log": "ef685c5b6080efdb3179b91148110be272f4ad944dc554affc4eb738328f913e",
+        "dark.log": "d77230fa1d8fef9999e8768146a332b47692ef50c6a20a5e19ced5001c2ac8e9",
+        "light.log": "729c786d13a380e9ecc009d701cbe26ec88aa0135ba1585932184519e05306e5",
+        "force-trace.jsonl": "05dc152f6e67b9b59a5edbb81f4761dd45665a5aa5b844e9618e178171a85d98"
+      },
+      "clocks": {
+        "host": 1.9895334863479015,
+        "dark": 1.9999994944729358,
+        "light": 2.0000005461488723
+      },
+      "seats": {
+        "dark": {
+          "slot": 2,
+          "join_to_eligible_wall_s": 0.022186779,
+          "first_movement_frames_after_eligible": 0,
+          "first_movement_wall_s_after_eligible": 0.000181567,
+          "teacher_labels": {
+            "0": 141,
+            "1": 159
+          },
+          "last_score": {
+            "kills": 3,
+            "deaths": 2
+          },
+          "final_score": {
+            "kills": 3,
+            "deaths": 3
+          },
+          "weapon_bin_gains": 9
+        },
+        "light": {
+          "slot": 1,
+          "join_to_eligible_wall_s": 0.021300721,
+          "first_movement_frames_after_eligible": 0,
+          "first_movement_wall_s_after_eligible": 0.000165381,
+          "teacher_labels": {
+            "1": 113,
+            "0": 203
+          },
+          "last_score": {
+            "kills": 2,
+            "deaths": 4
+          },
+          "final_score": {
+            "kills": 2,
+            "deaths": 4
+          },
+          "weapon_bin_gains": 6
+        }
+      },
+      "first_move_before_second_join_wall_s": 2.950509988
+    },
+    {
+      "split": "test",
+      "name": "test-03-m10-light-model",
+      "map": "m10.jkl",
+      "first": "boba",
+      "red_binary": "af1217b47ce9e79b86c94de3e94092b6736f761c822a93f0d7597d173df06ca4",
+      "model_side": "light",
+      "model_sha256": "23028e60d4203b06f9fb88abb29aaf0ea15082b57501cd869acef9feafdf8171",
+      "source_receipt_sha256": "75fd5441a4b35e71471f73860ecaf2a345528696da47bcb4d110b39dea042d63",
+      "log_sha256": {
+        "server.log": "5d00ed40598138a542d3ef4e69b502c754b302d9f083f6f9b8eab926350e3ec8",
+        "dark.log": "4baf22829fb48822dfd7d87294762431c3f691b75560994b71d9c43ff607c807",
+        "light.log": "41dbe97d826b2847af5b32c6bcbe48b0193842bd6dc8ad653a2261c0d3b5d16d",
+        "force-trace.jsonl": "8951b63f746dd6018fd8393a0c4e85635eb0e346e4a303e28ec4b86f424eb3cd"
+      },
+      "clocks": {
+        "host": 1.9950273584384557,
+        "dark": 2.000000570166644,
+        "light": 1.9999987050396841
+      },
+      "seats": {
+        "dark": {
+          "slot": 1,
+          "join_to_eligible_wall_s": 0.020078844,
+          "first_movement_frames_after_eligible": 0,
+          "first_movement_wall_s_after_eligible": 9.0464e-05,
+          "teacher_labels": {
+            "1": 163
+          },
+          "last_score": {
+            "kills": 1,
+            "deaths": 1
+          },
+          "final_score": {
+            "kills": 1,
+            "deaths": 1
+          },
+          "weapon_bin_gains": 10
+        },
+        "light": {
+          "slot": 2,
+          "join_to_eligible_wall_s": 0.020008152,
+          "first_movement_frames_after_eligible": 0,
+          "first_movement_wall_s_after_eligible": 0.000112043,
+          "teacher_labels": {
+            "1": 247
+          },
+          "last_score": {
+            "kills": 1,
+            "deaths": 1
+          },
+          "final_score": {
+            "kills": 1,
+            "deaths": 1
+          },
+          "weapon_bin_gains": 4
+        }
+      },
+      "first_move_before_second_join_wall_s": 1.512771376
+    },
+    {
+      "split": "test",
+      "name": "test-03-m10-light-teacher",
+      "map": "m10.jkl",
+      "first": "boba",
+      "red_binary": "af1217b47ce9e79b86c94de3e94092b6736f761c822a93f0d7597d173df06ca4",
+      "model_side": null,
+      "model_sha256": null,
+      "source_receipt_sha256": "c022d6f3da0a35ba2928ce07c2d0ec7102754e20c98992afaa7f4e39675196b6",
+      "log_sha256": {
+        "server.log": "d561272594865968738c80a7eab691a60b7ef033dbc7de7e89883d7cce9b283f",
+        "dark.log": "557d67f39dc3edd29928a38e5f11e227fd603f30154c6959f9a7a4ce4c8dffe7",
+        "light.log": "38b88c223790c2a00a2988cbd824a78b6dbcd008cb51bde2adf624f4cb171336",
+        "force-trace.jsonl": "0f7919426f6ee217adb5769b4752d522fb7752e4d608b06df313da28db72f09a"
+      },
+      "clocks": {
+        "host": 1.9930126279248563,
+        "dark": 2.0000027060191994,
+        "light": 1.9999978748080294
+      },
+      "seats": {
+        "dark": {
+          "slot": 1,
+          "join_to_eligible_wall_s": 0.020142782,
+          "first_movement_frames_after_eligible": 0,
+          "first_movement_wall_s_after_eligible": 8.7512e-05,
+          "teacher_labels": {
+            "1": 224,
+            "0": 15
+          },
+          "last_score": {
+            "kills": 0,
+            "deaths": 1
+          },
+          "final_score": {
+            "kills": 0,
+            "deaths": 1
+          },
+          "weapon_bin_gains": 7
+        },
+        "light": {
+          "slot": 2,
+          "join_to_eligible_wall_s": 0.019931479,
+          "first_movement_frames_after_eligible": 36,
+          "first_movement_wall_s_after_eligible": 0.611506707,
+          "teacher_labels": {
+            "1": 187,
+            "0": 41
+          },
+          "last_score": {
+            "kills": 1,
+            "deaths": 0
+          },
+          "final_score": {
+            "kills": 1,
+            "deaths": 0
+          },
+          "weapon_bin_gains": 6
+        }
+      },
+      "first_move_before_second_join_wall_s": 1.514272722
+    },
+    {
+      "split": "test",
+      "name": "test-04-m4-light-teacher",
+      "map": "m4.jkl",
+      "first": "jan",
+      "red_binary": "af1217b47ce9e79b86c94de3e94092b6736f761c822a93f0d7597d173df06ca4",
+      "model_side": null,
+      "model_sha256": null,
+      "source_receipt_sha256": "18ab22e9d4821f8d97b86bbd7c3e35090665dc4c3a52188023bb335a5f1fb370",
+      "log_sha256": {
+        "server.log": "63485e768fc35a0121b3336a984d6abb84ee4455fe1403933ef5438d11f49654",
+        "dark.log": "1113802883a5b5d13f380dfe2e5dfd4e794d79d65e0259545140a3472d7722af",
+        "light.log": "b6bdd0fd30ab587252b01136e47e997b38610d9796bcf4253dbb63c6a43adf0e",
+        "force-trace.jsonl": "31b565bd8cf45be02d072f087b91c821392b93ad250a1ba9f66120d7b566e537"
+      },
+      "clocks": {
+        "host": 2.000000113385134,
+        "dark": 2.000001110588852,
+        "light": 2.0000031261314124
+      },
+      "seats": {
+        "dark": {
+          "slot": 2,
+          "join_to_eligible_wall_s": 0.022385367,
+          "first_movement_frames_after_eligible": 0,
+          "first_movement_wall_s_after_eligible": 9.5751e-05,
+          "teacher_labels": {
+            "1": 54,
+            "0": 221
+          },
+          "last_score": {
+            "kills": 0,
+            "deaths": 2
+          },
+          "final_score": {
+            "kills": 0,
+            "deaths": 2
+          },
+          "weapon_bin_gains": 5
+        },
+        "light": {
+          "slot": 1,
+          "join_to_eligible_wall_s": 0.022377967,
+          "first_movement_frames_after_eligible": 0,
+          "first_movement_wall_s_after_eligible": 0.000107493,
+          "teacher_labels": {
+            "1": 86,
+            "0": 219
+          },
+          "last_score": {
+            "kills": 2,
+            "deaths": 0
+          },
+          "final_score": {
+            "kills": 2,
+            "deaths": 0
+          },
+          "weapon_bin_gains": 3
+        }
+      },
+      "first_move_before_second_join_wall_s": 2.950012723
+    },
+    {
+      "split": "test",
+      "name": "test-04-m4-light-model",
+      "map": "m4.jkl",
+      "first": "jan",
+      "red_binary": "af1217b47ce9e79b86c94de3e94092b6736f761c822a93f0d7597d173df06ca4",
+      "model_side": "light",
+      "model_sha256": "23028e60d4203b06f9fb88abb29aaf0ea15082b57501cd869acef9feafdf8171",
+      "source_receipt_sha256": "d797dbcb70fdedf87710a2bf5bf23f4d920f87306a7506f229f24bbd8161b69a",
+      "log_sha256": {
+        "server.log": "362350449c9a61caa5471376b90b7e362bc53c5a44e19de50e65e45d3209a7e1",
+        "dark.log": "7f90a772c7b83cc3deae253a3bcea4a6f87f2cf1b343c7f6c39ad4429a9d8cac",
+        "light.log": "84ef6a975dd4dec36d7c3c51a4e1bd0f828e1c05928dcb5f6d3adac6caf5137e",
+        "force-trace.jsonl": "67ed3a9b2b0a0d945754fba9865c1f4dd45e7588ca26141448ebff08928d8d29"
+      },
+      "clocks": {
+        "host": 1.9893123730425313,
+        "dark": 2.0000002938069246,
+        "light": 1.9999997631076862
+      },
+      "seats": {
+        "dark": {
+          "slot": 2,
+          "join_to_eligible_wall_s": 0.022796571,
+          "first_movement_frames_after_eligible": 0,
+          "first_movement_wall_s_after_eligible": 0.00037776,
+          "teacher_labels": {
+            "1": 261,
+            "0": 9
+          },
+          "last_score": {
+            "kills": 1,
+            "deaths": 2
+          },
+          "final_score": {
+            "kills": 1,
+            "deaths": 2
+          },
+          "weapon_bin_gains": 7
+        },
+        "light": {
+          "slot": 1,
+          "join_to_eligible_wall_s": 0.02218346,
+          "first_movement_frames_after_eligible": 60,
+          "first_movement_wall_s_after_eligible": 1.018330664,
+          "teacher_labels": {
+            "1": 195,
+            "0": 8
+          },
+          "last_score": {
+            "kills": 1,
+            "deaths": 2
+          },
+          "final_score": {
+            "kills": 1,
+            "deaths": 2
+          },
+          "weapon_bin_gains": 6
+        }
+      },
+      "first_move_before_second_join_wall_s": 1.971390176
+    },
+    {
+      "split": "stream_training",
+      "name": "practice-01-m2-jan",
+      "map": "m2.jkl",
+      "first": "jan",
+      "red_binary": "af1217b47ce9e79b86c94de3e94092b6736f761c822a93f0d7597d173df06ca4",
+      "model_side": "light",
+      "model_sha256": "eaa220c1609cee94793427fe3df34af7f220bce14d3d193a181354df69aa03da",
+      "source_receipt_sha256": "ea05e36ef41abcc0b16eb7bb13b4e2a26f90b96883ac75f864059da27b3765d4",
+      "log_sha256": {
+        "server.log": "6a4412cdbad8fa731422918e5840894a389a7dbf076d05faee3ea7ac580327d2",
+        "dark.log": "2f4d6e2222d0c5ef17c899d94f1c31ed4755f1fbc284135be295e9a8a24d84c1",
+        "light.log": "a90a958c8c429bbaa66dcb32fc0b955d2b2658d73028455dec0a2c6fa38a3b1a",
+        "force-trace.jsonl": "37d44e8b6f600802759cd4b0f232a91bdc045f3e016b54737b9dd45e583cdd1b"
+      },
+      "clocks": {
+        "host": 1.9921415893439656,
+        "dark": 2.000002786729743,
+        "light": 2.000000401021168
+      },
+      "seats": {
+        "dark": {
+          "slot": 2,
+          "join_to_eligible_wall_s": 0.021574562,
+          "first_movement_frames_after_eligible": 0,
+          "first_movement_wall_s_after_eligible": 0.000162551,
+          "teacher_labels": {
+            "1": 177,
+            "0": 64
+          },
+          "last_score": {
+            "kills": 0,
+            "deaths": 4
+          },
+          "final_score": {
+            "kills": 0,
+            "deaths": 4
+          },
+          "weapon_bin_gains": 6
+        },
+        "light": {
+          "slot": 1,
+          "join_to_eligible_wall_s": 0.022004886,
+          "first_movement_frames_after_eligible": 0,
+          "first_movement_wall_s_after_eligible": 0.000204827,
+          "teacher_labels": {
+            "1": 245,
+            "0": 158
+          },
+          "last_score": {
+            "kills": 3,
+            "deaths": 0
+          },
+          "final_score": {
+            "kills": 3,
+            "deaths": 1
+          },
+          "weapon_bin_gains": 4
+        }
+      },
+      "first_move_before_second_join_wall_s": 2.682953807
+    },
+    {
+      "split": "stream_training",
+      "name": "practice-02-m10-boba",
+      "map": "m10.jkl",
+      "first": "boba",
+      "red_binary": "af1217b47ce9e79b86c94de3e94092b6736f761c822a93f0d7597d173df06ca4",
+      "model_side": "dark",
+      "model_sha256": "23028e60d4203b06f9fb88abb29aaf0ea15082b57501cd869acef9feafdf8171",
+      "source_receipt_sha256": "96b0d738f0a8cedcf124b920494232f18627cc0f143a978c424a89b7eb95d671",
+      "log_sha256": {
+        "server.log": "676d61358f77d7e089c97d978483bc7193e34de24798e2be1c9e8bc03e4ff0d3",
+        "dark.log": "6adb27367f186a683e02666ad568fe1433e922e3418533c6676009456c3f6aee",
+        "light.log": "3aa1159492b21e6e95a13e3a66ab319bacbee98341d1b4beb3f9380ab6b83aa7",
+        "force-trace.jsonl": "8e49d427d33ba45593fcd954cb2cafbd4aaf16376988a26349c847b887163c7d"
+      },
+      "clocks": {
+        "host": 1.9999981810005443,
+        "dark": 1.9999991098783094,
+        "light": 2.00001556931099
+      },
+      "seats": {
+        "dark": {
+          "slot": 1,
+          "join_to_eligible_wall_s": 0.020770531,
+          "first_movement_frames_after_eligible": 1,
+          "first_movement_wall_s_after_eligible": 0.016532366,
+          "teacher_labels": {
+            "1": 617,
+            "0": 41
+          },
+          "last_score": {
+            "kills": 2,
+            "deaths": 1
+          },
+          "final_score": {
+            "kills": 2,
+            "deaths": 2
+          },
+          "weapon_bin_gains": 9
+        },
+        "light": {
+          "slot": 2,
+          "join_to_eligible_wall_s": 0.020351206,
+          "first_movement_frames_after_eligible": 0,
+          "first_movement_wall_s_after_eligible": 0.000107838,
+          "teacher_labels": {
+            "1": 684,
+            "0": 29
+          },
+          "last_score": {
+            "kills": 1,
+            "deaths": 2
+          },
+          "final_score": {
+            "kills": 2,
+            "deaths": 2
+          },
+          "weapon_bin_gains": 9
+        }
+      },
+      "first_move_before_second_join_wall_s": 1.542636526
+    }
+  ],
+  "rolling_history": [
+    {
+      "name": "train-01-m10-boba",
+      "receipt_sha256": "a5dcb677611b125e32b3ebdcc61dd55bcda39448f921b5d68ce69ad806d24c14",
+      "logs": {
+        "dark": "2cd9b16b22c4d7f0cb1617e1e0fbff0f0f0af7f4fa1f1580e0dcf59d3f826edc",
+        "light": "aa88a26d9f03ccabbd5a40f102af8505e075f910d7f6791948abe206d49a9bcf"
+      },
+      "build": "af1217b47ce9e79b86c94de3e94092b6736f761c822a93f0d7597d173df06ca4",
+      "eligible_teacher_ticks": 682,
+      "cumulative_classes": [
+        94,
+        588
+      ],
+      "majority": 1,
+      "candidate": "cd6d3f7d16a5c61789a85de3ea66a8b089b8af3ac926dee9235d4ae52a0069c1",
+      "practice": null,
+      "fresh_match_check": {
+        "challenger": null,
+        "incumbent": null,
+        "practice": null,
+        "decision": "no_new_challenger"
+      }
+    },
+    {
+      "name": "train-02-m2-jan",
+      "receipt_sha256": "bf31f0e2d991fde0a31d62ff69abd52f815dba27c1989c8f07a8075741ebd199",
+      "logs": {
+        "dark": "df115a3d6ee00e4ae9a4529c5a7f998f2b19b201784cf649016180bf6783a739",
+        "light": "586d9d8c5b157c74b3c52417c77cdbe74fcd16d78531700e1783d04da3224ff9"
+      },
+      "build": "af1217b47ce9e79b86c94de3e94092b6736f761c822a93f0d7597d173df06ca4",
+      "eligible_teacher_ticks": 854,
+      "cumulative_classes": [
+        206,
+        1330
+      ],
+      "majority": 1,
+      "candidate": "de49ba08fbf308c2638840360064a5912b08b3110ba499f5d72d871e9b2da6d8",
+      "practice": null,
+      "fresh_match_check": {
+        "challenger": "cd6d3f7d16a5c61789a85de3ea66a8b089b8af3ac926dee9235d4ae52a0069c1",
+        "incumbent": null,
+        "practice": null,
+        "encounters_by_class": [
+          5,
+          33
+        ],
+        "reference": {
+          "matrix": [
+            [
+              0,
+              112
+            ],
+            [
+              0,
+              742
+            ]
+          ],
+          "accuracy": 0.8688524590163934,
+          "recall_by_class": [
+            0.0,
+            1.0
+          ],
+          "balanced_accuracy": 0.5
+        },
+        "trial": {
+          "matrix": [
+            [
+              31,
+              81
+            ],
+            [
+              18,
+              724
+            ]
+          ],
+          "accuracy": 0.8840749414519906,
+          "recall_by_class": [
+            0.2767857142857143,
+            0.9757412398921833
+          ],
+          "balanced_accuracy": 0.6262634770889488
+        },
+        "reference_kind": "training_majority",
+        "decision": "retain_incumbent"
+      }
+    },
+    {
+      "name": "train-03-m10-jan",
+      "receipt_sha256": "7a267baa84d8d1733d8993cf92bdeb4db7aeb3438e28417354a1d3c7ca7ddea6",
+      "logs": {
+        "dark": "5d2eb57525cc7382891856869a3d88a127fa1f3acd52785a6431055f974dba98",
+        "light": "93a09a3de8e423dcc982bc23d1103fd2c388f623c47a2044197d20e98814941d"
+      },
+      "build": "af1217b47ce9e79b86c94de3e94092b6736f761c822a93f0d7597d173df06ca4",
+      "eligible_teacher_ticks": 1255,
+      "cumulative_classes": [
+        478,
+        2313
+      ],
+      "majority": 1,
+      "candidate": "4232b823ff1c674cf5ab6bec47f24c931b4e1282c8e10e0af4cfbfac987b9548",
+      "practice": "de49ba08fbf308c2638840360064a5912b08b3110ba499f5d72d871e9b2da6d8",
+      "fresh_match_check": {
+        "challenger": "de49ba08fbf308c2638840360064a5912b08b3110ba499f5d72d871e9b2da6d8",
+        "incumbent": null,
+        "practice": "de49ba08fbf308c2638840360064a5912b08b3110ba499f5d72d871e9b2da6d8",
+        "encounters_by_class": [
+          9,
+          31
+        ],
+        "reference": {
+          "matrix": [
+            [
+              0,
+              272
+            ],
+            [
+              0,
+              983
+            ]
+          ],
+          "accuracy": 0.7832669322709164,
+          "recall_by_class": [
+            0.0,
+            1.0
+          ],
+          "balanced_accuracy": 0.5
+        },
+        "trial": {
+          "matrix": [
+            [
+              146,
+              126
+            ],
+            [
+              61,
+              922
+            ]
+          ],
+          "accuracy": 0.850996015936255,
+          "recall_by_class": [
+            0.5367647058823529,
+            0.9379450661241099
+          ],
+          "balanced_accuracy": 0.7373548860032314
+        },
+        "reference_kind": "training_majority",
+        "decision": "use_for_practice"
+      }
+    },
+    {
+      "name": "train-04-m10-boba",
+      "receipt_sha256": "eb8060fe3f5810f3656e4a3b2aa6c7ef5544ef5dc96c51007f4a10ef83c73f42",
+      "logs": {
+        "dark": "dd162ab092ae1bbf387f9ef1c711efe3da309557d390f5273d470335915c777f",
+        "light": "4c9cddf63dc165bc2198d6cb4b122ba8ae50a874b49082320f0e1b2006ad8057"
+      },
+      "build": "af1217b47ce9e79b86c94de3e94092b6736f761c822a93f0d7597d173df06ca4",
+      "eligible_teacher_ticks": 482,
+      "cumulative_classes": [
+        521,
+        2752
+      ],
+      "majority": 1,
+      "candidate": "09bf8319d20d2f0767eff336a5887fca9970252f0b31e7d8bdc4b0a6361f4cd8",
+      "practice": "4232b823ff1c674cf5ab6bec47f24c931b4e1282c8e10e0af4cfbfac987b9548",
+      "fresh_match_check": {
+        "challenger": "4232b823ff1c674cf5ab6bec47f24c931b4e1282c8e10e0af4cfbfac987b9548",
+        "incumbent": "de49ba08fbf308c2638840360064a5912b08b3110ba499f5d72d871e9b2da6d8",
+        "practice": "4232b823ff1c674cf5ab6bec47f24c931b4e1282c8e10e0af4cfbfac987b9548",
+        "encounters_by_class": [
+          3,
+          21
+        ],
+        "reference": {
+          "matrix": [
+            [
+              30,
+              13
+            ],
+            [
+              4,
+              435
+            ]
+          ],
+          "accuracy": 0.9647302904564315,
+          "recall_by_class": [
+            0.6976744186046512,
+            0.9908883826879271
+          ],
+          "balanced_accuracy": 0.8442814006462891
+        },
+        "trial": {
+          "matrix": [
+            [
+              40,
+              3
+            ],
+            [
+              4,
+              435
+            ]
+          ],
+          "accuracy": 0.9854771784232366,
+          "recall_by_class": [
+            0.9302325581395349,
+            0.9908883826879271
+          ],
+          "balanced_accuracy": 0.9605604704137309
+        },
+        "reference_kind": "incumbent",
+        "decision": "use_for_practice"
+      }
+    },
+    {
+      "name": "train-05-m2-boba",
+      "receipt_sha256": "b6a1f00e6bcdff39bb771396addd08b6dc4be50de7c7d68e1a91da8a52a4c091",
+      "logs": {
+        "dark": "c6419c24b6d7892e343178a7b9fb5f5e53bcd70492df3afb3b85317d9afc69ce",
+        "light": "042daa7b145f4bf0dc387e997a3fa8dde11de1f306fd522adac98e00a0ed0676"
+      },
+      "build": "af1217b47ce9e79b86c94de3e94092b6736f761c822a93f0d7597d173df06ca4",
+      "eligible_teacher_ticks": 848,
+      "cumulative_classes": [
+        949,
+        3172
+      ],
+      "majority": 1,
+      "candidate": "eaa220c1609cee94793427fe3df34af7f220bce14d3d193a181354df69aa03da",
+      "practice": "4232b823ff1c674cf5ab6bec47f24c931b4e1282c8e10e0af4cfbfac987b9548",
+      "fresh_match_check": {
+        "challenger": "09bf8319d20d2f0767eff336a5887fca9970252f0b31e7d8bdc4b0a6361f4cd8",
+        "incumbent": "4232b823ff1c674cf5ab6bec47f24c931b4e1282c8e10e0af4cfbfac987b9548",
+        "practice": "4232b823ff1c674cf5ab6bec47f24c931b4e1282c8e10e0af4cfbfac987b9548",
+        "encounters_by_class": [
+          5,
+          21
+        ],
+        "reference": {
+          "matrix": [
+            [
+              417,
+              11
+            ],
+            [
+              15,
+              405
+            ]
+          ],
+          "accuracy": 0.9693396226415094,
+          "recall_by_class": [
+            0.9742990654205608,
+            0.9642857142857143
+          ],
+          "balanced_accuracy": 0.9692923898531376
+        },
+        "trial": {
+          "matrix": [
+            [
+              422,
+              6
+            ],
+            [
+              10,
+              410
+            ]
+          ],
+          "accuracy": 0.9811320754716981,
+          "recall_by_class": [
+            0.985981308411215,
+            0.9761904761904762
+          ],
+          "balanced_accuracy": 0.9810858923008456
+        },
+        "reference_kind": "incumbent",
+        "decision": "retain_incumbent"
+      }
+    },
+    {
+      "name": "train-06-m10-jan",
+      "receipt_sha256": "75e612f00e4bb3fa1ccdc4c6a8eb9c45ed90f927c3a2f02666bacb1c93d1a048",
+      "logs": {
+        "dark": "4126fcb73bcbb9414d4f9e41b1cde8d3e11408705e55a90401a401970f984402",
+        "light": "93db038dafe33051bc044cdd85bf975931cba87949ad85959f3e91c9379c8486"
+      },
+      "build": "af1217b47ce9e79b86c94de3e94092b6736f761c822a93f0d7597d173df06ca4",
+      "eligible_teacher_ticks": 827,
+      "cumulative_classes": [
+        1265,
+        3683
+      ],
+      "majority": 1,
+      "candidate": "23028e60d4203b06f9fb88abb29aaf0ea15082b57501cd869acef9feafdf8171",
+      "practice": "eaa220c1609cee94793427fe3df34af7f220bce14d3d193a181354df69aa03da",
+      "fresh_match_check": {
+        "challenger": "eaa220c1609cee94793427fe3df34af7f220bce14d3d193a181354df69aa03da",
+        "incumbent": "4232b823ff1c674cf5ab6bec47f24c931b4e1282c8e10e0af4cfbfac987b9548",
+        "practice": "eaa220c1609cee94793427fe3df34af7f220bce14d3d193a181354df69aa03da",
+        "encounters_by_class": [
+          10,
+          27
+        ],
+        "reference": {
+          "matrix": [
+            [
+              260,
+              56
+            ],
+            [
+              2,
+              509
+            ]
+          ],
+          "accuracy": 0.9298669891172914,
+          "recall_by_class": [
+            0.8227848101265823,
+            0.9960861056751468
+          ],
+          "balanced_accuracy": 0.9094354579008646
+        },
+        "trial": {
+          "matrix": [
+            [
+              316,
+              0
+            ],
+            [
+              11,
+              500
+            ]
+          ],
+          "accuracy": 0.9866989117291415,
+          "recall_by_class": [
+            1.0,
+            0.9784735812133072
+          ],
+          "balanced_accuracy": 0.9892367906066536
+        },
+        "reference_kind": "incumbent",
+        "decision": "use_for_practice"
+      }
+    },
+    {
+      "name": "practice-01-m2-jan",
+      "receipt_sha256": "ea05e36ef41abcc0b16eb7bb13b4e2a26f90b96883ac75f864059da27b3765d4",
+      "logs": {
+        "dark": "2f4d6e2222d0c5ef17c899d94f1c31ed4755f1fbc284135be295e9a8a24d84c1",
+        "light": "a90a958c8c429bbaa66dcb32fc0b955d2b2658d73028455dec0a2c6fa38a3b1a"
+      },
+      "build": "af1217b47ce9e79b86c94de3e94092b6736f761c822a93f0d7597d173df06ca4",
+      "eligible_teacher_ticks": 241,
+      "cumulative_classes": [
+        1329,
+        3860
+      ],
+      "majority": 1,
+      "candidate": "e57ff309c0dc0012aae9a31af8615edc0a456e04a271b5f8fb5434e92426b098",
+      "practice": "23028e60d4203b06f9fb88abb29aaf0ea15082b57501cd869acef9feafdf8171",
+      "fresh_match_check": {
+        "challenger": "23028e60d4203b06f9fb88abb29aaf0ea15082b57501cd869acef9feafdf8171",
+        "incumbent": "eaa220c1609cee94793427fe3df34af7f220bce14d3d193a181354df69aa03da",
+        "practice": "23028e60d4203b06f9fb88abb29aaf0ea15082b57501cd869acef9feafdf8171",
+        "encounters_by_class": [
+          3,
+          10
+        ],
+        "reference": {
+          "matrix": [
+            [
+              59,
+              5
+            ],
+            [
+              2,
+              175
+            ]
+          ],
+          "accuracy": 0.970954356846473,
+          "recall_by_class": [
+            0.921875,
+            0.9887005649717514
+          ],
+          "balanced_accuracy": 0.9552877824858756
+        },
+        "trial": {
+          "matrix": [
+            [
+              63,
+              1
+            ],
+            [
+              3,
+              174
+            ]
+          ],
+          "accuracy": 0.983402489626556,
+          "recall_by_class": [
+            0.984375,
+            0.9830508474576272
+          ],
+          "balanced_accuracy": 0.9837129237288136
+        },
+        "reference_kind": "incumbent",
+        "decision": "use_for_practice"
+      }
+    },
+    {
+      "name": "practice-02-m10-boba",
+      "receipt_sha256": "96b0d738f0a8cedcf124b920494232f18627cc0f143a978c424a89b7eb95d671",
+      "logs": {
+        "dark": "6adb27367f186a683e02666ad568fe1433e922e3418533c6676009456c3f6aee",
+        "light": "3aa1159492b21e6e95a13e3a66ab319bacbee98341d1b4beb3f9380ab6b83aa7"
+      },
+      "build": "af1217b47ce9e79b86c94de3e94092b6736f761c822a93f0d7597d173df06ca4",
+      "eligible_teacher_ticks": 713,
+      "cumulative_classes": [
+        1358,
+        4544
+      ],
+      "majority": 1,
+      "candidate": "880b3f52f75d660b020ff7e56668fd2ccc9ba25230f49aa0a833deafcffb8513",
+      "practice": "23028e60d4203b06f9fb88abb29aaf0ea15082b57501cd869acef9feafdf8171",
+      "fresh_match_check": {
+        "challenger": "e57ff309c0dc0012aae9a31af8615edc0a456e04a271b5f8fb5434e92426b098",
+        "incumbent": "23028e60d4203b06f9fb88abb29aaf0ea15082b57501cd869acef9feafdf8171",
+        "practice": "23028e60d4203b06f9fb88abb29aaf0ea15082b57501cd869acef9feafdf8171",
+        "encounters_by_class": [
+          2,
+          15
+        ],
+        "reference": {
+          "matrix": [
+            [
+              29,
+              0
+            ],
+            [
+              9,
+              675
+            ]
+          ],
+          "accuracy": 0.9873772791023843,
+          "recall_by_class": [
+            1.0,
+            0.9868421052631579
+          ],
+          "balanced_accuracy": 0.993421052631579
+        },
+        "trial": {
+          "matrix": [
+            [
+              29,
+              0
+            ],
+            [
+              10,
+              674
+            ]
+          ],
+          "accuracy": 0.9859747545582047,
+          "recall_by_class": [
+            1.0,
+            0.9853801169590644
+          ],
+          "balanced_accuracy": 0.9926900584795322
+        },
+        "reference_kind": "incumbent",
+        "decision": "retain_incumbent"
+      }
+    }
+  ],
+  "summary": {
+    "matches": 16,
+    "players": 32,
+    "first_tick_movements": 26,
+    "max_frames_to_movement": 60,
+    "first_seat_lead_wall_s_min_median_max": [
+      1.487957455,
+      1.5322588705,
+      2.990725387
+    ]
+  }
+}

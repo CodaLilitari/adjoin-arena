@@ -1,0 +1,133 @@
+--- a/src/AI/jkBot.c
++++ b/src/AI/jkBot.c
+@@ -1216,6 +1216,8 @@
+     return 0;
+ }
+ 
++#include "red_policy.inc"
++
+ static void Bot_Combat(SithThing *self, SithThing *target)
+ {
+     int urgent=bot.nextRecovery>0 || Bot_ObjectiveUrgent(self) || Bot_NavigationWaiting(self) ||
+@@ -1233,8 +1235,11 @@
+     int melee=(weapon==SITHBIN_LIGHTSABER || weapon==SITHBIN_FISTS);
+     int routed=urgent;
+     if (!urgent) {
+-        routed=Bot_ArmingMove(self,distance);
+-        if (!routed && (Bot_SupplyOrder() || (Bot_EquipmentMode() && distance>=0.45f)) && bot.nNodes>0) {
++        int teacher=distance>=0.45f;
++        int supply=Red_Choose(self,target,distance,teacher);
++        flex_t armingDistance=supply==teacher ? distance : supply ? 0.45f : 0.0f;
++        routed=Bot_ArmingMove(self,armingDistance);
++        if (!routed && (Bot_SupplyOrder() || (Bot_EquipmentMode() && supply)) && bot.nNodes>0) {
+             Bot_Navigate(self);
+             routed=bot.goal>=0 || bot.routeAim;
+         }
+@@ -1256,10 +1261,17 @@
+     if (swimFight) Bot_SwimThrust(self,Bot_Sub(bot.nodes[bot.route[bot.routePos]].pos,self->position));
+     bot.tele.aimError+=Bot_Min(error,90.0f)*bot.frameDt; bot.tele.aimTime+=bot.frameDt;
+     if (error<3.0f) bot.tele.onTarget+=bot.frameDt;
++    if (red.decision.pending) {
++        if (routed) red.decision.owner=Red_RouteItem()==red.decision.item && bot.followingRoute ? "supply" : "route-other";
++        red.decision.fwd=bot.axes[INPUT_FUNC_FORWARD]; red.decision.slide=bot.axes[INPUT_FUNC_SLIDE];
++    }
+     Bot_TryCombatJump(self,target);
+     Bot_FireGunShot(self,target,weapon,&shot,error,distance);
+     Bot_ForceTick(self,target,error);
+-    if (bot.forceAvoid || bot.forceCancel) return;
++    if (bot.forceAvoid || bot.forceCancel) {
++        if (red.decision.pending) red.decision.owner="force";
++        return;
++    }
+     if (routed) return;
+     if (bot.now>=bot.strafeUntil) {
+         bot.strafeSide=(Bot_Random()&1u) ? 1 : -1;
+@@ -1275,6 +1287,9 @@
+         /* A fight is where speed matters most; the corridor check still decides. */
+         bot.moveRun=bot.moveBoost=1;
+         Bot_Move(self,move,0);
++    }
++    if (red.decision.pending) {
++        red.decision.fwd=bot.axes[INPUT_FUNC_FORWARD]; red.decision.slide=bot.axes[INPUT_FUNC_SLIDE];
+     }
+ }
+ 
+@@ -1613,6 +1628,7 @@
+     if (settings && strlen(settings)<sizeof(bot.behaviorFile))
+         strcpy(bot.behaviorFile,settings);
+     snprintf(bot.name,sizeof(bot.name),"%s",name ? name : "Bot_Player");
++    Red_Configure();
+     bot.random=0x714a21fdu;
+     for (const unsigned char *p=(const unsigned char *)bot.name;*p;p++) bot.random=(bot.random^*p)*16777619u;
+     if (!bot.random) bot.random=1;
+@@ -1626,6 +1642,7 @@
+     Bot_ResetHearing();
+     companion.identified=0;
+     Companion_ResetPlan();
++    Red_Marker("BOT_RED_JOIN"); red.live=0;
+     bot.joined=1; bot.world=NULL; bot.now=bot.nextForceTrace=bot.nextSpeedProbe=0;
+     bot.tracedFireMode=-1; bot.nextFireTrace=0; bot.nextLog=10.0f;
+     bot.nextBehavior=tactics.nextFile=tactics.lockedUntil=0;
+@@ -1653,6 +1670,7 @@
+ 
+ void jkBot_Tick(flex_t dt)
+ {
++    red.decision.pending=0; red.readMask=0;
+     memcpy(bot.previous,bot.keys,sizeof(bot.keys));
+     memset(bot.axes,0,sizeof(bot.axes)); memset(bot.keys,0,sizeof(bot.keys));
+     bot.rawTurn=bot.rawPitch=0;
+@@ -1674,6 +1692,7 @@
+     bot.tele.asked=bot.tele.refused=bot.tele.moved=bot.tele.braking=0;
+     SithThing *self=sithPlayer_g_pLocalPlayerThing;
+     if (self->type!=SITH_THING_PLAYER || !self->sector || !self->actorParams.pPlayer) return;
++    ++red.frame;
+     Bot_TraceForce(self);
+     if (bot.world!=sithWorld_g_pCurrentWorld) {
+         Bot_ResetHearing();
+@@ -1694,6 +1713,11 @@
+     Bot_RunJumpWatch(self);
+     Bot_ObservePeers(self);
+     int dead=(self->flags&SITH_TF_DEAD)!=0 || self->actorParams.health<=0;
++    if (dead) red.live=0;
++    else if (!red.live) {
++        red.live=1; ++red.life; red.acted=0;
++        Red_Marker("BOT_RED_FIRST");
++    }
+     Companion_Tick(self,dead);
+     if (!dead && !bot.wasDead && bot.previousHealth>self->actorParams.health+0.5f) {
+         bot.hurtUntil=bot.now+2.5f;
+@@ -1741,7 +1765,13 @@
+         int trap=nav.waterExitUntil>0 ? 0 : Bot_TrapTick(self);
+         if (nav.waterExitUntil>0) Bot_ContinueWaterExit(self,target);
+         else if (trap==2) Bot_SelectWeapon(self,2.0f);
+-        else if (target) { Bot_Combat(self,target); if (trap==1) Bot_TrapLegs(self); }
++        else if (target) {
++            Bot_Combat(self,target);
++            if (trap==1) {
++                Bot_TrapLegs(self);
++                if (red.decision.pending) red.decision.owner="trap";
++            }
++        }
+         else if (trap==1) { Bot_SelectWeapon(self,2.0f); Bot_TrapLegs(self); Bot_ForceTick(self,NULL,180.0f); }
+         else {
+             Bot_SelectWeapon(self,2.0f);
+@@ -1757,6 +1787,8 @@
+         if (!releasingPower) Bot_TryMovementSpeed(self);
+         Bot_MoveTelemetry(self);
+     }
++    Red_FinishDecision();
++    Red_State(self,dead);
+     Companion_Publish(self,dead);
+     bot.wasDead=dead;
+     for (int i=0;i<INPUT_FUNC_MAX;i++) bot.presses[i]=bot.keys[i] && !bot.previous[i];
+@@ -1801,7 +1833,9 @@
+ 
+ flex_t jkBot_GetAxis(int functionId)
+ {
+-    return functionId>=0 && functionId<INPUT_FUNC_MAX ? bot.axes[functionId] : 0.0f;
++    flex_t value=functionId>=0 && functionId<INPUT_FUNC_MAX ? bot.axes[functionId] : 0.0f;
++    Red_AxisRead(functionId,value);
++    return value;
+ }
+ 
+ /* The mouse-look delta for this frame, in degrees. A key-axis turn set

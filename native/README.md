@@ -303,3 +303,147 @@ post-GO interval. The standalone clock test checks integer and fractional
 steps against each archived clock object, separately from full-match evidence.
 
 [Clock implementation](arena_pace.c) · [Verified relinker](build_arena_pace.py)
+
+## Red’s headless teacher and local neural policy
+
+The research client starts with Red’s full 14-file tactics patch from
+`f453778a3cf670dea43c44315786ae4afc8ae440` in JK Cross Server. The build
+uses that revision’s bot base patch and relink archive. It recompiles both
+the AI driver and the input device translation unit so Red’s ordinary
+mouse-look aiming path reaches the game. Both teacher and neural seats run
+the same executable. Use the paced dedicated host from the preceding recipe.
+
+Export that exact revision’s `native/BOT_BUILD.json`, `native/bot-client.patch`,
+`native/bot-tactics.patch`, `native/bot-relink-linux-x86_64.tar.gz`, and its
+`bin/bots-linux-x86_64/{jk-bot-client,libGameNetworkingSockets.so}` into
+one directory preserving these paths. Supply the bot-patched engine source
+at Red’s engine base `74e4657c4f1751d09af9ad9e056acb8f41997acb` and its
+generated `globals.h`. Multiple `--source` paths are supported. The builder
+requires the manifest hash of each source and archived input and verifies the
+result against the retained receipt. The qualified Linux x86-64 toolchain
+versions and generated-header hash are in that receipt. Install OpenSSL
+development headers/library alongside the normal linker dependencies.
+
+```sh
+python3 -B native/reproduce_red_build.py duel \
+  --red-export /path/to/frozen-red-pr3 \
+  --source /path/to/bot-patched-engine \
+  --globals-header /path/to/generated/globals.h \
+  --output /outside-checkouts/red-build
+python3 -B native/tests/test_red_policy.py
+```
+
+Set `ADJOIN_RED_TRACE=1` on both owners. Leave the two model variables unset
+for the teacher. For a neural seat set `ADJOIN_RED_MODEL` to the weights file
+and `ADJOIN_RED_MODEL_SHA256` to its lowercase SHA-256. The client hashes,
+parses and freezes the same bytes at configuration time. A failed load selects
+the teacher and emits `mode=fallback status=rejected`. Red’s tactics remain
+editable through his existing tactics controls. To change learned weights
+between matches, start a new owner process with the new digest. Each owner
+begins its ordinary controls on joining the stock match. Set the same
+`ADJOIN_PACE_RATE` for the three processes and their individual pace roles.
+
+The learned decision is whether to keep following an existing pickup
+objective or switch to combat footwork while a visible opponent is present.
+The query requires a live, still-useful item, suitable footing, and an ordinary
+elite deathmatch controller. Red retains urgent moves, rescue, trap responses,
+aim, weapon choice, both fire modes and Force. The script’s original decision
+at that branch is to keep the route at an enemy distance of at least 0.45
+world units. It can aim or shoot while keeping the route.
+
+Each `BOT_DUEL` row records the nine integer observations before arbitration,
+the original teacher decision, the decision selected by the active controller
+and the final movement owner. The feature order is health, shields, distance
+to the enemy, distance to the pickup, equipped weapon bin, its ammunition,
+stock backpack flag, underwater sector flag and remaining route nodes.
+Distances use thousandths of a world unit. A value of one in `applied` means
+that same pickup retained a nonzero final movement command. `owner` also
+distinguishes engagement, changed route, stationary and overridden movement.
+`BOT_RED_READ` records each movement-axis value when the ordinary control
+driver actually requests it, keyed by owner, life and decision sequence.
+Zero-valued axes and absent reads are distinguishable in the source logs.
+
+`BOT_RED_JOIN`, `BOT_RED_FIRST` and `BOT_RED_APPLY` respectively mark the
+native join callback, first live control tick per life and first nonzero
+forward/slide axis delivered per life. Each uses the owning process’s PID and
+Linux monotonic clock. `BOT_RED_STATE` records the owner's weapon possession
+mask, ammunition, health, shields, kill/death counters and target on changes
+and a five-per-game-second heartbeat. That log samples possessions and damage
+on the owner and does not identify who inflicted every loss. Actual kills
+may follow earlier decisions or another actor’s action.
+
+[Build receipt](red-policy-build.json) · [Game integration](red-policy.patch) ·
+[Loader, neural forward pass and trace implementation](red_policy.inc)
+
+## Cross-mode navigation and local route learning
+
+The separate transfer client keeps the measured duel executable reproducible.
+Build it with the same source, globals header and Red export arguments, using
+the transfer recipe and a fresh output directory. Its driver tests
+also need the complete upstream `native/tests` directory in the Red export.
+
+```sh
+python3 -B native/reproduce_red_build.py transfer --red-export "$RED_EXPORT" \
+  --source "$ENGINE_SOURCE" --globals-header "$GLOBALS_HEADER" --output "$NEW_OUTPUT"
+python3 -B native/tests/run_red_transfer_tests.py --red-export "$RED_EXPORT" \
+  --source "$ENGINE_SOURCE" --globals-header "$GLOBALS_HEADER"
+```
+
+The original engine embeds the compile-time path of `sithControl.c` in a
+diagnostic. The reproduction wrapper maps that single source filename to
+the exact value embedded in each frozen image. The original builders,
+the executable receipts and the gameplay source stay byte-for-byte pinned.
+
+| Competitive mode | Native evidence | Tactical controller |
+| --- | --- | --- |
+| Free-for-all | Teams flag cleared | Red’s default script, with the local gear decision eligible in a qualified guns configuration |
+| Team deathmatch | Teams flag and stock skin-team bit 0x100 | Red’s team-aware targeting, with the gear decision eligible only for this mode’s qualified guns configuration |
+| Capture the flag | Teams flag plus live bindings from the stock `ctf_main.cog` | Red’s physical lobby entry, capture, return, recover, intercept, escort and defend objectives |
+
+Each mode can run guns or sabers and with or without Force. The stock roster
+supports JK1MP’s six deathmatch levels and JK1CTF’s three flag levels at Jedi
+ranks 0 through 8. Other authored maps need their own launcher/content
+admission, asset checks and playtest. Unknown team configurations use Red’s
+controls. The transfer client reads the engine’s team flags, replicated CTF
+bindings, effective saber/Force controls and actual Jedi rank. Its
+`BOT_RED_CONTEXT` also contains the SHA-256 of the level bytes opened through
+the game’s resource layer and the active scope, such as `tdm/guns/noforce`.
+
+Supply the local model path and digest as above. A model also requires a
+matching `ADJOIN_RED_MODEL_SCOPE` and `ADJOIN_RED_MODEL_MAP_SHA256` to act.
+The loader’s startup marker validates the artifact. The context marker
+validates its scope, and the model field on each decision records who chose.
+A new level initially uses Red’s controller. CTF and saber controls stay with
+their own scripts. A local movement coach can use the observations to train
+and qualify an appropriate model later. The fallback uses current sector
+geometry and live CTF bindings. When no graph route is available it can take
+a short ground-tested step, retaining the objective heading if one exists.
+An unusable graph or a blocked corridor can still strand a bot.
+
+Set `ADJOIN_NAV_CACHE` to an existing writable absolute directory per bot
+profile for cross-match route memory. Raw observations stay local. Each map
+digest and rules combination has an independent file including server
+multiplayer flags and Jedi rank. The directed endpoints use quantized world
+positions and sector identity so graph insertion order can vary with spawn.
+One native writer locks a file. A second writer or inaccessible path uses
+session memory. Writes replace a small file atomically.
+
+If Red detects a stall on an identifiable directed edge it was actually
+driving, the planner adds two distance-cost units on its next legal search.
+Repeated failures raise that cost up to eight. Success halves the underlying
+failure count. The count declines once per six wall-clock hours and expires
+after 24 hours. Each map/rules file retains at most 128 directed edges.
+Physical admissibility checks for gates, Force jumps, health and collision
+still run on every route. A higher cost may leave the chosen path unchanged
+when an alternative is unavailable.
+
+`BOT_NAV_LEARN` records the traversal outcome and old/new cost,
+`BOT_NAV_COST` records a surcharge used in search, and `BOT_NAV_FALLBACK`
+records locally checked steering. `BOT_RED_NAV` records team, flag identities,
+carrier thing IDs, home states, the chosen objective, scoreboard and actual
+movement outputs. Its first-order measurements distinguish physical movement,
+objective selection and a changed score. Objective selection alone cannot
+establish a completed flag capture.
+
+[Transfer build receipt](red-transfer-build.json) · [Native implementation](red_transfer.inc) ·
+[Controlled pathfinder regression](tests/test_red_transfer_driver.c)

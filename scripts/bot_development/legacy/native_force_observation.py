@@ -69,7 +69,7 @@ def choose(directory, name):
     return matches[0]
 
 
-def stage(source, target):
+def stage(source, target, *, stock_episode=True):
     # Private copies only. prepare_bot can then safely hard-link *these* inputs.
     for name in ("resource", "episode"):
         (target / name).mkdir(parents=True)
@@ -78,9 +78,10 @@ def stage(source, target):
                 if any(p.name.casefold() == n for p in resource.iterdir())]
     if not variants:
         raise Failure("missing_stock_resource_gob")
-    files = [("episode", choose(source, "episode"), "jk1mp.gob"),
-             ("resource", resource, "res2.gob"), ("resource", resource, variants[0]),
+    files = [("resource", resource, "res2.gob"), ("resource", resource, variants[0]),
              ("resource", resource, "jk_.cd")]
+    if stock_episode:
+        files.append(("episode", choose(source, "episode"), "jk1mp.gob"))
     for section, parent, name in files:
         check()
         with choose(parent, name).open("rb") as src, (target / section / name).open("xb") as dst:
@@ -226,9 +227,10 @@ def observe(side, name, line, row, trace):
     if kind == "BOT_JOIN_REJECTED":
         raise Failure(side + "_join_rejected")
     if kind == "BOT_LOADOUT":
-        if not re.fullmatch(r"rank=8 side=" + side + " style=competitive spent=24 remaining=0", tail):
+        rank=row.get("expected_rank",8)
+        if not re.fullmatch(f"rank={rank} side={side} style=competitive spent={3*rank} remaining=0", tail):
             raise Failure(side + "_incorrect_saved_plan")
-        row["loadout"] = {"rank": 8, "style": "competitive", "spent": 24, "remaining": 0}
+        row["loadout"] = {"rank": rank, "style": "competitive", "spent": 3*rank, "remaining": 0}
     if kind == "BOT_JOINED":
         slot, net = int(fields["slot"]), int(fields["net"])
         if not 0 <= slot < 32 or not 0 < net <= 0xffffffff:
@@ -262,7 +264,7 @@ def observe(side, name, line, row, trace):
                           read_elapsed_s=round(time.monotonic()-START,3)))+"\n")
     row["samples"] += 1
     row["first_stars"] = row["first_stars"] or stars
-    row["matching_star_samples"] += stars == [4 if b in EXPECTED[side] else 0 for b in range(21,35)]
+    row["matching_star_samples"] += stars == [4 if row.get("expected_rank",8) and b in EXPECTED[side] else 0 for b in range(21,35)]
     row["immobile_samples"] += sample["immobile"] == 1
     prev = row["previous"]
     example = {k:sample[k] for k in ("t","health","shields","mana","immobile")}
@@ -300,7 +302,7 @@ def run(args, receipt, tmp):
     from bots.run import prepare_bot, load_profiles, bot_environment
     from bots.settings import write_behavior
     from manager import config
-    from manager.content import archive_index
+    from manager.content import archive_index, catalog
 
     def git(*words):
         return subprocess.check_output(["git","-C",str(repo),*words],stderr=subprocess.DEVNULL,
@@ -337,29 +339,55 @@ def run(args, receipt, tmp):
         import native_observation_pace as pace_tools
         server, bot, pace_build = pace_tools.resolve_build(repo, args.pace_build.resolve(), hashes, digest)
         build = pace_build["bot"]
-        receipt["planner_experiment"] = {"mode": "on", "build": build}
+        if args.red_policy_build:
+            import native_red_match as red_tools
+            bot, build = red_tools.resolve_client(repo, args.red_policy_build.resolve(), pace_build, digest,
+                                                  transfer=bool(args.transfer_build))
+            args.red_tools = red_tools
+            receipt["kind"] = "adjoin-arena-stock-red-policy"
+            receipt["red_policy"] = {"build":build, "elite":True, "model_side":args.model_side,
+                                     "weights_sha256":digest(args.policy_weights) if args.policy_weights else None,
+                                     "verifier_sha256":digest(Path(red_tools.__file__))}
+        else:
+            receipt["planner_experiment"] = {"mode": "on", "build": build}
         receipt["pacing"] = "native pace experiment"
         receipt["pace_experiment"] = {"speed": args.pace_rate, "requested_game_seconds": args.duration,
                                       "trace": "pace-trace.jsonl", "build": pace_build,
                                       "verifier_sha256": digest(Path(pace_tools.__file__))}
     server_dir = tmp/"server"
-    stage(source,server_dir)
+    stage(source,server_dir,stock_episode=not args.transfer_build)
     gob = server_dir/"episode/jk1mp.gob"
-    hashes["jk1mp.gob"] = digest(gob)
     for p in (server_dir/"resource").glob("*.gob"):
         hashes[p.name] = digest(p)
-    if hashes["jk1mp.gob"] != STOCK_MP:
-        raise Failure("stock_episode_hash_mismatch")
-    audit = json.loads((repo / "qa/bots-stock-map-audit.json").read_text())
-    episode = next(item for item in audit["episodes"] if item["episode"] == "jk1mp")
-    expected_hash = next(item["sha256"] for item in episode["maps"] if item["map"] == args.map)
     map_key = "jkl/" + args.map
-    entry = next(item for item in archive_index(gob) if item["name"].casefold() == map_key)
-    with gob.open("rb") as inp:
-        inp.seek(entry["offset"])
-        hashes[map_key] = hashlib.sha256(inp.read(entry["size"])).hexdigest()
-    if hashes[map_key] != expected_hash:
-        raise Failure("stock_map_hash_mismatch")
+    if args.transfer_build:
+        import native_mode_transfer as transfer
+        args.transfer = transfer
+        gob, asset = transfer.stage_episode(args, server_dir, archive_index, catalog, digest)
+        hashes[gob.name] = asset["episode_sha256"]
+        hashes[map_key] = asset["map_sha256"]
+        policy = transfer.selection(args, hashes[map_key])
+        if policy["controller"] == "learned":
+            args.model_side = args.registry_side or args.model_side
+            args.policy_weights = Path(policy["path"])
+        receipt["kind"] = "adjoin-arena-mode-transfer"
+        receipt["mode_transfer"] = {"content":asset,"mode":args.mode,"weapons":args.weapons,"force":args.force,
+                                    "policy_selection":{k:v for k,v in policy.items() if k!="path"},
+                                    "registry_side":args.registry_side}
+        receipt["red_policy"].update(model_side=args.model_side,weights_sha256=policy["sha256"])
+    else:
+        hashes["jk1mp.gob"] = digest(gob)
+        if hashes["jk1mp.gob"] != STOCK_MP:
+            raise Failure("stock_episode_hash_mismatch")
+        audit = json.loads((repo / "qa/bots-stock-map-audit.json").read_text())
+        episode = next(item for item in audit["episodes"] if item["episode"] == "jk1mp")
+        expected_hash = next(item["sha256"] for item in episode["maps"] if item["map"] == args.map)
+        entry = next(item for item in archive_index(gob) if item["name"].casefold() == map_key)
+        with gob.open("rb") as inp:
+            inp.seek(entry["offset"])
+            hashes[map_key] = hashlib.sha256(inp.read(entry["size"])).hexdigest()
+        if hashes[map_key] != expected_hash:
+            raise Failure("stock_map_hash_mismatch")
     if args.controlled_opening or args.ready_gate:
         # Build only in the clean private stage, before peers copy their data.
         sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -386,15 +414,23 @@ def run(args, receipt, tmp):
     cfg = dict(config.DEFAULT,map=args.map,rank=8,native_port=port,bots_fists_peace=False,bots_force_enabled=True,
                bots_sabers_only=False,bots_taunts=False,web_enabled=False,spectator_rendering=False,
                name="Native Force QA",max_players=4)
+    if args.transfer_build:
+        cfg.update(episode=asset["episode"],teams=args.mode!="ffa",game_flags=0x100 if args.mode=="tdm" else 0,
+                   rank=8 if args.force=="on" else 0,bots_force_enabled=args.force=="on",bots_sabers_only=args.weapons=="sabers")
+        receipt["bot_options"]["requested_teams"] = {"dark":1,"light":2} if cfg["teams"] else {"dark":0,"light":0}
+        receipt["bot_options"].pop("team")
     registry = config.registry(cfg)
     receipt["server_registry"] = registry.copy()
     receipt["server_registry"].pop("serverPassword")
-    receipt["server_argv"] = ["-headless","-dedicatedServer","-episode","JK1MP","-map",args.map]
+    receipt["server_argv"] = ["-headless","-dedicatedServer","-episode",cfg["episode"],"-map",args.map]
     (server_dir/"registry.json").write_text(dump(registry))
     (server_dir/"player").mkdir()
     write_behavior(tmp/"behavior.cfg",cfg)
     profiles = load_profiles()
     receipt["bots"] = bots = {s:new_stats(s) for s in LABELS}
+    if args.transfer_build:
+        for owner in bots.values():
+            owner["expected_rank"]=cfg["rank"]
     for side, pid in LABELS.items():
         if (profiles[pid]["force_side"],profiles[pid]["force_style"]) != (side,"competitive"):
             raise Failure(side+"_incorrect_profile")
@@ -403,11 +439,11 @@ def run(args, receipt, tmp):
     if args.pace_build:
         host_env.update(ADJOIN_PACE_ROLE="host", ADJOIN_PACE_RATE=str(args.pace_rate))
     boot("server",[str(server),*receipt["server_argv"]],server_dir,host_env,
-         output, recorder=args.recorder, repo=repo, camera=args.camera, line_buffered=args.ready_gate)
+         output, recorder=args.recorder, repo=repo, camera=args.camera, line_buffered=args.ready_gate or args.red_policy_build)
     before = time.monotonic()
     while not owns_udp(CHILDREN["server"].pid,port):
         check_liveness()
-        if time.monotonic()-before > 25:
+        if time.monotonic()-before > (60 if args.red_policy_build else 25):
             raise Failure("dedicated_server_udp_readiness_timeout")
         time.sleep(.1)
     receipt["dedicated_server_owned_udp_port"] = True
@@ -435,25 +471,37 @@ def run(args, receipt, tmp):
     pace_file = (output/"pace-trace.jsonl").open("x", encoding="ascii", buffering=1) if args.pace_build else nullcontext()
     with pace_file as clock_trace, (output/"force-trace.jsonl").open("x",encoding="ascii",buffering=1) as trace:
         if args.pace_build:
-            pace = pace_tools.NativePace(clock_trace, receipt["pace_experiment"])
+            pace = pace_tools.NativePace(clock_trace, receipt["pace_experiment"], ungated=bool(args.red_policy_build))
         for index, (side, pid) in schedule:
             p = profiles[pid]
             directory = tmp/side
             env = private_env(directory,bot)
             standard = bot_environment(bot,directory,tmp,index,"",False,behavior_file=tmp/"behavior.cfg",
-                                       force_side=side,force_style="competitive")
+                                       team=(index+1 if cfg["teams"] else 0),force_side=side,force_style="competitive")
             env.update({k:v for k,v in standard.items() if k.startswith("JK_BOT_")})
             env["JK_BOT_TRACE_FORCE"] = "1"
             if args.planner_quarantine:
                 env["JK_BOT_PLANNER_QUARANTINE"] = "1" if args.planner_quarantine == "on" else "0"
             if args.pace_build:
                 env.update(ADJOIN_PACE_ROLE=side, ADJOIN_PACE_RATE=str(args.pace_rate))
+            if args.red_policy_build:
+                env["ADJOIN_RED_TRACE"] = "1"
+                env["JK_BOT_ELITE"] = "1"
+                if args.transfer_build:
+                    cache=transfer.cache_directory(args.nav_cache, pid, repo, source, output)
+                    env["ADJOIN_NAV_CACHE"]=str(cache)
+                if side == args.model_side:
+                    env.update(ADJOIN_RED_MODEL=str(args.policy_weights.resolve()),
+                               ADJOIN_RED_MODEL_SHA256=receipt["red_policy"]["weights_sha256"])
+                    if args.transfer_build:
+                        env.update(ADJOIN_RED_MODEL_SCOPE=f"{args.mode}/{args.weapons}/"+("force" if args.force=="on" else "noforce"),
+                                   ADJOIN_RED_MODEL_MAP_SHA256=hashes[map_key])
             args_bot = ["-headless","-botConnect",f"127.0.0.1:{port}","-botName",p["name"],
                         "-botSkin",p["model"],"-botSound",p["sound"]]
             bots[side]["argv"] = args_bot
             # Native COG diagnostics use stdout. Flush each line before shutdown.
             boot(side,[str(bot),*args_bot],directory,env,output,
-                 line_buffered=args.controlled_opening or args.ready_gate)
+                 line_buffered=args.controlled_opening or args.ready_gate or args.red_policy_build)
             # Give each real client its own discovery / welcome cycle before the next.
             wait_start = time.monotonic()
             while not bots[side]["joined"]:
@@ -463,8 +511,10 @@ def run(args, receipt, tmp):
                     raise Failure(side+"_join_timeout")
                 time.sleep(.10)
         start_match = time.monotonic()
-        if args.planner_quarantine:
-            images = receipt["planner_experiment"]["loaded_images"] = {}
+        if args.planner_quarantine or args.red_policy_build:
+            images = {}
+            if args.planner_quarantine:
+                receipt["planner_experiment"]["loaded_images"] = images
             server_lib = str(Path(SERVER).parent / GNS)
             for label in ("server", *LABELS):
                 proc = Path("/proc") / str(CHILDREN[label].pid)
@@ -498,7 +548,17 @@ def run(args, receipt, tmp):
     for side, row in bots.items():
         if not row["joined"] or not row["loadout"] or row["matching_star_samples"] == 0:
             raise Failure(side+"_join_or_live_loadout_unverified")
-        if row["behavior"] != {"sabers_only":0,"fists_peace":0,"force_enabled":1}:
+        desired = {"sabers_only":int(cfg["bots_sabers_only"]),"fists_peace":0,"force_enabled":int(cfg["bots_force_enabled"])}
+        if args.red_policy_build and row["behavior"] is None:
+            # Red prints BOT_BEHAVIOR only on change. Its pinned startup values
+            # already match this complete, read-only match configuration.
+            expected_file = "version=1\nsabers_only=0\nfists_peace=0\nforce_enabled=1\n"
+            if (tmp/"behavior.cfg").read_text("ascii") != expected_file:
+                raise Failure(side+"_red_behavior_file_unverified")
+            row["behavior"] = desired.copy()
+            row["behavior_evidence"] = {"source":"pinned Red startup defaults and unchanged behavior file",
+                                        "file_sha256":digest(tmp/"behavior.cfg")}
+        if row["behavior"] != desired:
             raise Failure(side+"_behavior_unverified")
     if any(bots["light"]["joined"][k] == bots["dark"]["joined"][k] for k in ("slot","net")):
         raise Failure("duplicate_live_identity")
@@ -552,7 +612,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for key in ("repo","data","output"):
         parser.add_argument("--"+key,type=Path,required=True)
-    parser.add_argument("--map", choices=STOCK_MAPS, default="m2.jkl")
+    parser.add_argument("--map", default="m2.jkl")
     parser.add_argument("--duration",type=int,default=75,choices=range(1,121),metavar="1..120")
     parser.add_argument("--arena-baseline", action="store_true",
                         help="Require a private loopback-only network namespace and hash the tested inputs.")
@@ -577,22 +637,57 @@ def main():
                         help="Use a verified native pace-build directory containing the paired host and planner client.")
     parser.add_argument("--pace-rate", type=int, choices=(1, 2),
                         help="Set both players and host to the selected game speed; --duration means game seconds.")
+    parser.add_argument("--red-policy-build", type=Path, metavar="DIRECTORY",
+                        help="Play an ungated stock match with the pinned native Red decision client.")
+    parser.add_argument("--transfer-build", type=Path, metavar="DIRECTORY",
+                        help="Use the pinned map- and mode-aware research client for an ungated match.")
+    parser.add_argument("--mode", choices=("ffa","tdm","ctf"))
+    parser.add_argument("--weapons", choices=("guns","sabers"))
+    parser.add_argument("--force", choices=("on","off"))
+    parser.add_argument("--episode-file", type=Path)
+    parser.add_argument("--episode-sha256")
+    parser.add_argument("--map-sha256")
+    parser.add_argument("--nav-cache", type=Path, help="Existing private external cache root shared across matches.")
+    parser.add_argument("--policy-registry", type=Path)
+    parser.add_argument("--registry-side", choices=("dark","light"))
+    parser.add_argument("--trial-scope", help="Explicit candidate experiment scope, e.g. tdm/guns/noforce.")
+    parser.add_argument("--trial-map-sha256")
+    parser.add_argument("--trial-weights-sha256")
+    parser.add_argument("--model-side", choices=("dark", "light"),
+                        help="Apply a frozen decision model on this owner in an ungated Red policy match.")
+    parser.add_argument("--policy-weights", type=Path, help="Frozen decision weights for --model-side.")
     parser.add_argument("--camera", choices=("follow", "rifle-overlook"),
                         help="Record the selected native camera (implies --record).")
     args = parser.parse_args()
+    transfer_settings=(args.mode,args.weapons,args.force,args.episode_file,args.episode_sha256,args.map_sha256,args.nav_cache)
+    trial = (args.trial_scope,args.trial_map_sha256,args.trial_weights_sha256)
+    if args.transfer_build:
+        if (not all(transfer_settings) or args.red_policy_build or (args.policy_registry is None) != (args.registry_side is None)
+                or (any(trial) or args.model_side or args.policy_weights) and
+                (not all(trial) or not args.model_side or not args.policy_weights or args.policy_registry)):
+            parser.error("--transfer-build requires complete rules, episode/map pins and --nav-cache; "
+                         "optional --policy-registry and --registry-side must be supplied together")
+        args.red_policy_build=args.transfer_build
+    elif (any(transfer_settings) or any(trial) or args.policy_registry or args.registry_side or args.map not in STOCK_MAPS):
+        parser.error("custom maps, additional mode settings and registry selection require --transfer-build")
+    if ((args.model_side is None) != (args.policy_weights is None) or args.model_side and not args.red_policy_build):
+        parser.error("--model-side and --policy-weights require each other and --red-policy-build")
+    if args.red_policy_build and (not args.arena_baseline or not args.pace_build or args.ready_gate
+            or args.controlled_opening or args.observe_repeater or args.planner_quarantine or args.planner_client):
+        parser.error("--red-policy-build requires a paced arena baseline with ordinary stock spawns")
     if ((args.pace_build is None) != (args.pace_rate is None)
             or args.pace_build and (args.planner_client or args.planner_quarantine
-                                    or not (args.arena_baseline and args.ready_gate and args.observe_repeater))):
+                                    or not args.red_policy_build and not (args.arena_baseline and args.ready_gate and args.observe_repeater))):
         parser.error("--pace-build and --pace-rate require each other and an instrumented arena ready gate; "
                      "the pace build already includes the shared-GO planner")
     if ((args.planner_client is None) != (args.planner_quarantine is None)
             or args.planner_client is not None and not (args.arena_baseline and args.ready_gate and args.observe_repeater)):
         parser.error("--planner-client and --planner-quarantine require each other, --arena-baseline, "
                      "--ready-gate and --observe-repeater")
-    if args.pace_build:
+    if args.pace_build and not args.red_policy_build:
         args.planner_quarantine = "on"
-    if args.jan_first and not args.ready_gate:
-        parser.error("--jan-first requires --ready-gate")
+    if args.jan_first and not (args.ready_gate or args.red_policy_build):
+        parser.error("--jan-first requires --ready-gate or --red-policy-build")
     if (args.swap_starts or args.observe_repeater) and not args.ready_gate:
         parser.error("--swap-starts and --observe-repeater are available only with --ready-gate")
     if args.camera:
@@ -628,6 +723,12 @@ def main():
                 run(args,receipt,Path(temp))
             finally:
                 finish_match(args.recorder, receipt, out, preserve_error=sys.exc_info()[0] is not None)
+        if args.red_policy_build:
+            receipt["red_policy"]["start_and_outcomes"] = args.red_tools.first_controls(out, receipt)
+        if args.transfer_build:
+            observed=receipt["mode_transfer"]["native"]=args.transfer.read_native(out,receipt)
+            if observed["qualification_errors"]:
+                raise Failure("native_transfer_rules_or_navigation_unverified")
         if args.controlled_opening or args.ready_gate:
             try:
                 receipt["opening_observations"] = args.opening.qualify(
@@ -653,7 +754,7 @@ def main():
     except Failure as e:
         receipt["error"] = str(e)
     except ValueError as e:
-        receipt["error"] = str(e) if args.pace_build and re.fullmatch(r"native_pace_[a-z_]+", str(e)) else "ValueError"
+        receipt["error"] = str(e) if args.pace_build and re.fullmatch(r"native_(pace|red|transfer)_[a-z_]+", str(e)) else "ValueError"
     except Exception as e:
         # OSError strings often contain private installation paths.
         receipt["error"] = type(e).__name__

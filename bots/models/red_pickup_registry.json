@@ -1,0 +1,163 @@
+{
+  "schema": 1,
+  "task": "native_legal_pickup_versus_engage_movement",
+  "capability": "Qualified means held-out imitation above the training majority and actual native nonzero movement read for both choices in a frozen-model match on the exact map and rules. Competition strength is measured separately.",
+  "cells": [
+    {
+      "mode": "ctf",
+      "combat": "guns",
+      "force": false,
+      "map": "c3.jkl",
+      "map_sha256": "b4d804591cebebbd59f05ad42a8e059178dc468e24172bd6bc5b7d6ba1c2f0a7",
+      "status": "separate_flag_or_saber_task"
+    },
+    {
+      "mode": "ctf",
+      "combat": "guns",
+      "force": true,
+      "map": "c1.jkl",
+      "map_sha256": "349fb5beffba7c84fd573fe1184f3fbb569d4fcdad07d2d9b26fcb8afdb849e0",
+      "status": "separate_flag_or_saber_task"
+    },
+    {
+      "mode": "ctf",
+      "combat": "sabers",
+      "force": false,
+      "map": "c2.jkl",
+      "map_sha256": "bc9975eb3c93ee45e83928307d27dfd5d8f94ad4eea3216fa3fecf784e593ade",
+      "status": "separate_flag_or_saber_task"
+    },
+    {
+      "mode": "ctf",
+      "combat": "sabers",
+      "force": true,
+      "map": "c1.jkl",
+      "map_sha256": "349fb5beffba7c84fd573fe1184f3fbb569d4fcdad07d2d9b26fcb8afdb849e0",
+      "status": "separate_flag_or_saber_task"
+    },
+    {
+      "mode": "ffa",
+      "combat": "guns",
+      "force": false,
+      "map": "m2.jkl",
+      "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a",
+      "status": "no_qualified_gear_model"
+    },
+    {
+      "mode": "ffa",
+      "combat": "guns",
+      "force": true,
+      "map": "m4.jkl",
+      "map_sha256": "150eda1c2e6c7f316c8b76a0f2f060ce5d49dcc9ae24bb43e4fb42a5df20d89c",
+      "status": "qualified_imitation",
+      "model": "red_pickup_engage_v1.weights",
+      "weights_sha256": "23028e60d4203b06f9fb88abb29aaf0ea15082b57501cd869acef9feafdf8171",
+      "training_receipt_sha256": "1096b54509c6dd3af7cf57f8a93455c3a1383a46d3aa8ed0baf7aaa472ed0e91",
+      "evaluation_sha256": "6759e5365d73e6d0e11d8d694804ba62975fa0c51e6bf5a7295dd6f6480b80e0",
+      "n_heldout_teacher_matches": 2,
+      "n_heldout_model_matches": 2,
+      "candidate_balanced_accuracy": 0.9004854368932038,
+      "training_majority_balanced_accuracy": 0.5,
+      "model_selected_and_read": [
+        65,
+        290
+      ],
+      "heldout_runs": [
+        "test-02-m4-dark-model",
+        "test-02-m4-dark-teacher",
+        "test-04-m4-light-teacher",
+        "test-04-m4-light-model"
+      ]
+    },
+    {
+      "mode": "ffa",
+      "combat": "guns",
+      "force": true,
+      "map": "sithcouncilv2.jkl",
+      "map_sha256": "32c788a53e769e78638b5bd09db04b5ec0702be30033d42a300eb868cce97940",
+      "status": "no_qualified_gear_model"
+    },
+    {
+      "mode": "ffa",
+      "combat": "guns",
+      "force": true,
+      "map": "m5.jkl",
+      "map_sha256": "61713ac79aa60bba1b558f8457a1351f720b076c242469110975ac26b2dcff38",
+      "status": "no_qualified_gear_model"
+    },
+    {
+      "mode": "ffa",
+      "combat": "guns",
+      "force": true,
+      "map": "m10.jkl",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+      "status": "missing_live_model_movement_class",
+      "model": "red_pickup_engage_v1.weights",
+      "weights_sha256": "23028e60d4203b06f9fb88abb29aaf0ea15082b57501cd869acef9feafdf8171",
+      "training_receipt_sha256": "1096b54509c6dd3af7cf57f8a93455c3a1383a46d3aa8ed0baf7aaa472ed0e91",
+      "evaluation_sha256": "6759e5365d73e6d0e11d8d694804ba62975fa0c51e6bf5a7295dd6f6480b80e0",
+      "n_heldout_teacher_matches": 2,
+      "n_heldout_model_matches": 2,
+      "candidate_balanced_accuracy": 0.9889030621929644,
+      "training_majority_balanced_accuracy": 0.5,
+      "model_selected_and_read": [
+        0,
+        523
+      ],
+      "heldout_runs": [
+        "test-01-m10-dark-teacher",
+        "test-01-m10-dark-model",
+        "test-03-m10-light-model",
+        "test-03-m10-light-teacher"
+      ]
+    },
+    {
+      "mode": "ffa",
+      "combat": "sabers",
+      "force": false,
+      "map": "m4.jkl",
+      "map_sha256": "150eda1c2e6c7f316c8b76a0f2f060ce5d49dcc9ae24bb43e4fb42a5df20d89c",
+      "status": "separate_flag_or_saber_task"
+    },
+    {
+      "mode": "ffa",
+      "combat": "sabers",
+      "force": true,
+      "map": "m10.jkl",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+      "status": "separate_flag_or_saber_task"
+    },
+    {
+      "mode": "tdm",
+      "combat": "guns",
+      "force": false,
+      "map": "m2.jkl",
+      "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a",
+      "status": "no_qualified_gear_model"
+    },
+    {
+      "mode": "tdm",
+      "combat": "guns",
+      "force": true,
+      "map": "m10.jkl",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+      "status": "no_qualified_gear_model"
+    },
+    {
+      "mode": "tdm",
+      "combat": "sabers",
+      "force": false,
+      "map": "m2.jkl",
+      "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a",
+      "status": "separate_flag_or_saber_task"
+    },
+    {
+      "mode": "tdm",
+      "combat": "sabers",
+      "force": true,
+      "map": "m4.jkl",
+      "map_sha256": "150eda1c2e6c7f316c8b76a0f2f060ce5d49dcc9ae24bb43e4fb42a5df20d89c",
+      "status": "separate_flag_or_saber_task"
+    }
+  ]
+}

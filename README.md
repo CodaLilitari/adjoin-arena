@@ -1,6 +1,12 @@
 # Adjoin Arena
 
-Adjoin Arena studies competitive JK multiplayer bots on stock game physics. It supports a headless pacing experiment and recorded native two-player matches. The longer-term goal is a local policy that learns from scripted play and accepts guidance from a coach. [Experiment and project design](docs/superpowers/plans/2026-11-24-adjoin-arena.md)
+Adjoin Arena runs competitive Jedi Knight bots headlessly on stock game physics and records their play. Jan and Boba begin playing as soon as each joins. Red’s original tactics run inside each native client. A local neural policy can take over the decision to keep pursuing a pickup or turn to fight. [Project design](docs/superpowers/plans/2026-11-24-adjoin-arena.md) · [Native build instructions](native/README.md)
+
+## What has the bot learned?
+
+Six matches supplied 4,948 examples from Red. In four fresh scripted matches the first model agreed with Red on 95.71% of decisions. In four corresponding games with the model driving one player, the learned players totaled four kills and six deaths. The scripted players in the control games totaled seven kills and six deaths. On Bespin, a map absent from training, the native engine recorded the model changing Boba’s movement from pickup pursuit to combat. [Model, training corpus and results by player](docs/RED_PICKUP_MODEL.md)
+
+Practice keeps learning locally between games. In two subsequent games Jan used the previous practice model and Boba loaded the new version that Jan’s game had qualified. The match runner records which weights each player actually used. The scored comparison can therefore be repeated while practice continues. [How to run the learner](docs/RED_DECISION_EXPERIMENT.md) · [Sixteen native match results](qa/adjoin-arena-red-runtime.json)
 
 ## Starting revisions
 
@@ -78,7 +84,7 @@ In these openings the target changes followed the first seat across both profile
 
 ### Starting both bots' planners on GO
 
-For scored Canyon Oasis openings, use the research client with `--planner-quarantine on`. Each bot begins planning when its own game client observes GO and regains movement. In the ordinary control, the same executable can already plan and track items while movement is locked. The switch applies to the instrumented two-player start.
+This historical Canyon Oasis timing study used the research client with `--planner-quarantine on`. Each bot began planning when its own game client observed GO and regained movement. The control could already plan and track items while movement was locked. The switch is specific to reproducing this instrumented opening.
 
 Sixteen native 1x matches crossed both join orders with normal, swapped, swapped, normal starting positions in each mode. A detour means the bot planned a different item between release and the stock pickup message for its initially chosen weapon. Pickup times run from that player's local release to the first inventory sample showing possession.
 

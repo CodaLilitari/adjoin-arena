@@ -1,0 +1,241 @@
+{
+  "schema": 1,
+  "teacher_revision": "f453778a3cf670dea43c44315786ae4afc8ae440",
+  "rules_scope": "ffa/guns/force",
+  "python": "3.13.15",
+  "numpy": "2.5.4",
+  "training_schedule_sha256": "f910f47671ece4f3f3d2276ca2872def1dfab0426293bd7bbb8dbf1600fd652a",
+  "trainer_sha256": "51d4b610df146882242633117518f9cb74ecb2ed877d97acfb436d21b42b5066",
+  "feature_order": [
+    "health",
+    "shields",
+    "enemy_mm",
+    "item_mm",
+    "weapon",
+    "ammo",
+    "pack",
+    "wet",
+    "remaining_route_nodes"
+  ],
+  "classes": [
+    "engage",
+    "pursue_pickup"
+  ],
+  "training": {
+    "train-01-m10-boba": {
+      "raw_sha256_by_seat": {
+        "dark": "2cd9b16b22c4d7f0cb1617e1e0fbff0f0f0af7f4fa1f1580e0dcf59d3f826edc",
+        "light": "aa88a26d9f03ccabbd5a40f102af8505e075f910d7f6791948abe206d49a9bcf"
+      },
+      "n_decisions": 682,
+      "encounters": 32,
+      "teacher_support": [
+        94,
+        588
+      ],
+      "teacher_selected": 682,
+      "selected_applied": 647,
+      "selected_with_engine_read": [
+        74,
+        573
+      ],
+      "owners": {
+        "supply": 573,
+        "route-other": 4,
+        "force": 2,
+        "stationary": 29,
+        "engage": 74
+      },
+      "applied_pickup_moving": 573,
+      "applied_pickup_with_fire": 176,
+      "run_receipt_sha256": "a5dcb677611b125e32b3ebdcc61dd55bcda39448f921b5d68ce69ad806d24c14",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc"
+    },
+    "train-02-m2-jan": {
+      "raw_sha256_by_seat": {
+        "dark": "df115a3d6ee00e4ae9a4529c5a7f998f2b19b201784cf649016180bf6783a739",
+        "light": "586d9d8c5b157c74b3c52417c77cdbe74fcd16d78531700e1783d04da3224ff9"
+      },
+      "n_decisions": 854,
+      "encounters": 33,
+      "teacher_support": [
+        112,
+        742
+      ],
+      "teacher_selected": 854,
+      "selected_applied": 821,
+      "selected_with_engine_read": [
+        110,
+        711
+      ],
+      "owners": {
+        "supply": 711,
+        "force": 4,
+        "route-other": 1,
+        "engage": 110,
+        "stationary": 28
+      },
+      "applied_pickup_moving": 711,
+      "applied_pickup_with_fire": 326,
+      "run_receipt_sha256": "bf31f0e2d991fde0a31d62ff69abd52f815dba27c1989c8f07a8075741ebd199",
+      "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a"
+    },
+    "train-03-m10-jan": {
+      "raw_sha256_by_seat": {
+        "dark": "5d2eb57525cc7382891856869a3d88a127fa1f3acd52785a6431055f974dba98",
+        "light": "93a09a3de8e423dcc982bc23d1103fd2c388f623c47a2044197d20e98814941d"
+      },
+      "n_decisions": 1255,
+      "encounters": 31,
+      "teacher_support": [
+        272,
+        983
+      ],
+      "teacher_selected": 1255,
+      "selected_applied": 1157,
+      "selected_with_engine_read": [
+        180,
+        977
+      ],
+      "owners": {
+        "supply": 977,
+        "engage": 180,
+        "stationary": 93,
+        "route-other": 1,
+        "force": 4
+      },
+      "applied_pickup_moving": 977,
+      "applied_pickup_with_fire": 584,
+      "run_receipt_sha256": "7a267baa84d8d1733d8993cf92bdeb4db7aeb3438e28417354a1d3c7ca7ddea6",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc"
+    },
+    "train-04-m10-boba": {
+      "raw_sha256_by_seat": {
+        "dark": "dd162ab092ae1bbf387f9ef1c711efe3da309557d390f5273d470335915c777f",
+        "light": "4c9cddf63dc165bc2198d6cb4b122ba8ae50a874b49082320f0e1b2006ad8057"
+      },
+      "n_decisions": 482,
+      "encounters": 21,
+      "teacher_support": [
+        43,
+        439
+      ],
+      "teacher_selected": 482,
+      "selected_applied": 409,
+      "selected_with_engine_read": [
+        8,
+        401
+      ],
+      "owners": {
+        "supply": 401,
+        "route-other": 2,
+        "stationary": 71,
+        "engage": 8
+      },
+      "applied_pickup_moving": 401,
+      "applied_pickup_with_fire": 164,
+      "run_receipt_sha256": "eb8060fe3f5810f3656e4a3b2aa6c7ef5544ef5dc96c51007f4a10ef83c73f42",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc"
+    },
+    "train-05-m2-boba": {
+      "raw_sha256_by_seat": {
+        "dark": "c6419c24b6d7892e343178a7b9fb5f5e53bcd70492df3afb3b85317d9afc69ce",
+        "light": "042daa7b145f4bf0dc387e997a3fa8dde11de1f306fd522adac98e00a0ed0676"
+      },
+      "n_decisions": 848,
+      "encounters": 21,
+      "teacher_support": [
+        428,
+        420
+      ],
+      "teacher_selected": 848,
+      "selected_applied": 583,
+      "selected_with_engine_read": [
+        169,
+        414
+      ],
+      "owners": {
+        "supply": 414,
+        "engage": 169,
+        "stationary": 258,
+        "force": 1,
+        "late-override": 4,
+        "route-other": 2
+      },
+      "applied_pickup_moving": 414,
+      "applied_pickup_with_fire": 190,
+      "run_receipt_sha256": "b6a1f00e6bcdff39bb771396addd08b6dc4be50de7c7d68e1a91da8a52a4c091",
+      "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a"
+    },
+    "train-06-m10-jan": {
+      "raw_sha256_by_seat": {
+        "dark": "4126fcb73bcbb9414d4f9e41b1cde8d3e11408705e55a90401a401970f984402",
+        "light": "93db038dafe33051bc044cdd85bf975931cba87949ad85959f3e91c9379c8486"
+      },
+      "n_decisions": 827,
+      "encounters": 29,
+      "teacher_support": [
+        316,
+        511
+      ],
+      "teacher_selected": 827,
+      "selected_applied": 649,
+      "selected_with_engine_read": [
+        203,
+        446
+      ],
+      "owners": {
+        "supply": 446,
+        "stationary": 174,
+        "route-other": 3,
+        "engage": 203,
+        "force": 1
+      },
+      "applied_pickup_moving": 446,
+      "applied_pickup_with_fire": 99,
+      "run_receipt_sha256": "75e612f00e4bb3fa1ccdc4c6a8eb9c45ed90f927c3a2f02666bacb1c93d1a048",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc"
+    }
+  },
+  "used_extension": false,
+  "training_support": [
+    1265,
+    3683
+  ],
+  "training_majority": 1,
+  "training_confusion": {
+    "matrix": [
+      [
+        1265,
+        0
+      ],
+      [
+        112,
+        3571
+      ]
+    ],
+    "accuracy": 0.9773645917542442,
+    "recall_by_class": [
+      1.0,
+      0.9695900081455335
+    ],
+    "balanced_accuracy": 0.9847950040727668
+  },
+  "training_matches": [
+    "train-01-m10-boba",
+    "train-02-m2-jan",
+    "train-03-m10-jan",
+    "train-04-m10-boba",
+    "train-05-m2-boba",
+    "train-06-m10-jan"
+  ],
+  "weights_sha256": "23028e60d4203b06f9fb88abb29aaf0ea15082b57501cd869acef9feafdf8171",
+  "architecture": [
+    9,
+    8,
+    1
+  ],
+  "learned_parameters": 89,
+  "corpus_sha256": "839348c0d5f59650ec3f1c3ff2c1a28db40befbafa7905064a699cdfb9a66b2b",
+  "method": "Equal match and encounter weight; duplicate feature-label pairs collapse within an encounter. Class-balanced cross entropy, NumPy float64 Adam, 320 fixed full-batch steps, learning rate 0.025, L2 0.0001 on weights, PCG64 seed 20261125 and quantized ReLU inference."
+}

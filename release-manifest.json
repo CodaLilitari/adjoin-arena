@@ -26,7 +26,7 @@
     },
     "README.md": {
       "mode": 420,
-      "sha256": "6d1935e7a4765a43351afb5c610827053bc73e4af60cc2fa296690aa16253375"
+      "sha256": "d20d3e13d881d8c2e384c2d04032874300315b02583feacbd303c1ce04573b05"
     },
     "Start-Server.command": {
       "mode": 493,
@@ -188,6 +188,14 @@
       "mode": 420,
       "sha256": "9354db3bc60ecd031b51f933b37eb809ebb6bfb4c5cd2b2a6b1e38b373119df4"
     },
+    "bots/models/red_pickup_engage_v1.weights": {
+      "mode": 420,
+      "sha256": "23028e60d4203b06f9fb88abb29aaf0ea15082b57501cd869acef9feafdf8171"
+    },
+    "bots/models/red_pickup_registry.json": {
+      "mode": 420,
+      "sha256": "d3aa5a17cff75fe83e0a1fd3ca0db9783fe3339c17db8bd8586730ef404befa7"
+    },
     "bots/profiles.json": {
       "mode": 420,
       "sha256": "3756863cb46ee220f2c5bd03d6706ebce861677b2f58c125248e4462e2465c39"
@@ -203,6 +211,10 @@
     "bots/spawn_atlas.py": {
       "mode": 420,
       "sha256": "096e1e952e547172e3e7910dcce585277de84510b5b69eb37fb0558471bb9414"
+    },
+    "bots/tactical_registry.py": {
+      "mode": 420,
+      "sha256": "3d2dab76a9e2e92b0d3a154ce18ab32979c4414f4c4a3b4b233394abf3f2bfb9"
     },
     "directplay/Makefile": {
       "mode": 420,
@@ -319,6 +331,14 @@
     "docs/QUALIFICATION.md": {
       "mode": 420,
       "sha256": "d2c20d2047f645977a206bda73eec3aae2b7c9d147a31ff17d7d3044075ccd77"
+    },
+    "docs/RED_DECISION_EXPERIMENT.md": {
+      "mode": 420,
+      "sha256": "02a5280f60331682f28140dedb4e9dd5d5d355f9c9283e7ccda044494ac69bd8"
+    },
+    "docs/RED_PICKUP_MODEL.md": {
+      "mode": 420,
+      "sha256": "730c6d185b547cadb4a5d5b4e4eb1357c8c347532052192643f612ecc75a7e60"
     },
     "docs/SPECTATOR.md": {
       "mode": 420,
@@ -742,7 +762,7 @@
     },
     "native/README.md": {
       "mode": 420,
-      "sha256": "b255d5564a7c5a8ac01380967f0713f86caa740da0c7a4a950eb084c55c11d06"
+      "sha256": "eca4a8413c9422165000f7ac5c892e702dc4eb5cb614898237cf0aea32e85629"
     },
     "native/arena_pace.c": {
       "mode": 420,
@@ -771,6 +791,14 @@
     "native/build_planner_go.py": {
       "mode": 420,
       "sha256": "1b507e59eb41a9646b40c3810138f90728d8221d2fa93dfe035ebed871e514ee"
+    },
+    "native/build_red_policy.py": {
+      "mode": 420,
+      "sha256": "b06c97c355330225992e13fca0d4dd66628c3940b1de3b94140ba9f8954404a6"
+    },
+    "native/build_red_transfer.py": {
+      "mode": 420,
+      "sha256": "c4fe2e10cd4ecadac922e7bad5b7aaeced966df1ba83b0d3000d188e9803d884"
     },
     "native/crossplay-dedicated.patch": {
       "mode": 420,
@@ -804,9 +832,41 @@
       "mode": 420,
       "sha256": "f67f50bc0de4e9113373c7dddac2f9a2802c25ade618ce39e1f00bb4647db494"
     },
+    "native/red-policy-build.json": {
+      "mode": 420,
+      "sha256": "2ab4ec3862fabc55d328a2de2ec464b1d19f6cf3e5002d1f26bf994bad89d5e2"
+    },
+    "native/red-policy.patch": {
+      "mode": 420,
+      "sha256": "fc145360f65c45ee2d937db7dcacc11c7daa23f631bb32f2d93a1aebaee9b73a"
+    },
+    "native/red-transfer-build.json": {
+      "mode": 420,
+      "sha256": "6be9ca776c133f494c5ca98a29dcec497babc5acdf723711a8a55b14fe900509"
+    },
+    "native/red-transfer.patch": {
+      "mode": 420,
+      "sha256": "8e8b6986a4cf1b6236dc5b240f11cdbf9bd6bc2ae2b91282eda73a768388af33"
+    },
+    "native/red_nav_recall.h": {
+      "mode": 420,
+      "sha256": "fa4cfd06343249e059991926ece8edcbb87b1d6eac7410f94a2b6bbc01f509bf"
+    },
+    "native/red_policy.inc": {
+      "mode": 420,
+      "sha256": "b6a4277bed85ac1ad3aeb54b4d1ebdcdfb5013c14f34d7d69d4c6a8da407b098"
+    },
+    "native/red_transfer.inc": {
+      "mode": 420,
+      "sha256": "76c20f114ab801a4e675a418673cdeb66d32d1cb1df1295dca4950381a53908e"
+    },
     "native/relink-linux-x86_64.tar.gz": {
       "mode": 420,
       "sha256": "8abea7457b84141777bef76685ad7f91eec9710a40811811bda12293fddb88d2"
+    },
+    "native/reproduce_red_build.py": {
+      "mode": 420,
+      "sha256": "7b5f46462419c059739dfcdf7baaa1a45688c944766f672bfe761d951ff3a50e"
     },
     "native/tests/check_spectator_ngon_compile.py": {
       "mode": 420,
@@ -839,6 +899,10 @@
     "native/tests/run_native_probe_traffic_tests.py": {
       "mode": 420,
       "sha256": "b40ba71e62b7da33a41e2ff1918168bb80733096572d189154c48e18e7c85b35"
+    },
+    "native/tests/run_red_transfer_tests.py": {
+      "mode": 420,
+      "sha256": "a0486de298ec8b2e64eb1b3e2d4d4c4c9ad2997dcca692296c93ebbf323ef45f"
     },
     "native/tests/run_server_admin_tests.py": {
       "mode": 420,
@@ -1012,6 +1076,14 @@
       "mode": 420,
       "sha256": "0ded44ee50232c4b8a3bee30f1d856b5cd38cfa36438f1af59a7d2a885f8b8f3"
     },
+    "native/tests/test_red_policy.py": {
+      "mode": 420,
+      "sha256": "2a2309494b8ae56995b02fffc5b0b8ceec4859c115212ca7e5920a3ae516bea8"
+    },
+    "native/tests/test_red_transfer_driver.c": {
+      "mode": 420,
+      "sha256": "1622005aa38aef01418cbab833919157e46c4e856ca8baaca2056f8c81280916"
+    },
     "native/tests/test_server_admin.c": {
       "mode": 420,
       "sha256": "85492ca2cef44141c27ae7b5eafdd3556d0de7cb3257c28d302d22271a463ca3"
@@ -1072,6 +1144,10 @@
       "mode": 420,
       "sha256": "74632f161afcf7056850b7459411ea1341826175bd8b39f832c8b69cb921ab4a"
     },
+    "qa/adjoin-arena-mode-coverage-schedule.json": {
+      "mode": 420,
+      "sha256": "f6b7d30326d8adc781328194c974d9d3c9474d96aaec8f08adaf02bd193ae3d0"
+    },
     "qa/adjoin-arena-native-duel-1x.json": {
       "mode": 420,
       "sha256": "2729d40f7d9d5eaedae244abe8ed5d6f1a6aa6045a3d30179c7853cd0c2798c7"
@@ -1099,6 +1175,42 @@
     "qa/adjoin-arena-ready-gate.json": {
       "mode": 420,
       "sha256": "ab1841dce3e43e6fde4c41f2f84d1e1e6eb1bd5f929f9c2d6a2a112b67d6f69c"
+    },
+    "qa/adjoin-arena-red-decision-heldout.json": {
+      "mode": 420,
+      "sha256": "6759e5365d73e6d0e11d8d694804ba62975fa0c51e6bf5a7295dd6f6480b80e0"
+    },
+    "qa/adjoin-arena-red-decision-schedule.json": {
+      "mode": 420,
+      "sha256": "f910f47671ece4f3f3d2276ca2872def1dfab0426293bd7bbb8dbf1600fd652a"
+    },
+    "qa/adjoin-arena-red-decision-training-corpus.json.gz": {
+      "mode": 420,
+      "sha256": "839348c0d5f59650ec3f1c3ff2c1a28db40befbafa7905064a699cdfb9a66b2b"
+    },
+    "qa/adjoin-arena-red-decision-training.json": {
+      "mode": 420,
+      "sha256": "1096b54509c6dd3af7cf57f8a93455c3a1383a46d3aa8ed0baf7aaa472ed0e91"
+    },
+    "qa/adjoin-arena-red-ffa-guns-noforce-schedule.json": {
+      "mode": 420,
+      "sha256": "25d78bbad67c4fffdd77cab5c8acf34b9cf302b0310e50574c141ccfe35fc703"
+    },
+    "qa/adjoin-arena-red-practice-schedule.json": {
+      "mode": 420,
+      "sha256": "54d3635d7992fabaa9174750807299948f668e89aabf0add6d6a1d74b6c61fdc"
+    },
+    "qa/adjoin-arena-red-runtime.json": {
+      "mode": 420,
+      "sha256": "ed0898ff3a90f9c235e0021e5018663f7e934d4f19c45ca4cf3c64fa7743f1ec"
+    },
+    "qa/adjoin-arena-red-tdm-guns-force-schedule.json": {
+      "mode": 420,
+      "sha256": "cdf9876f6d70cf7c3fd0777e7d6afac171ec1e62aca5ccc1e4abe5391f4e87b5"
+    },
+    "qa/adjoin-arena-red-tdm-guns-noforce-schedule.json": {
+      "mode": 420,
+      "sha256": "74923321e993cf480d1c5898a5bba6f01d7ddeb1b8459421b0e3f2e9f812656f"
     },
     "qa/adjoin-arena-start-crossover.json": {
       "mode": 420,
@@ -2220,6 +2332,22 @@
       "mode": 420,
       "sha256": "cf0d4c0a5dcb69cc17602aca8748e03ffacee3654371317e227ee6b23cd03d06"
     },
+    "scripts/bot_development/analysis/qualify_red_policies.py": {
+      "mode": 420,
+      "sha256": "66085e0a5db3441c174fff90c91b6a5440aa831aeb13ff5732f360eb78e7c9ff"
+    },
+    "scripts/bot_development/analysis/red_policy_stream.py": {
+      "mode": 420,
+      "sha256": "cd2ee15cde53ec936338bb4231c252e2d75450fa1cd1e78c03998c6c48625fa5"
+    },
+    "scripts/bot_development/analysis/red_run_evidence.py": {
+      "mode": 420,
+      "sha256": "d8db6a2957edad780bc8e1fd3f43f4fe723304bf1de38d844f206e48e4079037"
+    },
+    "scripts/bot_development/analysis/red_tactical_policy.py": {
+      "mode": 420,
+      "sha256": "51d4b610df146882242633117518f9cb74ecb2ed877d97acfb436d21b42b5066"
+    },
     "scripts/bot_development/analysis/report_memory_failure.py": {
       "mode": 420,
       "sha256": "bde39c52101d03118553150e886070e3d62266820ce2e493531ac8c7a4066e3a"
@@ -2294,11 +2422,19 @@
     },
     "scripts/bot_development/legacy/native_force_observation.py": {
       "mode": 420,
-      "sha256": "02b581b9aa6c97f742ca422a29bb41e736ccff4d1d464a7bcd7da26f2ac6cb6f"
+      "sha256": "37fb4eaf8322ccdcd077227d9b5f2a89806638806c108190ccd5dce4c4da2c0c"
+    },
+    "scripts/bot_development/legacy/native_mode_transfer.py": {
+      "mode": 420,
+      "sha256": "81312ff3339bcdda4eb8d7a5d5276b98d67916b4ce87752c4b0fde41e2369f73"
     },
     "scripts/bot_development/legacy/native_observation_pace.py": {
       "mode": 420,
-      "sha256": "c389bbdb9003e91fb8433104b0e6b6439f1a2fae19c4bcbfa8070f048c62a4de"
+      "sha256": "a4f42b3913d83a611d6a0bb171091452219c3ceaa2e734c281a617421d32c807"
+    },
+    "scripts/bot_development/legacy/native_red_match.py": {
+      "mode": 420,
+      "sha256": "b01b4f729ae6497019eeae489f08a90bdb269b46f91bd9fe78f9b46b249fdd55"
     },
     "scripts/bot_development/legacy/rebuild_native_pair.py": {
       "mode": 420,
@@ -2399,6 +2535,14 @@
     "tests/test_arena_recorder_startup.py": {
       "mode": 420,
       "sha256": "b53ab4c3bcec1e574692bef8ede59daff760f8a5ec162c21d853af46d2450dd9"
+    },
+    "tests/test_arena_red_stream.py": {
+      "mode": 420,
+      "sha256": "3d7877e6877f8ce80dda13ad1938414a5ed891862c7e1a283c216022355ca3bd"
+    },
+    "tests/test_arena_red_tactical_policy.py": {
+      "mode": 420,
+      "sha256": "b881f237d71059f83c437bf986f35ab48eee837891251bb9facb37368ddb0ea3"
     },
     "tests/test_arena_start_crossover.py": {
       "mode": 420,
@@ -2536,9 +2680,17 @@
       "mode": 420,
       "sha256": "c28d0a5ae84d1c01ad9b6d199eea0a9a4f397360fdad6cd773b85df0cf97fc7e"
     },
+    "tests/test_native_mode_transfer.py": {
+      "mode": 420,
+      "sha256": "a243f267a2c64374b91e61e2ef96219d6065598742868cf88605d78dce1f78ff"
+    },
     "tests/test_native_observation_pace.py": {
       "mode": 420,
       "sha256": "2ab5a5717bb7fd84306892f6bf039845ad660b5e097111dd1a28bd94d48755d2"
+    },
+    "tests/test_native_red_match.py": {
+      "mode": 420,
+      "sha256": "8283e7c884e70b512bc3246e4f0fbc27b7565212c18e75c1343d7325dc02956c"
     },
     "tests/test_pace_parity.py": {
       "mode": 420,
@@ -2587,6 +2739,10 @@
     "tests/test_surrogate_pool.py": {
       "mode": 420,
       "sha256": "0b998b8191277729413da6ace06cdb7022cfdaad02a55780312586bc18e2984e"
+    },
+    "tests/test_tactical_registry.py": {
+      "mode": 420,
+      "sha256": "f715dc7e2bf085c6eaf880aa6d7455dd4b54b1ec2b925b3944864fb328a17511"
     },
     "tests/test_updater.py": {
       "mode": 420,

@@ -1,0 +1,148 @@
+{
+  "schema": 1,
+  "teacher_revision": "f453778a3cf670dea43c44315786ae4afc8ae440",
+  "red_tactics_sha256": "0e409e379d0e6f088d9ddf469aaac54dc301e0111ce0ce08c5823d210f1857aa",
+  "frozen_utc": "2026-11-25T11:24:30.983002+00:00",
+  "pace": 2,
+  "game_seconds": 90,
+  "network": "isolated native loopback",
+  "start": "Stock spawn. Each joined bot starts on its first eligible live control tick; no planner GO, physical gate, opening COG or waiting for a second player. Roster synchronization is observation only.",
+  "split": "Whole matches. Train teachers only on Canyon Oasis and Nar Shaddaa. All test matches fresh. Bespin is completely held out. Freeze weights before opening test outcomes. Stock spawn RNG is unassigned. Balance which profile uses the model and which arm runs first. The other bot is always the unmodified Red teacher in both test arms.",
+  "training": [
+    {
+      "name": "train-01-m10-boba",
+      "map": "m10.jkl",
+      "first": "boba",
+      "controller": "teacher"
+    },
+    {
+      "name": "train-02-m2-jan",
+      "map": "m2.jkl",
+      "first": "jan",
+      "controller": "teacher"
+    },
+    {
+      "name": "train-03-m10-jan",
+      "map": "m10.jkl",
+      "first": "jan",
+      "controller": "teacher"
+    },
+    {
+      "name": "train-04-m10-boba",
+      "map": "m10.jkl",
+      "first": "boba",
+      "controller": "teacher"
+    },
+    {
+      "name": "train-05-m2-boba",
+      "map": "m2.jkl",
+      "first": "boba",
+      "controller": "teacher"
+    },
+    {
+      "name": "train-06-m10-jan",
+      "map": "m10.jkl",
+      "first": "jan",
+      "controller": "teacher"
+    }
+  ],
+  "training_extension": [
+    {
+      "name": "extra-01-m2-jan",
+      "map": "m2.jkl",
+      "first": "jan",
+      "controller": "teacher"
+    },
+    {
+      "name": "extra-02-m10-boba",
+      "map": "m10.jkl",
+      "first": "boba",
+      "controller": "teacher"
+    },
+    {
+      "name": "extra-03-m2-boba",
+      "map": "m2.jkl",
+      "first": "boba",
+      "controller": "teacher"
+    },
+    {
+      "name": "extra-04-m10-jan",
+      "map": "m10.jkl",
+      "first": "jan",
+      "controller": "teacher"
+    }
+  ],
+  "extension_rule": "Activate only on training evidence if one label is missing, occurs in fewer than two complete training matches, or has fewer than 20 eligible teacher ticks. If this persists, collect further genuine ungated encounters with explicitly disclosed settings. No adapting weights to test data.",
+  "test": [
+    {
+      "name": "test-01-m10-dark-teacher",
+      "pair": 1,
+      "map": "m10.jkl",
+      "first": "boba",
+      "subject": "dark",
+      "controller": "teacher"
+    },
+    {
+      "name": "test-01-m10-dark-model",
+      "pair": 1,
+      "map": "m10.jkl",
+      "first": "boba",
+      "subject": "dark",
+      "controller": "model"
+    },
+    {
+      "name": "test-02-m4-dark-model",
+      "pair": 2,
+      "map": "m4.jkl",
+      "first": "jan",
+      "subject": "dark",
+      "controller": "model"
+    },
+    {
+      "name": "test-02-m4-dark-teacher",
+      "pair": 2,
+      "map": "m4.jkl",
+      "first": "jan",
+      "subject": "dark",
+      "controller": "teacher"
+    },
+    {
+      "name": "test-03-m10-light-model",
+      "pair": 3,
+      "map": "m10.jkl",
+      "first": "boba",
+      "subject": "light",
+      "controller": "model"
+    },
+    {
+      "name": "test-03-m10-light-teacher",
+      "pair": 3,
+      "map": "m10.jkl",
+      "first": "boba",
+      "subject": "light",
+      "controller": "teacher"
+    },
+    {
+      "name": "test-04-m4-light-teacher",
+      "pair": 4,
+      "map": "m4.jkl",
+      "first": "jan",
+      "subject": "light",
+      "controller": "teacher"
+    },
+    {
+      "name": "test-04-m4-light-model",
+      "pair": 4,
+      "map": "m4.jkl",
+      "first": "jan",
+      "subject": "light",
+      "controller": "model"
+    }
+  ],
+  "readouts": [
+    "Verify Red source/build, immediate input, stock physics and real pace in every valid run. Audit both actions on real native decision ticks with applied-control evidence. Count missing opportunities explicitly.",
+    "Offline: report per-class decisions, confusion, accuracy and balanced accuracy against a majority baseline on held-out script-controlled encounters. Adjacent ticks are correlated and whole matches stay together.",
+    "Live: report who used the frozen weights, actual model choices and disagreements with the shadow script, pickup/engagement observations, scoreboard kills and deaths. Compare by matched profile/map/join order; fresh stock spawns are unseeded.",
+    "Retain all technical failures; exclude warmup/engineering attempts, never exclude a valid outcome because of gameplay or score. Assess controller adoption conservatively from limited games."
+  ]
+}
