@@ -1,0 +1,63 @@
+{
+  "room_id": 1153,
+  "room_name": "Wren",
+  "attempt": 2,
+  "started_at": "2026-11-25 15:51:49 EST",
+  "lineup_at_launch": {
+    "room_name": "Wren",
+    "max_players": 6,
+    "map": "m10.jkl",
+    "mode": "ff-guns",
+    "host_seat": "lily",
+    "joiners": [
+      "t800",
+      "lilivane"
+    ],
+    "coach_seat": "t800",
+    "red_sabers": "lily,t800",
+    "model_gob": "/workspace/adjoin-skins-work/RedRosterPhoto.gob",
+    "host_view": [
+      256,
+      144,
+      25
+    ],
+    "join_view": [
+      160,
+      90,
+      15
+    ],
+    "join_nice": 0,
+    "until": "16:35"
+  },
+  "lineup_now": {
+    "room_name": "Wren",
+    "max_players": 6,
+    "map": "m10.jkl",
+    "mode": "ff-guns",
+    "host_seat": "lily",
+    "joiners": [
+      "t800",
+      "lilivane"
+    ],
+    "coach_seat": "t800",
+    "red_sabers": "lily,t800",
+    "model_gob": "/workspace/adjoin-skins-work/RedRosterPhoto.gob",
+    "host_view": [
+      256,
+      144,
+      25
+    ],
+    "join_view": [
+      160,
+      90,
+      15
+    ],
+    "join_nice": 5,
+    "until": "16:35"
+  },
+  "notes": [
+    "PIDs, run-directory paths, companion/engine credentials and any feed up= tokens are omitted.",
+    "Room 1153 was launched with lineup_at_launch (join_nice 0). After launch, the two joiner Chrome process trees were reniced to +5; lineup.json (lineup_now) was updated to join_nice 5 so a watchdog relaunch keeps that.",
+    "On the box, model_gob was /workspace/adjoin-skins-work/RedRosterPhoto.gob, SHA-256 693341daf7480ceb9e031715b6eb44771de356743e303d73b8b8bd0a4715d650, identical to skins/RedRosterPhoto/RedRosterPhoto.gob in this folder."
+  ]
+}

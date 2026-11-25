@@ -1,0 +1,6 @@
+# Assets and the engine bits room 1153 ran. Paths are relative to this folder
+# or to the repository root, as named.
+2cb1660054a168c91376a8673c34a945b6a3ec006886899cabb7726ec44e5727  skins/README.md
+693341daf7480ceb9e031715b6eb44771de356743e303d73b8b8bd0a4715d650  skins/RedRosterPhoto/RedRosterPhoto.gob
+4492ea09a4a165e4740f0e144c2c332cb5db6d4a7f792f7b089e4ce1880dc4d9  ../../bin/bots-jkweb/openjkdf2.js
+44b999f50bd299b4fd3677cbf20691a28ab1f5c90681864ef7e41b4d6866e701  ../../bin/bots-jkweb/openjkdf2.wasm

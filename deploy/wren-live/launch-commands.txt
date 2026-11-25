@@ -1,0 +1,57 @@
+# Exact headless flags room 1153 ran under, captured from the live process command
+# lines at 16:08 America/New_York on 2026-11-25. The public relay is listed; there
+# are no credentials, cookies, or feed up= tokens in these commands.
+#
+# --seconds was the watchdog's remaining time at that launch (now stale).
+# --model-gob on the box pointed at a read-only copy of the GOB bundled here
+# (same SHA-256). Replace it with skins/RedRosterPhoto/RedRosterPhoto.gob
+# (or an absolute path to that file) to run from this checkout.
+# Joiners were started at nice 0; after launch their process trees were
+# reniced to +5 (see lineup.json join_nice).
+
+# Host (Lily), isolated Chrome, normal priority:
+python -u -m web_bots.headless host \
+  --relay wss://jediknight.zone/relay \
+  --data /workspace/jk-data/JK \
+  --runtime /workspace/adjoin-arena-match/live/runs \
+  --seats "" \
+  --width 256 --height 144 --fps-cap 25 --raster-threads 1 --netlog \
+  --join-timeout 180 \
+  --red-sabers lily,t800 \
+  --model-gob /workspace/adjoin-skins-work/RedRosterPhoto.gob \
+  --public-room --room-name Wren --max-players 6 --map m10.jkl \
+  --mode ff-guns --host-seat lily
+
+# Joiner Bot_T800Hybrid, own Chrome (later nice +5):
+python -u -m web_bots.headless join \
+  --relay wss://jediknight.zone/relay \
+  --data /workspace/jk-data/JK \
+  --runtime /workspace/adjoin-arena-match/live/runs \
+  --seats t800 \
+  --width 160 --height 90 --fps-cap 15 --raster-threads 1 --netlog \
+  --join-timeout 180 \
+  --red-sabers lily,t800 \
+  --model-gob /workspace/adjoin-skins-work/RedRosterPhoto.gob \
+  --room-id 1153
+
+# Joiner Bot_Lilivane, own Chrome (later nice +5):
+python -u -m web_bots.headless join \
+  --relay wss://jediknight.zone/relay \
+  --data /workspace/jk-data/JK \
+  --runtime /workspace/adjoin-arena-match/live/runs \
+  --seats lilivane \
+  --width 160 --height 90 --fps-cap 15 --raster-threads 1 --netlog \
+  --join-timeout 180 \
+  --red-sabers lily,t800 \
+  --model-gob /workspace/adjoin-skins-work/RedRosterPhoto.gob \
+  --room-id 1153
+
+# Coach seat on Bot_T800Hybrid (auto), control folder live/coach-t800:
+python -u -m bots.coach_seat \
+  --run <join_run>/headless.json \
+  --seat t800 \
+  --dwell-seconds 90 \
+  --memory <control>/memory.json \
+  --label jkzone-canyon \
+  --engine bin/bots-jkweb/openjkdf2.wasm \
+  --control <control>

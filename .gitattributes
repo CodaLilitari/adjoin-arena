@@ -1,10 +1,10 @@
 # The source receipts and packaged runtimes are byte-addressed. Preserve their
 # repository bytes when cloning on Windows, including multiline engine patches.
 * -text
-
 # Unified patches preserve upstream context whitespace. Check their source trees
 # separately; source/build receipts verify that these patches apply exactly.
 native/*.patch -whitespace
 web_bots/*.patch -whitespace
 *.sh text eol=lf
 *.command text eol=lf
+deploy/wren-live/skins/RedRosterPhoto/RedRosterPhoto.gob filter=lfs diff=lfs merge=lfs -text
