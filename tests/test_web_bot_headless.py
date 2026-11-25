@@ -12,7 +12,8 @@ LOCAL = "ws://127.0.0.1:18080/relay"
 class Seats(unittest.TestCase):
     def test_parse_seats_limits(self):
         self.assertEqual(H.parse_seats("red,biddy"), ["red", "biddy"])
-        for bad, kw in (("red,red", {}), ("nobody", {}), ("lily,red", {"host_seat": "lily"}),
+        self.assertEqual(H.parse_seats("", host_seat="lily"), [])
+        for bad, kw in (("", {}), ("red,red", {}), ("nobody", {}), ("lily,red", {"host_seat": "lily"}),
                         (",".join(["red"] * 1), {"host_seat": "lily", "max_players": 1})):
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 H.parse_seats(bad, **kw)
@@ -43,6 +44,14 @@ class Validation(unittest.TestCase):
         self.assertEqual(args.max_players, 12)
         self.assertEqual(args.map, "m10.jkl")
         self.assertEqual(args.mode, "ff-guns")
+
+    def test_host_isolated_empty_seats_and_perf_flags(self):
+        args = self.parse("host", "--relay", LOCAL, "--host-seat", "lily", "--seats", "",
+                          "--data", "/tmp", "--runtime", "/tmp", "--fps-cap", "20", "--raster-threads", "1")
+        self.assertEqual(args.seat_list, [])
+        self.assertEqual(args.fps_cap, 20.0)
+        self.assertEqual(args.raster_threads, 1)
+        self.assertTrue(args.exit_on_drop)
 
     def test_local_host_and_bad_values(self):
         self.assertEqual(self.parse("host", "--relay", LOCAL, *self.common()).seat_list, ["red", "lilivane"])

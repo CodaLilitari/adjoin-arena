@@ -64,6 +64,8 @@ class HostedRoom:
 
 def parse_seats(text, *, host_seat=None, max_players=None):
     seats = [s for s in (text or "").split(",") if s]
+    if host_seat is None and not seats:
+        raise ValueError("Specify at least one seat.")
     if len(set(seats)) != len(seats):
         raise ValueError("Each seat may appear once.")
     unknown = [s for s in seats if s not in ROOM_PLAYERS]
@@ -122,6 +124,9 @@ class Launcher:
 
     async def open_browser(self, pw):
         env = dict(os.environ)
+        crashes = self.run / "crashes"
+        crashes.mkdir(exist_ok=True)
+        env["CHROME_LOG_FILE"] = str(self.run / "chrome.log")
         headless = self.args.display == "headless"
         if not headless:
             if not shutil.which("Xvfb"):
@@ -131,8 +136,14 @@ class Launcher:
                                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             await asyncio.sleep(1.0)
             env["DISPLAY"] = display
-        return await pw.chromium.launch(executable_path=str(self.args.chrome), headless=headless, env=env,
-                                        args=QUIET + (SOFTWARE_GL if self.args.software_gl else []))
+        extra = ["--enable-logging", f"--crash-dumps-dir={crashes}"]
+        if self.args.raster_threads > 0:
+            extra.append(f"--num-raster-threads={self.args.raster_threads}")
+        browser = await pw.chromium.launch(
+            executable_path=str(self.args.chrome), headless=headless, env=env,
+            args=QUIET + extra + (SOFTWARE_GL if self.args.software_gl else []))
+        browser.on("disconnected", lambda: self.log(event="browser_disconnected"))
+        return browser
 
     async def open_seat(self, browser, ident):
         host = self.hosts[ident]
@@ -141,8 +152,15 @@ class Launcher:
                                         device_scale_factor=1)
         page = await ctx.new_page()
         token = host.tokens[ident]
-        await page.add_init_script("if(window===top && location.href===" + json.dumps(page_url) +
-                                   ") window.__JK_BOT_TOKEN=" + json.dumps(token) + ";")
+        init_js = ("if(window===top && location.href===" + json.dumps(page_url) +
+                   ") window.__JK_BOT_TOKEN=" + json.dumps(token) + ";")
+        if self.args.fps_cap > 0:
+            min_ms = 1000.0 / self.args.fps_cap
+            init_js += (
+                "(()=>{const m=" + f"{min_ms:.3f}" + ",o=window.requestAnimationFrame.bind(window);let l=0;"
+                "window.requestAnimationFrame=cb=>o(t=>{if(!l||t-l>=m-1){l=t;cb(t);}else{window.requestAnimationFrame(cb);}});})();"
+            )
+        await page.add_init_script(init_js)
         console = (self.run / (ident + ".console.log")).open("a", encoding="utf-8")
         def note(kind, text):
             text = str(text).replace(token, "[redacted]")
@@ -153,7 +171,9 @@ class Launcher:
                 self.seats[ident]["rejected"] = text[:200]
         page.on("console", lambda m: note(m.type, m.text))
         page.on("pageerror", lambda e: note("pageerror", e))
-        self.seats[ident] = {"ctx": ctx, "page": page, "hosted": False, "rejected": None}
+        page.on("crash", lambda: (note("crash", "page crashed"), self.seats[ident].update(crashed=True)))
+        page.on("close", lambda: (note("close", "page closed"), self.seats[ident].update(closed=True)))
+        self.seats[ident] = {"ctx": ctx, "page": page, "hosted": False, "rejected": None, "crashed": False, "closed": False}
         await page.goto(page_url, wait_until="domcontentloaded", timeout=30000)
 
     def seat_status(self, ident):
@@ -179,17 +199,34 @@ class Launcher:
             await asyncio.sleep(0.5)
         return False
 
-    async def pump(self, until):
+    async def pump(self, until, *, browser=None, watch_seat=None, drop_grace=20.0):
         next_status = 0
+        dropped_since = None
         while time.monotonic() < until:
             for host in self.hosts.values():
                 host.hub.pump()
                 host.expire_capture()
+            if browser is not None and not browser.is_connected():
+                self.log(event="abort", reason="browser_disconnected")
+                raise RuntimeError("Chrome browser disconnected.")
+            if watch_seat and watch_seat in self.seats:
+                s = self.seats[watch_seat]
+                if s.get("crashed") or s.get("closed"):
+                    self.log(event="abort", reason="watch_seat_crashed", seat=watch_seat)
+                    raise RuntimeError(f"Seat {watch_seat} crashed or closed.")
             if time.monotonic() >= next_status:
                 next_status = time.monotonic() + 5
                 row = {ident: self.seat_status(ident) for ident in self.hosts}
                 self.status_log.write(json.dumps({"t": round(time.monotonic() - self.started, 1), "seats": row}) + "\n")
                 self.status_log.flush()
+                if watch_seat and watch_seat in row:
+                    if row[watch_seat]["joined"]:
+                        dropped_since = None
+                    else:
+                        dropped_since = dropped_since or time.monotonic()
+                        if time.monotonic() - dropped_since >= drop_grace:
+                            self.log(event="abort", reason="watch_seat_dropped", seat=watch_seat)
+                            raise RuntimeError(f"Seat {watch_seat} stopped reporting state for {drop_grace:.0f}s.")
             await asyncio.sleep(0.05)
 
     async def join_seats(self, browser, room_id, seats):
@@ -247,7 +284,8 @@ class Launcher:
                     self.manifest["room_id"] = room_id
                 await self.join_seats(browser, room_id, a.seat_list)
                 self.log(event="playing", seconds=a.seconds, manifest=str(self.run / "headless.json"))
-                await self.pump(time.monotonic() + a.seconds)
+                watch = (a.host_seat if a.command == "host" else None) if a.exit_on_drop else None
+                await self.pump(time.monotonic() + a.seconds, browser=browser, watch_seat=watch)
                 for ident, seat in self.seats.items():
                     with contextlib.suppress(Exception):
                         await seat["page"].screenshot(path=str(self.run / (ident + "-final.png")), timeout=5000)
@@ -293,6 +331,10 @@ def build_parser():
                        help="Render WebGL through SwiftShader (default; no GPU needed).")
         c.add_argument("--width", type=int, default=480)
         c.add_argument("--height", type=int, default=300)
+        c.add_argument("--fps-cap", type=float, default=0.0, help="Throttle requestAnimationFrame to N fps (0 = uncapped).")
+        c.add_argument("--raster-threads", type=int, default=0, help="Chromium --num-raster-threads (0 = default).")
+        c.add_argument("--exit-on-drop", action=argparse.BooleanOptionalAction, default=True,
+                       help="Exit non-zero if Chrome disconnects or the host seat crashes/drops.")
     join.add_argument("--room-id", type=int, required=True)
     join.add_argument("--sabers-only", action="store_true")
     host.add_argument("--room-name", default="Canyon_" + secrets.token_hex(3))
