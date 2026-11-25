@@ -48,6 +48,21 @@ The optional ready gate holds each player's position, facing and collision state
 
 In two 1× runs, the host received the release acknowledgements 40 and 20 milliseconds apart. Boba first acquired the concussion rifle 9.418 and 9.792 simulated seconds after his release. Both times the first gear plans were already different during the hold. Boba chose the concussion rifle (map thing 29, sector 58), and Jan chose the repeater (map thing 34, sector 59). Jan had no recorded concussion rifle gain in either run. Boba started nearer the rifle. The runs establish a repeatable acquisition from his assigned seat. Measuring a tactical advantage requires other starts and opponents. A third run using the final launcher recorded the same opening choices and a Boba pickup at 9.690 seconds. [Two-run shared-start evidence](qa/adjoin-arena-ready-gate.json) · [Final launcher run](qa/adjoin-arena-ready-gate-cli.json)
 
+### What changed when the starts were swapped?
+
+Boba kept slot 1, Jan kept slot 2, and the same native bots played four 22-second trials in normal, swapped, swapped, normal order. Both test episodes used the same map and sampled the owner's repeater and concussion rifle inventory. The only difference in the episode contents was the pair of starting-position masks.
+
+| Opening position | Boba Fett, time to possession | Jan Ors, time to possession |
+| --- | --- | --- |
+| Sector 41 | Concussion rifle at 9.894 and 11.630 s | Concussion rifle at 1.156 and 1.190 s |
+| Sector 18 | Repeater at 9.588 and 9.725 s | Repeater at 1.360 and 1.360 s |
+
+All eight first gear plans matched the weapon subsequently gained. Times run from each player's local release to the first sampled inventory gain during the opening life. Sector 41 is 1.278 world units from the rifle. Sector 18 is 1.164 units from the nearby repeater. The planner considers pickup value, traversability and route cost. These trials isolate the effect of exchanging the two starts on the observed first choice. They leave the exact scoring calculation and the competitive value of each route open.
+
+Acquisition speed stayed associated with the player and seat. Boba waited 3.573 to 4.391 seconds behind the gate and changed gear plans en route. Jan waited 0.138 to 0.171 seconds and kept her first gear plan until the stock pickup message in all four trials. Both planners ran during the hold. Reversing which player joins first would help distinguish a profile difference from a first-seat effect. [Four-match evidence](qa/adjoin-arena-start-crossover.json) and [reproduction command](scripts/bot_development/legacy/README.md#exchange-the-starting-positions).
+
+During the first attempt video encoding delayed shutdown and extended the native logs beyond the observation window. The four trials above use the corrected recorder, which ends capture and reaps the game processes before encoding. The measured shared windows were 22.08 to 22.10 seconds. The host and bots finished shutting down in 30 to 61 ms.
+
 ## Inherited JK Cross Server documentation
 
 A dedicated JKDF2 / Mysteries of the Sith host with a small browser control panel and server-side adapters for original DirectPlay, native OpenJKDF2, and the published JKDF2Web client.

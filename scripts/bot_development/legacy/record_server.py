@@ -18,6 +18,7 @@ import zlib
 _thread = None
 _completed = None
 _stop = threading.Event()
+_encode_allowed = threading.Event()
 PREPARE_TIMEOUT = 20
 
 
@@ -196,6 +197,9 @@ async def session(command, env, output, port, prepared, launched, recording_dir,
             records = receipt["captured"]
             if "joined_roster" in receipt and len(records)>=3 and len(set(v["image_sha256"] for v in records))>=2:
                 video_name = "native-follow.mp4" if camera == "follow" else "native-rifle-overlook.mp4"
+                # An early camera cap or a lost follow target can finish capture
+                # while the match is still playing. Keep the captured files alive.
+                _encode_allowed.wait()  # dedicated recorder thread; native IPC is closed
                 receipt["video"]=encode(frames,out,records,video_name)
                 receipt["status"]="recorded"
             else:
@@ -228,6 +232,7 @@ def boot_server(command, directory, env, log, repo, output, *, ipc_port=58471, r
     sys.dont_write_bytecode=True
     sys.path.insert(0,str(Path(repo).resolve()))
     _stop.clear()
+    _encode_allowed.clear()
     prepared = concurrent.futures.Future()
     launched = concurrent.futures.Future()
     _completed=concurrent.futures.Future()
@@ -256,9 +261,16 @@ def boot_server(command, directory, env, log, repo, output, *, ipc_port=58471, r
     return child
 
 
-def finish():
-    global _thread
+def stop_capture():
+    """Stop sampling new frames; leave already received frames available for encoding."""
     _stop.set()
+
+
+def finish():
+    """Finalize staged frames. A caller managing game processes stops them first."""
+    global _thread
+    stop_capture()
+    _encode_allowed.set()
     if _thread:
         _thread.join(timeout=100)
         if _thread.is_alive():

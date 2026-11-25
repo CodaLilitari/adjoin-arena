@@ -297,7 +297,9 @@ def run(args, receipt, tmp):
         sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
         import controlled_opening
         variant = gob.with_name("controlled-opening.gob")
-        receipt["opening_fixture"] = controlled_opening.build(gob, variant, ready_gate=args.ready_gate)
+        receipt["opening_fixture"] = controlled_opening.build(
+            gob, variant, ready_gate=args.ready_gate, swap_starts=args.swap_starts,
+            observe_repeater=args.observe_repeater)
         variant.replace(gob)
         hashes["jk1mp.gob"] = digest(gob)
         hashes[map_key] = receipt["opening_fixture"]["variant_jkl_sha256"]
@@ -380,10 +382,12 @@ def run(args, receipt, tmp):
         while True:
             collect(trace)
             check_liveness()
-            if time.monotonic()-start_match >= args.duration:
+            cutoff = time.monotonic()
+            if cutoff-start_match >= args.duration:
+                receipt["both_joined_cutoff_monotonic"] = cutoff
                 break
             time.sleep(.15)
-    receipt["both_joined_observation_wall_seconds"] = round(time.monotonic()-start_match,2)
+    receipt["both_joined_observation_wall_seconds"] = round(cutoff-start_match,2)
     for side, row in bots.items():
         if not row["joined"] or not row["loadout"] or row["matching_star_samples"] == 0:
             raise Failure(side+"_join_or_live_loadout_unverified")
@@ -397,6 +401,44 @@ def run(args, receipt, tmp):
                           "any_health_decrease":any(r["health_decreases"] for r in bots.values()),
                           "target_effect_caster_attribution":"unverified"}
     receipt["status"] = "live_join_and_loadout_verified"
+
+
+def finish_match(recorder, receipt, out, *, preserve_error):
+    """End native gameplay before encoding. Preserve the original match error on dual failures."""
+    if recorder:
+        receipt["match_status"] = receipt["status"]
+        recorder.stop_capture()
+    cutoff = time.monotonic()
+    if "both_joined_cutoff_monotonic" in receipt:
+        receipt["cutoff_to_shutdown_request_seconds"] = round(cutoff - receipt["both_joined_cutoff_monotonic"], 6)
+    try:
+        shutdown()
+    except Exception as error:
+        receipt["shutdown_error"] = type(error).__name__
+        if not preserve_error:
+            raise
+        return
+    receipt["native_shutdown_wall_seconds"] = round(time.monotonic() - cutoff, 3)
+    if not recorder:
+        return
+    flush_started = time.monotonic()
+    try:
+        evidence = recorder.finish()
+        if evidence:
+            receipt["observer_status"] = evidence["status"]
+            receipt["observer_receipt"] = "spectator/observer-receipt.json"
+            receipt["observer_receipt_sha256"] = evidence["receipt_sha256"]
+    except Exception as error:
+        receipt["observer_status"] = "failed"
+        receipt["observer_error"] = type(error).__name__
+        detail = out / "spectator/observer-receipt.json"
+        if detail.is_file():
+            receipt["observer_receipt"] = "spectator/observer-receipt.json"
+            receipt["observer_receipt_sha256"] = hashlib.sha256(detail.read_bytes()).hexdigest()
+        if not preserve_error:
+            raise
+    finally:
+        receipt["observer_flush_wall_seconds"] = round(time.monotonic() - flush_started, 3)
 
 
 def main():
@@ -414,9 +456,15 @@ def main():
                           help="Hold both Canyon Oasis opening poses until both bot seats report ready.")
     scenario.add_argument("--controlled-opening", action="store_true",
                         help="Use a private Canyon Oasis variant to set each bot's first spawn and observe rifle inventory.")
+    parser.add_argument("--swap-starts", action="store_true",
+                        help="Exchange the two physical ready-gate starts, retaining bot seats and profiles.")
+    parser.add_argument("--observe-repeater", action="store_true",
+                        help="Sample the ready-gate owners' repeater inventory across lives.")
     parser.add_argument("--camera", choices=("follow", "rifle-overlook"),
                         help="Record the selected native camera (implies --record).")
     args = parser.parse_args()
+    if (args.swap_starts or args.observe_repeater) and not args.ready_gate:
+        parser.error("--swap-starts and --observe-repeater are available only with --ready-gate")
     if args.camera:
         args.record = True
     else:
@@ -449,19 +497,11 @@ def main():
             try:
                 run(args,receipt,Path(temp))
             finally:
-                try:
-                    if args.recorder:
-                        receipt["match_status"] = receipt["status"]
-                        evidence = args.recorder.finish()
-                        if evidence:
-                            receipt["observer_status"] = evidence["status"]
-                            receipt["observer_receipt"] = "spectator/observer-receipt.json"
-                            receipt["observer_receipt_sha256"] = evidence["receipt_sha256"]
-                finally:
-                    shutdown()
+                finish_match(args.recorder, receipt, out, preserve_error=sys.exc_info()[0] is not None)
         if args.controlled_opening or args.ready_gate:
             try:
-                receipt["opening_observations"] = args.opening.qualify(out, receipt["bots"])
+                receipt["opening_observations"] = args.opening.qualify(
+                    out, receipt["bots"], swap_starts=args.swap_starts)
             except (KeyError, IndexError, TypeError, ValueError) as error:
                 raise Failure("controlled_opening_observations_failed") from error
         if args.ready_gate:
@@ -470,6 +510,12 @@ def main():
             except ValueError as error:
                 receipt["ready_gate_error"] = str(error)
                 raise Failure("ready_gate_observations_failed") from error
+        if args.observe_repeater:
+            try:
+                receipt["repeater_observations"] = args.opening.qualify_repeater(
+                    out, receipt["opening_observations"], receipt["ready_gate_observations"])
+            except (IndexError, KeyError, TypeError, ValueError) as error:
+                raise Failure("repeater_observations_failed") from error
         code = 0
     except Failure as e:
         receipt["error"] = str(e)

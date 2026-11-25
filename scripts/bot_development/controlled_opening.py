@@ -11,6 +11,8 @@ STOCK_GOB = "27a4b3642e0965753232f35b1e8e846c91df1eca1da77398b5efda66ca369a2e"
 STOCK_MAP = "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc"
 VARIANT_GOB = "9585f8c54df1e2c5fbe2645af56e9f635dcd572e5ef6aa896d278c902699320c"
 READY_GATE_GOB = "6b72d772a8a0cc61d84aff3811d4cc5b9d2039c1df055646e44bcb7131fdaab6"
+SWAPPED_GATE_GOB = "9e6213e9c826f42648223f198e93c1c683af56de7a8095facce148de5058a9fc"
+REPEATER_GATE_GOBS = {False: "b791a52ba1892f38ad98927ac8d5f0806b75b78153f8ebee124b24ef4a7de748", True: "0c2e6d1756107e9b7b229857bfbf8af8db955341a1b41c5d0c88f041ea972fde"}
 VARIANT_MAP = "704f786cc494e3593dcf18815247e678dbde9f0f53e09164300b1b7d81860ad8"
 COG = Path(__file__).with_name("arena_start.cog")
 LEVEL = "jkl/m10.jkl"
@@ -53,15 +55,63 @@ def read_entries(archive):
     return entries
 
 
-def build(archive, output, *, ready_gate=False):
-    """Build in a new path. The source is an exact stock GOB owned by the caller."""
+def replace_once(script, before, after):
+    if script.count(before) != 1:
+        raise ValueError("Unexpected ready-gate script layout")
+    return script.replace(before, after)
+
+
+def opening_script(ready_gate, swap_starts, observe_repeater):
+    if (swap_starts or observe_repeater) and not ready_gate:
+        raise ValueError("Swapping starts or observing the repeater requires the ready gate")
+    source = COG.with_name("arena_ready_gate.cog") if ready_gate else COG
+    script = source.read_text(encoding="ascii")
+    if swap_starts:
+        script = replace_once(
+            script,
+            "if (slot == 1) SetRespawnMask(player, 0xFFFFFFFD);\n   else SetRespawnMask(player, 0xFFFFFBFF);",
+            "if (slot == 1) SetRespawnMask(player, 0xFFFFFBFF);\n   else SetRespawnMask(player, 0xFFFFFFFD);")
+    if observe_repeater:
+        script = replace_once(script, "int rifle=-1", "int repeater=-1 local\nint rifle=-1")
+        script = replace_once(script, "   PrintInt(rifle);\n   return;\n\npulse:", """   PrintInt(rifle);
+   repeater = GetInv(player, 6);
+   Print("ARENA_REPEATER_BASE");
+   PrintInt(slot);
+   PrintInt(repeater);
+   PrintFlex(GetLevelTime());
+   return;
+
+pulse:""")
+        script = replace_once(script, "   return;\ntrigger:", """   if (((slot == 1) || (slot == 2)) && (repeater >= 0))
+   {
+      sample = GetInv(player, 6);
+      if (sample != repeater)
+      {
+         Print("ARENA_REPEATER_CHANGE");
+         PrintInt(slot);
+         PrintInt(repeater);
+         PrintInt(sample);
+         PrintFlex(GetLevelTime());
+         repeater = sample;
+      }
+   }
+   return;
+trigger:""")
+    return script.replace("\n", "\r\n").encode("ascii")
+
+
+def build(archive, output, *, ready_gate=False, swap_starts=False, observe_repeater=False):
+    """Build one pinned scenario in a new path using an owned stock episode."""
+    script = opening_script(ready_gate, swap_starts, observe_repeater)
     if digest(archive.read_bytes()) != STOCK_GOB:
         raise ValueError("Unexpected stock episode")
     entries = read_entries(archive)
     entries[LEVEL] = patch_level(entries[LEVEL])
     expected_gob = READY_GATE_GOB if ready_gate else VARIANT_GOB
-    source = COG.with_name("arena_ready_gate.cog") if ready_gate else COG
-    script = source.read_bytes().replace(b"\r\n", b"\n").replace(b"\n", b"\r\n")
+    if swap_starts:
+        expected_gob = SWAPPED_GATE_GOB
+    if observe_repeater:
+        expected_gob = REPEATER_GATE_GOBS[swap_starts]
     entries[SCRIPT] = script
 
     payload = bytearray(b"GOB " + struct.pack("<II", 20, 0))
@@ -78,12 +128,13 @@ def build(archive, output, *, ready_gate=False):
         stream.write(payload)
     if read_entries(output) != entries:
         raise ValueError("Private episode readback differs from generated entries")
-    return {"stock_gob_sha256": STOCK_GOB, "stock_jkl_sha256": STOCK_MAP,
+    return {"start_assignment": "swapped" if swap_starts else "normal", "observe_repeater": observe_repeater,
+            "stock_gob_sha256": STOCK_GOB, "stock_jkl_sha256": STOCK_MAP,
             "variant_gob_sha256": expected_gob, "variant_jkl_sha256": VARIANT_MAP,
             "cog_sha256": digest(script), "unchanged_entry_count": len(entries) - 2}
 
 
-def observe(log, joined):
+def observe(log, joined, *, swap_starts=False):
     """Match one owner log and connection in a single map to COG life and bin 9 readbacks."""
     lines = [item.strip() for item in log.read_text(encoding="ascii", errors="replace").splitlines()
              if item.strip()]
@@ -125,7 +176,7 @@ def observe(log, joined):
             event = dict(kind="opening" if first else "respawn", life_ordinal=life,
                          sector=sector, position=list(position), mask_readback=int(lines[i+4+int(first)]))
             if first:
-                expected_sector, expected_position = STARTS[slot]
+                expected_sector, expected_position = STARTS[3 - slot if swap_starts else slot]
                 event["mask_before"] = int(lines[i+4])
                 if (sector != expected_sector or dist(position, expected_position) > 0.000002
                         or event["mask_before"] != 0 or event["mask_readback"] != event["mask_before"]):
@@ -161,9 +212,75 @@ def observe(log, joined):
             "log_sha256": digest(log.read_bytes())}
 
 
-def qualify(directory, bots):
-    measured = {side: observe(directory / (side + ".log"), bots[side]["joined"])
+def qualify(directory, bots, *, swap_starts=False):
+    measured = {side: observe(directory / (side + ".log"), bots[side]["joined"], swap_starts=swap_starts)
                 for side in ("dark", "light")}
+    if swap_starts and (measured["dark"]["slot"], measured["light"]["slot"]) != (1, 2):
+        raise ValueError("Swapping starts must preserve the original owners and join order")
     if {row["slot"] for row in measured.values()} != {1, 2} or len({row["net"] for row in measured.values()}) != 2:
         raise ValueError("Two distinct joined owners required")
+    return measured
+
+
+def qualify_repeater(directory, openings, gate):
+    """Bind bin 6 samples to the same owning clients, life boundaries and local release clocks."""
+    measured = {}
+    for side, slot in (("dark", 1), ("light", 2)):
+        opening = openings[side]
+        owner = gate["owners"][side]
+        raw = (directory / (side + ".log")).read_bytes()
+        if (digest(raw) != opening["log_sha256"] or opening["slot"] != slot
+                or (owner["slot"], owner["net"]) != (slot, opening["net"])):
+            raise ValueError("Repeater sample owner does not match gate and opening")
+        lines = [s.strip() for s in raw.decode("ascii", errors="replace").splitlines() if s.strip()]
+        unlock = lines.index("GATE_UNLOCK_APPLIED")
+        expected_lives = [e["life_ordinal"] for e in opening["events"] if e["kind"] == "life_initial_inventory"]
+        events = []
+        life = 0
+        previous = None
+        last_time = -1.0
+        for i, marker in enumerate(lines):
+            if marker in ("ADJOIN_OPENING", "ADJOIN_RESPAWN"):
+                if life and previous is None:
+                    raise ValueError("Missing repeater baseline before respawn")
+                life += 1
+                previous = None
+                continue
+            if not marker.startswith("ARENA_REPEATER_"):
+                continue
+            if not life or int(lines[i+1]) != slot:
+                raise ValueError("Invalid repeater seat or life")
+            if marker == "ARENA_REPEATER_BASE":
+                amount = int(lines[i+2])
+                when = float(lines[i+3])
+                if (previous is not None or i < 2 or lines[i-2] != "ADJOIN_RIFLE_BASE"
+                        or amount not in (0, 1) or (life == 1 and (i >= unlock or amount != 0))
+                        or (life > 1 and i <= unlock)):
+                    raise ValueError("Invalid owner repeater baseline")
+                event = dict(kind="life_initial_inventory", life_ordinal=life, amount=amount, level_time_s=when)
+                previous = amount
+            elif marker == "ARENA_REPEATER_CHANGE":
+                old, new, when = int(lines[i+2]), int(lines[i+3]), float(lines[i+4])
+                if (old != previous or new not in (0, 1) or old == new or i <= unlock
+                        or when < owner["unlock_time_s"]):
+                    raise ValueError("Invalid or pre-release owner repeater transition")
+                event = dict(kind="sampled_inventory_change", life_ordinal=life, previous=old, current=new,
+                             level_time_s=when, seconds_after_release=round(when - owner["release_time_s"], 6))
+                previous = new
+            else:
+                raise ValueError("Unknown repeater marker")
+            if not isfinite(when) or when < 0 or when < last_time:
+                raise ValueError("Invalid repeater owner clock")
+            if life == 1 and marker == "ARENA_REPEATER_BASE" and when > owner["release_time_s"]:
+                raise ValueError("Opening repeater sample clock after release")
+            last_time = when
+            events.append(event)
+        lives = [ev["life_ordinal"] for ev in events if ev["kind"] == "life_initial_inventory"]
+        if not lives or lives != expected_lives or previous is None:
+            raise ValueError("Missing repeater life baseline")
+        first = next((ev["seconds_after_release"] for ev in events
+                      if ev["kind"] == "sampled_inventory_change" and ev["life_ordinal"] == 1
+                      and ev["current"] == 1), None)
+        measured[side] = dict(slot=slot, net=opening["net"], bin=6, log_sha256=opening["log_sha256"],
+                              events=events, first_life_gain_after_release_s=first)
     return measured

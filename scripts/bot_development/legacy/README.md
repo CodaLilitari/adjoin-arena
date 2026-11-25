@@ -141,3 +141,17 @@ The launcher verifies the owner's stock episode, builds a temporary variant in i
 Run the controlled rifle command above with `--ready-gate` in place of `--controlled-opening` and a fresh output directory. Keep `--camera rifle-overlook` to see the alcove. Omit the camera for an unrecorded run. The gate requires the Canyon Oasis arena baseline and writes its own temporary episode variant. Stock and ungated trials use their original launch options.
 
 After the stock loadout appears, each client signals that it is ready. The player in slot 1 broadcasts GO when it has seen both signals. Both clients restore control, gravity and collision, then acknowledge the same GO to the dedicated host. The result in `receipt.json` includes the players' local releases and both host acknowledgements. The bot planners run during the physical hold. For the time to first rifle acquisition, subtract the release timestamp from the first owner-side bin 9 gain on that same client's clock. The elapsed time between the host's two acknowledgements measures message arrival at the host.
+
+### Exchange the starting positions
+
+Give each of four matches a fresh directory and use the same duration, camera, game data and bot settings. Add `--observe-repeater` to the ready-gate command for all four. Add `--swap-starts` for the middle two. Boba remains slot 1 and Jan remains slot 2. The swapped condition exchanges their physical spawn locations. Both conditions sample the concussion rifle (bin 9) and repeater (bin 6).
+
+From the repository root, use the four completed directories in run order to produce the comparison:
+
+```sh
+python3 -B -m scripts.bot_development.analysis.start_crossover \
+  "$RUN_ROOT/1-normal" "$RUN_ROOT/2-swapped" "$RUN_ROOT/3-swapped" "$RUN_ROOT/4-normal" \
+  --output "$RUN_ROOT/crossover.json"
+```
+
+The report checks the native logs and stationary camera against their recorded hashes. It includes the first gear plan and the first sampled possession of each weapon during the opening life. The pickup timer starts at each player's local release. A null timer means no gain was sampled in that life.
