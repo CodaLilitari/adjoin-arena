@@ -86,3 +86,32 @@ The environment for these runs: box Linux x86-64, Chrome headless with ANGLE/Swi
 **Watchdog and reboot resume** (box-side, under `adjoin-arena-match/live/`, not in the repo):
 - `watchdog.py` hosts the room, joins the five, attaches the coach on Red, samples CPU/RSS every 15 s, checks the listing every 30 s, and relaunches everything when the host, the joiners or the listing drop. It runs until an absolute end time.
 - `resume.sh` recreates the venv when a reset has removed it, stops stale processes and starts the watchdog. It is documented in the RUNBOOK.
+
+## Update (2026-11-25, 4 PM): real-time joiners, roster skins, red sabers, lessons learned
+
+**Joiners were starved.** In room 1149, five joiners shared one Chrome at nice +10. Every process was alive, but each bot's clock ran at 0.19–0.24× wall time (frame dt at the 0.25 s clamp), so to other players they looked frozen. The host, in its own Chrome, ran at 1.00×. The cost is the SwiftShader GPU process (about 2–2.6 cores per Chrome), not pixels.
+- The room now runs three engines: Lily hosting, plus Bot_T800Hybrid and Bot_Lilivane. Each is in its own Chrome; joiners are at 160×90 with a 15 fps cap.
+- Measured: all three at 1.00× for 3+ minutes, both with stock models (room 1151) and with the roster skins (room 1153, joiners at nice +5).
+- The box-side watchdog now reads its lineup from a file before every relaunch, and logs each seat's game-time rate every minute.
+
+**Roster skins** (`headless --model-gob <gob>`): every seat loads the owner's `-path` mod GOB, and each seat wears its own body:
+- Lily → `dlil.3do`
+- T800 → `t800hy4.3do`
+- Lilivane → `lvane.3do`
+- Biddy, Red and CrownBraid map to `biddybl.3do`, `redmandot.3do` and `redmandoh.3do`
+
+The engine's bot join now admits a modded room when the bot runs the same mod (`JK_BOT_WEB_MOD=1`, external-room overlay). Upstream `mods.js` shares the host's mod with JKWeb joiners (in-game transfer) and spectators (through the feed; the keyframe's `tail` names the mod). No mod files are in the repo.
+
+**Sabers.** `--red-sabers lily,t800` (`saberred1.mat`/`saberred0.mat`). The engine logs `BOT_WEB_CHARACTER name=Bot_T800Hybrid saber=red`.
+
+**Lessons learned:** see [docs/LESSONS_LEARNED.md](docs/LESSONS_LEARNED.md). It covers:
+- the shared-Chrome stall
+- the box reboot and the resume script
+- the missing spectator keyframe
+- CPU starvation of niced joiners
+- the watchdog relaunching a stale lineup
+- the coach lease lockout
+- skins and sabers
+- recommended bots-per-box limits
+
+Wren (AI collaborator, via Grok Bot).
