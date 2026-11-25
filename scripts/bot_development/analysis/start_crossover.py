@@ -12,7 +12,7 @@ PROFILE_ORDER = ("boba_fett", "jan_ors")
 WEAPONS = {10: "repeater", 29: "concussion rifle", 34: "repeater"}
 
 
-def read_match(directory):
+def read_match(directory, *, allow_no_plan=False):
     path = directory / "receipt.json"
     receipt = json.loads(path.read_bytes())
     gate = receipt["ready_gate_observations"]
@@ -32,7 +32,9 @@ def read_match(directory):
             and fixture["variant_jkl_sha256"] == controlled_opening.VARIANT_MAP,
             "Unexpected instrumented episode or map")
     openings = controlled_opening.qualify(directory, receipt["bots"], swap_starts=swapped, jan_first=jan_first)
-    require(openings == receipt["opening_observations"] and ready_gate.qualify(directory, openings) == gate,
+    mode = receipt.get("planner_experiment", {}).get("mode")
+    require(openings == receipt["opening_observations"]
+            and ready_gate.qualify(directory, openings, planner_mode=mode) == gate,
             "Opening or start gate differs from native logs")
     repeaters = controlled_opening.qualify_repeater(directory, openings, gate, jan_first=jan_first)
     require(repeaters == receipt["repeater_observations"], "Repeater observations differ from native logs")
@@ -53,11 +55,12 @@ def read_match(directory):
         native = read_seat(directory / (side + ".log"), NAMES[side])
         plan = native["first_gear_plan"]
         slot = opening["slot"]
-        require(slot == sides.index(side) + 1 and native["join_acknowledgements"] == [peer["joined"]] and plan,
+        require(slot == sides.index(side) + 1 and native["join_acknowledgements"] == [peer["joined"]]
+                and (plan or allow_no_plan),
                 "Unexpected native seat, join or initial plan")
         held_plans = owner["pre_release_plans"]
         if held_plans:
-            require(held_plans[0] == {"item": plan["item"], "bot_time_s": plan["t"]}, "First plan disagreement")
+            require(plan and held_plans[0] == {"item": plan["item"], "bot_time_s": plan["t"]}, "First plan disagreement")
         release = owner["release_time_s"]
         first_gains = {}
         for bin_id, label, source in ((9, "concussion_rifle", opening), (6, "repeater", repeater)):
@@ -67,9 +70,10 @@ def read_match(directory):
                     "Inventory gain precedes release or has an unexpected bin")
             first_gains[label] = round(gains[0]["level_time_s"] - release, 6) if gains else None
         require(first_gains["repeater"] == repeater["first_life_gain_after_release_s"], "Repeater timer disagreement")
+        item = plan["item"] if plan else None
         seats[side] = dict(name=NAMES[side], slot=slot, sector=sector, position=opening["events"][0]["position"],
-                           first_plan_item=plan["item"], first_plan_weapon=WEAPONS.get(plan["item"]),
-                           first_plan_bot_seconds=plan["t"], first_plan_during_hold=bool(held_plans),
+                           first_plan_item=item, first_plan_weapon=WEAPONS.get(item),
+                           first_plan_bot_seconds=plan["t"] if plan else None, first_plan_during_hold=bool(held_plans),
                            plans_during_hold=held_plans,
                            held_owner_seconds=round(release - owner["hold_time_s"], 6),
                            first_life_gain_seconds_after_release=first_gains,
@@ -86,6 +90,8 @@ def read_match(directory):
                 "platform", "render_environment")}
     settings.update(profiles=profiles, binary_and_map_hashes=hashes,
                     server_registry={k: v for k, v in receipt["server_registry"].items() if k != "portNum"})
+    if mode is not None:
+        settings["planner_experiment"] = {"mode": mode, "build": receipt["planner_experiment"]["build"]}
     acks = gate["host_acknowledgements"]
     require(len(acks) == 2 and {ack["slot"] for ack in acks} == {1, 2}, "Missing release acknowledgement")
     result = dict(assignment=assignment, source_receipt_sha256=sha(path), logs_sha256=log_hashes, video=video,

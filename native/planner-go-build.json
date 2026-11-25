@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "source_commit": "74e4657c4f1751d09af9ad9e056acb8f41997acb",
+  "patch": "native/planner-go.patch",
+  "binary_sha256": "885234aa2c9de16406f9c01da5bfefe733d65777d86edf7a89336cf255561b69",
+  "gns_sha256": "8246a869b1d72115ecc849309629aa1abbce0bf1a0f23cc70deaded98d82d8e9",
+  "patch_sha256": "7660ecbcedda87dc9b6a13f45fb84f7198116b39a8c6a2f55250da612df2598e",
+  "base_binary_sha256": "d04f5106a3a0a3f123162e82a364bc98ec495ae8bd2fe89fb0f1b2461fc44fe3",
+  "base_patch_sha256": "12fc518bdf29bd7322c4d69935f9be499ea3f829f25538bd1f66de0dc2ff4af6",
+  "relink_archive_sha256": "a9d6ac49ff89d662c8ef4d56973994d572701a27ff6ba944c069df0c21ff3d21",
+  "generated_globals_sha256": "edec9732ccad1f32d9fe4740ca17fdb76a05459181b196c779dbe45519a00e78",
+  "patched_sources": {
+    "src/AI/jkBot.c": "4abbf6138d830276faa7b7c4b41f38e5cea85861501adbf3ee59288c1ef8e4d1",
+    "src/AI/jkBotBehavior.inc": "706434c453a7d6bacf5cb47fcd8f0f403d4e0a0509dff1e2d184be1ace46f627",
+    "src/AI/jkBotCompanion.inc": "cc26196da9ce1a1e6592b442badc331c33eeeda7a8629ae0b68164a9d2e7d861",
+    "src/AI/jkBotHearing.inc": "bfe0444ac1e7d242a50b91f0a80840cdc443e8f4f68bb87b5cb60da4612f6f2c"
+  },
+  "rebuilt_object_sha256": "f2c42f370b748df7c4534f2193c125ac6f9c079f8b6dc8761c24d65b8a28f9d8",
+  "compile_flags": [
+    "-std=gnu11",
+    "-O3",
+    "-DNDEBUG",
+    "-fshort-wchar",
+    "-DARCH_64BIT",
+    "-DLINUX",
+    "-DNO_JK_MMAP",
+    "-DPLATFORM_LINUX",
+    "-DPLATFORM_POSIX",
+    "-DPLATFORM_GNS",
+    "-DPLATFORM_CURL",
+    "-DPLATFORM_NO_CACERT_BLOB",
+    "-DQOL_IMPROVEMENTS",
+    "-DSDL2_RENDER",
+    "-DSTDSOUND_OPENAL",
+    "-DTARGET_CAN_JKGM",
+    "-D_XOPEN_SOURCE=500",
+    "-D_DEFAULT_SOURCE",
+    "-D_FORTIFY_SOURCE=3",
+    "-fstack-protector-strong",
+    "-fstack-clash-protection",
+    "-fcf-protection",
+    "-Werror=implicit-function-declaration"
+  ],
+  "toolchain": {
+    "cc": "cc (Ubuntu 15.2.0-16ubuntu1) 15.2.0",
+    "c++": "c++ (Ubuntu 15.2.0-16ubuntu1) 15.2.0",
+    "ld": "GNU ld (GNU Binutils for Ubuntu) 2.46"
+  }
+}

@@ -170,3 +170,36 @@ python3 -B -m scripts.bot_development.analysis.join_crossover \
 ```
 
 For each player, the report reads the first gear plan and subsequent plans up to the stock pickup message for that weapon. A different item ID counts as a target change. Replanning a path to the same item keeps the original target. Owner inventory supplies the acquisition time. An opening without a corroborated pickup remains unobserved. The host roster, join acknowledgements and Force loadouts establish who actually occupied each slot.
+
+### Compare ordinary planning with a start on GO
+
+Build the client using the [native build instructions](../../../native/README.md#rebuild-the-planner-go-research-client). For the two-player Canyon Oasis ready-gate command, supply both `--planner-client "$RESEARCH_CLIENT"` and `--planner-quarantine off` or `--planner-quarantine on`. Use the same built executable, local game data, camera and 22-second observation duration in both modes. Include `--observe-repeater`. `--jan-first` controls join order and `--swap-starts` controls the physical layout. The [trial schedule](../../../qa/adjoin-arena-planner-start-schedule.json) lists all main and confirmation runs in order.
+
+With Bash, set `REPO`, `OWNED_JK`, `RESEARCH_CLIENT` and a fresh external Linux `RUN_ROOT` to absolute paths. This example uses jq to read the committed schedule. Each invocation gets a fresh loopback-only network namespace. The shell stops on the first failed match, leaving its logs and all completed runs in place.
+
+```bash
+set -euo pipefail
+mkdir "$RUN_ROOT"
+schedule="$REPO/qa/adjoin-arena-planner-start-schedule.json"
+while IFS=$'\t' read -r name first starts mode; do
+  flags=()
+  if [[ $first == jan ]]; then flags+=(--jan-first); fi
+  if [[ $starts == swapped ]]; then flags+=(--swap-starts); fi
+  unshare -Urn -- sh -c 'ip link set lo up && exec "$@"' sh \
+    python3 -B "$REPO/scripts/bot_development/legacy/native_force_observation.py" \
+    --repo "$REPO" --data "$OWNED_JK" --output "$RUN_ROOT/$name" \
+    --arena-baseline --ready-gate --observe-repeater --map m10.jkl --duration 22 \
+    --camera rifle-overlook --planner-client "$RESEARCH_CLIENT" --planner-quarantine "$mode" \
+    "${flags[@]}" > "$RUN_ROOT/$name.log" 2>&1
+  printf '%s\n' "$RUN_ROOT/$name" >> "$RUN_ROOT/qualified-paths.txt"
+done < <(jq -r '.runs[] | [.name,.first,.starts,.mode] | @tsv' "$schedule")
+```
+
+From the repository root, evaluate those directories in schedule order:
+
+```sh
+python3 -B -m scripts.bot_development.analysis.planner_start \
+  --paths "$RUN_ROOT/qualified-paths.txt" --output "$RUN_ROOT/planner-start.json"
+```
+
+The comparison verifies the camera, owner inventories, native gate markers and first gear plans against the raw logs. The final two runs form a separate confirmation pair. The report includes incomplete pickups and gives an opening without a confirmed pickup no credit for taking a direct route.

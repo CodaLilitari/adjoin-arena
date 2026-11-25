@@ -1,0 +1,176 @@
+{
+  "created_utc": "2026-11-25T04:25:38.478482+00:00",
+  "scenario": "native m10.jkl 22s rank8 gated both inventory bins rifle-overlook camera",
+  "holdout": "Fresh Jan-first normal ON then OFF. Freeze implementation before any efficacy evaluation. Tests for a timing/hold mechanism only, without held-out maps/opponents.",
+  "endpoints": [
+    "Rate of different-item plan from unlock to intended first pickup HUD, resolved by owning native HUD messages and corresponding inventory transition.",
+    "Intended first-life 0->1 inventory transition seconds after owner release. Missing remains censored, reported explicitly.",
+    "Both owners physical gate, native planner hold/GO marker and first autonomous gear plan with ordering."
+  ],
+  "failure_handling": "Retain every attempt. Qualification failures are diagnostic, listing reason. Repeat failed experimental cells under fresh names. Valid pilot cells count in the main-matrix results if frozen source is unchanged. Any gameplay change requires a fresh freeze and repetition of all cells.",
+  "source_constraints": "Identical compiled client, private map/COG/shared before/after rollout identity within assigned layout, official native server and GNS, seat profiles, launcher and capture across ON/OFF.",
+  "runs": [
+    {
+      "index": 1,
+      "set": "main",
+      "block": 1,
+      "starts": "normal",
+      "first": "boba",
+      "mode": "off",
+      "name": "main-01-normal-boba-off"
+    },
+    {
+      "index": 2,
+      "set": "main",
+      "block": 1,
+      "starts": "normal",
+      "first": "boba",
+      "mode": "on",
+      "name": "main-02-normal-boba-on"
+    },
+    {
+      "index": 3,
+      "set": "main",
+      "block": 1,
+      "starts": "normal",
+      "first": "jan",
+      "mode": "on",
+      "name": "main-03-normal-jan-on"
+    },
+    {
+      "index": 4,
+      "set": "main",
+      "block": 1,
+      "starts": "normal",
+      "first": "jan",
+      "mode": "off",
+      "name": "main-04-normal-jan-off"
+    },
+    {
+      "index": 5,
+      "set": "main",
+      "block": 2,
+      "starts": "swapped",
+      "first": "jan",
+      "mode": "off",
+      "name": "main-05-swapped-jan-off"
+    },
+    {
+      "index": 6,
+      "set": "main",
+      "block": 2,
+      "starts": "swapped",
+      "first": "jan",
+      "mode": "on",
+      "name": "main-06-swapped-jan-on"
+    },
+    {
+      "index": 7,
+      "set": "main",
+      "block": 2,
+      "starts": "swapped",
+      "first": "boba",
+      "mode": "on",
+      "name": "main-07-swapped-boba-on"
+    },
+    {
+      "index": 8,
+      "set": "main",
+      "block": 2,
+      "starts": "swapped",
+      "first": "boba",
+      "mode": "off",
+      "name": "main-08-swapped-boba-off"
+    },
+    {
+      "index": 9,
+      "set": "main",
+      "block": 3,
+      "starts": "swapped",
+      "first": "boba",
+      "mode": "off",
+      "name": "main-09-swapped-boba-off"
+    },
+    {
+      "index": 10,
+      "set": "main",
+      "block": 3,
+      "starts": "swapped",
+      "first": "boba",
+      "mode": "on",
+      "name": "main-10-swapped-boba-on"
+    },
+    {
+      "index": 11,
+      "set": "main",
+      "block": 3,
+      "starts": "swapped",
+      "first": "jan",
+      "mode": "on",
+      "name": "main-11-swapped-jan-on"
+    },
+    {
+      "index": 12,
+      "set": "main",
+      "block": 3,
+      "starts": "swapped",
+      "first": "jan",
+      "mode": "off",
+      "name": "main-12-swapped-jan-off"
+    },
+    {
+      "index": 13,
+      "set": "main",
+      "block": 4,
+      "starts": "normal",
+      "first": "jan",
+      "mode": "off",
+      "name": "main-13-normal-jan-off"
+    },
+    {
+      "index": 14,
+      "set": "main",
+      "block": 4,
+      "starts": "normal",
+      "first": "jan",
+      "mode": "on",
+      "name": "main-14-normal-jan-on"
+    },
+    {
+      "index": 15,
+      "set": "main",
+      "block": 4,
+      "starts": "normal",
+      "first": "boba",
+      "mode": "on",
+      "name": "main-15-normal-boba-on"
+    },
+    {
+      "index": 16,
+      "set": "main",
+      "block": 4,
+      "starts": "normal",
+      "first": "boba",
+      "mode": "off",
+      "name": "main-16-normal-boba-off"
+    },
+    {
+      "index": 17,
+      "set": "held_out",
+      "block": null,
+      "starts": "normal",
+      "first": "jan",
+      "mode": "on",
+      "name": "held-17-normal-jan-on"
+    },
+    {
+      "index": 18,
+      "set": "held_out",
+      "block": null,
+      "starts": "normal",
+      "first": "jan",
+      "mode": "off",
+      "name": "held-18-normal-jan-off"
+    }
+  ]
+}

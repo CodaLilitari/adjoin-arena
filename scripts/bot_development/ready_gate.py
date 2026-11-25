@@ -17,6 +17,9 @@ WIDTH = {"GATE_SCRIPT_LOADED": 1, "GATE_SPAWN_INVENTORY": 15, "GATE_HELD": 3,
 LOADOUT = (1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 50, 0, 100, 400, 0)
 GO_SIGNAL = (7312, 1, 7312, 2, 7312)
 PLAN = re.compile(r"BOT_GEAR \S+ t=([0-9.]+) event=plan item=(\d+) ")
+PLANNER = re.compile(r"BOT_PLANNER_GATE name=(\S+) mode=(off|on) phase=(held|released) "
+                     r"slot=([12]) game_ms=(\d+) policy_s=(\d+\.\d+) actor_mask=(\d+) "
+                     r"gravity=([01]) collision=([01])")
 WORLD = "OpenJKDF2: sithWorld_Load -> "
 
 
@@ -141,11 +144,59 @@ def owner(log, opening):
             "first_rifle_gain_after_release_s": gains[0] if gains else None}
 
 
-def qualify(directory, openings):
+def planner_evidence(log, seat, mode):
+    """Check native planner state at each COG edge without mixing its clock with the owner clock."""
+    discoveries = [s.split()[1] for s in log.lines if s.startswith("BOT_DISCOVER name=")]
+    require(len(discoveries) == 1, "Missing research owner identity")
+    name = discoveries[0][5:]
+    markers = []
+    for index, line in enumerate(log.lines):
+        if line.startswith("BOT_PLANNER_GATE"):
+            match = PLANNER.fullmatch(line)
+            require(match and (match[1], match[2], int(match[4])) == (name, mode, seat["slot"]),
+                    "Unexpected research planner marker, owner, mode or seat")
+            markers.append((index, dict(phase=match[3], game_ms=int(match[5]), policy_s=number(match[6]),
+                                        actor_mask=int(match[7]), gravity=int(match[8]), collision=int(match[9]))))
+    require([row["phase"] for _, row in markers] == ["held", "released"],
+            "Require exactly one native held and released marker")
+    (held_line, held), (released_line, released) = markers
+    hold = log.one("GATE_HELD").line
+    release = log.one("GATE_LOCAL_RELEASE").line
+    unlock = log.one("GATE_UNLOCK_APPLIED").line
+    require(hold < held_line < release < unlock < released_line, "Native planner markers disagree with COG gate")
+    require((held["actor_mask"], held["gravity"], held["collision"]) == (2359296, 0, 0)
+            and (released["actor_mask"], released["gravity"], released["collision"]) == (0, 1, 1)
+            and released["game_ms"] > held["game_ms"], "Invalid native gate readbacks")
+    if mode == "on":
+        require(held["policy_s"] == released["policy_s"] == 0, "Policy clock advanced under quarantine")
+    else:
+        require(released["policy_s"] > held["policy_s"], "Control policy clock did not advance")
+    first = None
+    for index in range(log.one("GATE_SCRIPT_LOADED").line, len(log.lines)):
+        line = log.lines[index]
+        if line == "ADJOIN_RESPAWN" or line.startswith("BOT_RESPAWN "):
+            require(released_line < index, "Planner release occurred outside opening life")
+            break
+        if line.startswith("BOT_GEAR ") and "event=plan" in line.split():
+            match = PLAN.match(line)
+            require(match and discoveries[0] in line.split(), "Invalid research gear plan or owner")
+            if mode == "on":
+                require(index > released_line, "Gear planner ran before native release")
+            if first is None:
+                first = dict(item=int(match[2]), bot_time_s=number(match[1]), after_release=index > release)
+    return dict(mode=mode, name=name, slot=seat["slot"], held=held, released=released, first_gear_plan=first,
+                first_gear_plan_after_release=first["after_release"] if first else None)
+
+
+def qualify(directory, openings, *, planner_mode=None):
     """Openings must be produced by controlled_opening.qualify for these exact files."""
     require(set(openings) == {"dark", "light"}, "Two distinct owner logs required")
     logs = {side: Log(directory / (side + ".log"), 0) for side in openings}
     owners = {side: owner(logs[side], op) for side, op in openings.items()}
+    if planner_mode is not None:
+        require(planner_mode in ("off", "on"), "Unknown research planner mode")
+        for side, seat in owners.items():
+            seat["planner"] = planner_evidence(logs[side], seat, planner_mode)
     seats = {row["slot"]: row for row in owners.values()}
     require(set(seats) == {1, 2} and len({row["net"] for row in seats.values()}) == 2,
             "Two distinct native owners required")

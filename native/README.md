@@ -214,3 +214,40 @@ That mode uses its documented smaller compiler option set for libsmacker, so
 byte identity is not promised. Full native source can also be rebuilt using the
 pinned source and patch above. The [earlier image-only packaging receipt](../qa/native-observer-packaging.json)
 is retained with its original artifact hashes.
+
+## Rebuild the planner-GO research client
+
+Both comparison modes use the same Linux x86-64 executable. Set
+`JK_BOT_PLANNER_QUARANTINE=0` to observe the physical hold while the normal
+policy runs and `=1` to hold the policy clock, planning and perception
+callbacks until the same player enters and leaves the authored physical hold.
+The client observes both actor flags, gravity, collision, slot, world and player
+signature. Its held and released markers include the native game clock and
+the policy clock. In mode 1, passive Force inventory observations use the
+continuous game clock throughout the run.
+
+Use the native engine checkout at `74e4657c4f1751d09af9ad9e056acb8f41997acb`
+with this repository's `native/bot-client.patch` applied. Generate its header
+from the **native** checkout. The commands below assume the repository root as
+working directory and an external, writable `WORK` directory. `ENGINE` is the
+path to the bot-patched checkout. Python 3.12+, cogapp 3.6.0, GNU patch, a
+Linux C/C++ toolchain, and the system libraries named in the relink archive's
+`link.json` are required.
+
+```sh
+python3 -m cogapp -d -D "symbols_fpath=$ENGINE/symbols.syms" \
+  -D "project_root=$ENGINE" -D embedded_resources= -o "$WORK/globals.h" \
+  "$ENGINE/src/globals.h.cog"
+python3 native/build_planner_go.py --source "$ENGINE" \
+  --globals-header "$WORK/globals.h" --output "$WORK/planner-client"
+```
+
+The build checks 224 native source hashes and the packaged relink inputs,
+recompiles the bot driver's translation unit, then compares the result with
+`planner-go-build.json`. It writes `jk-bot-client`, the matching
+`libGameNetworkingSockets.so`, and a receipt in the fresh output directory.
+The recorded toolchain is Ubuntu 26.04 x86-64, GCC/G++ 15.2.0-16ubuntu1 and GNU
+ld 2.46. The paired studies use the binary with SHA-256
+`885234aa2c9de16406f9c01da5bfefe733d65777d86edf7a89336cf255561b69`.
+
+[Native patch](planner-go.patch) and [build receipt](planner-go-build.json)

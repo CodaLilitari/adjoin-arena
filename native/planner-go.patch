@@ -1,0 +1,168 @@
+--- a/src/AI/jkBot.c
++++ b/src/AI/jkBot.c
+@@ -91,6 +91,46 @@
+     int strafeSide;
+ } bot;
+ 
++/* Research-only interlock for the controlled opening. No wall-clock timeout
++ * can open it: both transitions must be seen on the same owning player. */
++static struct {
++    int mode, phase, slot;
++    uint32_t signature;
++    const SithWorld *world;
++} plannerGate;
++
++static int Bot_PlannerDormant(void)
++{
++    return plannerGate.mode == 1 && plannerGate.phase != 2;
++}
++
++static void Bot_ObservePlannerGate(SithThing *self)
++{
++    if (plannerGate.mode < 0 || plannerGate.phase == 2) return;
++    int slot = sithPlayer_GetThingPlayerNum(self);
++    if (slot != 1 && slot != 2) return;
++    unsigned mask = self->actorParams.flags & (SITH_AF_IMMOBILE | SITH_AF_CONTROLSDISABLED);
++    int gravity = !!(self->physicsParams.flags & SITH_PF_USEGRAVITY);
++    const char *phase;
++    if (plannerGate.phase == 0 && mask == (SITH_AF_IMMOBILE | SITH_AF_CONTROLSDISABLED) &&
++        !gravity && self->collide == 0) {
++        plannerGate.slot = slot;
++        plannerGate.signature = self->signature;
++        plannerGate.world = sithWorld_g_pCurrentWorld;
++        plannerGate.phase = 1;
++        phase = "held";
++    } else if (plannerGate.phase == 1 && plannerGate.slot == slot &&
++               plannerGate.world == sithWorld_g_pCurrentWorld && plannerGate.signature == self->signature &&
++               mask == 0 && gravity && self->collide == SITH_COLLIDE_SPHERE) {
++        plannerGate.phase = 2;
++        phase = "released";
++    } else return;
++    fprintf(stderr, "BOT_PLANNER_GATE name=%s mode=%s phase=%s slot=%d game_ms=%u policy_s=%.6f "
++            "actor_mask=%u gravity=%d collision=%d\n", bot.name, plannerGate.mode ? "on" : "off",
++            phase, slot, (unsigned)sithTime_g_msecGameTime, (double)bot.now, mask, gravity, (int)self->collide);
++    fflush(stderr);
++}
++
+ /* numThings is the highest used index, not the allocation length. */
+ static int Bot_ThingCount(void)
+ {
+@@ -540,6 +580,7 @@
+    pending a host ACK. Decide while the planned identity is still live. */
+ void jkBot_ObserveItemTouch(SithThing *player,const SithThing *item)
+ {
++    if (Bot_PlannerDormant()) return;
+     if (!bot.enabled || !bot.joined || !sithNet_isMulti || !bot.armItem || !Bot_EquipmentMode() ||
+         bot.world!=sithWorld_g_pCurrentWorld || !player || player!=sithPlayer_g_pLocalPlayerThing ||
+         bot.wasDead || (player->flags&SITH_TF_DEAD) || player->actorParams.health<=0 ||
+@@ -867,8 +908,11 @@
+ /* Opt-in receipt from this client's own inventory. Bit zero denotes Jump (bin 21). */
+ static void Bot_TraceForce(SithThing *self)
+ {
+-    if (!bot.traceForce || bot.now<bot.nextForceTrace) return;
+-    bot.nextForceTrace=bot.now+0.5f;
++    /* ON samples the continuous game clock, including during the physical hold.
++     * Only this passive logger uses that clock in place of the policy clock. */
++    flex_t sampleTime = plannerGate.mode == 1 ? sithTime_g_msecGameTime * 0.001 : bot.now;
++    if (!bot.traceForce || sampleTime<bot.nextForceTrace) return;
++    bot.nextForceTrace=sampleTime+0.5f;
+     char stars[256];
+     size_t used=0;
+     unsigned active=0;
+@@ -881,7 +925,7 @@
+     }
+     fprintf(stderr,"BOT_FORCE_STATE name=%s t=%.2f thing=%u guid=%u health=%.2f shields=%.2f mana=%.2f "
+         "blind=%d immobile=%d stars=%s active=0x%x\n",
+-        bot.name,(double)bot.now,self->idx,self->guid,(double)self->actorParams.health,
++        bot.name,(double)sampleTime,self->idx,self->guid,(double)self->actorParams.health,
+         (double)sithInventory_GetInventory(self,SITHBIN_SHIELDS),
+         (double)sithInventory_GetInventory(self,SITHBIN_FORCEMANA),
+         !!(self->actorParams.flags&SITH_AF_BLIND),!!(self->actorParams.flags&SITH_AF_IMMOBILE),stars,active);
+@@ -892,6 +936,9 @@
+ {
+     (void)skin;
+     memset(&bot,0,sizeof(bot)); memset(&nav,0,sizeof(nav)); bot.enabled=1;
++    const char *quarantine = getenv("JK_BOT_PLANNER_QUARANTINE");
++    plannerGate.mode = quarantine && !strcmp(quarantine, "1") ? 1 :
++                       quarantine && !strcmp(quarantine, "0") ? 0 : -1;
+     Lily_Configure();
+     Companion_Configure();
+     bot.fistsPeace=bot.forceEnabled=1;
+@@ -917,6 +964,7 @@
+     Bot_ResetHearing();
+     companion.identified=0;
+     Companion_ResetPlan();
++    plannerGate.phase=0;
+     bot.joined=1; bot.world=NULL; bot.now=bot.nextForceTrace=bot.nextSpeedProbe=0;
+     bot.tracedFireMode=-1; bot.nextFireTrace=0; bot.nextLog=10.0f;
+     bot.targetSlot=-1; bot.goal=-1; bot.routeCount=bot.routePos=0;
+@@ -935,6 +983,15 @@
+     if (!bot.enabled || !bot.joined || !sithNet_isMulti || (g_submodeFlags&8) ||
+         !sithWorld_g_pCurrentWorld || !sithPlayer_g_pLocalPlayerThing || !sithPlayer_g_pLocalPlayer) return;
+     if (!isfinite(dt) || dt<=0) return;
++    if (plannerGate.mode >= 0 && plannerGate.phase != 2) {
++        SithThing *owner=sithPlayer_g_pLocalPlayerThing;
++        if (owner->type==SITH_THING_PLAYER && owner->sector &&
++            owner->actorParams.pPlayer==sithPlayer_g_pLocalPlayer) {
++            Bot_ObservePlannerGate(owner);
++            if (Bot_PlannerDormant()) Bot_TraceForce(owner);
++        }
++        if (Bot_PlannerDormant()) return;
++    }
+     if (lily.enabled) lily.tickMs=(double)dt*1000.0;
+     bot.frameDt=Bot_Min(dt,0.25f); bot.now+=bot.frameDt;
+ #ifdef FIXED_TIMESTEP_PHYS
+--- a/src/AI/jkBotBehavior.inc
++++ b/src/AI/jkBotBehavior.inc
+@@ -69,6 +69,7 @@
+ }
+ void jkBot_ObserveDamage(SithThing *victim, SithThing *source, flex_t damage)
+ {
++    if (Bot_PlannerDormant()) return;
+     if (!bot.enabled || !bot.joined || victim!=sithPlayer_g_pLocalPlayerThing ||
+         !isfinite(damage) || damage<=0) return;
+     /* Never blame the nearest player for a fall, self-hit, or recycled parent. */
+@@ -81,6 +82,7 @@
+ }
+ void jkBot_ObserveSkill(SithThing *victim, SithThing *source, int bin)
+ {
++    if (Bot_PlannerDormant()) return;
+     if (!bot.enabled || !bot.joined || victim!=sithPlayer_g_pLocalPlayerThing) return;
+     if (bin==SITHBIN_F_PULL || bin==SITHBIN_F_BLINDING ||
+         (bin>=SITHBIN_F_THROW && bin<=SITHBIN_F_DEADLYSIGHT)) {
+@@ -89,6 +91,7 @@
+ }
+ void jkBot_ObserveProjectile(SithThing *shooter, const SithThing *projectile, const rdVector3 *direction)
+ {
++    if (Bot_PlannerDormant()) return;
+     SithThing *self=sithPlayer_g_pLocalPlayerThing;
+     if (!bot.enabled || !bot.joined || !self || !shooter || !projectile || !direction ||
+         projectile->type!=SITH_THING_WEAPON || projectile->weaponParams.damage<=0 ||
+@@ -112,6 +115,7 @@
+ }
+ void jkBot_ObserveWeapon(SithThing *player, const rdModel3 *model)
+ {
++    if (Bot_PlannerDormant()) return;
+     SithThing *self=sithPlayer_g_pLocalPlayerThing;
+     if (!bot.enabled || !bot.joined || !self || !player) return;
+     int slot=Bot_PlayerSlot(player), weapon=Bot_WeaponFromModel(model);
+--- a/src/AI/jkBotCompanion.inc
++++ b/src/AI/jkBotCompanion.inc
+@@ -202,6 +202,7 @@
+    transport sender must agree with the claimed player slot. */
+ void jkBot_ObserveChat(int destination,int slot,uint32_t sender,const char *text)
+ {
++    if (Bot_PlannerDormant()) return;
+     if (!Companion_Connected() || !companion.identified || !bot.joined || !sithNet_isMulti ||
+         (g_submodeFlags&8) || bot.world!=sithWorld_g_pCurrentWorld || destination!=-1 || slot<0 ||
+         slot>=JKPLAYER_NUM_INFOS || (unsigned)slot>=jkPlayer_maxPlayers || !sender || !text) return;
+--- a/src/AI/jkBotHearing.inc
++++ b/src/AI/jkBotHearing.inc
+@@ -222,6 +222,7 @@
+ void jkBot_ObserveSound(SithThing *emitter,SithSector *sector,const rdVector3 *position,
+     const sithSound *sound,flex_t volume,flex_t minRadius,flex_t maxRadius,int flags,int soundClass)
+ {
++    if (Bot_PlannerDormant()) return;
+     if (!bot.enabled || !bot.joined || !sound || !position || !isfinite(volume) || volume<=0 ||
+         !isfinite(minRadius) || !isfinite(maxRadius) || minRadius<0 || maxRadius<=0 ||
+         maxRadius<minRadius || (flags&SITHSOUNDFLAG_AMBIENT_NOPAN)) return;

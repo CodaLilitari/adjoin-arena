@@ -154,6 +154,54 @@ def private_env(directory, engine):
     return env
 
 
+def loaded_images(proc, engine, expected_engine, expected_library):
+    """Verify the running executable and the mapped networking library of this owned Linux process."""
+    library = engine.parent / GNS
+    info = library.stat()
+    expected_file = (os.major(info.st_dev), os.minor(info.st_dev), info.st_ino)
+    mapped_files = set()
+    for line in (proc / "maps").read_text().splitlines():
+        fields = line.split(maxsplit=5)
+        if len(fields) == 6 and Path(fields[5]).name == GNS:
+            major, minor = (int(part, 16) for part in fields[3].split(":"))
+            mapped_files.add((major, minor, int(fields[4])))
+    actual = digest(proc / "exe")
+    if mapped_files != {expected_file} or actual != expected_engine or digest(library) != expected_library:
+        raise Failure("running_native_image_or_networking_library_mismatch")
+    return {"executable_sha256": actual, "networking_library_sha256": expected_library}
+
+
+def research_client(repo, client, packaged, hashes):
+    """Bind an externally built research binary to the canonical source and published base build."""
+    client = client.resolve(strict=True)
+    manifest = repo / "native/planner-go-build.json"
+    manifest_hash = digest(manifest)
+    if manifest_hash != digest(client.parent / "planner-build.json"):
+        raise Failure("research_build_manifest_mismatch")
+    build = json.loads(manifest.read_bytes())
+    archive = "native/bot-relink-linux-x86_64.tar.gz"
+    overlay = "native/planner-go.patch"
+    lib_path = str(Path(BOT).parent / GNS)
+    binary_hash = digest(client)
+    source_hash = digest(repo / overlay)
+    archive_hash = digest(repo / archive)
+    if (client.name != "jk-bot-client" or build["source_commit"] != packaged["base_commit"]
+            or build["patch"] != overlay or build["patch_sha256"] != source_hash
+            or build["binary_sha256"] != binary_hash or binary_hash == hashes[BOT]
+            or build["base_binary_sha256"] != hashes[BOT] or build["base_patch_sha256"] != hashes[PATCH]
+            or build["gns_sha256"] != hashes[lib_path] or digest(client.parent / GNS) != hashes[lib_path]
+            or build["relink_archive_sha256"] != archive_hash
+            or packaged["files"][archive]["sha256"] != archive_hash or not build["toolchain"]):
+        raise Failure("research_binary_or_source_pin_mismatch")
+    host_build = json.loads((repo / "native/BUILD.json").read_bytes())
+    for path in (SERVER, str(Path(SERVER).parent / GNS)):
+        if host_build["files"][path]["sha256"] != hashes[path]:
+            raise Failure("research_host_or_networking_library_mismatch")
+    hashes.update({overlay: source_hash, archive: archive_hash, "native/planner-go-build.json": manifest_hash,
+                   "research/jk-bot-client": binary_hash, "research/" + GNS: hashes[lib_path]})
+    return client, build
+
+
 def check_liveness():
     check()
     for label, process in CHILDREN.items():
@@ -281,6 +329,9 @@ def run(args, receipt, tmp):
     hashes = receipt["sha256"] = {name:digest(repo/name) for name in files}
     if any(hashes[name] != packaged["files"][name]["sha256"] for name in files[:3]):
         raise Failure("packaged_bot_binary_patch_or_gns_hash_mismatch")
+    if args.planner_client:
+        bot, build = research_client(repo, args.planner_client, packaged, hashes)
+        receipt["planner_experiment"] = {"mode": args.planner_quarantine, "build": build}
     server_dir = tmp/"server"
     stage(source,server_dir)
     gob = server_dir/"episode/jk1mp.gob"
@@ -371,6 +422,8 @@ def run(args, receipt, tmp):
                                        force_side=side,force_style="competitive")
             env.update({k:v for k,v in standard.items() if k.startswith("JK_BOT_")})
             env["JK_BOT_TRACE_FORCE"] = "1"
+            if args.planner_client:
+                env["JK_BOT_PLANNER_QUARANTINE"] = "1" if args.planner_quarantine == "on" else "0"
             args_bot = ["-headless","-botConnect",f"127.0.0.1:{port}","-botName",p["name"],
                         "-botSkin",p["model"],"-botSound",p["sound"]]
             bots[side]["argv"] = args_bot
@@ -386,6 +439,15 @@ def run(args, receipt, tmp):
                     raise Failure(side+"_join_timeout")
                 time.sleep(.10)
         start_match = time.monotonic()
+        if args.planner_client:
+            images = receipt["planner_experiment"]["loaded_images"] = {}
+            server_lib = str(Path(SERVER).parent / GNS)
+            for label in ("server", *LABELS):
+                proc = Path("/proc") / str(CHILDREN[label].pid)
+                if label == "server":
+                    images[label] = loaded_images(proc, server, hashes[SERVER], hashes[server_lib])
+                else:
+                    images[label] = loaded_images(proc, bot, build["binary_sha256"], build["gns_sha256"])
         while True:
             collect(trace)
             check_liveness()
@@ -469,9 +531,17 @@ def main():
                         help="Exchange the two physical ready-gate starts, retaining bot seats and profiles.")
     parser.add_argument("--observe-repeater", action="store_true",
                         help="Sample the ready-gate owners' repeater inventory across lives.")
+    parser.add_argument("--planner-client", type=Path, metavar="RESEARCH_BINARY",
+                        help="Use the pinned planner experiment client and its adjacent networking library.")
+    parser.add_argument("--planner-quarantine", choices=("off", "on"),
+                        help="Run the research client in the matched control or shared-GO condition.")
     parser.add_argument("--camera", choices=("follow", "rifle-overlook"),
                         help="Record the selected native camera (implies --record).")
     args = parser.parse_args()
+    if ((args.planner_client is None) != (args.planner_quarantine is None)
+            or args.planner_client is not None and not (args.arena_baseline and args.ready_gate and args.observe_repeater)):
+        parser.error("--planner-client and --planner-quarantine require each other, --arena-baseline, "
+                     "--ready-gate and --observe-repeater")
     if args.jan_first and not args.ready_gate:
         parser.error("--jan-first requires --ready-gate")
     if (args.swap_starts or args.observe_repeater) and not args.ready_gate:
@@ -517,7 +587,10 @@ def main():
                 raise Failure("controlled_opening_observations_failed") from error
         if args.ready_gate:
             try:
-                receipt["ready_gate_observations"] = args.gate_verifier.qualify(out, receipt["opening_observations"])
+                receipt["ready_gate_observations"] = gate = args.gate_verifier.qualify(
+                    out, receipt["opening_observations"], planner_mode=args.planner_quarantine)
+                if args.planner_client:
+                    receipt["planner_experiment"]["owners"] = {side: gate["owners"][side]["planner"] for side in LABELS}
             except ValueError as error:
                 receipt["ready_gate_error"] = str(error)
                 raise Failure("ready_gate_observations_failed") from error

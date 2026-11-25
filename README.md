@@ -74,7 +74,26 @@ Jan joined first in four new 22-second native matches. The sequence of physical 
 
 Every first joiner planned another item after release and before acquiring the initially planned weapon. Every second joiner stayed on the original target through pickup. Each intended pickup was confirmed by its stock HUD message and first-life inventory gain. The median time from local release to sampled gain was 9.852 seconds in slot 1 and 1.275 seconds in slot 2. All 16 acquisitions still followed the starting position.
 
-In these openings the target changes followed the first seat across both profiles and both layouts. Slot 1 also coordinated release and spent 3.573 to 4.391 seconds held with its planner active. Slot 2 spent 0.138 to 0.175 seconds held. Delaying both gear planners until release would test whether this head start in planning contributes. The fixed camera shows the rifle rack. The ordered gear logs establish target changes en route. [Eight-match evidence](qa/adjoin-arena-join-crossover.json) and [reproduction command](scripts/bot_development/legacy/README.md#reverse-the-join-order).
+In these openings the target changes followed the first seat across both profiles and both layouts. Slot 1 also coordinated release and spent 3.573 to 4.391 seconds held with its planner active. Slot 2 spent 0.138 to 0.175 seconds held. The next experiment tests what happens when both planners start at release. The fixed camera shows the rifle rack. The ordered gear logs establish target changes en route. [Eight-match evidence](qa/adjoin-arena-join-crossover.json) and [reproduction command](scripts/bot_development/legacy/README.md#reverse-the-join-order).
+
+### Starting both bots' planners on GO
+
+For scored Canyon Oasis openings, use the research client with `--planner-quarantine on`. Each bot begins planning when its own game client observes GO and regains movement. In the ordinary control, the same executable can already plan and track items while movement is locked. The switch applies to the instrumented two-player start.
+
+Sixteen native 1x matches crossed both join orders with normal, swapped, swapped, normal starting positions in each mode. A detour means the bot planned a different item between release and the stock pickup message for its initially chosen weapon. Pickup times run from that player's local release to the first inventory sample showing possession.
+
+| Main experiment | Ordinary planning | Planning starts on GO |
+|---|---:|---:|
+| First player changed target before pickup | 8/8 | 0/8 |
+| First player's median pickup | 10.064 s | 1.224 s |
+| Second player changed target before pickup | 0/8 | 0/8 |
+| Second player's median pickup | 1.275 s | 1.225 s |
+
+Jan and Boba each changed targets in all four ordinary openings where they joined first. Both kept the original target in all four of their starts on GO. In a separate confirmation pair, Jan joined first at the rifle start. She acquired it in 1.122 s with planning held until GO and 14.521 s with ordinary planning. Boba collected the repeater in 1.360 s both times. All 18 matches qualified on their first attempt. All 36 opening pickups matched the weapon expected for the starting sector. Each was confirmed by a stock HUD message and an inventory gain.
+
+The native markers locate the difference at release. With ordinary planning, slot 1 already had 3.44 to 4.39 s on its policy clock and had selected gear in every run. With planning held, both players' policy clocks read zero at release and every first gear plan came afterward. The change delays planning and perception together, so the particular timer or observation responsible for the former detour is still open. The confirmation uses the same map, and the game seeds were unrecorded. Duel strength and accelerated multiplayer require their own comparisons.
+
+[Per-match results](qa/adjoin-arena-planner-start.json) | [Experimental design](docs/superpowers/plans/2026-11-24-planner-start.md) | [Trial schedule](qa/adjoin-arena-planner-start-schedule.json) | [Rebuild and reproduce](scripts/bot_development/legacy/README.md#compare-ordinary-planning-with-a-start-on-go)
 
 ## Inherited JK Cross Server documentation
 

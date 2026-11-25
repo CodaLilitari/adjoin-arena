@@ -1,0 +1,3256 @@
+{
+  "schema": 1,
+  "schedule_sha256": "7de23604c18d398534bc4617364eae7bf266e9b34fc6608f1633d739dbd8ee8b",
+  "configuration": {
+    "pacing": "normal engine wall-clock",
+    "bot_options": {
+      "taunts": false,
+      "team": 0,
+      "force_style": "competitive",
+      "trace_force": true
+    },
+    "seed_control": "not assigned or observed",
+    "launcher_sha256": "e05d67ae0914c0b1983ce75a2cbad7fe00b6dc6c17a19754a023364271879d57",
+    "launcher_input_sha256": {
+      "bots/profiles.json": "3756863cb46ee220f2c5bd03d6706ebce861677b2f58c125248e4462e2465c39",
+      "bots/run.py": "3d6e0a2b90303b01d917c7158414bc8ac81c568c8c21abc87461a35063b34691",
+      "bots/companion.py": "8bd9d420abd5a006b2477fb1a4a5f59c66bdc4d8532e54cd69187ccc269c077f",
+      "bots/settings.py": "12a0a981f6e0186462da58338e20502b2485aa75541cea6f531095959205c694",
+      "manager/config.py": "fdc2a130e1b29677808a675193961213a412803369a5652777f00744e7bbdfb4",
+      "manager/content.py": "d4dae8db1b658f0b545d476b2e324b39c79cee622fd7ac77d8ccc955ca7f7812",
+      "native/BOT_BUILD.json": "b06918b1287caa62ba15e86275230fae0965e41f0ca61db985313179cd62ba30",
+      "qa/bots-stock-map-audit.json": "5c4e68d22e75c99f3e5bb5d1257732d8e2a3749a872efa77653c294cfd748511",
+      "web_gateway/ipc.py": "25763a360f251c68c030e2245eedae31d629111eebbcd81ac9c49bada51d5f0c",
+      "manager/spectator.py": "9fb67f40576c7480c278fb1cd68ad17ccca484da4a5f91411f1b73f5dfce497b",
+      "manager/spectator_geometry.py": "e6a69654b78bf4d343ab5401fb9067457ca069c698652b0799f38bdce27d3544"
+    },
+    "ready_gate_source_sha256": {
+      "controlled_opening.py": "661896211890c8d143bc2631d33a02c04a6d9b4fb380f5ad23ae47641c23342b",
+      "ready_gate.py": "c847f0bfb6f039b257bf6ec4b7062f4a922fa76a381fda29e0a8d31c5d3a80cb"
+    },
+    "recorder_sha256": "4d69067faf1a578c3e386e860ca1bd73d184f68fe5c5ec5bee727281a01e052a",
+    "requested_match_seconds": 22,
+    "platform": {
+      "python": "3.14.4",
+      "glibc": "2.43"
+    },
+    "render_environment": {
+      "SDL_VIDEODRIVER": "offscreen",
+      "SDL_VIDEO_DRIVER": "offscreen",
+      "EGL_PLATFORM": "surfaceless",
+      "LIBGL_ALWAYS_SOFTWARE": "1",
+      "ALSOFT_DRIVERS": "null",
+      "SDL_AUDIODRIVER": "dummy",
+      "LP_NUM_THREADS": "2"
+    },
+    "profiles": {
+      "dark": {
+        "argv": [
+          "-headless",
+          "-botConnect",
+          "loopback host",
+          "-botName",
+          "Bot_BobaFett",
+          "-botSkin",
+          "kyh4.3do",
+          "-botSound",
+          "kybobafett.snd"
+        ],
+        "loadout": {
+          "rank": 8,
+          "style": "competitive",
+          "spent": 24,
+          "remaining": 0
+        },
+        "behavior": {
+          "sabers_only": 0,
+          "fists_peace": 0,
+          "force_enabled": 1
+        }
+      },
+      "light": {
+        "argv": [
+          "-headless",
+          "-botConnect",
+          "loopback host",
+          "-botName",
+          "Bot_JanOrs",
+          "-botSkin",
+          "kya10.3do",
+          "-botSound",
+          "kyfemale.snd"
+        ],
+        "loadout": {
+          "rank": 8,
+          "style": "competitive",
+          "spent": 24,
+          "remaining": 0
+        },
+        "behavior": {
+          "sabers_only": 0,
+          "fists_peace": 0,
+          "force_enabled": 1
+        }
+      }
+    },
+    "binary_and_map_hashes": {
+      "bin/bots-linux-x86_64/jk-bot-client": "d04f5106a3a0a3f123162e82a364bc98ec495ae8bd2fe89fb0f1b2461fc44fe3",
+      "bin/bots-linux-x86_64/libGameNetworkingSockets.so": "8246a869b1d72115ecc849309629aa1abbce0bf1a0f23cc70deaded98d82d8e9",
+      "native/bot-client.patch": "12fc518bdf29bd7322c4d69935f9be499ea3f829f25538bd1f66de0dc2ff4af6",
+      "bin/linux-x86_64/openjkdf2": "16944b47e2ceecf3f09cc2820af26372e2af8642057c2b0a963e353ff090c745",
+      "bin/linux-x86_64/libGameNetworkingSockets.so": "45797fcd310f0812af9f55354ff22663859ca68c2d8bb0005efb88a748c471e7",
+      "native/planner-go.patch": "7660ecbcedda87dc9b6a13f45fb84f7198116b39a8c6a2f55250da612df2598e",
+      "native/bot-relink-linux-x86_64.tar.gz": "a9d6ac49ff89d662c8ef4d56973994d572701a27ff6ba944c069df0c21ff3d21",
+      "native/planner-go-build.json": "6e16241583a68664e97cffc3ba18a31191e507806e6ed05114e605f7302a4dc7",
+      "research/jk-bot-client": "885234aa2c9de16406f9c01da5bfefe733d65777d86edf7a89336cf255561b69",
+      "research/libGameNetworkingSockets.so": "8246a869b1d72115ecc849309629aa1abbce0bf1a0f23cc70deaded98d82d8e9",
+      "res1hi.gob": "6c6d51eca9c85dffe7dce9b449642a052f055352e3f817abf03b465da861aafd",
+      "res2.gob": "c75f7d5211bdd2e07a3af6a987c718037e8f0fd6909018ddb4327137bf3a7ebf",
+      "jkl/m10.jkl": "704f786cc494e3593dcf18815247e678dbde9f0f53e09164300b1b7d81860ad8"
+    },
+    "server_registry": {
+      "gameName": "Native Force QA",
+      "serverEpisodeGob": "JK1MP",
+      "serverMapJkl": "m10.jkl",
+      "maxPlayers": 4,
+      "bIsDedicated": true,
+      "maxRank": 8,
+      "tickRate": 100,
+      "gameFlags": 0,
+      "sessionFlags": 0,
+      "timeLimit": 0,
+      "scoreLimit": 0,
+      "bUseScoreLimit": false,
+      "bUseTimeLimit": false,
+      "bIsSingleLevel": false,
+      "bIsTeams": false,
+      "bIsCoop": false,
+      "bIsEpisodeCoop": false,
+      "enableVsync": false,
+      "enableBloom": false,
+      "enableSSAO": false,
+      "fpslimit": 60
+    },
+    "research_build": {
+      "schema": 1,
+      "source_commit": "74e4657c4f1751d09af9ad9e056acb8f41997acb",
+      "patch": "native/planner-go.patch",
+      "binary_sha256": "885234aa2c9de16406f9c01da5bfefe733d65777d86edf7a89336cf255561b69",
+      "gns_sha256": "8246a869b1d72115ecc849309629aa1abbce0bf1a0f23cc70deaded98d82d8e9",
+      "patch_sha256": "7660ecbcedda87dc9b6a13f45fb84f7198116b39a8c6a2f55250da612df2598e",
+      "base_binary_sha256": "d04f5106a3a0a3f123162e82a364bc98ec495ae8bd2fe89fb0f1b2461fc44fe3",
+      "base_patch_sha256": "12fc518bdf29bd7322c4d69935f9be499ea3f829f25538bd1f66de0dc2ff4af6",
+      "relink_archive_sha256": "a9d6ac49ff89d662c8ef4d56973994d572701a27ff6ba944c069df0c21ff3d21",
+      "generated_globals_sha256": "edec9732ccad1f32d9fe4740ca17fdb76a05459181b196c779dbe45519a00e78",
+      "patched_sources": {
+        "src/AI/jkBot.c": "4abbf6138d830276faa7b7c4b41f38e5cea85861501adbf3ee59288c1ef8e4d1",
+        "src/AI/jkBotBehavior.inc": "706434c453a7d6bacf5cb47fcd8f0f403d4e0a0509dff1e2d184be1ace46f627",
+        "src/AI/jkBotCompanion.inc": "cc26196da9ce1a1e6592b442badc331c33eeeda7a8629ae0b68164a9d2e7d861",
+        "src/AI/jkBotHearing.inc": "bfe0444ac1e7d242a50b91f0a80840cdc443e8f4f68bb87b5cb60da4612f6f2c"
+      },
+      "rebuilt_object_sha256": "f2c42f370b748df7c4534f2193c125ac6f9c079f8b6dc8761c24d65b8a28f9d8",
+      "compile_flags": [
+        "-std=gnu11",
+        "-O3",
+        "-DNDEBUG",
+        "-fshort-wchar",
+        "-DARCH_64BIT",
+        "-DLINUX",
+        "-DNO_JK_MMAP",
+        "-DPLATFORM_LINUX",
+        "-DPLATFORM_POSIX",
+        "-DPLATFORM_GNS",
+        "-DPLATFORM_CURL",
+        "-DPLATFORM_NO_CACERT_BLOB",
+        "-DQOL_IMPROVEMENTS",
+        "-DSDL2_RENDER",
+        "-DSTDSOUND_OPENAL",
+        "-DTARGET_CAN_JKGM",
+        "-D_XOPEN_SOURCE=500",
+        "-D_DEFAULT_SOURCE",
+        "-D_FORTIFY_SOURCE=3",
+        "-fstack-protector-strong",
+        "-fstack-clash-protection",
+        "-fcf-protection",
+        "-Werror=implicit-function-declaration"
+      ],
+      "toolchain": {
+        "cc": "cc (Ubuntu 15.2.0-16ubuntu1) 15.2.0",
+        "c++": "c++ (Ubuntu 15.2.0-16ubuntu1) 15.2.0",
+        "ld": "GNU ld (GNU Binutils for Ubuntu) 2.46"
+      }
+    },
+    "observed_process_images": {
+      "server": {
+        "executable_sha256": "16944b47e2ceecf3f09cc2820af26372e2af8642057c2b0a963e353ff090c745",
+        "networking_library_sha256": "45797fcd310f0812af9f55354ff22663859ca68c2d8bb0005efb88a748c471e7"
+      },
+      "dark": {
+        "executable_sha256": "885234aa2c9de16406f9c01da5bfefe733d65777d86edf7a89336cf255561b69",
+        "networking_library_sha256": "8246a869b1d72115ecc849309629aa1abbce0bf1a0f23cc70deaded98d82d8e9"
+      },
+      "light": {
+        "executable_sha256": "885234aa2c9de16406f9c01da5bfefe733d65777d86edf7a89336cf255561b69",
+        "networking_library_sha256": "8246a869b1d72115ecc849309629aa1abbce0bf1a0f23cc70deaded98d82d8e9"
+      }
+    },
+    "initial_force_stars": {
+      "dark": [
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        4.0,
+        0.0,
+        4.0,
+        0.0
+      ],
+      "light": [
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        0.0,
+        0.0,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  },
+  "fixtures": {
+    "normal": {
+      "start_assignment": "normal",
+      "observe_repeater": true,
+      "stock_gob_sha256": "27a4b3642e0965753232f35b1e8e846c91df1eca1da77398b5efda66ca369a2e",
+      "stock_jkl_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+      "variant_gob_sha256": "b791a52ba1892f38ad98927ac8d5f0806b75b78153f8ebee124b24ef4a7de748",
+      "variant_jkl_sha256": "704f786cc494e3593dcf18815247e678dbde9f0f53e09164300b1b7d81860ad8",
+      "cog_sha256": "a53649dd0a47d890818ba82ab4936afca32cf7dc6796b01a2f69e27cdec28a6c",
+      "unchanged_entry_count": 21
+    },
+    "swapped": {
+      "start_assignment": "swapped",
+      "observe_repeater": true,
+      "stock_gob_sha256": "27a4b3642e0965753232f35b1e8e846c91df1eca1da77398b5efda66ca369a2e",
+      "stock_jkl_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+      "variant_gob_sha256": "0c2e6d1756107e9b7b229857bfbf8af8db955341a1b41c5d0c88f041ea972fde",
+      "variant_jkl_sha256": "704f786cc494e3593dcf18815247e678dbde9f0f53e09164300b1b7d81860ad8",
+      "cog_sha256": "15a47b141cb1bc421028f8ba7cca5d080a44d80257defefcc78351782b372439",
+      "unchanged_entry_count": 21
+    }
+  },
+  "summary": [
+    {
+      "set": "main",
+      "mode": "off",
+      "first_seat": {
+        "openings": 8,
+        "correct_initial_target": 8,
+        "corroborated_expected_pickup": 8,
+        "post_release_detours": 8,
+        "expected_weapon_gains": 8,
+        "median_expected_gain_s": 10.064,
+        "min_expected_gain_s": 8.534,
+        "max_expected_gain_s": 13.974
+      },
+      "second_seat": {
+        "openings": 8,
+        "correct_initial_target": 8,
+        "corroborated_expected_pickup": 8,
+        "post_release_detours": 0,
+        "expected_weapon_gains": 8,
+        "median_expected_gain_s": 1.275,
+        "min_expected_gain_s": 1.156,
+        "max_expected_gain_s": 1.36
+      },
+      "first_seat_by_player": {
+        "boba": {
+          "openings": 4,
+          "correct_initial_target": 4,
+          "corroborated_expected_pickup": 4,
+          "post_release_detours": 4,
+          "expected_weapon_gains": 4,
+          "median_expected_gain_s": 10.064,
+          "min_expected_gain_s": 9.486,
+          "max_expected_gain_s": 10.982
+        },
+        "jan": {
+          "openings": 4,
+          "correct_initial_target": 4,
+          "corroborated_expected_pickup": 4,
+          "post_release_detours": 4,
+          "expected_weapon_gains": 4,
+          "median_expected_gain_s": 11.849,
+          "min_expected_gain_s": 8.534,
+          "max_expected_gain_s": 13.974
+        }
+      }
+    },
+    {
+      "set": "main",
+      "mode": "on",
+      "first_seat": {
+        "openings": 8,
+        "correct_initial_target": 8,
+        "corroborated_expected_pickup": 8,
+        "post_release_detours": 0,
+        "expected_weapon_gains": 8,
+        "median_expected_gain_s": 1.224,
+        "min_expected_gain_s": 1.122,
+        "max_expected_gain_s": 1.326
+      },
+      "second_seat": {
+        "openings": 8,
+        "correct_initial_target": 8,
+        "corroborated_expected_pickup": 8,
+        "post_release_detours": 0,
+        "expected_weapon_gains": 8,
+        "median_expected_gain_s": 1.2245,
+        "min_expected_gain_s": 1.156,
+        "max_expected_gain_s": 1.36
+      },
+      "first_seat_by_player": {
+        "boba": {
+          "openings": 4,
+          "correct_initial_target": 4,
+          "corroborated_expected_pickup": 4,
+          "post_release_detours": 0,
+          "expected_weapon_gains": 4,
+          "median_expected_gain_s": 1.224,
+          "min_expected_gain_s": 1.122,
+          "max_expected_gain_s": 1.326
+        },
+        "jan": {
+          "openings": 4,
+          "correct_initial_target": 4,
+          "corroborated_expected_pickup": 4,
+          "post_release_detours": 0,
+          "expected_weapon_gains": 4,
+          "median_expected_gain_s": 1.224,
+          "min_expected_gain_s": 1.156,
+          "max_expected_gain_s": 1.326
+        }
+      }
+    },
+    {
+      "set": "held_out",
+      "mode": "off",
+      "first_seat": {
+        "openings": 1,
+        "correct_initial_target": 1,
+        "corroborated_expected_pickup": 1,
+        "post_release_detours": 1,
+        "expected_weapon_gains": 1,
+        "median_expected_gain_s": 14.520999,
+        "min_expected_gain_s": 14.520999,
+        "max_expected_gain_s": 14.520999
+      },
+      "second_seat": {
+        "openings": 1,
+        "correct_initial_target": 1,
+        "corroborated_expected_pickup": 1,
+        "post_release_detours": 0,
+        "expected_weapon_gains": 1,
+        "median_expected_gain_s": 1.36,
+        "min_expected_gain_s": 1.36,
+        "max_expected_gain_s": 1.36
+      }
+    },
+    {
+      "set": "held_out",
+      "mode": "on",
+      "first_seat": {
+        "openings": 1,
+        "correct_initial_target": 1,
+        "corroborated_expected_pickup": 1,
+        "post_release_detours": 0,
+        "expected_weapon_gains": 1,
+        "median_expected_gain_s": 1.122,
+        "min_expected_gain_s": 1.122,
+        "max_expected_gain_s": 1.122
+      },
+      "second_seat": {
+        "openings": 1,
+        "correct_initial_target": 1,
+        "corroborated_expected_pickup": 1,
+        "post_release_detours": 0,
+        "expected_weapon_gains": 1,
+        "median_expected_gain_s": 1.36,
+        "min_expected_gain_s": 1.36,
+        "max_expected_gain_s": 1.36
+      }
+    }
+  ],
+  "runs": [
+    {
+      "index": 1,
+      "set": "main",
+      "block": 1,
+      "mode": "off",
+      "first": "boba",
+      "starts": "normal",
+      "receipt_sha256": "3edca6b476329e83693d8ebfd43ae0ae5e1dfff5149b1ad967e3c1faa799c8c4",
+      "logs_sha256": {
+        "dark.log": "fa74155f7dc367c31dee1adc04c996a6a38ceaebcd46778b786e334851abe2d1",
+        "light.log": "5b7aeb5fe66c60b4ebc8aef9a31950413dbabc71c9716dcf01fe48efe3f5214d",
+        "server.log": "01fb96d51c40b9ad3e2d330da56bd25bd092e8a54655bf19a1d23985b59737e9",
+        "force-trace.jsonl": "c6c6ed142b27eb4e2553cb4e07aaed147c9963ae0b73d488132bf7f0fa56bfc5"
+      },
+      "video": {
+        "sha256": "e323b010da4e73dba2e2c976901457a23a7ec695ae5ef6a1f90ac3ae84fd1cdc",
+        "frames": 128,
+        "seconds": 25.396,
+        "receipt_sha256": "dbfb53788419c3068877cfa08a87b949c1e138e9d3cf0d46ecf70bbcb4c4b7b5",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 128,
+        "station_sector": 41
+      },
+      "shared_wall_s": 22.13,
+      "ack_spread_ms": 20,
+      "owners": [
+        {
+          "slot": 1,
+          "player": "Bot_BobaFett",
+          "side": "dark",
+          "sector": 41,
+          "expected_item": 29,
+          "initial_item": 29,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 3.402,
+          "gain_seconds_from_release": {
+            "concussion_rifle": 10.982,
+            "repeater": null
+          },
+          "expected_weapon_gain_s": 10.982,
+          "respawns": 0,
+          "planner": {
+            "mode": "off",
+            "name": "Bot_BobaFett",
+            "slot": 1,
+            "held": {
+              "phase": "held",
+              "game_ms": 2,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 3470,
+              "policy_s": 3.435606,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 29,
+              "bot_time_s": 0.0,
+              "after_release": false
+            },
+            "first_gear_plan_after_release": false
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 305,
+            "hud": "Concussion Rifle",
+            "weapon": "concussion_rifle",
+            "owner_gain_seconds_after_release": 10.982
+          },
+          "different_target_after_release": true,
+          "plans_before_pickup": [
+            {
+              "item": 29,
+              "direct": true,
+              "after_release": false
+            },
+            {
+              "item": 11,
+              "direct": false,
+              "after_release": true
+            },
+            {
+              "item": 29,
+              "direct": false,
+              "after_release": true
+            },
+            {
+              "item": 29,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        },
+        {
+          "slot": 2,
+          "player": "Bot_JanOrs",
+          "side": "light",
+          "sector": 18,
+          "expected_item": 34,
+          "initial_item": 34,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 0.172,
+          "gain_seconds_from_release": {
+            "concussion_rifle": null,
+            "repeater": 1.36
+          },
+          "expected_weapon_gain_s": 1.36,
+          "respawns": 0,
+          "planner": {
+            "mode": "off",
+            "name": "Bot_JanOrs",
+            "slot": 2,
+            "held": {
+              "phase": "held",
+              "game_ms": 2,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 240,
+              "policy_s": 0.205743,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 34,
+              "bot_time_s": 0.0,
+              "after_release": false
+            },
+            "first_gear_plan_after_release": false
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 183,
+            "hud": "Repeater Gun",
+            "weapon": "repeater",
+            "owner_gain_seconds_after_release": 1.36
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 34,
+              "direct": true,
+              "after_release": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "set": "main",
+      "block": 1,
+      "mode": "on",
+      "first": "boba",
+      "starts": "normal",
+      "receipt_sha256": "4ca038ca6ee13a00275301341cc1402b6c45c3ed1af3734ba0078816fefb75e1",
+      "logs_sha256": {
+        "dark.log": "8e63a6440002159146a4f85c18069e7103a8997d70674ea6a59744e381bfa801",
+        "light.log": "e4887777452d866a46d2f0ef618d6dff2c65e6d720ce1ed12cd4b2dee30e3fdb",
+        "server.log": "874b139166bd55937904e0c05790d740bb535a3fdc2ed6c76646c4ab60b95bb8",
+        "force-trace.jsonl": "5405723873b51b61af6dfae0c50b95a4da29e16dfd0657211cb5266216d0271d"
+      },
+      "video": {
+        "sha256": "9baca0b73ec381d53d72f0c624d473029779b2eeab269d178efb2fbcd77fff8b",
+        "frames": 133,
+        "seconds": 26.4,
+        "receipt_sha256": "8815e99d03a2a66c325843127c23b02493f492c30d7cc9665c2cc02a86ea72f5",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 133,
+        "station_sector": 41
+      },
+      "shared_wall_s": 22.15,
+      "ack_spread_ms": 40,
+      "owners": [
+        {
+          "slot": 1,
+          "player": "Bot_BobaFett",
+          "side": "dark",
+          "sector": 41,
+          "expected_item": 29,
+          "initial_item": 29,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 4.388,
+          "gain_seconds_from_release": {
+            "concussion_rifle": 1.122,
+            "repeater": null
+          },
+          "expected_weapon_gain_s": 1.122,
+          "respawns": 0,
+          "planner": {
+            "mode": "on",
+            "name": "Bot_BobaFett",
+            "slot": 1,
+            "held": {
+              "phase": "held",
+              "game_ms": 2,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 4456,
+              "policy_s": 0.0,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 29,
+              "bot_time_s": 0.03,
+              "after_release": true
+            },
+            "first_gear_plan_after_release": true
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 299,
+            "hud": "Concussion Rifle",
+            "weapon": "concussion_rifle",
+            "owner_gain_seconds_after_release": 1.122
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 29,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        },
+        {
+          "slot": 2,
+          "player": "Bot_JanOrs",
+          "side": "light",
+          "sector": 18,
+          "expected_item": 34,
+          "initial_item": 34,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 0.172,
+          "gain_seconds_from_release": {
+            "concussion_rifle": null,
+            "repeater": 1.36
+          },
+          "expected_weapon_gain_s": 1.36,
+          "respawns": 0,
+          "planner": {
+            "mode": "on",
+            "name": "Bot_JanOrs",
+            "slot": 2,
+            "held": {
+              "phase": "held",
+              "game_ms": 2,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 240,
+              "policy_s": 0.0,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 34,
+              "bot_time_s": 0.03,
+              "after_release": true
+            },
+            "first_gear_plan_after_release": true
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 183,
+            "hud": "Repeater Gun",
+            "weapon": "repeater",
+            "owner_gain_seconds_after_release": 1.36
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 34,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "set": "main",
+      "block": 1,
+      "mode": "on",
+      "first": "jan",
+      "starts": "normal",
+      "receipt_sha256": "13838fc89a14f724df55e9c9285d08a85b27d3087a659c90d4daee50146706e1",
+      "logs_sha256": {
+        "dark.log": "58c45d8a70b3e35588ae626d8ef444ef0176728d4b3fcf754623b427b88c2a8a",
+        "light.log": "053edf173b7f26e0b9a918534e8619040781ab6e3d334abf9ca8fbcfb574c37a",
+        "server.log": "0fb71ba6222a39c91be918e977811c40b5dce321903bbea6a26faf277b6aa442",
+        "force-trace.jsonl": "d21883af71aa8db0ca9b9708c2793061e1ff53b2e22df11d86148d4724320839"
+      },
+      "video": {
+        "sha256": "1de0cd4db835222a9004c81ca1a9e6a6afc4a1caa5064f41d44738e3066f0430",
+        "frames": 137,
+        "seconds": 27.201,
+        "receipt_sha256": "cbf78e01b1f9994eca5244d773013d94d61abe5ef597694b06a31ccef2df0310",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 137,
+        "station_sector": 41
+      },
+      "shared_wall_s": 22.08,
+      "ack_spread_ms": 20,
+      "owners": [
+        {
+          "slot": 1,
+          "player": "Bot_JanOrs",
+          "side": "light",
+          "sector": 41,
+          "expected_item": 29,
+          "initial_item": 29,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 3.948,
+          "gain_seconds_from_release": {
+            "concussion_rifle": 1.156,
+            "repeater": null
+          },
+          "expected_weapon_gain_s": 1.156,
+          "respawns": 0,
+          "planner": {
+            "mode": "on",
+            "name": "Bot_JanOrs",
+            "slot": 1,
+            "held": {
+              "phase": "held",
+              "game_ms": 2,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 4016,
+              "policy_s": 0.0,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 29,
+              "bot_time_s": 0.03,
+              "after_release": true
+            },
+            "first_gear_plan_after_release": true
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 288,
+            "hud": "Concussion Rifle",
+            "weapon": "concussion_rifle",
+            "owner_gain_seconds_after_release": 1.156
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 29,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        },
+        {
+          "slot": 2,
+          "player": "Bot_BobaFett",
+          "side": "dark",
+          "sector": 18,
+          "expected_item": 34,
+          "initial_item": 34,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 0.139,
+          "gain_seconds_from_release": {
+            "concussion_rifle": null,
+            "repeater": 1.292
+          },
+          "expected_weapon_gain_s": 1.292,
+          "respawns": 0,
+          "planner": {
+            "mode": "on",
+            "name": "Bot_BobaFett",
+            "slot": 2,
+            "held": {
+              "phase": "held",
+              "game_ms": 3,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 207,
+              "policy_s": 0.0,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 34,
+              "bot_time_s": 0.03,
+              "after_release": true
+            },
+            "first_gear_plan_after_release": true
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 183,
+            "hud": "Repeater Gun",
+            "weapon": "repeater",
+            "owner_gain_seconds_after_release": 1.292
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 34,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "set": "main",
+      "block": 1,
+      "mode": "off",
+      "first": "jan",
+      "starts": "normal",
+      "receipt_sha256": "995095e0793813d976c1a354078692ec720cff20192a3c7ff934220eba99e034",
+      "logs_sha256": {
+        "dark.log": "88723a1b3f0344fc553ccd9ab3126c200306fd9977fd73bd5ec77397c7e030d1",
+        "light.log": "c406f801879b5db3ecb191f2870dd65980f9dcda3e544605b961ff6e8218668c",
+        "server.log": "d66807133f8832856ee13c2806b5459cd0e3dca4f5d4cfea9aa77b2d83efaeda",
+        "force-trace.jsonl": "365e69aa1988e426c72e69c4e16fbca7db325822c07bc85ab762f0a3b89d23cf"
+      },
+      "video": {
+        "sha256": "17e5406d431a6bc8bb3aa906a88f5681754343ba6764bfe9ff4ea20e82afecb2",
+        "frames": 134,
+        "seconds": 26.601,
+        "receipt_sha256": "fe35b97e91cbcdda7c172592fc8375148fd160ae4f005fcb08d557c445080b56",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 134,
+        "station_sector": 41
+      },
+      "shared_wall_s": 22.09,
+      "ack_spread_ms": 40,
+      "owners": [
+        {
+          "slot": 1,
+          "player": "Bot_JanOrs",
+          "side": "light",
+          "sector": 41,
+          "expected_item": 29,
+          "initial_item": 29,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 4.082,
+          "gain_seconds_from_release": {
+            "concussion_rifle": 13.974,
+            "repeater": null
+          },
+          "expected_weapon_gain_s": 13.974,
+          "respawns": 0,
+          "planner": {
+            "mode": "off",
+            "name": "Bot_JanOrs",
+            "slot": 1,
+            "held": {
+              "phase": "held",
+              "game_ms": 2,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 4150,
+              "policy_s": 4.11499,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 29,
+              "bot_time_s": 0.0,
+              "after_release": false
+            },
+            "first_gear_plan_after_release": false
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 325,
+            "hud": "Concussion Rifle",
+            "weapon": "concussion_rifle",
+            "owner_gain_seconds_after_release": 13.974
+          },
+          "different_target_after_release": true,
+          "plans_before_pickup": [
+            {
+              "item": 29,
+              "direct": true,
+              "after_release": false
+            },
+            {
+              "item": 11,
+              "direct": false,
+              "after_release": true
+            },
+            {
+              "item": 29,
+              "direct": false,
+              "after_release": true
+            },
+            {
+              "item": 29,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        },
+        {
+          "slot": 2,
+          "player": "Bot_BobaFett",
+          "side": "dark",
+          "sector": 18,
+          "expected_item": 34,
+          "initial_item": 34,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 0.172,
+          "gain_seconds_from_release": {
+            "concussion_rifle": null,
+            "repeater": 1.36
+          },
+          "expected_weapon_gain_s": 1.36,
+          "respawns": 0,
+          "planner": {
+            "mode": "off",
+            "name": "Bot_BobaFett",
+            "slot": 2,
+            "held": {
+              "phase": "held",
+              "game_ms": 2,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 240,
+              "policy_s": 0.205018,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 34,
+              "bot_time_s": 0.0,
+              "after_release": false
+            },
+            "first_gear_plan_after_release": false
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 183,
+            "hud": "Repeater Gun",
+            "weapon": "repeater",
+            "owner_gain_seconds_after_release": 1.36
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 34,
+              "direct": true,
+              "after_release": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "set": "main",
+      "block": 2,
+      "mode": "off",
+      "first": "jan",
+      "starts": "swapped",
+      "receipt_sha256": "9fcb8fb50b1448913f9d196ce1414d373ec703587c8e1735dca8f9d9e7a5ace5",
+      "logs_sha256": {
+        "dark.log": "bcf7e7b53cc1bc031a32f9b949db9f6c334af36c99e4438ad61779b96c48e503",
+        "light.log": "837903d706961c032de972198d5732bd875aa44b791e5b72c3bbfd01f04cdcf2",
+        "server.log": "1586969a95967c568b38d63463b4e2d6f56479ee6c5b12f568f9e9864bd4d69a",
+        "force-trace.jsonl": "40ba647da2e38c2f7efc0b2488b80353107333795eaa0805dabac407aaba76a4"
+      },
+      "video": {
+        "sha256": "a2ddcc9d96727009334697f881d2e84db254a24af7c0cebfff92be3c636fbd8e",
+        "frames": 136,
+        "seconds": 27.006,
+        "receipt_sha256": "c03218848fafa43043286866329c6336054bec0ce26ddc67876688fd752578b1",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 136,
+        "station_sector": 41
+      },
+      "shared_wall_s": 22.11,
+      "ack_spread_ms": 60,
+      "owners": [
+        {
+          "slot": 1,
+          "player": "Bot_JanOrs",
+          "side": "light",
+          "sector": 18,
+          "expected_item": 34,
+          "initial_item": 34,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 4.356,
+          "gain_seconds_from_release": {
+            "concussion_rifle": null,
+            "repeater": 9.724
+          },
+          "expected_weapon_gain_s": 9.724,
+          "respawns": 0,
+          "planner": {
+            "mode": "off",
+            "name": "Bot_JanOrs",
+            "slot": 1,
+            "held": {
+              "phase": "held",
+              "game_ms": 4,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 4424,
+              "policy_s": 4.389158,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 34,
+              "bot_time_s": 0.0,
+              "after_release": false
+            },
+            "first_gear_plan_after_release": false
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 340,
+            "hud": "Repeater Gun",
+            "weapon": "repeater",
+            "owner_gain_seconds_after_release": 9.724
+          },
+          "different_target_after_release": true,
+          "plans_before_pickup": [
+            {
+              "item": 34,
+              "direct": true,
+              "after_release": false
+            },
+            {
+              "item": 34,
+              "direct": false,
+              "after_release": false
+            },
+            {
+              "item": 36,
+              "direct": true,
+              "after_release": true
+            },
+            {
+              "item": 44,
+              "direct": false,
+              "after_release": true
+            },
+            {
+              "item": 44,
+              "direct": true,
+              "after_release": true
+            },
+            {
+              "item": 44,
+              "direct": true,
+              "after_release": true
+            },
+            {
+              "item": 43,
+              "direct": false,
+              "after_release": true
+            },
+            {
+              "item": 34,
+              "direct": false,
+              "after_release": true
+            },
+            {
+              "item": 34,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        },
+        {
+          "slot": 2,
+          "player": "Bot_BobaFett",
+          "side": "dark",
+          "sector": 41,
+          "expected_item": 29,
+          "initial_item": 29,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 0.172,
+          "gain_seconds_from_release": {
+            "concussion_rifle": 1.156,
+            "repeater": null
+          },
+          "expected_weapon_gain_s": 1.156,
+          "respawns": 0,
+          "planner": {
+            "mode": "off",
+            "name": "Bot_BobaFett",
+            "slot": 2,
+            "held": {
+              "phase": "held",
+              "game_ms": 2,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 240,
+              "policy_s": 0.205405,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 29,
+              "bot_time_s": 0.0,
+              "after_release": false
+            },
+            "first_gear_plan_after_release": false
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 185,
+            "hud": "Concussion Rifle",
+            "weapon": "concussion_rifle",
+            "owner_gain_seconds_after_release": 1.156
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 29,
+              "direct": true,
+              "after_release": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "set": "main",
+      "block": 2,
+      "mode": "on",
+      "first": "jan",
+      "starts": "swapped",
+      "receipt_sha256": "ee9071eb1bf0c6c91b42c2f2d0e2c6885c67f853db357ace63dae091e2b94297",
+      "logs_sha256": {
+        "dark.log": "b3086a073735a78a0600da984f79549113d085d65aa299ef0c2e9c779069ffb8",
+        "light.log": "f2ee5bef3c92baacb73cd0f240072f3915579be58c1dfb2aa26e7bbd217fa429",
+        "server.log": "2f61046147a5159c49d73dbc3a9b257fc1b640d6366a2c72f2bec722f3491d41",
+        "force-trace.jsonl": "1ee763d850c459a9413952b3f7280072122f58dbb3d7c9e323b70965b739340a"
+      },
+      "video": {
+        "sha256": "cd375873801dca6674959d8b2712b313b680dc34909c2c2b5278642cbbccb7ab",
+        "frames": 139,
+        "seconds": 27.601,
+        "receipt_sha256": "9672b34d6551b67a9cb054befdcf4bfe1da24af66cb2fb4e7a3cf53c59466d7b",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 139,
+        "station_sector": 41
+      },
+      "shared_wall_s": 22.1,
+      "ack_spread_ms": 40,
+      "owners": [
+        {
+          "slot": 1,
+          "player": "Bot_JanOrs",
+          "side": "light",
+          "sector": 18,
+          "expected_item": 34,
+          "initial_item": 34,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 4.423,
+          "gain_seconds_from_release": {
+            "concussion_rifle": null,
+            "repeater": 1.292
+          },
+          "expected_weapon_gain_s": 1.292,
+          "respawns": 0,
+          "planner": {
+            "mode": "on",
+            "name": "Bot_JanOrs",
+            "slot": 1,
+            "held": {
+              "phase": "held",
+              "game_ms": 3,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 4491,
+              "policy_s": 0.0,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 34,
+              "bot_time_s": 0.03,
+              "after_release": true
+            },
+            "first_gear_plan_after_release": true
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 298,
+            "hud": "Repeater Gun",
+            "weapon": "repeater",
+            "owner_gain_seconds_after_release": 1.292
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 34,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        },
+        {
+          "slot": 2,
+          "player": "Bot_BobaFett",
+          "side": "dark",
+          "sector": 41,
+          "expected_item": 29,
+          "initial_item": 29,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 0.172,
+          "gain_seconds_from_release": {
+            "concussion_rifle": 1.156,
+            "repeater": null
+          },
+          "expected_weapon_gain_s": 1.156,
+          "respawns": 0,
+          "planner": {
+            "mode": "on",
+            "name": "Bot_BobaFett",
+            "slot": 2,
+            "held": {
+              "phase": "held",
+              "game_ms": 2,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 240,
+              "policy_s": 0.0,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 29,
+              "bot_time_s": 0.03,
+              "after_release": true
+            },
+            "first_gear_plan_after_release": true
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 185,
+            "hud": "Concussion Rifle",
+            "weapon": "concussion_rifle",
+            "owner_gain_seconds_after_release": 1.156
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 29,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "set": "main",
+      "block": 2,
+      "mode": "on",
+      "first": "boba",
+      "starts": "swapped",
+      "receipt_sha256": "b28cffd91b9cb9d4629d62e3165ee1e2c0bc4f4f7cf9b382f9648648103a0353",
+      "logs_sha256": {
+        "dark.log": "83c6fa291466c530ec418e5abe118a2bfc7055383446006169ee70eb03daa4e3",
+        "light.log": "e8fad741ddbdc7096c948a91aea4e54b20156375ccf5ce538ff9da61069da72d",
+        "server.log": "4ee56b1263c66b23bf214e36130f749dfd319fad8fd38761f5235acdd6b869ff",
+        "force-trace.jsonl": "7c9e7580429632c39ce406d6d63147bc81d475dbbfe9b58446f34549877efdcb"
+      },
+      "video": {
+        "sha256": "569664c013964da3570b4780924aea36b5dfe7c0c015c652b8df2d3cee3cf5c9",
+        "frames": 136,
+        "seconds": 27.002,
+        "receipt_sha256": "bb5c85b059494e67be37edc7f11c4ecf2ebdec40ab28cb35e7ccc45a399a04c2",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 136,
+        "station_sector": 41
+      },
+      "shared_wall_s": 22.12,
+      "ack_spread_ms": 20,
+      "owners": [
+        {
+          "slot": 1,
+          "player": "Bot_BobaFett",
+          "side": "dark",
+          "sector": 18,
+          "expected_item": 34,
+          "initial_item": 34,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 4.424,
+          "gain_seconds_from_release": {
+            "concussion_rifle": null,
+            "repeater": 1.292
+          },
+          "expected_weapon_gain_s": 1.292,
+          "respawns": 0,
+          "planner": {
+            "mode": "on",
+            "name": "Bot_BobaFett",
+            "slot": 1,
+            "held": {
+              "phase": "held",
+              "game_ms": 2,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 4492,
+              "policy_s": 0.0,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 34,
+              "bot_time_s": 0.03,
+              "after_release": true
+            },
+            "first_gear_plan_after_release": true
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 298,
+            "hud": "Repeater Gun",
+            "weapon": "repeater",
+            "owner_gain_seconds_after_release": 1.292
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 34,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        },
+        {
+          "slot": 2,
+          "player": "Bot_JanOrs",
+          "side": "light",
+          "sector": 41,
+          "expected_item": 29,
+          "initial_item": 29,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 0.171,
+          "gain_seconds_from_release": {
+            "concussion_rifle": 1.156,
+            "repeater": null
+          },
+          "expected_weapon_gain_s": 1.156,
+          "respawns": 0,
+          "planner": {
+            "mode": "on",
+            "name": "Bot_JanOrs",
+            "slot": 2,
+            "held": {
+              "phase": "held",
+              "game_ms": 1,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 239,
+              "policy_s": 0.0,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 29,
+              "bot_time_s": 0.03,
+              "after_release": true
+            },
+            "first_gear_plan_after_release": true
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 185,
+            "hud": "Concussion Rifle",
+            "weapon": "concussion_rifle",
+            "owner_gain_seconds_after_release": 1.156
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 29,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "index": 8,
+      "set": "main",
+      "block": 2,
+      "mode": "off",
+      "first": "boba",
+      "starts": "swapped",
+      "receipt_sha256": "387290f91fff661a53ac5336813f10bb71a2458225778b85ddb7853aeca86a5a",
+      "logs_sha256": {
+        "dark.log": "d51f76dd42817f576dc2f1b43d6172d59055fd0d441a997374519489092d3ee2",
+        "light.log": "a99f0e370989705d61464c40a7743b47351bb8b0e642fd7ebc77703fdbd22f7d",
+        "server.log": "3c84ab20926992ca6584b3beeacea2e934169de881c12729df286946172233d9",
+        "force-trace.jsonl": "4e1c8d61f2ccc5622511dc97a549a39a90929ce1edb685f402430970c69dd4b2"
+      },
+      "video": {
+        "sha256": "8e0b7f393de9a859cff9ec0c1f2cac5adab7b3a1fc13e2453f7a7dfe1156f0a0",
+        "frames": 135,
+        "seconds": 26.801,
+        "receipt_sha256": "1bd3d3caca748677fd4259df54cc41246b6ab4fc5c0e2986efd411eb95f4a4c4",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 135,
+        "station_sector": 41
+      },
+      "shared_wall_s": 22.14,
+      "ack_spread_ms": 60,
+      "owners": [
+        {
+          "slot": 1,
+          "player": "Bot_BobaFett",
+          "side": "dark",
+          "sector": 18,
+          "expected_item": 34,
+          "initial_item": 34,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 4.184,
+          "gain_seconds_from_release": {
+            "concussion_rifle": null,
+            "repeater": 9.996
+          },
+          "expected_weapon_gain_s": 9.996,
+          "respawns": 0,
+          "planner": {
+            "mode": "off",
+            "name": "Bot_BobaFett",
+            "slot": 1,
+            "held": {
+              "phase": "held",
+              "game_ms": 2,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 4252,
+              "policy_s": 4.217392,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 34,
+              "bot_time_s": 0.0,
+              "after_release": false
+            },
+            "first_gear_plan_after_release": false
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 330,
+            "hud": "Repeater Gun",
+            "weapon": "repeater",
+            "owner_gain_seconds_after_release": 9.996
+          },
+          "different_target_after_release": true,
+          "plans_before_pickup": [
+            {
+              "item": 34,
+              "direct": true,
+              "after_release": false
+            },
+            {
+              "item": 34,
+              "direct": false,
+              "after_release": false
+            },
+            {
+              "item": 36,
+              "direct": true,
+              "after_release": true
+            },
+            {
+              "item": 44,
+              "direct": false,
+              "after_release": true
+            },
+            {
+              "item": 44,
+              "direct": true,
+              "after_release": true
+            },
+            {
+              "item": 44,
+              "direct": true,
+              "after_release": true
+            },
+            {
+              "item": 43,
+              "direct": false,
+              "after_release": true
+            },
+            {
+              "item": 34,
+              "direct": false,
+              "after_release": true
+            },
+            {
+              "item": 34,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        },
+        {
+          "slot": 2,
+          "player": "Bot_JanOrs",
+          "side": "light",
+          "sector": 41,
+          "expected_item": 29,
+          "initial_item": 29,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 0.171,
+          "gain_seconds_from_release": {
+            "concussion_rifle": 1.156,
+            "repeater": null
+          },
+          "expected_weapon_gain_s": 1.156,
+          "respawns": 0,
+          "planner": {
+            "mode": "off",
+            "name": "Bot_JanOrs",
+            "slot": 2,
+            "held": {
+              "phase": "held",
+              "game_ms": 1,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 239,
+              "policy_s": 0.204661,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 29,
+              "bot_time_s": 0.0,
+              "after_release": false
+            },
+            "first_gear_plan_after_release": false
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 185,
+            "hud": "Concussion Rifle",
+            "weapon": "concussion_rifle",
+            "owner_gain_seconds_after_release": 1.156
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 29,
+              "direct": true,
+              "after_release": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "index": 9,
+      "set": "main",
+      "block": 3,
+      "mode": "off",
+      "first": "boba",
+      "starts": "swapped",
+      "receipt_sha256": "5a46e4ccf84ce0b33ae4cb69e53c2683dce6ca20ac4accebcfa7183a508ad8a7",
+      "logs_sha256": {
+        "dark.log": "8c0e6c9289fe7de974b96bafddb1dab07c684ef4b9fec281188199437fe34792",
+        "light.log": "0ab56666c2988735d964e7716d0a1227d236fc773346ae53fa49da78faa3c2ad",
+        "server.log": "164353d36684fdcc1584c15c965ba64c8c66e45e2888c27f687b2e76f1d9e491",
+        "force-trace.jsonl": "d578d73f7db86db6105c0ecd15b362098c66395fd3eb16275826502642ae3986"
+      },
+      "video": {
+        "sha256": "58eae8126f89603fb27ea13afa5fe968dd88587711e0a8f6d7f287b5dcad3d13",
+        "frames": 139,
+        "seconds": 27.601,
+        "receipt_sha256": "8f91de4c69894d035b2356ed51fded73c0509f0bb02114754c0d91c7e2cfb0ec",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 139,
+        "station_sector": 41
+      },
+      "shared_wall_s": 22.1,
+      "ack_spread_ms": 40,
+      "owners": [
+        {
+          "slot": 1,
+          "player": "Bot_BobaFett",
+          "side": "dark",
+          "sector": 18,
+          "expected_item": 34,
+          "initial_item": 34,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 4.286,
+          "gain_seconds_from_release": {
+            "concussion_rifle": null,
+            "repeater": 9.486
+          },
+          "expected_weapon_gain_s": 9.486,
+          "respawns": 0,
+          "planner": {
+            "mode": "off",
+            "name": "Bot_BobaFett",
+            "slot": 1,
+            "held": {
+              "phase": "held",
+              "game_ms": 2,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 4354,
+              "policy_s": 4.319949,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 34,
+              "bot_time_s": 0.0,
+              "after_release": false
+            },
+            "first_gear_plan_after_release": false
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 338,
+            "hud": "Repeater Gun",
+            "weapon": "repeater",
+            "owner_gain_seconds_after_release": 9.486
+          },
+          "different_target_after_release": true,
+          "plans_before_pickup": [
+            {
+              "item": 34,
+              "direct": true,
+              "after_release": false
+            },
+            {
+              "item": 34,
+              "direct": false,
+              "after_release": false
+            },
+            {
+              "item": 36,
+              "direct": true,
+              "after_release": true
+            },
+            {
+              "item": 35,
+              "direct": true,
+              "after_release": true
+            },
+            {
+              "item": 44,
+              "direct": false,
+              "after_release": true
+            },
+            {
+              "item": 44,
+              "direct": true,
+              "after_release": true
+            },
+            {
+              "item": 34,
+              "direct": false,
+              "after_release": true
+            },
+            {
+              "item": 34,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        },
+        {
+          "slot": 2,
+          "player": "Bot_JanOrs",
+          "side": "light",
+          "sector": 41,
+          "expected_item": 29,
+          "initial_item": 29,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 0.171,
+          "gain_seconds_from_release": {
+            "concussion_rifle": 1.156,
+            "repeater": null
+          },
+          "expected_weapon_gain_s": 1.156,
+          "respawns": 0,
+          "planner": {
+            "mode": "off",
+            "name": "Bot_JanOrs",
+            "slot": 2,
+            "held": {
+              "phase": "held",
+              "game_ms": 1,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 239,
+              "policy_s": 0.204528,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 29,
+              "bot_time_s": 0.0,
+              "after_release": false
+            },
+            "first_gear_plan_after_release": false
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 191,
+            "hud": "Concussion Rifle",
+            "weapon": "concussion_rifle",
+            "owner_gain_seconds_after_release": 1.156
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 29,
+              "direct": true,
+              "after_release": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "index": 10,
+      "set": "main",
+      "block": 3,
+      "mode": "on",
+      "first": "boba",
+      "starts": "swapped",
+      "receipt_sha256": "6a2e44ab4be60d66a16313294cd4bfaccf8df21b57d28fb62fd11091bd36db7a",
+      "logs_sha256": {
+        "dark.log": "442143b779ed4c2dcf66dc8b63a8f70ce0ccd6a0a544eb747f29fc0752651c78",
+        "light.log": "7fe42a41b77631db5548d68a9d9266b50d0c5fd3a669af762d4c1a7ee947c071",
+        "server.log": "eddf74142dbdeedd86d6f5c7ff9c5b061f34b6de5a86085a988ab6826d12d553",
+        "force-trace.jsonl": "32fc5a75aa66d24d9a43f6cba361c7d327256c12bc002fcfa7e8ec769aebcc50"
+      },
+      "video": {
+        "sha256": "01def7fc970176385d785d69ee4172ed2088789b4706256e497a6c7fe8663e75",
+        "frames": 136,
+        "seconds": 27.002,
+        "receipt_sha256": "b3fb4df0b123ab3ca795e3adf52cdaac2687d6dae79b59d9816d7ddce06e8ed0",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 136,
+        "station_sector": 41
+      },
+      "shared_wall_s": 22.05,
+      "ack_spread_ms": 40,
+      "owners": [
+        {
+          "slot": 1,
+          "player": "Bot_BobaFett",
+          "side": "dark",
+          "sector": 18,
+          "expected_item": 34,
+          "initial_item": 34,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 4.287,
+          "gain_seconds_from_release": {
+            "concussion_rifle": null,
+            "repeater": 1.326
+          },
+          "expected_weapon_gain_s": 1.326,
+          "respawns": 0,
+          "planner": {
+            "mode": "on",
+            "name": "Bot_BobaFett",
+            "slot": 1,
+            "held": {
+              "phase": "held",
+              "game_ms": 2,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 4355,
+              "policy_s": 0.0,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 34,
+              "bot_time_s": 0.03,
+              "after_release": true
+            },
+            "first_gear_plan_after_release": true
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 298,
+            "hud": "Repeater Gun",
+            "weapon": "repeater",
+            "owner_gain_seconds_after_release": 1.326
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 34,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        },
+        {
+          "slot": 2,
+          "player": "Bot_JanOrs",
+          "side": "light",
+          "sector": 41,
+          "expected_item": 29,
+          "initial_item": 29,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 0.172,
+          "gain_seconds_from_release": {
+            "concussion_rifle": 1.157,
+            "repeater": null
+          },
+          "expected_weapon_gain_s": 1.157,
+          "respawns": 0,
+          "planner": {
+            "mode": "on",
+            "name": "Bot_JanOrs",
+            "slot": 2,
+            "held": {
+              "phase": "held",
+              "game_ms": 2,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 241,
+              "policy_s": 0.0,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 29,
+              "bot_time_s": 0.04,
+              "after_release": true
+            },
+            "first_gear_plan_after_release": true
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 191,
+            "hud": "Concussion Rifle",
+            "weapon": "concussion_rifle",
+            "owner_gain_seconds_after_release": 1.157
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 29,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "index": 11,
+      "set": "main",
+      "block": 3,
+      "mode": "on",
+      "first": "jan",
+      "starts": "swapped",
+      "receipt_sha256": "2b6d6319051308062281f827b964b66095995d7b555309c844468914110627f7",
+      "logs_sha256": {
+        "dark.log": "df910c8b6879ac1674f5c92a3cfd7e8adaa65a7ff8eff3a4223feede7c74db43",
+        "light.log": "5d8f1d4293c770c88e5b21f0a3735523d290813c750af9fe3c43b3c807c3854f",
+        "server.log": "5c6c914aba079745c85dba3c53499532dae20ee7029d02b0cb1c6ce738eb5a7d",
+        "force-trace.jsonl": "a6d4647becc229a5406a0bb168a120be0d03a090ed9eac650ce45dd63ef8ad69"
+      },
+      "video": {
+        "sha256": "601609666fc2d7bc7e0b53813f2a3da2800192237ccf49a508688ace1e47f65c",
+        "frames": 133,
+        "seconds": 26.403,
+        "receipt_sha256": "cb6f4fa24379f8e454cb3bc1c5c3fc137cc28f25cd2cfe9be3eb49b0dd63c7dd",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 133,
+        "station_sector": 41
+      },
+      "shared_wall_s": 22.11,
+      "ack_spread_ms": 40,
+      "owners": [
+        {
+          "slot": 1,
+          "player": "Bot_JanOrs",
+          "side": "light",
+          "sector": 18,
+          "expected_item": 34,
+          "initial_item": 34,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 4.287,
+          "gain_seconds_from_release": {
+            "concussion_rifle": null,
+            "repeater": 1.326
+          },
+          "expected_weapon_gain_s": 1.326,
+          "respawns": 0,
+          "planner": {
+            "mode": "on",
+            "name": "Bot_JanOrs",
+            "slot": 1,
+            "held": {
+              "phase": "held",
+              "game_ms": 3,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 4355,
+              "policy_s": 0.0,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 34,
+              "bot_time_s": 0.03,
+              "after_release": true
+            },
+            "first_gear_plan_after_release": true
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 298,
+            "hud": "Repeater Gun",
+            "weapon": "repeater",
+            "owner_gain_seconds_after_release": 1.326
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 34,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        },
+        {
+          "slot": 2,
+          "player": "Bot_BobaFett",
+          "side": "dark",
+          "sector": 41,
+          "expected_item": 29,
+          "initial_item": 29,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 0.172,
+          "gain_seconds_from_release": {
+            "concussion_rifle": 1.156,
+            "repeater": null
+          },
+          "expected_weapon_gain_s": 1.156,
+          "respawns": 0,
+          "planner": {
+            "mode": "on",
+            "name": "Bot_BobaFett",
+            "slot": 2,
+            "held": {
+              "phase": "held",
+              "game_ms": 2,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 240,
+              "policy_s": 0.0,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 29,
+              "bot_time_s": 0.03,
+              "after_release": true
+            },
+            "first_gear_plan_after_release": true
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 191,
+            "hud": "Concussion Rifle",
+            "weapon": "concussion_rifle",
+            "owner_gain_seconds_after_release": 1.156
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 29,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "index": 12,
+      "set": "main",
+      "block": 3,
+      "mode": "off",
+      "first": "jan",
+      "starts": "swapped",
+      "receipt_sha256": "ec7458765fc705fa72816f4803c0b8452b6f0f345f2ca3969a3fc39f2f05dc74",
+      "logs_sha256": {
+        "dark.log": "942f0c3a022b7facd134bef6866a261ca0f75b8e9d187cd5f7f1b401c94c850b",
+        "light.log": "57fb783a5873c037569b7374baf2a90f56541cc5c65fc8f1572f0349b9fd0005",
+        "server.log": "023e6204d1d49d691b9128ff96e3c1f143c6464f82bee12d0a77af7392e23372",
+        "force-trace.jsonl": "9205962febb9de5bbc53afde0473e29b69c134195da4337cbd44b0d2442a8886"
+      },
+      "video": {
+        "sha256": "d1f75ed72087b6f4309c2c97e6323b8737f97f3b1de6a4129b9b8872f7a8ae1d",
+        "frames": 131,
+        "seconds": 26.001,
+        "receipt_sha256": "7fafbedfa2a19525e52c3a41f5da733869b3316f43ffbdd131bd6f5dd868dd8c",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 131,
+        "station_sector": 41
+      },
+      "shared_wall_s": 22.12,
+      "ack_spread_ms": 20,
+      "owners": [
+        {
+          "slot": 1,
+          "player": "Bot_JanOrs",
+          "side": "light",
+          "sector": 18,
+          "expected_item": 34,
+          "initial_item": 34,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 4.117,
+          "gain_seconds_from_release": {
+            "concussion_rifle": null,
+            "repeater": 8.534
+          },
+          "expected_weapon_gain_s": 8.534,
+          "respawns": 0,
+          "planner": {
+            "mode": "off",
+            "name": "Bot_JanOrs",
+            "slot": 1,
+            "held": {
+              "phase": "held",
+              "game_ms": 3,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 4185,
+              "policy_s": 4.150807,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 34,
+              "bot_time_s": 0.0,
+              "after_release": false
+            },
+            "first_gear_plan_after_release": false
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 325,
+            "hud": "Repeater Gun",
+            "weapon": "repeater",
+            "owner_gain_seconds_after_release": 8.534
+          },
+          "different_target_after_release": true,
+          "plans_before_pickup": [
+            {
+              "item": 34,
+              "direct": true,
+              "after_release": false
+            },
+            {
+              "item": 34,
+              "direct": false,
+              "after_release": false
+            },
+            {
+              "item": 36,
+              "direct": true,
+              "after_release": true
+            },
+            {
+              "item": 38,
+              "direct": true,
+              "after_release": true
+            },
+            {
+              "item": 44,
+              "direct": false,
+              "after_release": true
+            },
+            {
+              "item": 44,
+              "direct": true,
+              "after_release": true
+            },
+            {
+              "item": 44,
+              "direct": false,
+              "after_release": true
+            },
+            {
+              "item": 34,
+              "direct": false,
+              "after_release": true
+            },
+            {
+              "item": 34,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        },
+        {
+          "slot": 2,
+          "player": "Bot_BobaFett",
+          "side": "dark",
+          "sector": 41,
+          "expected_item": 29,
+          "initial_item": 29,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 0.138,
+          "gain_seconds_from_release": {
+            "concussion_rifle": 1.19,
+            "repeater": null
+          },
+          "expected_weapon_gain_s": 1.19,
+          "respawns": 0,
+          "planner": {
+            "mode": "off",
+            "name": "Bot_BobaFett",
+            "slot": 2,
+            "held": {
+              "phase": "held",
+              "game_ms": 2,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 206,
+              "policy_s": 0.171408,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 29,
+              "bot_time_s": 0.0,
+              "after_release": false
+            },
+            "first_gear_plan_after_release": false
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 185,
+            "hud": "Concussion Rifle",
+            "weapon": "concussion_rifle",
+            "owner_gain_seconds_after_release": 1.19
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 29,
+              "direct": true,
+              "after_release": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "index": 13,
+      "set": "main",
+      "block": 4,
+      "mode": "off",
+      "first": "jan",
+      "starts": "normal",
+      "receipt_sha256": "d44fa4ff43b77bfe9df079aa6ec7c9074ba878a4e90e87f074ed144a6962f8af",
+      "logs_sha256": {
+        "dark.log": "96751f57be86c86a6efce9b9c63364449b6d904cf400d24938354303f3d48f4d",
+        "light.log": "b542bf913a0c59c2cdee548149a381aefccc95d3881e920dabf853d5d40fed90",
+        "server.log": "4ffe92127428a3c254314bf1ffd28c918c849736970dc04d2b55c292a17c58fc",
+        "force-trace.jsonl": "f06635d800c50fa80ce210e733d15463777d3a9f551dd0dd89ec04328e3281a9"
+      },
+      "video": {
+        "sha256": "fd8b09e5bb33a6a04614484fa30d09870462a322d3629cfb720946e1b15aebba",
+        "frames": 134,
+        "seconds": 26.602,
+        "receipt_sha256": "4ed1a7b7b93a0d6796539eacd4e28038a8bbde04f4f5e858be90558ea6da577b",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 134,
+        "station_sector": 41
+      },
+      "shared_wall_s": 22.12,
+      "ack_spread_ms": 20,
+      "owners": [
+        {
+          "slot": 1,
+          "player": "Bot_JanOrs",
+          "side": "light",
+          "sector": 41,
+          "expected_item": 29,
+          "initial_item": 29,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 4.082,
+          "gain_seconds_from_release": {
+            "concussion_rifle": 13.974,
+            "repeater": null
+          },
+          "expected_weapon_gain_s": 13.974,
+          "respawns": 0,
+          "planner": {
+            "mode": "off",
+            "name": "Bot_JanOrs",
+            "slot": 1,
+            "held": {
+              "phase": "held",
+              "game_ms": 2,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 4150,
+              "policy_s": 4.115953,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 29,
+              "bot_time_s": 0.0,
+              "after_release": false
+            },
+            "first_gear_plan_after_release": false
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 325,
+            "hud": "Concussion Rifle",
+            "weapon": "concussion_rifle",
+            "owner_gain_seconds_after_release": 13.974
+          },
+          "different_target_after_release": true,
+          "plans_before_pickup": [
+            {
+              "item": 29,
+              "direct": true,
+              "after_release": false
+            },
+            {
+              "item": 11,
+              "direct": false,
+              "after_release": true
+            },
+            {
+              "item": 29,
+              "direct": false,
+              "after_release": true
+            },
+            {
+              "item": 29,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        },
+        {
+          "slot": 2,
+          "player": "Bot_BobaFett",
+          "side": "dark",
+          "sector": 18,
+          "expected_item": 34,
+          "initial_item": 34,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 0.172,
+          "gain_seconds_from_release": {
+            "concussion_rifle": null,
+            "repeater": 1.36
+          },
+          "expected_weapon_gain_s": 1.36,
+          "respawns": 0,
+          "planner": {
+            "mode": "off",
+            "name": "Bot_BobaFett",
+            "slot": 2,
+            "held": {
+              "phase": "held",
+              "game_ms": 2,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 240,
+              "policy_s": 0.20567,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 34,
+              "bot_time_s": 0.0,
+              "after_release": false
+            },
+            "first_gear_plan_after_release": false
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 183,
+            "hud": "Repeater Gun",
+            "weapon": "repeater",
+            "owner_gain_seconds_after_release": 1.36
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 34,
+              "direct": true,
+              "after_release": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "index": 14,
+      "set": "main",
+      "block": 4,
+      "mode": "on",
+      "first": "jan",
+      "starts": "normal",
+      "receipt_sha256": "d46354b714c0e6b7f950aa3d8d40f7ce0cdecd514f37ac33514c096284cdbc2a",
+      "logs_sha256": {
+        "dark.log": "d7d51594b37a99774b19628fe769accfe5f10f7e62cf88ae5719a8254cda2368",
+        "light.log": "b103f445243d636b09ae48474ab70b5a360f82bef1b29d2fd454adce2f4b902b",
+        "server.log": "e7ab59d53567be62bee3f8c7566b8304d132df85c7800f6be5eff0c335af786f",
+        "force-trace.jsonl": "beb12f5d0ae81ff2f9f11e35aa028d0ffdf472b7a7b1431632c9e9f874fd9d1d"
+      },
+      "video": {
+        "sha256": "b304511317ddfc34263c5e220b700c1ec125e27fb10f266d9ef22f5aaec1e268",
+        "frames": 133,
+        "seconds": 26.402,
+        "receipt_sha256": "096e2fbfa3454a278163ae61b0e2bc02e3c83270f12bd29feba7ef6ca0027e50",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 133,
+        "station_sector": 41
+      },
+      "shared_wall_s": 22.12,
+      "ack_spread_ms": 40,
+      "owners": [
+        {
+          "slot": 1,
+          "player": "Bot_JanOrs",
+          "side": "light",
+          "sector": 41,
+          "expected_item": 29,
+          "initial_item": 29,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 4.252,
+          "gain_seconds_from_release": {
+            "concussion_rifle": 1.156,
+            "repeater": null
+          },
+          "expected_weapon_gain_s": 1.156,
+          "respawns": 0,
+          "planner": {
+            "mode": "on",
+            "name": "Bot_JanOrs",
+            "slot": 1,
+            "held": {
+              "phase": "held",
+              "game_ms": 2,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 4320,
+              "policy_s": 0.0,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 29,
+              "bot_time_s": 0.03,
+              "after_release": true
+            },
+            "first_gear_plan_after_release": true
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 299,
+            "hud": "Concussion Rifle",
+            "weapon": "concussion_rifle",
+            "owner_gain_seconds_after_release": 1.156
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 29,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        },
+        {
+          "slot": 2,
+          "player": "Bot_BobaFett",
+          "side": "dark",
+          "sector": 18,
+          "expected_item": 34,
+          "initial_item": 34,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 0.172,
+          "gain_seconds_from_release": {
+            "concussion_rifle": null,
+            "repeater": 1.36
+          },
+          "expected_weapon_gain_s": 1.36,
+          "respawns": 0,
+          "planner": {
+            "mode": "on",
+            "name": "Bot_BobaFett",
+            "slot": 2,
+            "held": {
+              "phase": "held",
+              "game_ms": 2,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 240,
+              "policy_s": 0.0,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 34,
+              "bot_time_s": 0.03,
+              "after_release": true
+            },
+            "first_gear_plan_after_release": true
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 189,
+            "hud": "Repeater Gun",
+            "weapon": "repeater",
+            "owner_gain_seconds_after_release": 1.36
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 34,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "index": 15,
+      "set": "main",
+      "block": 4,
+      "mode": "on",
+      "first": "boba",
+      "starts": "normal",
+      "receipt_sha256": "a44ceb4bb1ab4177a039ced5f053245228f966ba3c862e6451d8a3754134e5df",
+      "logs_sha256": {
+        "dark.log": "998e7258f151bf6ab7ef15923139ecb7d2853853031461205829370afc8d0eb7",
+        "light.log": "08a670a751e14e491fe599825cd00e69928964fcb5cd0703f9866fa91139a25c",
+        "server.log": "5327afc5d7580fe2fb305241962cb2d8fca24fc3193c01060ea73610b056cb6e",
+        "force-trace.jsonl": "077a5f75acddc859c4df321346cb5cc781ce5c6a71ad76a01c2ce381ec1c8d09"
+      },
+      "video": {
+        "sha256": "b88a1788210a6260cdc041ebcb2800554733432d5e52f29d6086efd50fb77dfa",
+        "frames": 141,
+        "seconds": 28.002,
+        "receipt_sha256": "f95a5061d1c67ad8a852923ea44fbe9846fee34cb9ae2ccc7059e13c5b1d7fdb",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 141,
+        "station_sector": 41
+      },
+      "shared_wall_s": 22.11,
+      "ack_spread_ms": 40,
+      "owners": [
+        {
+          "slot": 1,
+          "player": "Bot_BobaFett",
+          "side": "dark",
+          "sector": 41,
+          "expected_item": 29,
+          "initial_item": 29,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 4.354,
+          "gain_seconds_from_release": {
+            "concussion_rifle": 1.156,
+            "repeater": null
+          },
+          "expected_weapon_gain_s": 1.156,
+          "respawns": 0,
+          "planner": {
+            "mode": "on",
+            "name": "Bot_BobaFett",
+            "slot": 1,
+            "held": {
+              "phase": "held",
+              "game_ms": 2,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 4422,
+              "policy_s": 0.0,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 29,
+              "bot_time_s": 0.03,
+              "after_release": true
+            },
+            "first_gear_plan_after_release": true
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 299,
+            "hud": "Concussion Rifle",
+            "weapon": "concussion_rifle",
+            "owner_gain_seconds_after_release": 1.156
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 29,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        },
+        {
+          "slot": 2,
+          "player": "Bot_JanOrs",
+          "side": "light",
+          "sector": 18,
+          "expected_item": 34,
+          "initial_item": 34,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 0.172,
+          "gain_seconds_from_release": {
+            "concussion_rifle": null,
+            "repeater": 1.36
+          },
+          "expected_weapon_gain_s": 1.36,
+          "respawns": 0,
+          "planner": {
+            "mode": "on",
+            "name": "Bot_JanOrs",
+            "slot": 2,
+            "held": {
+              "phase": "held",
+              "game_ms": 2,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 240,
+              "policy_s": 0.0,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 34,
+              "bot_time_s": 0.03,
+              "after_release": true
+            },
+            "first_gear_plan_after_release": true
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 183,
+            "hud": "Repeater Gun",
+            "weapon": "repeater",
+            "owner_gain_seconds_after_release": 1.36
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 34,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "index": 16,
+      "set": "main",
+      "block": 4,
+      "mode": "off",
+      "first": "boba",
+      "starts": "normal",
+      "receipt_sha256": "e373e21963bfd0219bc6d19117db7a1d9b595619d347166fe7a3e29962b58cf8",
+      "logs_sha256": {
+        "dark.log": "90381e869ed1d577f19d590ce405e3b0118e276531ab9bffd9c287de3fb83d4c",
+        "light.log": "a5be55c6615d983bf2a2a424481fabbfd3685e9f7386c797f80e719770f1a6fa",
+        "server.log": "04d5a17444367bd239fb2ecc29f41d02d140bd1648da55ff49d3ad942ab9b3f6",
+        "force-trace.jsonl": "c20d44a9e6753b4f3f9a9ddd75203345bb8d1ea51c1948c4de59a1f6eb1176e1"
+      },
+      "video": {
+        "sha256": "13b42ff5ab35eb183a24f6e4ecb5be0ebca80a3e4012c4a69a796be216a83b52",
+        "frames": 140,
+        "seconds": 27.801,
+        "receipt_sha256": "65598e7bc958bfd4f54edee4b2c4656ed1eefc3e0643152a0719d18e0b02b2a7",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 140,
+        "station_sector": 41
+      },
+      "shared_wall_s": 22.14,
+      "ack_spread_ms": 36,
+      "owners": [
+        {
+          "slot": 1,
+          "player": "Bot_BobaFett",
+          "side": "dark",
+          "sector": 41,
+          "expected_item": 29,
+          "initial_item": 29,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 4.048,
+          "gain_seconds_from_release": {
+            "concussion_rifle": 10.132,
+            "repeater": null
+          },
+          "expected_weapon_gain_s": 10.132,
+          "respawns": 0,
+          "planner": {
+            "mode": "off",
+            "name": "Bot_BobaFett",
+            "slot": 1,
+            "held": {
+              "phase": "held",
+              "game_ms": 2,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 4116,
+              "policy_s": 4.081759,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 29,
+              "bot_time_s": 0.0,
+              "after_release": false
+            },
+            "first_gear_plan_after_release": false
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 314,
+            "hud": "Concussion Rifle",
+            "weapon": "concussion_rifle",
+            "owner_gain_seconds_after_release": 10.132
+          },
+          "different_target_after_release": true,
+          "plans_before_pickup": [
+            {
+              "item": 29,
+              "direct": true,
+              "after_release": false
+            },
+            {
+              "item": 11,
+              "direct": false,
+              "after_release": true
+            },
+            {
+              "item": 29,
+              "direct": false,
+              "after_release": true
+            },
+            {
+              "item": 29,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        },
+        {
+          "slot": 2,
+          "player": "Bot_JanOrs",
+          "side": "light",
+          "sector": 18,
+          "expected_item": 34,
+          "initial_item": 34,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 0.174,
+          "gain_seconds_from_release": {
+            "concussion_rifle": null,
+            "repeater": 1.36
+          },
+          "expected_weapon_gain_s": 1.36,
+          "respawns": 0,
+          "planner": {
+            "mode": "off",
+            "name": "Bot_JanOrs",
+            "slot": 2,
+            "held": {
+              "phase": "held",
+              "game_ms": 4,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 242,
+              "policy_s": 0.207314,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 34,
+              "bot_time_s": 0.0,
+              "after_release": false
+            },
+            "first_gear_plan_after_release": false
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 183,
+            "hud": "Repeater Gun",
+            "weapon": "repeater",
+            "owner_gain_seconds_after_release": 1.36
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 34,
+              "direct": true,
+              "after_release": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "index": 17,
+      "set": "held_out",
+      "block": null,
+      "mode": "on",
+      "first": "jan",
+      "starts": "normal",
+      "receipt_sha256": "1f7162db3e004ba0242f4f11fb0b16735e6a57284991e9e7b5a32489c494177c",
+      "logs_sha256": {
+        "dark.log": "a99e215b7950a7c6252d8eb1f4743b61ad6a8730ea614a1b19b9e1c065f7416f",
+        "light.log": "e7d5110ea84de6f3b5e6ca225d7606b82e80fd185bfd0a6b1528a17dd2ed5e02",
+        "server.log": "cd9cada3d854d815f7ca45517cf25d74749c4a4bdfc67e8a68715f3098e68c79",
+        "force-trace.jsonl": "b1be671f22817a858ced10ef699e8eadb53338069ebdb8257d9a7f713a6fb761"
+      },
+      "video": {
+        "sha256": "fc56ca4c273238ee0e634aa96e2532834e26a22b591076e9f3590eb098be787a",
+        "frames": 130,
+        "seconds": 25.802,
+        "receipt_sha256": "769cb49b5e04db101a27b8d6eecc50b70949e05ff456b9ef4031d6c933ed318a",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 130,
+        "station_sector": 41
+      },
+      "shared_wall_s": 22.12,
+      "ack_spread_ms": 60,
+      "owners": [
+        {
+          "slot": 1,
+          "player": "Bot_JanOrs",
+          "side": "light",
+          "sector": 41,
+          "expected_item": 29,
+          "initial_item": 29,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 4.286,
+          "gain_seconds_from_release": {
+            "concussion_rifle": 1.122,
+            "repeater": null
+          },
+          "expected_weapon_gain_s": 1.122,
+          "respawns": 0,
+          "planner": {
+            "mode": "on",
+            "name": "Bot_JanOrs",
+            "slot": 1,
+            "held": {
+              "phase": "held",
+              "game_ms": 2,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 4354,
+              "policy_s": 0.0,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 29,
+              "bot_time_s": 0.03,
+              "after_release": true
+            },
+            "first_gear_plan_after_release": true
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 299,
+            "hud": "Concussion Rifle",
+            "weapon": "concussion_rifle",
+            "owner_gain_seconds_after_release": 1.122
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 29,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        },
+        {
+          "slot": 2,
+          "player": "Bot_BobaFett",
+          "side": "dark",
+          "sector": 18,
+          "expected_item": 34,
+          "initial_item": 34,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 0.172,
+          "gain_seconds_from_release": {
+            "concussion_rifle": null,
+            "repeater": 1.36
+          },
+          "expected_weapon_gain_s": 1.36,
+          "respawns": 0,
+          "planner": {
+            "mode": "on",
+            "name": "Bot_BobaFett",
+            "slot": 2,
+            "held": {
+              "phase": "held",
+              "game_ms": 2,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 240,
+              "policy_s": 0.0,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 34,
+              "bot_time_s": 0.03,
+              "after_release": true
+            },
+            "first_gear_plan_after_release": true
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 189,
+            "hud": "Repeater Gun",
+            "weapon": "repeater",
+            "owner_gain_seconds_after_release": 1.36
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 34,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "index": 18,
+      "set": "held_out",
+      "block": null,
+      "mode": "off",
+      "first": "jan",
+      "starts": "normal",
+      "receipt_sha256": "e4d0e93a47340f7085056778d7f964dab8136629e1c11f08051446d16b14427b",
+      "logs_sha256": {
+        "dark.log": "4362b7500532e3a02b24d2ea67c671b6254e494cfd0769f53e2abf1ba4b2eb10",
+        "light.log": "095caff07a0602f17e6d76da3c9ee3dc67e23115a4886a40b3526c12861c00e2",
+        "server.log": "81d24213dc169771a31cebe7eedb750998b428771ce493964e2bd827a877899e",
+        "force-trace.jsonl": "b29679b6b082f040544b8c072c3fe3c30440058cd0fb9e495fd78542ce968c48"
+      },
+      "video": {
+        "sha256": "e4510c014ca9874ec4a1be4b0fabed23c948c3c7495d9cfef2b0adde22cb8a9d",
+        "frames": 136,
+        "seconds": 27.004,
+        "receipt_sha256": "3b7b6b41dc7930d7e2cb267a2561ace4bed05476259303892618e1015406a8be",
+        "camera": "rifle-overlook",
+        "valid_camera_poses": 136,
+        "station_sector": 41
+      },
+      "shared_wall_s": 22.07,
+      "ack_spread_ms": 20,
+      "owners": [
+        {
+          "slot": 1,
+          "player": "Bot_JanOrs",
+          "side": "light",
+          "sector": 41,
+          "expected_item": 29,
+          "initial_item": 29,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 3.744,
+          "gain_seconds_from_release": {
+            "concussion_rifle": 14.520999,
+            "repeater": null
+          },
+          "expected_weapon_gain_s": 14.520999,
+          "respawns": 0,
+          "planner": {
+            "mode": "off",
+            "name": "Bot_JanOrs",
+            "slot": 1,
+            "held": {
+              "phase": "held",
+              "game_ms": 4,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 3812,
+              "policy_s": 3.777276,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 29,
+              "bot_time_s": 0.0,
+              "after_release": false
+            },
+            "first_gear_plan_after_release": false
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 325,
+            "hud": "Concussion Rifle",
+            "weapon": "concussion_rifle",
+            "owner_gain_seconds_after_release": 14.520999
+          },
+          "different_target_after_release": true,
+          "plans_before_pickup": [
+            {
+              "item": 29,
+              "direct": true,
+              "after_release": false
+            },
+            {
+              "item": 11,
+              "direct": false,
+              "after_release": true
+            },
+            {
+              "item": 29,
+              "direct": false,
+              "after_release": true
+            },
+            {
+              "item": 29,
+              "direct": true,
+              "after_release": true
+            }
+          ]
+        },
+        {
+          "slot": 2,
+          "player": "Bot_BobaFett",
+          "side": "dark",
+          "sector": 18,
+          "expected_item": 34,
+          "initial_item": 34,
+          "initial_target_correct": true,
+          "owner_hold_seconds": 0.174,
+          "gain_seconds_from_release": {
+            "concussion_rifle": null,
+            "repeater": 1.36
+          },
+          "expected_weapon_gain_s": 1.36,
+          "respawns": 0,
+          "planner": {
+            "mode": "off",
+            "name": "Bot_BobaFett",
+            "slot": 2,
+            "held": {
+              "phase": "held",
+              "game_ms": 4,
+              "policy_s": 0.0,
+              "actor_mask": 2359296,
+              "gravity": 0,
+              "collision": 0
+            },
+            "released": {
+              "phase": "released",
+              "game_ms": 242,
+              "policy_s": 0.207917,
+              "actor_mask": 0,
+              "gravity": 1,
+              "collision": 1
+            },
+            "first_gear_plan": {
+              "item": 34,
+              "bot_time_s": 0.0,
+              "after_release": false
+            },
+            "first_gear_plan_after_release": false
+          },
+          "pickup_evidence_status": "qualified",
+          "pickup_evidence_reason": null,
+          "pickup": {
+            "line": 189,
+            "hud": "Repeater Gun",
+            "weapon": "repeater",
+            "owner_gain_seconds_after_release": 1.36
+          },
+          "different_target_after_release": false,
+          "plans_before_pickup": [
+            {
+              "item": 34,
+              "direct": true,
+              "after_release": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
