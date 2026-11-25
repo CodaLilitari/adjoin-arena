@@ -153,6 +153,42 @@ class Seat(unittest.TestCase):
         self.assertEqual([r for r, _ in self.hub.sent[-2:]], ["tactics", "strategy"])
         self.assertEqual(self.hub.sent[-2][1], {"values": {"run": 1.0}})
 
+    def test_stale_state_keeps_the_lease(self):
+        """Live JKZone run: Red's state went stale for a few seconds; the seat
+        dropped its own valid lease and was then locked out ('A controller holds
+        this bot') until the hub expired it 30 s later."""
+        seat = self.make()
+        real = self.hub.request
+        state = {"stale": False, "held": None}
+        def request(cred, route, body=None):
+            if route == "attach":
+                if state["held"]:
+                    raise ValueError("HTTP 409: A controller holds this bot.")
+                out = real(cred, route, body); state["held"] = out["lease_id"]; return out
+            if route == "renew" and state["stale"]:
+                raise ValueError("HTTP 409: Waiting for native state.")
+            if route == "renew" and body.get("lease_id") != state["held"]:
+                raise ValueError("HTTP 409: Controller lease expired or invalid.")
+            return real(cred, route, body)
+        seat.request = request
+        def step(n):
+            for _ in range(n):
+                try:
+                    seat.tick(); seat.waiting = False
+                except ValueError as error:
+                    seat.refused(error)
+                self.clock["t"] += 1.0
+        step(3)
+        self.assertEqual(self.hub.attaches, 1)
+        state["stale"] = True
+        step(5)
+        self.assertIsNotNone(seat.lease)
+        state["stale"] = False
+        step(3)
+        self.assertEqual(self.hub.attaches, 1)
+        self.assertFalse(any("controller holds" in l for l in self.lines))
+        self.assertEqual(sum('Waiting for native state' in l for l in self.lines), 1)
+
     def test_refused_manual_command_is_reported(self):
         seat = self.make(statuses=["rate_limited"], start="manual")
         seat.command("preset dry")

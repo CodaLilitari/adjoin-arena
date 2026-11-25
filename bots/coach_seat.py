@@ -190,6 +190,24 @@ class CoachSeat:
             self.say("released")
         self.lease = self.pending = None
 
+    waiting = False
+
+    def refused(self, error):
+        """The hub refused a request. A bot whose state is briefly stale (dead,
+        loading, a slow page) answers 'Waiting for native state' while our lease
+        is still valid: keep it and renew it next pass. Dropping it here made the
+        seat lock itself out ('A controller holds this bot') until the hub's 30 s
+        expiry. A moved fence or a lost lease starts the next pass clean."""
+        text = str(error)
+        if "Waiting for native state" in text and self.lease:
+            if not self.waiting:
+                self.say("hub", error=text, kept_lease=True)
+            self.waiting = True
+            return
+        self.waiting = False
+        self.say("hub", error=text)
+        self.lease = self.pending = None
+
     def tick(self):
         observed = self.request(self.cred, "observation")
         self.last = observed
@@ -253,11 +271,9 @@ def run(seat: CoachSeat, *, seconds=0.0, poll=1.0, sleep=time.sleep, inputs=None
                     return
             try:
                 seat.tick()
+                seat.waiting = False
             except ValueError as error:
-                # The hub refused: the fence moved mid-pass or another controller
-                # holds the bot. Start the next pass clean.
-                seat.say("hub", error=str(error))
-                seat.lease = seat.pending = None
+                seat.refused(error)
             except (OSError, http.client.HTTPException) as error:
                 seat.say("unreachable", error=str(error))
             if seat.control:
