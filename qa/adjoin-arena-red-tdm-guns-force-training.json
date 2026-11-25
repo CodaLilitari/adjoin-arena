@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "teacher_revision": "f453778a3cf670dea43c44315786ae4afc8ae440",
+  "rules_scope": "tdm/guns/force",
+  "python": "3.13.15",
+  "numpy": "2.5.4",
+  "training_schedule_sha256": "cdf9876f6d70cf7c3fd0777e7d6afac171ec1e62aca5ccc1e4abe5391f4e87b5",
+  "trainer_sha256": "54a8303a2c448329f0240dd6a7c4905a9348699fdbce423ce714b2cd1b1df72d",
+  "feature_order": [
+    "health",
+    "shields",
+    "enemy_mm",
+    "item_mm",
+    "weapon",
+    "ammo",
+    "pack",
+    "wet",
+    "remaining_route_nodes"
+  ],
+  "classes": [
+    "engage",
+    "pursue_pickup"
+  ],
+  "training": {
+    "mode-08-tdm-guns-force-on": {
+      "raw_sha256_by_seat": {
+        "dark": "76e1b52cc56f312adccc3363f0dd2b49c4befcf72b328857eb0fc7765a2c5bd2",
+        "light": "579a0cf9dce8a7a03369368fd3be12091ba60a0eba41648fdcbe3de4c899d829"
+      },
+      "n_decisions": 948,
+      "encounters": 31,
+      "teacher_support": [
+        39,
+        909
+      ],
+      "teacher_selected": 948,
+      "selected_applied": 914,
+      "selected_with_engine_read": [
+        38,
+        876
+      ],
+      "owners": {
+        "supply": 876,
+        "engage": 38,
+        "stationary": 27,
+        "route-other": 5,
+        "force": 2
+      },
+      "applied_pickup_moving": 876,
+      "applied_pickup_with_fire": 587,
+      "run_receipt_sha256": "0342780276d00bd241580b3cf10624ad125111767f96d2dcb27f648a6b4ce88f",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc"
+    },
+    "tdm-guns-force-train-02": {
+      "raw_sha256_by_seat": {
+        "dark": "54883adfb17221ea48a03750588657f450fe3e687d61d205197958b7fa3d46de",
+        "light": "4a32a776cfbc542e33e276ec4a957f3903f4fc3883fe097a87be3565053a4a3e"
+      },
+      "n_decisions": 1149,
+      "encounters": 33,
+      "teacher_support": [
+        24,
+        1125
+      ],
+      "teacher_selected": 1149,
+      "selected_applied": 1108,
+      "selected_with_engine_read": [
+        23,
+        1085
+      ],
+      "owners": {
+        "supply": 1085,
+        "force": 1,
+        "route-other": 4,
+        "stationary": 36,
+        "engage": 23
+      },
+      "applied_pickup_moving": 1085,
+      "applied_pickup_with_fire": 569,
+      "run_receipt_sha256": "9ad65fa6357fca61c078c5450fde5377ce7ae6fdcd6520b47040a8f759c0d17c",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc"
+    }
+  },
+  "used_extension": false,
+  "training_support": [
+    63,
+    2034
+  ],
+  "training_majority": 1,
+  "training_confusion": {
+    "matrix": [
+      [
+        63,
+        0
+      ],
+      [
+        6,
+        2028
+      ]
+    ],
+    "accuracy": 0.9971387696709585,
+    "recall_by_class": [
+      1.0,
+      0.9970501474926253
+    ],
+    "balanced_accuracy": 0.9985250737463127
+  },
+  "training_matches": [
+    "mode-08-tdm-guns-force-on",
+    "tdm-guns-force-train-02"
+  ],
+  "weights_sha256": "a7b7b1107ecb4b24cb4c6e564adbe00180114e140cc8ffe866952eb1c5975dbe",
+  "architecture": [
+    9,
+    8,
+    1
+  ],
+  "learned_parameters": 89,
+  "corpus_sha256": "07aa146423dddca59294090b67a3886bd3113720f787daf4b56cd40cb934c883",
+  "method": "Equal match and encounter weight; duplicate feature-label pairs collapse within an encounter. Class-balanced cross entropy, NumPy float64 Adam, 320 fixed full-batch steps, learning rate 0.025, L2 0.0001 on weights, PCG64 seed 20261125 and quantized ReLU inference."
+}

@@ -16,6 +16,8 @@ Training uses Python 3 and NumPy. Full-batch Adam trains for 320 steps with PCG6
 
 The first fit used six whole matches on Canyon Oasis and Nar Shaddaa. Its 167 encounters yielded 4,948 eligible decisions. Red chose to turn and fight 1,265 times and to pursue the pickup 3,683 times. The conditional training extension was unnecessary. Rebuilding the 492-byte model from the 60,362-byte compressed corpus with Python 3.13.15 and NumPy 2.5.4 reproduced its SHA-256, `23028e60d4203b06f9fb88abb29aaf0ea15082b57501cd869acef9feafdf8171`. [Training receipt](../qa/adjoin-arena-red-decision-training.json) · [Training corpus](../qa/adjoin-arena-red-decision-training-corpus.json.gz) · [Frozen weights](../bots/models/red_pickup_engage_v1.weights)
 
+Commit `4fe8935c6568abc515e69e63f019500ea47bb929` preserves the original trainer identified by the primary receipt. The subsequent mode-transfer reader can validate unfilmed games using native join, movement and clock evidence. This changed the trainer source hash. The primary receipt retains its original hash, and the current code reproduces the same primary weight bytes.
+
 The compact training corpus retains only decision rows and their source-log hashes. Each includes its encounter, seat, life, decision sequence, simulated time, target and item identity, nine inputs, teacher, selected and resolved-pickup bits, and fire/movement indicators. It contains no account or session credential, private game data, chat or game media. Model reconstruction writes a new file or verifies an identical existing file.
 
 From the repository root, reconstruct the frozen candidate:
@@ -62,3 +64,29 @@ Four separate live matches put the frozen weights in charge of one player. Pytho
 | **Combined** | **7 / 6** | **4 / 6** |
 
 The equal number of deaths and three fewer kills give no evidence of improved competitive strength. Bespin was absent from training. There the candidate scored 90.05% balanced accuracy and produced 65 verified fight reads and 290 pursuit reads, qualifying the exact FFA/guns/Force/Bespin combination for the optional imitation registry. Canyon scored 98.89% balanced accuracy. Its 523 verified pursuit reads and zero verified fight reads keep that cell on Red.
+
+## Separate armed rulesets
+
+Each row uses weights fitted from native Red decisions under that map, mode and Force setting. The second teacher joined in the opposite player order. Each four-match test block contained two whole teacher-control games and two games with the frozen candidate, alternating its seat. Both profiles had to play the ruleset they were assigned. The TDM opponents were on opposite teams, so these matches test individual choices in two-player TDM.
+
+| Map and rules | Training decisions (fight / pickup) | Held-out teacher decisions | Balanced accuracy | Verified fight / pickup movement reads | Subject kills/deaths, neural and Red |
+|---|---:|---:|---:|---:|---|
+| Canyon Oasis, TDM, Force | 63 / 2,034 | 1,897 | 68.38% | 30 / 627 | 3/2 and 2/2 |
+| Nar Shaddaa, FFA, no Force | 342 / 1,234 | 321 | 97.70% | 33 / 342 | 4/1 and 1/2 |
+| Nar Shaddaa, TDM, no Force | 93 / 478 | 849 | Undefined (no teacher fights) | 0 / 256 | 2/2 and 1/3 |
+
+The constant training-majority baseline scored 50% balanced accuracy in both studies. The Canyon TDM model recalled 38.34% of Red's engagement choices and 98.43% of pickup choices. It met the published imitation minimum but often kept moving toward gear after Red would turn to fight. The Nar FFA model recalled 98.63% of engagements and 96.77% of pickup choices. The simple source-range comparator reproduced every teacher decision in these two test blocks. Each observed K/D comparison has only two matched seat pairs. [Canyon TDM evaluation](../qa/adjoin-arena-red-tdm-guns-force-heldout.json) · [Nar FFA evaluation](../qa/adjoin-arena-red-ffa-guns-noforce-heldout.json)
+
+The Nar TDM study retained its first teacher match, which supplied zero eligible decisions, and ran the two predeclared extra teacher games. Four matches together supplied enough training data for both choices. All 849 fresh teacher decisions favored continuing toward gear. In separate live games the model also selected pickup on all 259 eligible decisions. The scoreline supplied too little evidence to resolve the missing action coverage, so this cell uses Red. The final registry enables Bespin FFA with Force, Nar Shaddaa FFA without Force, and Canyon Oasis TDM with Force. The original JHS level is a cold-map case for this classifier and uses Red. [Nar TDM evaluation](../qa/adjoin-arena-red-tdm-guns-noforce-heldout.json) · [Final JHS schedule](../qa/adjoin-arena-mode-coverage-jhs-schedule.json) · [Registry](../bots/models/red_pickup_registry.json)
+
+Each of the three schedules has its own training receipt, compressed corpus and frozen model. The following command rebuilds the TDM model with Force. [TDM with Force](../qa/adjoin-arena-red-tdm-guns-force-schedule.json) · [FFA without Force](../qa/adjoin-arena-red-ffa-guns-noforce-schedule.json) · [TDM without Force](../qa/adjoin-arena-red-tdm-guns-noforce-schedule.json)
+
+~~~sh
+python scripts/bot_development/analysis/red_tactical_policy.py rebuild --corpus qa/adjoin-arena-red-tdm-guns-force-training-corpus.json.gz --train-receipt qa/adjoin-arena-red-tdm-guns-force-training.json --model reproduced-tdm-force.weights
+~~~
+
+## Capture the Flag
+
+The gear policy has no training label for a flag objective. In the 90-second C1 armed, Force-enabled match each side had one player. The native trace sampled 503 valid objectives on Boba's side and 473 on Jan's. Each player's trace covered only 11 consecutive periods with distinct objectives. Each player had five capture periods, together with joining, returning or intercepting. The game produced zero defending or escorting periods. Each bot also learned navigation costs from its own stalls. Boba logged four stall updates and four cost applications, and Jan logged six of each.
+
+Red's native controller handles carrying, returning, recovering and intercepting a flag. In a neutral state it assigns one teammate to attack and can assign another to defend. A separate experiment could test which of two legal attacker/defender assignments works better with two teammates on each side. That requires a genuine choice between assignments, observations collected before role selection, and full independent matches scored on captures and concessions. One-on-one objective counts cannot answer that question.

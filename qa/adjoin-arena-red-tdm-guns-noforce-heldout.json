@@ -1,0 +1,576 @@
+{
+  "schema": 1,
+  "rules_scope": "tdm/guns/noforce",
+  "schedule_sha256": "74923321e993cf480d1c5898a5bba6f01d7ddeb1b8459421b0e3f2e9f812656f",
+  "weights_sha256": "064a067f4d3afcea9a2863d23eb46c78f648b0ba776925ec5126760a70a0e123",
+  "classes": [
+    "engage",
+    "pursue_pickup"
+  ],
+  "interpretation": "Confusion rows are native shadow labels, columns are predictions. These ticks are correlated. Different matches use fresh stock spawns.",
+  "matches": {
+    "tdm-guns-noforce-test-01-teacher": {
+      "raw_sha256_by_seat": {
+        "dark": "b04079da465b1f6313314391a70fc26f27dddce18f0d1ed9fdf07e067b8c0117",
+        "light": "9d302a8392a41d2350a8722b38633b39535c296d6b169a15f0775cb08038ec5d"
+      },
+      "n_decisions": 531,
+      "encounters": 13,
+      "teacher_support": [
+        0,
+        531
+      ],
+      "teacher_selected": 531,
+      "selected_applied": 493,
+      "selected_with_engine_read": [
+        0,
+        493
+      ],
+      "owners": {
+        "supply": 493,
+        "stationary": 38
+      },
+      "applied_pickup_moving": 493,
+      "applied_pickup_with_fire": 344,
+      "run_receipt_sha256": "954bf60e2f0cb8c98652e52f831ad2a1840e02aed455604502fde0ecd36f0e98",
+      "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a",
+      "controller": "teacher",
+      "subject": "dark",
+      "map": "m2.jkl",
+      "pair": 1,
+      "subject_decisions": 260,
+      "offline_candidate": {
+        "matrix": [
+          [
+            0,
+            0
+          ],
+          [
+            44,
+            487
+          ]
+        ],
+        "accuracy": 0.9171374764595104,
+        "recall_by_class": [
+          null,
+          0.9171374764595104
+        ],
+        "balanced_accuracy": null
+      },
+      "offline_majority": {
+        "matrix": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            531
+          ]
+        ],
+        "accuracy": 1.0,
+        "recall_by_class": [
+          null,
+          1.0
+        ],
+        "balanced_accuracy": null
+      },
+      "mean_encounter_accuracy": 0.9349112426035503,
+      "mean_encounter_majority_accuracy": 1.0
+    },
+    "tdm-guns-noforce-test-01-model": {
+      "raw_sha256_by_seat": {
+        "dark": "32cfba5111f52932fc9dfe795e4b1de8b0e80cdc3d5271a9c7e5f3ab85b7b364",
+        "light": "34ef17c2e08ca4aa0ead375f8486791e2e0e79a74864d11a6232fa65b87f60b0"
+      },
+      "n_decisions": 323,
+      "encounters": 9,
+      "teacher_support": [
+        74,
+        249
+      ],
+      "teacher_selected": 285,
+      "selected_applied": 319,
+      "selected_with_engine_read": [
+        35,
+        284
+      ],
+      "owners": {
+        "supply": 284,
+        "stationary": 4,
+        "engage": 35
+      },
+      "applied_pickup_moving": 284,
+      "applied_pickup_with_fire": 117,
+      "run_receipt_sha256": "3010b87201bfef507c6c1038859f500782dfc0f1cd32e60da22c5c677ebf958a",
+      "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a",
+      "controller": "model",
+      "subject": "dark",
+      "map": "m2.jkl",
+      "pair": 1,
+      "subject_decisions": 141,
+      "model_decisions": 141,
+      "subject_teacher_fallbacks": 0,
+      "model_selected": [
+        0,
+        141
+      ],
+      "model_selected_and_applied": [
+        0,
+        138
+      ],
+      "model_movement_owners": {
+        "supply": 138,
+        "stationary": 3
+      },
+      "model_selected_with_engine_read": [
+        0,
+        138
+      ],
+      "model_vs_shadow_teacher": {
+        "matrix": [
+          [
+            0,
+            38
+          ],
+          [
+            0,
+            103
+          ]
+        ],
+        "accuracy": 0.7304964539007093,
+        "recall_by_class": [
+          0.0,
+          1.0
+        ],
+        "balanced_accuracy": 0.5
+      },
+      "model_disagreed_with_shadow_teacher": 38
+    },
+    "tdm-guns-noforce-test-02-model": {
+      "raw_sha256_by_seat": {
+        "dark": "d8c7027bf4b7c76ba2595d1ef5fbb3f7d4890bf4c20f103102cd993ec196b1e4",
+        "light": "46895deadd328afdb09282e4199fe62345e9286508fa6df691ed9d50cffb8440"
+      },
+      "n_decisions": 152,
+      "encounters": 4,
+      "teacher_support": [
+        0,
+        152
+      ],
+      "teacher_selected": 152,
+      "selected_applied": 152,
+      "selected_with_engine_read": [
+        0,
+        152
+      ],
+      "owners": {
+        "supply": 152
+      },
+      "applied_pickup_moving": 152,
+      "applied_pickup_with_fire": 85,
+      "run_receipt_sha256": "853ed6f5f9bb15301d815d2cdc72592cad878bc83e6d96fd72cdb0b57ab44179",
+      "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a",
+      "controller": "model",
+      "subject": "light",
+      "map": "m2.jkl",
+      "pair": 2,
+      "subject_decisions": 118,
+      "model_decisions": 118,
+      "subject_teacher_fallbacks": 0,
+      "model_selected": [
+        0,
+        118
+      ],
+      "model_selected_and_applied": [
+        0,
+        118
+      ],
+      "model_movement_owners": {
+        "supply": 118
+      },
+      "model_selected_with_engine_read": [
+        0,
+        118
+      ],
+      "model_vs_shadow_teacher": {
+        "matrix": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            118
+          ]
+        ],
+        "accuracy": 1.0,
+        "recall_by_class": [
+          null,
+          1.0
+        ],
+        "balanced_accuracy": null
+      },
+      "model_disagreed_with_shadow_teacher": 0
+    },
+    "tdm-guns-noforce-test-02-teacher": {
+      "raw_sha256_by_seat": {
+        "dark": "95d306e155a5933b952c4d7eb72659d79b50c8edba537ce64666386ad1ee80d9",
+        "light": "77e28b53f89120415f28781da8e15ddba4d198413c91d9d4986ce53995948c12"
+      },
+      "n_decisions": 318,
+      "encounters": 12,
+      "teacher_support": [
+        0,
+        318
+      ],
+      "teacher_selected": 318,
+      "selected_applied": 269,
+      "selected_with_engine_read": [
+        0,
+        269
+      ],
+      "owners": {
+        "stationary": 49,
+        "supply": 269
+      },
+      "applied_pickup_moving": 269,
+      "applied_pickup_with_fire": 207,
+      "run_receipt_sha256": "1a93f4c65241c49fa3f54605f008281764ac8ea1f3ecaab1c5a36480c4b7725a",
+      "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a",
+      "controller": "teacher",
+      "subject": "light",
+      "map": "m2.jkl",
+      "pair": 2,
+      "subject_decisions": 137,
+      "offline_candidate": {
+        "matrix": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            318
+          ]
+        ],
+        "accuracy": 1.0,
+        "recall_by_class": [
+          null,
+          1.0
+        ],
+        "balanced_accuracy": null
+      },
+      "offline_majority": {
+        "matrix": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            318
+          ]
+        ],
+        "accuracy": 1.0,
+        "recall_by_class": [
+          null,
+          1.0
+        ],
+        "balanced_accuracy": null
+      },
+      "mean_encounter_accuracy": 1.0,
+      "mean_encounter_majority_accuracy": 1.0
+    }
+  },
+  "paired_owner_outcomes": {
+    "1": {
+      "map": "m2.jkl",
+      "subject": "dark",
+      "teacher": {
+        "dark": {
+          "kill_increments": 1,
+          "death_increments": 1,
+          "weapon_bin_gains": [
+            3,
+            6,
+            3,
+            6
+          ],
+          "health_loss": 136.0,
+          "shield_loss": 100.0,
+          "last_state_kills": 1,
+          "last_state_deaths": 1
+        },
+        "light": {
+          "kill_increments": 1,
+          "death_increments": 1,
+          "weapon_bin_gains": [
+            6,
+            3,
+            6,
+            8
+          ],
+          "health_loss": 114.0,
+          "shield_loss": 180.0,
+          "last_state_kills": 1,
+          "last_state_deaths": 1
+        }
+      },
+      "model": {
+        "dark": {
+          "kill_increments": 1,
+          "death_increments": 2,
+          "weapon_bin_gains": [
+            3,
+            8,
+            6,
+            3,
+            8,
+            7
+          ],
+          "health_loss": 200.0,
+          "shield_loss": 280.0,
+          "last_state_kills": 1,
+          "last_state_deaths": 2
+        },
+        "light": {
+          "kill_increments": 2,
+          "death_increments": 1,
+          "weapon_bin_gains": [
+            7,
+            3,
+            6
+          ],
+          "health_loss": 130.0,
+          "shield_loss": 100.0,
+          "last_state_kills": 2,
+          "last_state_deaths": 1
+        }
+      }
+    },
+    "2": {
+      "map": "m2.jkl",
+      "subject": "light",
+      "model": {
+        "dark": {
+          "kill_increments": 0,
+          "death_increments": 1,
+          "weapon_bin_gains": [
+            6,
+            3,
+            8,
+            3,
+            6,
+            8
+          ],
+          "health_loss": 100.0,
+          "shield_loss": 140.0,
+          "last_state_kills": 0,
+          "last_state_deaths": 1
+        },
+        "light": {
+          "kill_increments": 1,
+          "death_increments": 0,
+          "weapon_bin_gains": [
+            7,
+            3,
+            6
+          ],
+          "health_loss": 85.0,
+          "shield_loss": 100.0,
+          "last_state_kills": 1,
+          "last_state_deaths": 0
+        }
+      },
+      "teacher": {
+        "dark": {
+          "kill_increments": 2,
+          "death_increments": 0,
+          "weapon_bin_gains": [
+            7,
+            3,
+            6
+          ],
+          "health_loss": 2.0,
+          "shield_loss": 47.0,
+          "last_state_kills": 2,
+          "last_state_deaths": 0
+        },
+        "light": {
+          "kill_increments": 0,
+          "death_increments": 2,
+          "weapon_bin_gains": [
+            6,
+            3,
+            8
+          ],
+          "health_loss": 206.0,
+          "shield_loss": 200.0,
+          "last_state_kills": 0,
+          "last_state_deaths": 2
+        }
+      }
+    }
+  },
+  "offline_teacher_control_decisions": 849,
+  "offline_candidate": {
+    "matrix": [
+      [
+        0,
+        0
+      ],
+      [
+        44,
+        805
+      ]
+    ],
+    "accuracy": 0.9481743227326266,
+    "recall_by_class": [
+      null,
+      0.9481743227326266
+    ],
+    "balanced_accuracy": null
+  },
+  "offline_training_majority": {
+    "matrix": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        849
+      ]
+    ],
+    "accuracy": 1.0,
+    "recall_by_class": [
+      null,
+      1.0
+    ],
+    "balanced_accuracy": null
+  },
+  "offline_known_range_rule_450": {
+    "matrix": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        849
+      ]
+    ],
+    "accuracy": 1.0,
+    "recall_by_class": [
+      null,
+      1.0
+    ],
+    "balanced_accuracy": null
+  },
+  "offline_by_map": {
+    "m2.jkl": {
+      "candidate": {
+        "matrix": [
+          [
+            0,
+            0
+          ],
+          [
+            44,
+            805
+          ]
+        ],
+        "accuracy": 0.9481743227326266,
+        "recall_by_class": [
+          null,
+          0.9481743227326266
+        ],
+        "balanced_accuracy": null
+      },
+      "training_majority": {
+        "matrix": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            849
+          ]
+        ],
+        "accuracy": 1.0,
+        "recall_by_class": [
+          null,
+          1.0
+        ],
+        "balanced_accuracy": null
+      }
+    }
+  },
+  "n_live_model_decisions": 259,
+  "live_model_vs_shadow": {
+    "matrix": [
+      [
+        0,
+        38
+      ],
+      [
+        0,
+        221
+      ]
+    ],
+    "accuracy": 0.8532818532818532,
+    "recall_by_class": [
+      0.0,
+      1.0
+    ],
+    "balanced_accuracy": 0.5
+  },
+  "live_model_selected": [
+    0,
+    259
+  ],
+  "live_model_selected_and_applied": [
+    0,
+    256
+  ],
+  "model_selected_with_engine_read": [
+    0,
+    256
+  ],
+  "live_model_selected_with_engine_read": [
+    0,
+    256
+  ],
+  "native_engine_witnesses": {
+    "1": {
+      "match": "tdm-guns-noforce-test-01-model",
+      "seat": "dark",
+      "life": 1,
+      "decision_seq": 1,
+      "game_seconds": 2.346,
+      "inputs": [
+        100,
+        100,
+        3553,
+        2722,
+        2,
+        50,
+        0,
+        0,
+        4
+      ],
+      "native_teacher": 1,
+      "selected": 1,
+      "owner": "supply",
+      "forward": 0.999949,
+      "slide": 0.014459,
+      "read_forward": 0.999949,
+      "read_slide": 0.014459,
+      "fire": false,
+      "raw_log_sha256": "32cfba5111f52932fc9dfe795e4b1de8b0e80cdc3d5271a9c7e5f3ab85b7b364"
+    }
+  },
+  "both_live_actions_verified": false
+}

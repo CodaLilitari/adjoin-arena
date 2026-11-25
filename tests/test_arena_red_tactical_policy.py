@@ -16,6 +16,25 @@ def sample():
 
 
 class RedDecisionTests(unittest.TestCase):
+    def test_transfer_uses_native_controls_and_clock_when_unfilmed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)/"receipt.json"
+            trace = path.parent/"pace-trace.jsonl"
+            trace.write_bytes(b"clock fixture")
+            moves = {s: {"events": {"BOT_RED_JOIN": {}, "BOT_RED_FIRST": {}},
+                         "first_movement_by_life": [{"fwd": 0, "slide": .5}]} for s in policy.SEATS}
+            outcome = {"first_seat_move_before_second_join_wall_s": 1, "owners": moves}
+            native = {"qualification_errors": [], "owners": {s: {"movement_seen": True} for s in policy.SEATS}}
+            record = {"mode_transfer": {"native": native, "content": {"map_sha256": "a"*64}},
+                      "red_policy": {"start_and_outcomes": outcome}, "pace_experiment": {
+                          "roles": {s: {"observed_rate": 2} for s in ("host", *policy.SEATS)},
+                          "requested_game_seconds": 50, "trace_sha256": policy.digest(trace)}}
+            match = {"map_sha256": "a"*64, "game_seconds": 50}
+            policy.verify_transfer_match(record, match, path)
+            moves["light"]["first_movement_by_life"] = []
+            with self.assertRaisesRegex(ValueError, "missing native control"):
+                policy.verify_transfer_match(record, match, path)
+
     def test_readback_requires_same_seat_life_and_sequence(self):
         duel = ("BOT_DUEL name=pilot t=1 seq=1 life=1 target=1 item=7 "
                 "f=30,30,123,456,2,0,0,0,1 teacher=0 selected=0 applied=0 "

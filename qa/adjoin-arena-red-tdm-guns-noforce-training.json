@@ -1,0 +1,166 @@
+{
+  "schema": 1,
+  "teacher_revision": "f453778a3cf670dea43c44315786ae4afc8ae440",
+  "rules_scope": "tdm/guns/noforce",
+  "python": "3.13.15",
+  "numpy": "2.5.4",
+  "training_schedule_sha256": "74923321e993cf480d1c5898a5bba6f01d7ddeb1b8459421b0e3f2e9f812656f",
+  "trainer_sha256": "54a8303a2c448329f0240dd6a7c4905a9348699fdbce423ce714b2cd1b1df72d",
+  "feature_order": [
+    "health",
+    "shields",
+    "enemy_mm",
+    "item_mm",
+    "weapon",
+    "ammo",
+    "pack",
+    "wet",
+    "remaining_route_nodes"
+  ],
+  "classes": [
+    "engage",
+    "pursue_pickup"
+  ],
+  "training": {
+    "mode-02-tdm-guns-force-off": {
+      "raw_sha256_by_seat": {
+        "dark": "9d78e91871ca4cfd54041bdca19f3f58f8a11592b9de1280c77f40877b0fe286",
+        "light": "135ded6fc9338763da702abd8df93e823548f45050e7babfc1ab390a94e0cd36"
+      },
+      "n_decisions": 0,
+      "encounters": 0,
+      "teacher_support": [
+        0,
+        0
+      ],
+      "teacher_selected": 0,
+      "selected_applied": 0,
+      "selected_with_engine_read": [
+        0,
+        0
+      ],
+      "owners": {},
+      "applied_pickup_moving": 0,
+      "applied_pickup_with_fire": 0,
+      "run_receipt_sha256": "cac8aaf70be0e918a87d32c33308d803779c3cfd282a5f1a0097f16ed617d44d",
+      "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a"
+    },
+    "tdm-guns-noforce-train-02": {
+      "raw_sha256_by_seat": {
+        "dark": "8ca9003aab886a1759c1459b2c522924339d7aaf80092572ebaed252a1693912",
+        "light": "7bf9a82c6e98051f9ad26d532e81c71e361a0affd4a16c17e7dc9647349f08d1"
+      },
+      "n_decisions": 445,
+      "encounters": 16,
+      "teacher_support": [
+        57,
+        388
+      ],
+      "teacher_selected": 445,
+      "selected_applied": 441,
+      "selected_with_engine_read": [
+        57,
+        384
+      ],
+      "owners": {
+        "supply": 384,
+        "engage": 57,
+        "route-other": 4
+      },
+      "applied_pickup_moving": 384,
+      "applied_pickup_with_fire": 218,
+      "run_receipt_sha256": "376005f95b36f1a0227456098b036ff356e4ed58df8395188e9ffbb2717ad6db",
+      "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a"
+    },
+    "tdm-guns-noforce-extra-01": {
+      "raw_sha256_by_seat": {
+        "dark": "bd2dfea1b9130256c27712353282b5206f0def7ac6a8bb960931048332e28dab",
+        "light": "2e83216faf805d2bd6baa7bf98b7b24376d0962c7df4c6589a4bb12f8c4c24db"
+      },
+      "n_decisions": 22,
+      "encounters": 1,
+      "teacher_support": [
+        0,
+        22
+      ],
+      "teacher_selected": 22,
+      "selected_applied": 22,
+      "selected_with_engine_read": [
+        0,
+        22
+      ],
+      "owners": {
+        "supply": 22
+      },
+      "applied_pickup_moving": 22,
+      "applied_pickup_with_fire": 14,
+      "run_receipt_sha256": "71547cd95ebbe84149c66e3d1d5558d29e399999c3245b2a6f6f37b968348d93",
+      "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a"
+    },
+    "tdm-guns-noforce-extra-02": {
+      "raw_sha256_by_seat": {
+        "dark": "2390a0cd3495acd9668272213f167485a75547513accda194acd83b0d9aac715",
+        "light": "ec9805ca472e23c86c9d94fa01018e7a549aad966ae17826f21707b340a1b901"
+      },
+      "n_decisions": 104,
+      "encounters": 3,
+      "teacher_support": [
+        36,
+        68
+      ],
+      "teacher_selected": 104,
+      "selected_applied": 104,
+      "selected_with_engine_read": [
+        36,
+        68
+      ],
+      "owners": {
+        "supply": 68,
+        "engage": 36
+      },
+      "applied_pickup_moving": 68,
+      "applied_pickup_with_fire": 60,
+      "run_receipt_sha256": "73a7fa7f3c480243ff8620a420659d57535c5e68aeb3ae2323ce7484cce50c08",
+      "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a"
+    }
+  },
+  "used_extension": true,
+  "training_support": [
+    93,
+    478
+  ],
+  "training_majority": 1,
+  "training_confusion": {
+    "matrix": [
+      [
+        93,
+        0
+      ],
+      [
+        14,
+        464
+      ]
+    ],
+    "accuracy": 0.9754816112084063,
+    "recall_by_class": [
+      1.0,
+      0.9707112970711297
+    ],
+    "balanced_accuracy": 0.9853556485355648
+  },
+  "training_matches": [
+    "mode-02-tdm-guns-force-off",
+    "tdm-guns-noforce-train-02",
+    "tdm-guns-noforce-extra-01",
+    "tdm-guns-noforce-extra-02"
+  ],
+  "weights_sha256": "064a067f4d3afcea9a2863d23eb46c78f648b0ba776925ec5126760a70a0e123",
+  "architecture": [
+    9,
+    8,
+    1
+  ],
+  "learned_parameters": 89,
+  "corpus_sha256": "5a4b88275d83a092f13168587f306a5846d26c7662d53c0a365f789a2aa218fd",
+  "method": "Equal match and encounter weight; duplicate feature-label pairs collapse within an encounter. Class-balanced cross entropy, NumPy float64 Adam, 320 fixed full-batch steps, learning rate 0.025, L2 0.0001 on weights, PCG64 seed 20261125 and quantized ReLU inference."
+}

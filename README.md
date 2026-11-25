@@ -10,6 +10,8 @@ Practice keeps learning locally between games. In two subsequent games Jan used 
 
 The native arena also runs free-for-all, team deathmatch and CTF with guns or saber-only controls and Force on or off. Four stock CTF games produced eight completed flag captures. Both bots reused remembered route costs on a second visit to a held-out stock level. On Jedi's High School an editable ten-point route guides Red's controller off the raised starting pad and across three catwalks. Its first test produced two completed crossings in three encounters. [CTF, unfamiliar levels and the annotated JHS route](docs/RED_TRANSFER_OBSERVATIONS.md) · [Run the bots on your own level](docs/RUN_RED_ARENA.md)
 
+The optional pickup-model registry enables armed FFA on Bespin with Force, armed FFA on Nar Shaddaa without Force, and armed team deathmatch on Canyon Oasis with Force. In the Nar Shaddaa team tests, Red never chose to fight at an eligible decision in the held-out games, so this combination keeps Red's script. JHS uses Red's tactics with navigation assistance. [Ruleset studies and held-out results](docs/RED_PICKUP_MODEL.md) · [Policy registry](bots/models/red_pickup_registry.json)
+
 ## Starting revisions
 
 | Branch in this repository | Starting point |

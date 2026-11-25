@@ -26,7 +26,7 @@
     },
     "README.md": {
       "mode": 420,
-      "sha256": "c0f1f7175092d04b312aad7262812e246fa6cd0518be865fd92877286b4edc20"
+      "sha256": "252f0e4b193f2ff6dcd58fe880af4819a6c4b48031f36f4f0adc3cdb6ad313c1"
     },
     "Start-Server.command": {
       "mode": 493,
@@ -192,9 +192,21 @@
       "mode": 420,
       "sha256": "23028e60d4203b06f9fb88abb29aaf0ea15082b57501cd869acef9feafdf8171"
     },
+    "bots/models/red_pickup_ffa_guns_noforce_v1.weights": {
+      "mode": 420,
+      "sha256": "36efcaf03c25d1b0bbb42ae6091d150bca3f41437751ef615606b7b2eb7d50f8"
+    },
     "bots/models/red_pickup_registry.json": {
       "mode": 420,
-      "sha256": "d3aa5a17cff75fe83e0a1fd3ca0db9783fe3339c17db8bd8586730ef404befa7"
+      "sha256": "04a2cf7b0f24db1d1d1fb09be61b65272a73ae87758236e6c124a7a38e78b017"
+    },
+    "bots/models/red_pickup_tdm_guns_force_v1.weights": {
+      "mode": 420,
+      "sha256": "a7b7b1107ecb4b24cb4c6e564adbe00180114e140cc8ffe866952eb1c5975dbe"
+    },
+    "bots/models/red_pickup_tdm_guns_noforce_v1.weights": {
+      "mode": 420,
+      "sha256": "064a067f4d3afcea9a2863d23eb46c78f648b0ba776925ec5126760a70a0e123"
     },
     "bots/profiles.json": {
       "mode": 420,
@@ -342,7 +354,7 @@
     },
     "docs/RED_PICKUP_MODEL.md": {
       "mode": 420,
-      "sha256": "730c6d185b547cadb4a5d5b4e4eb1357c8c347532052192643f612ecc75a7e60"
+      "sha256": "30d56ec5203ad17f93d32828f65bbe757751ed2377de13b65d3dcc71676dcc4c"
     },
     "docs/RED_TRANSFER_OBSERVATIONS.md": {
       "mode": 420,
@@ -1288,9 +1300,21 @@
       "mode": 420,
       "sha256": "1096b54509c6dd3af7cf57f8a93455c3a1383a46d3aa8ed0baf7aaa472ed0e91"
     },
+    "qa/adjoin-arena-red-ffa-guns-noforce-heldout.json": {
+      "mode": 420,
+      "sha256": "6ffa51eee581d24ef9c8904c4cc2b9ae53b81022a851e0cd716c263565aa9620"
+    },
     "qa/adjoin-arena-red-ffa-guns-noforce-schedule.json": {
       "mode": 420,
       "sha256": "25d78bbad67c4fffdd77cab5c8acf34b9cf302b0310e50574c141ccfe35fc703"
+    },
+    "qa/adjoin-arena-red-ffa-guns-noforce-training-corpus.json.gz": {
+      "mode": 420,
+      "sha256": "97746539995615b342741732df91f643837ae595aabf579879ace22993354eae"
+    },
+    "qa/adjoin-arena-red-ffa-guns-noforce-training.json": {
+      "mode": 420,
+      "sha256": "6ee8ee25f9161cddf34674f435a8c88ff87f1a8a7cb5c86496b9b3d24dc1ff69"
     },
     "qa/adjoin-arena-red-practice-schedule.json": {
       "mode": 420,
@@ -1300,13 +1324,37 @@
       "mode": 420,
       "sha256": "ed0898ff3a90f9c235e0021e5018663f7e934d4f19c45ca4cf3c64fa7743f1ec"
     },
+    "qa/adjoin-arena-red-tdm-guns-force-heldout.json": {
+      "mode": 420,
+      "sha256": "55a934b54660a522d1f433ca179841604705a9c525862dcd43f21519872207a0"
+    },
     "qa/adjoin-arena-red-tdm-guns-force-schedule.json": {
       "mode": 420,
       "sha256": "cdf9876f6d70cf7c3fd0777e7d6afac171ec1e62aca5ccc1e4abe5391f4e87b5"
     },
+    "qa/adjoin-arena-red-tdm-guns-force-training-corpus.json.gz": {
+      "mode": 420,
+      "sha256": "07aa146423dddca59294090b67a3886bd3113720f787daf4b56cd40cb934c883"
+    },
+    "qa/adjoin-arena-red-tdm-guns-force-training.json": {
+      "mode": 420,
+      "sha256": "53b068233bd075372b63fd3a67e3425a24fb1dea9a462e827a5c8d2bc7596878"
+    },
+    "qa/adjoin-arena-red-tdm-guns-noforce-heldout.json": {
+      "mode": 420,
+      "sha256": "d5d814473127989dfacb4611534ca2cf7e5c7c7d3bbd92e4d0ff3e8a68c9e1e9"
+    },
     "qa/adjoin-arena-red-tdm-guns-noforce-schedule.json": {
       "mode": 420,
       "sha256": "74923321e993cf480d1c5898a5bba6f01d7ddeb1b8459421b0e3f2e9f812656f"
+    },
+    "qa/adjoin-arena-red-tdm-guns-noforce-training-corpus.json.gz": {
+      "mode": 420,
+      "sha256": "5a4b88275d83a092f13168587f306a5846d26c7662d53c0a365f789a2aa218fd"
+    },
+    "qa/adjoin-arena-red-tdm-guns-noforce-training.json": {
+      "mode": 420,
+      "sha256": "f017b1b00a7b034db30c18ee084636482eb90f57a82c0c433bd83c6b67195623"
     },
     "qa/adjoin-arena-start-crossover.json": {
       "mode": 420,
@@ -2458,7 +2506,7 @@
     },
     "scripts/bot_development/analysis/red_tactical_policy.py": {
       "mode": 420,
-      "sha256": "51d4b610df146882242633117518f9cb74ecb2ed877d97acfb436d21b42b5066"
+      "sha256": "54a8303a2c448329f0240dd6a7c4905a9348699fdbce423ce714b2cd1b1df72d"
     },
     "scripts/bot_development/analysis/report_memory_failure.py": {
       "mode": 420,
@@ -2654,7 +2702,7 @@
     },
     "tests/test_arena_red_tactical_policy.py": {
       "mode": 420,
-      "sha256": "b881f237d71059f83c437bf986f35ab48eee837891251bb9facb37368ddb0ea3"
+      "sha256": "a586e7230538419774c7c0a2832ae86cab0534166d46226e67df6dc02d7552c1"
     },
     "tests/test_arena_start_crossover.py": {
       "mode": 420,

@@ -41,7 +41,25 @@
       "force": false,
       "map": "m2.jkl",
       "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a",
-      "status": "no_qualified_gear_model"
+      "status": "qualified_imitation",
+      "model": "red_pickup_ffa_guns_noforce_v1.weights",
+      "weights_sha256": "36efcaf03c25d1b0bbb42ae6091d150bca3f41437751ef615606b7b2eb7d50f8",
+      "training_receipt_sha256": "6ee8ee25f9161cddf34674f435a8c88ff87f1a8a7cb5c86496b9b3d24dc1ff69",
+      "evaluation_sha256": "6ffa51eee581d24ef9c8904c4cc2b9ae53b81022a851e0cd716c263565aa9620",
+      "n_heldout_teacher_matches": 2,
+      "n_heldout_model_matches": 2,
+      "candidate_balanced_accuracy": 0.9770216526734423,
+      "training_majority_balanced_accuracy": 0.5,
+      "model_selected_and_read": [
+        33,
+        342
+      ],
+      "heldout_runs": [
+        "ffa-guns-noforce-test-01-teacher",
+        "ffa-guns-noforce-test-01-model",
+        "ffa-guns-noforce-test-02-model",
+        "ffa-guns-noforce-test-02-teacher"
+      ]
     },
     {
       "mode": "ffa",
@@ -68,14 +86,6 @@
         "test-04-m4-light-teacher",
         "test-04-m4-light-model"
       ]
-    },
-    {
-      "mode": "ffa",
-      "combat": "guns",
-      "force": true,
-      "map": "sithcouncilv2.jkl",
-      "map_sha256": "32c788a53e769e78638b5bd09db04b5ec0702be30033d42a300eb868cce97940",
-      "status": "no_qualified_gear_model"
     },
     {
       "mode": "ffa",
@@ -113,6 +123,14 @@
     },
     {
       "mode": "ffa",
+      "combat": "guns",
+      "force": true,
+      "map": "jhs.jkl",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "status": "no_qualified_gear_model"
+    },
+    {
+      "mode": "ffa",
       "combat": "sabers",
       "force": false,
       "map": "m4.jkl",
@@ -133,7 +151,25 @@
       "force": false,
       "map": "m2.jkl",
       "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a",
-      "status": "no_qualified_gear_model"
+      "status": "missing_heldout_teacher_class",
+      "model": "red_pickup_tdm_guns_noforce_v1.weights",
+      "weights_sha256": "064a067f4d3afcea9a2863d23eb46c78f648b0ba776925ec5126760a70a0e123",
+      "training_receipt_sha256": "f017b1b00a7b034db30c18ee084636482eb90f57a82c0c433bd83c6b67195623",
+      "evaluation_sha256": "d5d814473127989dfacb4611534ca2cf7e5c7c7d3bbd92e4d0ff3e8a68c9e1e9",
+      "n_heldout_teacher_matches": 2,
+      "n_heldout_model_matches": 2,
+      "candidate_balanced_accuracy": null,
+      "training_majority_balanced_accuracy": null,
+      "model_selected_and_read": [
+        0,
+        256
+      ],
+      "heldout_runs": [
+        "tdm-guns-noforce-test-01-teacher",
+        "tdm-guns-noforce-test-01-model",
+        "tdm-guns-noforce-test-02-model",
+        "tdm-guns-noforce-test-02-teacher"
+      ]
     },
     {
       "mode": "tdm",
@@ -141,7 +177,25 @@
       "force": true,
       "map": "m10.jkl",
       "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
-      "status": "no_qualified_gear_model"
+      "status": "qualified_imitation",
+      "model": "red_pickup_tdm_guns_force_v1.weights",
+      "weights_sha256": "a7b7b1107ecb4b24cb4c6e564adbe00180114e140cc8ffe866952eb1c5975dbe",
+      "training_receipt_sha256": "53b068233bd075372b63fd3a67e3425a24fb1dea9a462e827a5c8d2bc7596878",
+      "evaluation_sha256": "55a934b54660a522d1f433ca179841604705a9c525862dcd43f21519872207a0",
+      "n_heldout_teacher_matches": 2,
+      "n_heldout_model_matches": 2,
+      "candidate_balanced_accuracy": 0.6838307209833542,
+      "training_majority_balanced_accuracy": 0.5,
+      "model_selected_and_read": [
+        30,
+        627
+      ],
+      "heldout_runs": [
+        "tdm-guns-force-test-01-teacher",
+        "tdm-guns-force-test-01-model",
+        "tdm-guns-force-test-02-model",
+        "tdm-guns-force-test-02-teacher"
+      ]
     },
     {
       "mode": "tdm",

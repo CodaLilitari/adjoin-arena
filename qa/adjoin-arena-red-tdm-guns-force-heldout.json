@@ -1,0 +1,636 @@
+{
+  "schema": 1,
+  "rules_scope": "tdm/guns/force",
+  "schedule_sha256": "cdf9876f6d70cf7c3fd0777e7d6afac171ec1e62aca5ccc1e4abe5391f4e87b5",
+  "weights_sha256": "a7b7b1107ecb4b24cb4c6e564adbe00180114e140cc8ffe866952eb1c5975dbe",
+  "classes": [
+    "engage",
+    "pursue_pickup"
+  ],
+  "interpretation": "Confusion rows are native shadow labels, columns are predictions. These ticks are correlated. Different matches use fresh stock spawns.",
+  "matches": {
+    "tdm-guns-force-test-01-teacher": {
+      "raw_sha256_by_seat": {
+        "dark": "45b257b10f5978dc73cc8dbe4318879c5ca95c90001d9417fa5ef035a03caf68",
+        "light": "0047d53095d46802bf9eae47085fa52934500f73ccec3bb51d1a61218c651bd1"
+      },
+      "n_decisions": 1134,
+      "encounters": 31,
+      "teacher_support": [
+        184,
+        950
+      ],
+      "teacher_selected": 1134,
+      "selected_applied": 1053,
+      "selected_with_engine_read": [
+        124,
+        929
+      ],
+      "owners": {
+        "supply": 929,
+        "engage": 124,
+        "route-other": 7,
+        "force": 2,
+        "stationary": 72
+      },
+      "applied_pickup_moving": 929,
+      "applied_pickup_with_fire": 453,
+      "run_receipt_sha256": "c20a762db200cd8e9a648b2384b7344550334efe98fc8c84d4adb937fcdabdbf",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+      "controller": "teacher",
+      "subject": "dark",
+      "map": "m10.jkl",
+      "pair": 1,
+      "subject_decisions": 652,
+      "offline_candidate": {
+        "matrix": [
+          [
+            69,
+            115
+          ],
+          [
+            22,
+            928
+          ]
+        ],
+        "accuracy": 0.8791887125220459,
+        "recall_by_class": [
+          0.375,
+          0.9768421052631578
+        ],
+        "balanced_accuracy": 0.6759210526315789
+      },
+      "offline_majority": {
+        "matrix": [
+          [
+            0,
+            184
+          ],
+          [
+            0,
+            950
+          ]
+        ],
+        "accuracy": 0.8377425044091711,
+        "recall_by_class": [
+          0.0,
+          1.0
+        ],
+        "balanced_accuracy": 0.5
+      },
+      "mean_encounter_accuracy": 0.8736930469877151,
+      "mean_encounter_majority_accuracy": 0.8529187714945742
+    },
+    "tdm-guns-force-test-01-model": {
+      "raw_sha256_by_seat": {
+        "dark": "d05698ab2d9ef1bbe63956c6695bd1476b5cfd770c3018c6e4627288a7a62b88",
+        "light": "43dc0862a05fe14f376c4ff84630db27f9daba1945c72a881df57b3bdd8adace"
+      },
+      "n_decisions": 914,
+      "encounters": 30,
+      "teacher_support": [
+        248,
+        666
+      ],
+      "teacher_selected": 849,
+      "selected_applied": 796,
+      "selected_with_engine_read": [
+        105,
+        691
+      ],
+      "owners": {
+        "supply": 691,
+        "stationary": 108,
+        "route-other": 7,
+        "engage": 105,
+        "force": 3
+      },
+      "applied_pickup_moving": 691,
+      "applied_pickup_with_fire": 127,
+      "run_receipt_sha256": "7fcdcde95d7238f050ef79e08d8eaee653472a51cc8d027d4fd5f626f814aa2d",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+      "controller": "model",
+      "subject": "dark",
+      "map": "m10.jkl",
+      "pair": 1,
+      "subject_decisions": 469,
+      "model_decisions": 469,
+      "subject_teacher_fallbacks": 0,
+      "model_selected": [
+        81,
+        388
+      ],
+      "model_selected_and_applied": [
+        23,
+        358
+      ],
+      "model_movement_owners": {
+        "supply": 358,
+        "stationary": 83,
+        "route-other": 4,
+        "engage": 23,
+        "force": 1
+      },
+      "model_selected_with_engine_read": [
+        23,
+        358
+      ],
+      "model_vs_shadow_teacher": {
+        "matrix": [
+          [
+            79,
+            63
+          ],
+          [
+            2,
+            325
+          ]
+        ],
+        "accuracy": 0.8614072494669509,
+        "recall_by_class": [
+          0.5563380281690141,
+          0.9938837920489296
+        ],
+        "balanced_accuracy": 0.7751109101089719
+      },
+      "model_disagreed_with_shadow_teacher": 65
+    },
+    "tdm-guns-force-test-02-model": {
+      "raw_sha256_by_seat": {
+        "dark": "44aac115a21331012b7a456c2bb67fcf1d08d957dcf45748cfcab45ab17b7059",
+        "light": "1f49d29bfd45fa18a9ecb991cc02b046ff0ff2ebb6608aaa812b0a13df603db6"
+      },
+      "n_decisions": 403,
+      "encounters": 18,
+      "teacher_support": [
+        0,
+        403
+      ],
+      "teacher_selected": 396,
+      "selected_applied": 399,
+      "selected_with_engine_read": [
+        7,
+        392
+      ],
+      "owners": {
+        "supply": 392,
+        "force": 2,
+        "stationary": 1,
+        "route-other": 1,
+        "engage": 7
+      },
+      "applied_pickup_moving": 392,
+      "applied_pickup_with_fire": 183,
+      "run_receipt_sha256": "5bbce22ae4273cf7e86551cba64a764ff9d2f577fb9d40dec67ff618cf6a1929",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+      "controller": "model",
+      "subject": "light",
+      "map": "m10.jkl",
+      "pair": 2,
+      "subject_decisions": 278,
+      "model_decisions": 278,
+      "subject_teacher_fallbacks": 0,
+      "model_selected": [
+        7,
+        271
+      ],
+      "model_selected_and_applied": [
+        7,
+        269
+      ],
+      "model_movement_owners": {
+        "supply": 269,
+        "force": 1,
+        "route-other": 1,
+        "engage": 7
+      },
+      "model_selected_with_engine_read": [
+        7,
+        269
+      ],
+      "model_vs_shadow_teacher": {
+        "matrix": [
+          [
+            0,
+            0
+          ],
+          [
+            7,
+            271
+          ]
+        ],
+        "accuracy": 0.9748201438848921,
+        "recall_by_class": [
+          null,
+          0.9748201438848921
+        ],
+        "balanced_accuracy": null
+      },
+      "model_disagreed_with_shadow_teacher": 7
+    },
+    "tdm-guns-force-test-02-teacher": {
+      "raw_sha256_by_seat": {
+        "dark": "a106a700b1440fa896bc44074cea569536435a74701126f3c37a8505db455a28",
+        "light": "efe9eda1bbc6f009d342c5a135a3ce8627cbdd4c99f9e0ec30d51af71d6696bc"
+      },
+      "n_decisions": 763,
+      "encounters": 22,
+      "teacher_support": [
+        249,
+        514
+      ],
+      "teacher_selected": 763,
+      "selected_applied": 531,
+      "selected_with_engine_read": [
+        40,
+        491
+      ],
+      "owners": {
+        "stationary": 229,
+        "supply": 491,
+        "force": 2,
+        "engage": 40,
+        "route-other": 1
+      },
+      "applied_pickup_moving": 491,
+      "applied_pickup_with_fire": 273,
+      "run_receipt_sha256": "e7e1addec8ff074caa71a43c902acc4f3888bdcbcd0a4c054134f868d3c628ed",
+      "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+      "controller": "teacher",
+      "subject": "light",
+      "map": "m10.jkl",
+      "pair": 2,
+      "subject_decisions": 395,
+      "offline_candidate": {
+        "matrix": [
+          [
+            97,
+            152
+          ],
+          [
+            1,
+            513
+          ]
+        ],
+        "accuracy": 0.799475753604194,
+        "recall_by_class": [
+          0.3895582329317269,
+          0.9980544747081712
+        ],
+        "balanced_accuracy": 0.693806353819949
+      },
+      "offline_majority": {
+        "matrix": [
+          [
+            0,
+            249
+          ],
+          [
+            0,
+            514
+          ]
+        ],
+        "accuracy": 0.6736566186107471,
+        "recall_by_class": [
+          0.0,
+          1.0
+        ],
+        "balanced_accuracy": 0.5
+      },
+      "mean_encounter_accuracy": 0.8827783464482972,
+      "mean_encounter_majority_accuracy": 0.824403962211844
+    }
+  },
+  "paired_owner_outcomes": {
+    "1": {
+      "map": "m10.jkl",
+      "subject": "dark",
+      "teacher": {
+        "dark": {
+          "kill_increments": 0,
+          "death_increments": 2,
+          "weapon_bin_gains": [
+            3,
+            8,
+            6,
+            5,
+            3
+          ],
+          "health_loss": 200.0,
+          "shield_loss": 255.0,
+          "last_state_kills": 0,
+          "last_state_deaths": 2
+        },
+        "light": {
+          "kill_increments": 2,
+          "death_increments": 0,
+          "weapon_bin_gains": [
+            6,
+            5,
+            3,
+            7
+          ],
+          "health_loss": 138.0,
+          "shield_loss": 326.0,
+          "last_state_kills": 2,
+          "last_state_deaths": 0
+        }
+      },
+      "model": {
+        "dark": {
+          "kill_increments": 1,
+          "death_increments": 2,
+          "weapon_bin_gains": [
+            6,
+            3,
+            5,
+            6,
+            7,
+            7,
+            9,
+            7
+          ],
+          "health_loss": 208.0,
+          "shield_loss": 270.0,
+          "last_state_kills": 1,
+          "last_state_deaths": 2
+        },
+        "light": {
+          "kill_increments": 2,
+          "death_increments": 1,
+          "weapon_bin_gains": [
+            6,
+            5,
+            3,
+            7,
+            6,
+            5,
+            3,
+            7,
+            7,
+            9
+          ],
+          "health_loss": 206.0,
+          "shield_loss": 320.0,
+          "last_state_kills": 2,
+          "last_state_deaths": 1
+        }
+      }
+    },
+    "2": {
+      "map": "m10.jkl",
+      "subject": "light",
+      "model": {
+        "dark": {
+          "kill_increments": 0,
+          "death_increments": 2,
+          "weapon_bin_gains": [
+            7,
+            9,
+            6,
+            6
+          ],
+          "health_loss": 200.0,
+          "shield_loss": 247.0,
+          "last_state_kills": 0,
+          "last_state_deaths": 2
+        },
+        "light": {
+          "kill_increments": 2,
+          "death_increments": 0,
+          "weapon_bin_gains": [
+            8,
+            5,
+            3,
+            6,
+            7,
+            9
+          ],
+          "health_loss": 0.0,
+          "shield_loss": 35.0,
+          "last_state_kills": 2,
+          "last_state_deaths": 0
+        }
+      },
+      "teacher": {
+        "dark": {
+          "kill_increments": 0,
+          "death_increments": 2,
+          "weapon_bin_gains": [
+            7,
+            3,
+            5,
+            8
+          ],
+          "health_loss": 200.0,
+          "shield_loss": 240.0,
+          "last_state_kills": 0,
+          "last_state_deaths": 2
+        },
+        "light": {
+          "kill_increments": 2,
+          "death_increments": 0,
+          "weapon_bin_gains": [
+            6,
+            5,
+            3,
+            7,
+            9,
+            8
+          ],
+          "health_loss": 43.0,
+          "shield_loss": 83.0,
+          "last_state_kills": 2,
+          "last_state_deaths": 0
+        }
+      }
+    }
+  },
+  "offline_teacher_control_decisions": 1897,
+  "offline_candidate": {
+    "matrix": [
+      [
+        166,
+        267
+      ],
+      [
+        23,
+        1441
+      ]
+    ],
+    "accuracy": 0.8471270426989984,
+    "recall_by_class": [
+      0.3833718244803695,
+      0.9842896174863388
+    ],
+    "balanced_accuracy": 0.6838307209833542
+  },
+  "offline_training_majority": {
+    "matrix": [
+      [
+        0,
+        433
+      ],
+      [
+        0,
+        1464
+      ]
+    ],
+    "accuracy": 0.771744860305746,
+    "recall_by_class": [
+      0.0,
+      1.0
+    ],
+    "balanced_accuracy": 0.5
+  },
+  "offline_known_range_rule_450": {
+    "matrix": [
+      [
+        433,
+        0
+      ],
+      [
+        0,
+        1464
+      ]
+    ],
+    "accuracy": 1.0,
+    "recall_by_class": [
+      1.0,
+      1.0
+    ],
+    "balanced_accuracy": 1.0
+  },
+  "offline_by_map": {
+    "m10.jkl": {
+      "candidate": {
+        "matrix": [
+          [
+            166,
+            267
+          ],
+          [
+            23,
+            1441
+          ]
+        ],
+        "accuracy": 0.8471270426989984,
+        "recall_by_class": [
+          0.3833718244803695,
+          0.9842896174863388
+        ],
+        "balanced_accuracy": 0.6838307209833542
+      },
+      "training_majority": {
+        "matrix": [
+          [
+            0,
+            433
+          ],
+          [
+            0,
+            1464
+          ]
+        ],
+        "accuracy": 0.771744860305746,
+        "recall_by_class": [
+          0.0,
+          1.0
+        ],
+        "balanced_accuracy": 0.5
+      }
+    }
+  },
+  "n_live_model_decisions": 747,
+  "live_model_vs_shadow": {
+    "matrix": [
+      [
+        79,
+        63
+      ],
+      [
+        9,
+        596
+      ]
+    ],
+    "accuracy": 0.9036144578313253,
+    "recall_by_class": [
+      0.5563380281690141,
+      0.9851239669421488
+    ],
+    "balanced_accuracy": 0.7707309975555814
+  },
+  "live_model_selected": [
+    88,
+    659
+  ],
+  "live_model_selected_and_applied": [
+    30,
+    627
+  ],
+  "model_selected_with_engine_read": [
+    30,
+    627
+  ],
+  "live_model_selected_with_engine_read": [
+    30,
+    627
+  ],
+  "native_engine_witnesses": {
+    "1": {
+      "match": "tdm-guns-force-test-01-model",
+      "seat": "dark",
+      "life": 1,
+      "decision_seq": 1,
+      "game_seconds": 12.342,
+      "inputs": [
+        100,
+        100,
+        3811,
+        4128,
+        6,
+        24,
+        0,
+        0,
+        7
+      ],
+      "native_teacher": 1,
+      "selected": 1,
+      "owner": "supply",
+      "forward": 0.79995,
+      "slide": -0.857238,
+      "read_forward": 0.79995,
+      "read_slide": -0.857238,
+      "fire": false,
+      "raw_log_sha256": "d05698ab2d9ef1bbe63956c6695bd1476b5cfd770c3018c6e4627288a7a62b88"
+    },
+    "0": {
+      "match": "tdm-guns-force-test-01-model",
+      "seat": "dark",
+      "life": 1,
+      "decision_seq": 86,
+      "game_seconds": 16.7961,
+      "inputs": [
+        34,
+        0,
+        464,
+        1070,
+        2,
+        50,
+        0,
+        0,
+        4
+      ],
+      "native_teacher": 1,
+      "selected": 0,
+      "owner": "engage",
+      "forward": -1.0,
+      "slide": -0.886864,
+      "read_forward": -1.0,
+      "read_slide": -0.886864,
+      "fire": false,
+      "raw_log_sha256": "d05698ab2d9ef1bbe63956c6695bd1476b5cfd770c3018c6e4627288a7a62b88"
+    }
+  },
+  "both_live_actions_verified": true
+}

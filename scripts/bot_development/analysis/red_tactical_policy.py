@@ -299,8 +299,9 @@ def checked_receipt(root, match, hashes, expected_scope):
     path = root / match["name"] / "receipt.json"
     evidence = json.loads(path.read_bytes())
     require(evidence.get("kind") in ("adjoin-arena-stock-red-policy", "adjoin-arena-mode-transfer") and
-            evidence.get("status") == "live_join_and_loadout_verified" and
-            evidence.get("observer_status") == "recorded", f"{path}: incomplete native match")
+            evidence.get("status") == "live_join_and_loadout_verified", f"{path}: incomplete native match")
+    if evidence["kind"] == "adjoin-arena-stock-red-policy":
+        require(evidence.get("observer_status") == "recorded", f"{path}: missing primary observer")
     require(evidence["requested_map"] == match["map"] and
             all(evidence["log_sha256"][seat+".log"] == sha for seat, sha in hashes.items()),
             f"{path}: raw log or map differs")
@@ -312,6 +313,7 @@ def checked_receipt(root, match, hashes, expected_scope):
     scope = "ffa/guns/force"
     if evidence["kind"] == "adjoin-arena-mode-transfer":
         mode = evidence["mode_transfer"]
+        verify_transfer_match(evidence, match, path)
         weapons = "sabers" if mode["weapons"] == "saber" else mode["weapons"]
         require(mode["force"] in ("on", "off") and mode["content"]["map_sha256"] == level_sha,
                 f"{path}: unverified rules or level content")
@@ -320,6 +322,27 @@ def checked_receipt(root, match, hashes, expected_scope):
     require(scope.split("/")[0] in ("ffa", "tdm") and scope.split("/")[1] == "guns",
             f"{path}: no gear-model target for this mode")
     return digest(path), red, level_sha
+
+
+def verify_transfer_match(evidence, match, path):
+    """Mode-transfer trials can use native clock and control receipts without a camera."""
+    mode = evidence["mode_transfer"]
+    require(evidence.get("observer_status") in (None, "recorded") and
+            mode["native"]["qualification_errors"] == [], f"{path}: failed native or observer verification")
+    require(mode["content"]["map_sha256"] == match["map_sha256"], f"{path}: unexpected transfer map digest")
+    outcomes = evidence["red_policy"]["start_and_outcomes"]
+    pace = evidence["pace_experiment"]
+    require(outcomes["first_seat_move_before_second_join_wall_s"] > 0 and
+            set(pace["roles"]) == {"host", *SEATS} and
+            all(role["observed_rate"] > 0 for role in pace["roles"].values()) and
+            pace["requested_game_seconds"] == match["game_seconds"] and
+            digest(path.parent / "pace-trace.jsonl") == pace["trace_sha256"], f"{path}: incomplete clock or opening")
+    for seat in SEATS:
+        owner = outcomes["owners"][seat]
+        require("BOT_RED_JOIN" in owner["events"] and "BOT_RED_FIRST" in owner["events"] and
+                any(abs(float(cmd["fwd"])) + abs(float(cmd["slide"])) > 0
+                    for cmd in owner["first_movement_by_life"]) and mode["native"]["owners"][seat]["movement_seen"],
+                f"{path}: missing native control evidence for {seat}")
 
 
 def load_teacher(root, schedule, rules_scope="ffa/guns/force"):
