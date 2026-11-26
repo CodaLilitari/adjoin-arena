@@ -1,5 +1,13 @@
 # Changes
 
+## 0.6.0 — Competitive play and persistent learning
+
+- Jan and Boba play on join, keep moving through supported saber swings and track opponents at different heights. Red's pickup-versus-fight script provides a baseline for training local challengers.
+- Both players showed physical play in all 68 stock and original JHS map/rules combinations across native and JKWeb trials. Both selected flag objectives in all 12 CTF combinations, and six combinations produced a confirmed capture. [Map results](docs/MAP_PLAY_COVERAGE.md)
+- Bots retain route weights between matches and can use them on unfamiliar maps. The Docker image saves these weights in the persistent state directory. [Learning and storage](docs/NAVIGATION_LEARNING.md)
+- Lilivane's optional coach route reached the original JHS roof under all four weapon and Force rules. The native bridge-landing and C3 keyed-door changes ship as experimental source candidates.
+- JKWeb bots can accept duel challenges and send occasional character taunts. A coach can read and reply in chat while the bot plays. [JKWeb operator guide](web_bots/README.md)
+
 ## 0.5.0 — Adjoin Arena
 
 - Join an open JediKnight.Zone game by room ID with one named JKWeb bot. The stock host scoreboard test used Nar Shaddaa Loading Terminal. See the [operator guide](web_bots/README.md#join-an-existing-jediknightzone-game).

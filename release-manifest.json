@@ -14,7 +14,7 @@
     },
     "CHANGELOG.md": {
       "mode": 420,
-      "sha256": "d02801ee10b900b7ff4971a7475b0196321450ae192fbc9b10548a3aadff8566"
+      "sha256": "c2710f86e9eab8ad9271e272ef61b23cecd0e7979166d50f95c42c8571f5feaa"
     },
     "LICENSE": {
       "mode": 420,
@@ -22,7 +22,7 @@
     },
     "NOTICE.md": {
       "mode": 420,
-      "sha256": "91ecd7d46508ff083a671ac53995e00be552ba069efc2ff1348f968d07487d45"
+      "sha256": "178a427c6e26894e7c5963763a5f05cec2461f03b8a6be536420718513b6abb6"
     },
     "PR4.md": {
       "mode": 420,
@@ -30,7 +30,7 @@
     },
     "README.md": {
       "mode": 420,
-      "sha256": "2dbc98fb069f862dc405bbc518f2160814a670f23118ce160d393eda82882c97"
+      "sha256": "76e00454075f7cbfa19288e2503bb3845d0313b822da6b4ef8be602f0944c077"
     },
     "Start-Server.command": {
       "mode": 493,
@@ -42,7 +42,7 @@
     },
     "VERSION": {
       "mode": 420,
-      "sha256": "a0ad50640139a524f86591157145bf1d4674ea9c065bfea21558f0f7b04430c8"
+      "sha256": "97a5d6e540a6120d09c39ddb667e0e8e2bac7fcc2ffef813b82e08fd60365bce"
     },
     "app.py": {
       "mode": 420,
@@ -422,7 +422,7 @@
     },
     "docs/PLATFORMS.md": {
       "mode": 420,
-      "sha256": "d80d5e5e9fe155eab3794b65a65a349cad8b209fc84730e2d2032b1966794a7e"
+      "sha256": "e74f0b6e113da0453cd0b705c7d0622bb4aa4e9bf25b309beee12ff20041c077"
     },
     "docs/QUALIFICATION.md": {
       "mode": 420,
@@ -462,7 +462,7 @@
     },
     "docs/UPDATES.md": {
       "mode": 420,
-      "sha256": "bce223c1e6ae629e67ae121627f4ba82daaf976f68b93eaac1d1297d7d839615"
+      "sha256": "65d27bd1adec6c8ec82d3c7615141475d9af2cfed8017891e2641efa947fa410"
     },
     "docs/images/jkweb-stock-host-scoreboard.png": {
       "mode": 420,
@@ -1430,11 +1430,11 @@
     },
     "packaging/Dockerfile": {
       "mode": 420,
-      "sha256": "d1631790051721960d752b5bab8044501015b1700bc7a97573a73496d5a2e29a"
+      "sha256": "796c0ef05ead5b7ac816a552340ea6947bced38f2934e5de972c1d368ca0c6d6"
     },
     "packaging/compose.yaml": {
       "mode": 420,
-      "sha256": "8dd321f5238fee02678e502a6919507c8506442f24371b3f9d3f8ca964f50739"
+      "sha256": "761fa6e32ceb19bfe8435bd5ac804d04ff7723daa4008e03027d475e52a4747f"
     },
     "packaging/container_runtime.py": {
       "mode": 420,
@@ -3610,5 +3610,5 @@
     }
   },
   "schema": 1,
-  "version": "0.5.0"
+  "version": "0.6.0"
 }

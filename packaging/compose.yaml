@@ -1,6 +1,6 @@
 services:
   server:
-    image: adjoin-arena:0.5.0
+    image: adjoin-arena:0.6.0
     platform: linux/amd64
     build:
       context: ..
@@ -31,4 +31,4 @@ services:
 
 volumes:
   application:
-    name: adjoin-arena-app-0.5.0
+    name: adjoin-arena-app-0.6.0

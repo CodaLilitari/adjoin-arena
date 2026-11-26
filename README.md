@@ -161,13 +161,13 @@ Commercial game archives, retail executables, DirectPlay DLLs, and ISOs are not 
 
 ## Downloads for Windows, Linux and macOS
 
-Download Adjoin Arena 0.5.0 from [GitHub](https://github.com/CodaLilitari/adjoin-arena/releases/tag/v0.5.0) or [GitLab](https://gitlab.com/codalilitari/adjoin-arena/-/releases/v0.5.0). Choose the package for the machine hosting the server.
+Download Adjoin Arena 0.6.0 from [GitHub](https://github.com/CodaLilitari/adjoin-arena/releases/tag/v0.6.0) or [GitLab](https://gitlab.com/codalilitari/adjoin-arena/-/releases/v0.6.0). Choose the package for the machine hosting the server.
 
 | Host | Download | Runtime |
 | --- | --- | --- |
-| Windows | [Windows launcher ZIP](https://github.com/CodaLilitari/adjoin-arena/releases/download/v0.5.0/JK_Cross_Server_0.5.0-windows-docker.zip) | Docker Desktop with Linux containers |
-| macOS | [macOS launcher ZIP](https://github.com/CodaLilitari/adjoin-arena/releases/download/v0.5.0/JK_Cross_Server_0.5.0-macos-docker.zip) | Docker Desktop, with amd64 emulation on Apple Silicon |
-| Linux x86-64 | [Linux ZIP](https://github.com/CodaLilitari/adjoin-arena/releases/download/v0.5.0/JK_Cross_Server_0.5.0-linux-x86_64.zip) | Ubuntu 24.04-compatible runtime or Docker |
+| Windows | [Windows launcher ZIP](https://github.com/CodaLilitari/adjoin-arena/releases/download/v0.6.0/JK_Cross_Server_0.6.0-windows-docker.zip) | Docker Desktop with Linux containers |
+| macOS | [macOS launcher ZIP](https://github.com/CodaLilitari/adjoin-arena/releases/download/v0.6.0/JK_Cross_Server_0.6.0-macos-docker.zip) | Docker Desktop, with amd64 emulation on Apple Silicon |
+| Linux x86-64 | [Linux ZIP](https://github.com/CodaLilitari/adjoin-arena/releases/download/v0.6.0/JK_Cross_Server_0.6.0-linux-x86_64.zip) | Ubuntu 24.04-compatible runtime or Docker |
 
 Each ZIP includes the server, browser bot engine, operator tools and documentation. The release also provides the common updater ZIP and a SHA-256 checksum for every download. [Verify a ZIP and launch the server](docs/PLATFORMS.md)
 

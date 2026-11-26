@@ -1,13 +1,13 @@
 # Platform downloads and setup
 
-Get Adjoin Arena 0.5.0 from [GitHub](https://github.com/CodaLilitari/adjoin-arena/releases/tag/v0.5.0) or [GitLab](https://gitlab.com/codalilitari/adjoin-arena/-/releases/v0.5.0). All three platform downloads contain the same Linux x86-64 server and browser bot client. The Windows and macOS server launchers run the Linux engine in Docker. To join another host as a browser bot, extract any ZIP and follow the [room guide](../web_bots/README.md#join-an-existing-jediknightzone-game). That route uses Python and a WebGL 2 browser on your machine.
+Get Adjoin Arena 0.6.0 from [GitHub](https://github.com/CodaLilitari/adjoin-arena/releases/tag/v0.6.0) or [GitLab](https://gitlab.com/codalilitari/adjoin-arena/-/releases/v0.6.0). All three platform downloads contain the same Linux x86-64 server and browser bot client. The Windows and macOS server launchers run the Linux engine in Docker. To join another host as a browser bot, extract any ZIP and follow the [room guide](../web_bots/README.md#join-an-existing-jediknightzone-game). That route uses Python and a WebGL 2 browser on your machine.
 
 | Download | Execution route | Start here |
 | --- | --- | --- |
-| `JK_Cross_Server_0.5.0-linux-x86_64.zip` | Native Linux x86-64; Docker optional | Native Linux instructions below |
-| `JK_Cross_Server_0.5.0-windows-docker.zip` | Linux x86-64 through Docker Desktop | `Start-Server.ps1` |
-| `JK_Cross_Server_0.5.0-macos-docker.zip` | Linux x86-64 through Docker Desktop | `Start-Server.command` |
-| `JK_Cross_Server_0.5.0.zip` | Common updater/source payload | Existing in-place updater or manual setup |
+| `JK_Cross_Server_0.6.0-linux-x86_64.zip` | Native Linux x86-64; Docker optional | Native Linux instructions below |
+| `JK_Cross_Server_0.6.0-windows-docker.zip` | Linux x86-64 through Docker Desktop | `Start-Server.ps1` |
+| `JK_Cross_Server_0.6.0-macos-docker.zip` | Linux x86-64 through Docker Desktop | `Start-Server.command` |
+| `JK_Cross_Server_0.6.0.zip` | Common updater/source payload | Existing in-place updater or manual setup |
 
 Every platform archive contains the complete common payload, including both
 compiled engines and their libraries, plus a `PLATFORM-README.md` entry guide.
@@ -18,7 +18,7 @@ Read [Qualification](QUALIFICATION.md), [Bot behavior](BOTS_BEHAVIOR.md), and
 
 ## Verify a download
 
-Save the ZIP and its matching `.zip.sha256` file to the same folder. On Linux, run `sha256sum -c JK_Cross_Server_0.5.0-linux-x86_64.zip.sha256`. On macOS, run `shasum -a 256 -c JK_Cross_Server_0.5.0-macos-docker.zip.sha256`. Both should print `OK`. On Windows, compare the hash from `Get-FileHash .\JK_Cross_Server_0.5.0-windows-docker.zip -Algorithm SHA256` with the first field in the matching checksum file. The MP4 is a separate release download with its own checksum.
+Save the ZIP and its matching `.zip.sha256` file to the same folder. On Linux, run `sha256sum -c JK_Cross_Server_0.6.0-linux-x86_64.zip.sha256`. On macOS, run `shasum -a 256 -c JK_Cross_Server_0.6.0-macos-docker.zip.sha256`. Both should print `OK`. On Windows, compare the hash from `Get-FileHash .\JK_Cross_Server_0.6.0-windows-docker.zip -Algorithm SHA256` with the first field in the matching checksum file. The [third-person JHS recording and its checksum](https://github.com/CodaLilitari/adjoin-arena/releases/tag/v0.5.0) are available from the 0.5.0 release.
 
 ## Before starting
 
@@ -136,11 +136,12 @@ another Compose project.
 | Host resource | Container path | Purpose |
 | --- | --- | --- |
 | Selected game-data directory | `/game-data` (read-only) | Your installed game resources |
-| Selected state directory | `/data` (writable) | Saved settings, credentials, runtime logs and updater state |
-| Named volume `adjoin-arena-app-0.5.0` | `/app` (writable) | Seeded server application and verified in-place updates |
+| Selected state directory | `/data` (writable) | Saved settings, credentials, navigation weights, runtime logs and updater state |
+| Named volume `adjoin-arena-app-0.6.0` | `/app` (writable) | Seeded server application and verified in-place updates |
 
 The first start creates `/data/config/server.json` with container paths and
 `/data/runtime` for state. Subsequent starts preserve the saved configuration.
+The 0.6.0 image saves navigation weights under `/data/navigation`. Reuse the host state directory when recreating the container. When upgrading from the 0.5.0 image, start the new platform launcher to pick up this image default.
 Keep the panel's game-data path as `/game-data`, engine paths under `/app/bin`,
 and browser client path as `/opt/jk-web`; host paths are meaningful only to the
 launcher and Docker mount configuration. To change your host game installation,
@@ -190,7 +191,7 @@ outside the checkout:
 
 ```sh
 python scripts/build_platform_releases.py \
-  --input /path/to/releases/JK_Cross_Server_0.5.0.zip \
+  --input /path/to/releases/JK_Cross_Server_0.6.0.zip \
   --output-dir /path/to/platform-releases
 ```
 
