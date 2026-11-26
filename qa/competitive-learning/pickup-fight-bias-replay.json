@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "source_model": "qa/competitive-learning/nf-challenger-v3.weights",
+  "source_model_sha256": "aea2da99abad7b19a093238b5ee8988fb956c3ea98f962efb1b67eb1b6943ce9",
+  "variant_sha256": "d67735377024229455f72763eaeedf8b5fe27cc936e6d9cfbaeee4f797ece8eb",
+  "changed_output_bias": [
+    0,
+    -1024
+  ],
+  "action_rule": "score >= 0 keeps pursuing the pickup; score < 0 releases movement to combat",
+  "corpus": "qa/adjoin-arena-red-ffa-guns-noforce-training-corpus.json.gz",
+  "corpus_sha256": "97746539995615b342741732df91f643837ae595aabf579879ace22993354eae",
+  "training_corpus_scope": "read-only telemetry collected in whole FFA/NF guns training games",
+  "decisions": 1576,
+  "unique_inputs": 1568,
+  "games": 2,
+  "by_game": {
+    "mode-07-ffa-guns-force-off": {
+      "pickup_to_pickup": 937,
+      "pickup_to_fight": 1,
+      "fight_to_fight": 331
+    },
+    "ffa-guns-noforce-train-02": {
+      "pickup_to_pickup": 280,
+      "pickup_to_fight": 16,
+      "fight_to_fight": 11
+    }
+  },
+  "changed_decisions": 17,
+  "changed_unique_inputs": 17,
+  "actual_seat_log_hashes": {
+    "mode-07-ffa-guns-force-off": {
+      "dark": "17d8f815059c706a5fe227e3c71b11cd86edd08a543668bc1d9fdd616eefaa4c",
+      "light": "55fb01bfbcba83b21dece8c98c2441570e0f3595dde409549bb544c7efe83eca"
+    },
+    "ffa-guns-noforce-train-02": {
+      "dark": "2433b1aec9f16b5ce7728f7061d5da45623ec5cffda5fab025b1f180bb41d81c",
+      "light": "c39916c5686bc1195fe2be7d310a6f6d0abbbcc24c9d43b835c41ef5d1aba4a8"
+    }
+  },
+  "example": {
+    "game": "mode-07-ffa-guns-force-off",
+    "seat": "dark",
+    "game_s": 8.976,
+    "features": {
+      "health": 100,
+      "shields": 49,
+      "enemy_mm": 505,
+      "item_mm": 2160,
+      "weapon": 3,
+      "ammo": 134,
+      "pack": 0,
+      "wet": 0,
+      "remaining_route_nodes": 5
+    },
+    "score_before_after": [
+      842,
+      -182
+    ]
+  },
+  "validation": "Production C Red_Load/Red_Score equalled Python integer logits for every baseline and edited row. One temporary model copy per lane. Source model hash rechecked after copies removed.",
+  "scope": "Identical inputs replayed offline; match outcomes and subsequent states were not simulated."
+}

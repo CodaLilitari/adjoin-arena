@@ -56,6 +56,18 @@ Red stays the default. The candidate scored seven frags to six and split the eig
 
 An additional 50-game-second practice match exercised the ordinary batch runner with `--active-side dark --fit-next`. The store had no promoted weights for that cell, so Red played. Its 383 new choices increased the persistent practice set from 2,446 to 2,829. The runner wrote a different native policy for the next trial, while leaving the active controller on Red. The earlier challenger and its scored games remain reproducible.
 
+## Direct edits to a challenger
+
+A coach can edit a copy of a pickup/fight model and replay the changed
+choices before trying it in a practice game. One edit lowered the V3 NF-guns
+challenger's output bias from 0 to −1024. On 1,576 logged decisions from
+two free-for-all games, 17 switched from pursuing the pickup to fighting.
+In one of those states the opponent was 0.505 world units away and the
+pickup was 2.160 away. The score went from +842 to −182. The compiled native
+scorer and the Python reference agreed on all original and edited scores.
+The edit was tried on a temporary copy. Its effect on match outcomes is
+unmeasured. [Inputs, model digests and before/after counts](../qa/competitive-learning/pickup-fight-bias-replay.json)
+
 ## Promotion and rollback
 
 First verify the exported integer policy against independent Red decisions. Then play it against the script in both seats and joining orders at 1× on the deployment map. Count frags, deaths and how often the candidate actually controlled a choice. Check for regressions by map and seat. Clock-rejected trials retain their receipt and contribute no score. CTF needs stock flag events, and saber movement needs actual player displacement. Keep collecting practice data while a challenger is under evaluation.
