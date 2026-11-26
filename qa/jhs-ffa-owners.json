@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "runs": [
+    {
+      "trial": "jhs-ff-sabers-front-edge",
+      "rules": "ff-sabers",
+      "sha256_wasm": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "episode_sha256": "a62c94789c521af2746cc8378301a4940a59a24f6fb44dd4c443caacc0211b04",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "lobby": null,
+      "overlapping_wall_seconds": [
+        35.24,
+        85.96
+      ],
+      "seats": {
+        "lily": {
+          "slot": 1,
+          "network_id": 2,
+          "name": "Darth_Lilitari",
+          "negotiated_rank": 8,
+          "rules": "ff-sabers",
+          "sabers_only": 1,
+          "force_enabled": 1,
+          "console_sha256": "5c39f94ca448fe019369699f427c0fbd199472305eb1a989427bfca101f3cb87",
+          "game_per_wall": 0.9897,
+          "native_status_samples": 6,
+          "living_motion_intervals": 4,
+          "same_life_sector_changes": 4,
+          "sectors": [
+            0,
+            5,
+            7,
+            10,
+            16,
+            35
+          ]
+        },
+        "red": {
+          "slot": 0,
+          "network_id": 1,
+          "name": "Bot_Red",
+          "negotiated_rank": 8,
+          "rules": "ff-sabers",
+          "sabers_only": 1,
+          "force_enabled": 1,
+          "console_sha256": "a5cabbc78f64e5dd2f2e23e54d2ae38f156953580edd7aff1fb97d417d8d6f07",
+          "game_per_wall": 0.9983,
+          "native_status_samples": 5,
+          "living_motion_intervals": 4,
+          "same_life_sector_changes": 3,
+          "sectors": [
+            60,
+            195,
+            199,
+            205
+          ]
+        }
+      },
+      "both_active": true,
+      "direct_ffa_two_active": false
+    },
+    {
+      "trial": "jhs-ff-sabers-room-flags",
+      "rules": "ff-sabers",
+      "sha256_wasm": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "episode_sha256": "a62c94789c521af2746cc8378301a4940a59a24f6fb44dd4c443caacc0211b04",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "lobby": {
+        "multiModeFlags": 128,
+        "teams_enabled": false,
+        "tick_ms": 16,
+        "rank": 8,
+        "entry_sha256": "383c2fdc68e5cb491fd3e2a5bf700d8968fa263ec6e9c84f79d3ddc01de04f17"
+      },
+      "overlapping_wall_seconds": [
+        37.33,
+        87.4
+      ],
+      "seats": {
+        "lily": {
+          "slot": 1,
+          "network_id": 2,
+          "name": "Darth_Lilitari",
+          "negotiated_rank": 8,
+          "rules": "ff-sabers",
+          "sabers_only": 1,
+          "force_enabled": 1,
+          "console_sha256": "e640139c00ceb895e6e690301fde6fde71b326c3a411c9d6ff902f98141d8566",
+          "game_per_wall": 1.0006,
+          "native_status_samples": 6,
+          "living_motion_intervals": 3,
+          "same_life_sector_changes": 0,
+          "sectors": [
+            5
+          ]
+        },
+        "red": {
+          "slot": 0,
+          "network_id": 1,
+          "name": "Bot_Red",
+          "negotiated_rank": 8,
+          "rules": "ff-sabers",
+          "sabers_only": 1,
+          "force_enabled": 1,
+          "console_sha256": "7a348be498b97cebe7d6ad27416b692e591604a03ee9b5e3514124397aad7f98",
+          "game_per_wall": 1.0017,
+          "native_status_samples": 5,
+          "living_motion_intervals": 4,
+          "same_life_sector_changes": 3,
+          "sectors": [
+            59,
+            60,
+            112
+          ]
+        }
+      },
+      "both_active": false,
+      "direct_ffa_two_active": false
+    }
+  ]
+}

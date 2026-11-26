@@ -1,0 +1,232 @@
+--- a/src/Gui/jkGUIMultiplayer.c
++++ b/src/Gui/jkGUIMultiplayer.c
+@@ -35,6 +35,8 @@
+ #include <emscripten.h>
+ #include "AI/jkBot.h"
+ #include "AI/jkBotLoadout.h"
++#include "AI/jkBotPersona.h"
++#include "Gameplay/sithDuel.h"
+ #include "Gameplay/sithPlayer.h"
+ #include "World/jkPlayer.h"
+ #include "Engine/sithCamera.h"
+@@ -110,6 +112,7 @@
+         {"side","JK_BOT_FORCE_SIDE"},{"style","JK_BOT_FORCE_STYLE"},{"elite","JK_BOT_ELITE"},
+         {"mode","JK_BOT_WEB_MODE"},{"saberColor","JK_BOT_WEB_SABER_COLOR"},
+         {"episode","JK_BOT_WEB_EPISODE"},{"map","JK_BOT_WEB_MAP"},{"maxPlayers","JK_BOT_WEB_MAX_PLAYERS"},
++        {"privateDuels","JK_BOT_PRIVATE_DUELS"},{"taunts","JK_BOT_TAUNTS"},
+         {"trace","JK_BOT_TRACE_FORCE"},{"lily","JK_BOT_LILY"}
+     };
+     char value[96];
+@@ -257,11 +260,14 @@
+     webBotThirdPerson=third && !strcmp(third,"1");
+     webBotWorld=NULL;
+     jkBot_Configure(name,model);
++    jkBotPersona_Configure();
+     jkBotCompanion_SetTransport(jkBotWebEmit);
+     if (host) {
+         if (!jkGuiMultiplayer_WebCharacter(name,model,sound,rank)) {
+             fprintf(stderr,"BOT_JOIN_REJECTED cannot prepare host's ordinary MPC\n"); return -1;
+         }
++        const char *duels=getenv("JK_BOT_PRIVATE_DUELS");
++        sithDuel_bAllowDuels=duels && !strcmp(duels,"1");
+         const char *seatsEnv=getenv("JK_BOT_WEB_MAX_PLAYERS");
+         const char *hostEpisode=episode && *episode ? episode : "JK1MP";
+         const char *hostMap=map && *map ? map : "m10.jkl";
+@@ -324,6 +330,7 @@
+         if (sithNet_MultiModeFlags & MULTIMODEFLAG_TEAMS)
+             setenv("JK_BOT_TEAM", playerThingIdx%2 ? "2" : "1", 1);
+         jkBot_OnJoined();
++        jkBotPersona_OnJoined();
+         printf("BOT_JOINED slot=%d net=%u map=%s model=%s\n",playerThingIdx,
+             (unsigned)sithPlayer_g_pLocalPlayer->playerNetId,webBotWorld->map_jkl_fname,jkPlayer_model);
+     }
+--- a/src/Gameplay/sithDuel.c
++++ b/src/Gameplay/sithDuel.c
+@@ -32,6 +32,7 @@
+     uint32_t firstDeathAt;
+     uint32_t changedAt;  // last change (a peer: when it heard), so a refresh still carries a fresh end
+     uint32_t rewardedGeneration;
++    uint32_t botAcceptedGeneration;
+ } DuelPair;
+ 
+ int sithDuel_bAllowDuels = 0;
+@@ -914,6 +915,26 @@
+     return best;
+ }
+ 
++// Called only by an ordinary playing bot. An invitation comes from this
++// host-authenticated state, never from public chat. Equip through ordinary
++// inputs, then acknowledge this specific offer at most once.
++int sithDuel_BotTick(void)
++{
++    if (!room() || !header.epoch || !allowed()) return 0;
++    if (sithDuel_PhaseForPlayer(playerThingIdx)) return 1;
++    int i = incoming();
++    if (i < 0) return 0;
++    DuelPair *p = &pairs[i];
++    SithThing *self = sithPlayer_g_pLocalPlayerThing;
++    if (!alive(self) || !nearAndVisible(self, body(p->s.a))) return 0;
++    if (p->botAcceptedGeneration != p->s.generation && sithDuelCombat_CanEnter(self, NULL, 0)) {
++        p->botAcceptedGeneration = p->s.generation;
++        printf("BOT_DUEL accepting slot=%d pair=%d generation=%u\n", playerThingIdx, i, p->s.generation);
++        sendRequest(DUEL_ACCEPT, 0, i);
++    }
++    return 1;
++}
++
+ // This player's duel, or else their own challenge, or -1.
+ static int ownPair(void)
+ {
+--- a/src/Gameplay/sithDuel.h
++++ b/src/Gameplay/sithDuel.h
+@@ -19,6 +19,7 @@
+ // browser whose host ticked Private duels (the host's own view of it).
+ int sithDuel_HostAllows(void);
+ void sithDuel_Frame(void);
++int sithDuel_BotTick(void);
+ void sithDuel_Forget(int slot, uint32_t id);
+ void sithDuel_PlayerDied(SithThing *player); // locally scored death
+ void sithDuel_OwnerDeath(SithThing *player, uint32_t senderId); // transport-authenticated death
+--- a/src/AI/jkBot.c
++++ b/src/AI/jkBot.c
+@@ -16,6 +16,10 @@
+  * combat, networking and respawn remain the original game's responsibility.
+  */
+ #include "AI/jkBot.h"
++#ifdef PLATFORM_WSRELAY
++#include "Gameplay/sithDuel.h"
++#include "AI/jkBotPersona.h"
++#endif
+ #include "AI/jkBotLoadout.h"
+ #include "AI/jkBotBrainModel.h"
+ #include "Engine/sithCollision.h"
+@@ -338,6 +342,11 @@
+    Persuasion. Hostile Force checks use their existing eligibility policy. */
+ static int Bot_KineticEnemyAllowed(SithThing *self,int slot)
+ {
++#ifdef PLATFORM_WSRELAY
++    if (sithDuel_PhaseForPlayer(playerThingIdx) || sithDuel_PhaseForPlayer(slot)) {
++        if (!sithDuel_AreOpponents(playerThingIdx, slot)) return 0;
++    }
++#endif
+     if (!bot.elite) return Bot_EnemyAllowed(self,slot);
+     return Bot_EnemyBase(self,slot) && !Bot_IsPeaceful(self,slot);
+ }
+@@ -1739,6 +1748,13 @@
+     else if (BT_ON(RUN_JUMP)) Bot_RunJumpBuildStep(self);
+     Bot_RunJumpWatch(self);
+     Bot_ObservePeers(self);
++#ifdef PLATFORM_WSRELAY
++    int normalSabers=bot.sabersOnly, normalForce=bot.forceEnabled;
++    if (sithDuel_BotTick()) {
++        bot.sabersOnly=1;
++        bot.forceEnabled=0;
++    }
++#endif
+     int dead=(self->flags&SITH_TF_DEAD)!=0 || self->actorParams.health<=0;
+     Companion_Tick(self,dead);
+     if (!dead && !bot.wasDead && bot.previousHealth>self->actorParams.health+0.5f) {
+@@ -1807,6 +1823,10 @@
+     }
+     Companion_Publish(self,dead);
+     if (lily.enabled) Lily_EndFrame();
++#ifdef PLATFORM_WSRELAY
++    bot.sabersOnly=normalSabers;
++    bot.forceEnabled=normalForce;
++#endif
+     bot.wasDead=dead;
+     for (int i=0;i<INPUT_FUNC_MAX;i++) bot.presses[i]=bot.keys[i] && !bot.previous[i];
+     if (!dead) Bot_TraceFireInput(self);
+--- a/src/AI/jkBotPersona.c
++++ b/src/AI/jkBotPersona.c
+@@ -8,6 +8,9 @@
+ #include <string.h>
+ #include <stdint.h>
+ #include <time.h>
++#ifdef ARCH_WASM
++#include <emscripten.h>
++#endif
+ #ifdef PLATFORM_POSIX
+ #include <fcntl.h>
+ #include <sys/file.h>
+@@ -27,7 +30,9 @@
+ 
+ static double Persona_Now(void)
+ {
+-#ifdef PLATFORM_POSIX
++#ifdef ARCH_WASM
++    return emscripten_get_now() / 1000.0;
++#elif defined(PLATFORM_POSIX)
+     struct timespec ts;
+     if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
+         return (double)ts.tv_sec + ts.tv_nsec / 1000000000.0;
+@@ -42,7 +47,12 @@
+ /* Shared by exactly one roster invocation. Fail closed on a missing gate. */
+ static int Persona_Gate(double now)
+ {
+-#ifdef PLATFORM_POSIX
++#ifdef ARCH_WASM
++    // Pages have separate filesystems. Ordinary public chat received from a
++    // peer defers our next line; initial speaking times are offset by slot.
++    (void)now;
++    return 1;
++#elif defined(PLATFORM_POSIX)
+     double last = 0;
+     char buf[80];
+     int allowed = 0;
+@@ -72,8 +82,12 @@
+ }
+ void jkBotPersona_Configure(void)
+ {
++#ifdef ARCH_WASM
++    const char *path = "/jk1/bot-persona.tsv", *gate = "room";
++#else
+     const char *path = getenv("JK_BOT_PERSONA_FILE");
+     const char *gate = getenv("JK_BOT_CHAT_LOCK");
++#endif
+     const char *off = getenv("JK_BOT_TAUNTS");
+     const char *start = getenv("JK_BOT_CHAT_PHASE");
+     char row[256];
+@@ -128,9 +142,20 @@
+     if (!enabled || !sithPlayer_g_pLocalPlayer) return;
+     lastKills = sithPlayer_g_pLocalPlayer->numKills;
+     lastDeaths = sithPlayer_g_pLocalPlayer->numKilled;
++#ifdef ARCH_WASM
++    phase = 15.0 + 4.0 * playerThingIdx;
++#endif
+     eventAt = Persona_Now(); nextChat = eventAt + phase;
+     pending = CHAT_SPAWN; joined = 1;
+ }
++#ifdef ARCH_WASM
++void jkBotPersona_HeardChat(void)
++{
++    double next = Persona_Now() + 35.0 + 0.5 * playerThingIdx;
++    if (joined && nextChat < next) nextChat = next;
++}
++#endif
++
+ void jkBotPersona_Tick(float dt)
+ {
+     (void)dt;
+--- a/src/AI/jkBotPersona.h
++++ b/src/AI/jkBotPersona.h
+@@ -3,4 +3,7 @@
+ void jkBotPersona_Configure(void);
+ void jkBotPersona_OnJoined(void);
+ void jkBotPersona_Tick(float dt);
++#ifdef ARCH_WASM
++void jkBotPersona_HeardChat(void);
+ #endif
++#endif
+--- a/src/AI/jkBotCompanion.inc
++++ b/src/AI/jkBotCompanion.inc
+@@ -211,6 +211,9 @@
+     int length=(int)strlen(text);
+     const unsigned char *data=(const unsigned char *)text;
+     if (!Companion_Printable(data,length) || Companion_Reserved(data,length)) return;
++#if defined(ARCH_WASM) && defined(PLATFORM_WSRELAY)
++    jkBotPersona_HeardChat();
++#endif
+     unsigned char payload[118];
+     Companion_Put(payload,slot); Companion_Put(payload+4,sender);
+     memcpy(payload+8,data,length); Companion_Event(CP_CHAT,payload,8+length);

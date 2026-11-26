@@ -156,7 +156,7 @@ time.sleep(30)
                 run.select_profiles(profiles, value)
         for key, value in [("game", "mots"), ("rank", 9), ("teams", True),
                            ("game_flags", 4096), ("password", "private"),
-                           ("mod_dir", "/tmp/mod"), ("episode", "JKCTF"), ("max_players", 2)]:
+                           ("mod_dir", "/tmp/mod"), ("episode", "JK1MPDEM"), ("max_players", 2)]:
             config = dict(self.config, **{key: value})
             with self.subTest(key=key), self.assertRaises(ValueError):
                 run.check_scope(config, 2)
@@ -241,7 +241,10 @@ time.sleep(30)
                 self.assertNotIn(key, env)
             self.assertEqual(env["OPENJKDF2_ROOT"], row["directory"])
             self.assertEqual(env["JK_BOT_CHAT_LOCK"], str(directory / "chat.lock"))
-            self.assertEqual(env["JK_BOT_BEHAVIOR_FILE"], str(directory / "behavior.cfg"))
+            self.assertEqual(receipt["behavior_mode"], "fixed")
+            self.assertEqual(Path(env["JK_BOT_BEHAVIOR_FILE"]).name, "behavior.cfg")
+            self.assertNotEqual(Path(env["JK_BOT_BEHAVIOR_FILE"]), directory / "behavior.cfg")
+            self.assertTrue((directory/"behavior.cfg").is_file())
             self.assertEqual(env["JK_BOT_TEAM"], "0")
             self.assertIn(row["name"], observed["argv"])
             self.assertIn(row["model"], observed["argv"])

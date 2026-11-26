@@ -28,6 +28,14 @@ class Seats(unittest.TestCase):
 
 
 class Validation(unittest.TestCase):
+    def test_separate_chat_taunts_and_host_rules(self):
+        args = self.parse("host", "--relay", LOCAL, "--private-duels", "--companion-chat",
+                          "--no-taunts", *self.common())
+        self.assertTrue(args.private_duels and args.companion_chat and args.no_taunts)
+        join = self.parse("join", "--relay", LOCAL, "--room-id", "23", *self.common())
+        self.assertFalse(join.companion_chat or join.no_taunts)
+        self.assertFalse(hasattr(join, "private_duels"))
+
     def parse(self, *argv):
         parser = H.build_parser()
         args = parser.parse_args(list(argv))

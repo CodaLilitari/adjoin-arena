@@ -1,0 +1,22 @@
+--- a/src/AI/jkBotBrain.inc
++++ b/src/AI/jkBotBrain.inc
+@@ -64,7 +64,18 @@
+         (b->sector && (b->sector->flags & SITH_SECTOR_UNDERWATER)) ? 1.0f : 0.0f,
+         b->item >= 0 ? 1.0f : 0.0f, baseCost,
+         (flex_t)a->nEdges, (flex_t)b->nEdges};
+-    return (1.0f - jkBotBrain_EdgeSuccess(&botBrain.edge, features)) * 4.0f;
++    flex_t cost=(1.0f - jkBotBrain_EdgeSuccess(&botBrain.edge, features)) * 4.0f;
++    static int reported;
++    if (!reported) {
++        const char *observe=getenv("JK_BOT_NAV_OBSERVE");
++        if (observe && !strcmp(observe,"1")) {
++            fprintf(stderr,"BOT_NAV_PRIOR_USED name=%s sha256=%s from=%d to=%d cost=%.6f\n",
++                    bot.name,botBrain.edge.digest,from,to,(double)cost);
++            fflush(stderr);
++        }
++        reported=1;
++    }
++    return cost;
+ }
+ 
+ static void Bot_BrainGoal(SithThing *self, int goal, flex_t graphDistance, int objective)

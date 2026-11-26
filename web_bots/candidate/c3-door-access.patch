@@ -1,0 +1,225 @@
+--- a/src/AI/jkBot.c
++++ b/src/AI/jkBot.c
+@@ -68,7 +68,7 @@
+ #define BOT_DIAGONAL_ANGLE 0.6107260f
+ #define BOT_DIAGONAL_GAIN 1.2206556f
+ 
+-typedef struct BotEdge { int to; flex_t cost; int drop; } BotEdge;
++typedef struct BotEdge { int to; flex_t cost; uint16_t drop, c3Doors; } BotEdge;
+ typedef struct BotNode {
+     rdVector3 pos;
+     SithSector *sector;
+--- /dev/null
++++ b/src/AI/jkBotC3Door.h
+@@ -0,0 +1,32 @@
++/* The stock C3 door scripts check inventory, regardless of selected team. */
++typedef struct {
++    int axis;  /* 0 for a doorway normal to X, 1 for Y */
++    flex_t plane, acrossMin, acrossMax, zMin, zMax;
++} BotC3Opening;
++
++static int Bot_C3ScriptBin(const char *script, int color)
++{
++    if (Bot_NameIs(script,"ctf_doorred.cog")) return 83;
++    if (Bot_NameIs(script,"ctf_doorgold.cog")) return 84;
++    if (Bot_NameIs(script,"c3_sascolored.cog") && (color==1 || color==2)) return 82+color;
++    return 0;
++}
++
++static int Bot_C3Denied(int bin, int paired, flex_t amount, int open)
++{
++    if (!bin || open) return 0;
++    /* Single doors use == 1.0. Paired interior doors reject only zero. */
++    return paired ? amount==0.0f : amount!=1.0f;
++}
++
++static int Bot_C3Crosses(const BotC3Opening *door, rdVector3 a, rdVector3 b)
++{
++    flex_t begin=(door->axis ? a.y : a.x)-door->plane;
++    flex_t end=(door->axis ? b.y : b.x)-door->plane;
++    /* An owner standing on the plane may leave it. */
++    if (begin==0 || (begin>0 && end>0) || (begin<0 && end<0)) return 0;
++    flex_t t=begin/(begin-end);
++    flex_t across=door->axis ? a.x+t*(b.x-a.x) : a.y+t*(b.y-a.y);
++    flex_t z=a.z+t*(b.z-a.z);
++    return across>=door->acrossMin && across<=door->acrossMax && z>=door->zMin && z<=door->zMax;
++}
+--- a/src/AI/jkBotNavigation.inc
++++ b/src/AI/jkBotNavigation.inc
+@@ -167,6 +167,126 @@
+     return thing->type!=SITH_THING_FREE && !(thing->flags&SITH_TF_DESTROYED) ? thing : NULL;
+ }
+ 
++#include "AI/jkBotC3Door.h"
++
++typedef struct {
++    BotC3Opening opening;
++    int thing, bin, paired;
++    uint32_t signature;
++} BotC3Door;
++static struct {
++    BotC3Door doors[6]; /* Four single doors and two keyed airlock interiors in stock C3. */
++    int count, lastDenied;
++} c3Access;
++
++static int Bot_C3StockFile(const char *path, int length, const char *digest)
++{
++    stdFile_t file=std_g_pHS->fileOpen(path,"rb");
++    if (!file) return 0;
++    int verified=0;
++    if (std_g_pHS->fileSize(file)==length) {
++        void *data=malloc((size_t)length);
++        if (data && std_g_pHS->fileRead(file,data,(size_t)length)==(size_t)length) {
++            char actual[65];
++            jkBotBrain_Sha256Hex(data,(size_t)length,actual);
++            verified=!strcmp(digest,actual);
++        }
++        free(data);
++    }
++    std_g_pHS->fileClose(file);
++    return verified;
++}
++
++static int Bot_C3OpeningFor(SithThing *door, BotC3Opening *opening)
++{
++    if (!door || door->moveType!=SITH_MT_PATH || door->trackParams.loadedFrames!=2 ||
++        !door->trackParams.aFrames) return 0;
++    rdVector3 closed=door->trackParams.aFrames[0].pos;
++    SithSector *sector=Bot_SectorAt(&closed,door->sector);
++    if (!sector) return 0;
++    rdVector3 low={1e20f,1e20f,1e20f}, high={-1e20f,-1e20f,-1e20f};
++    int faces=0;
++    for (unsigned int i=0;i<sector->numSurfaces;++i) {
++        SithSurface *surface=&sector->surfaces[i];
++        if (!surface->pAdjoin) continue;
++        rdFace *face=&surface->surfaceInfo.face;
++        if (face->numVertices<3 || !face->vertexPosIdx) return 0;
++        ++faces;
++        for (unsigned j=0;j<face->numVertices;++j) {
++            int v=face->vertexPosIdx[j];
++            if (v<0 || v>=bot.world->numVertices) return 0;
++            rdVector3 p=bot.world->aVertices[v];
++            low.x=fminf(low.x,p.x); low.y=fminf(low.y,p.y); low.z=fminf(low.z,p.z);
++            high.x=fmaxf(high.x,p.x); high.y=fmaxf(high.y,p.y); high.z=fmaxf(high.z,p.z);
++        }
++    }
++    if (faces!=2) return 0;
++    int axis=(high.y-low.y < high.x-low.x);
++    flex_t thickness=axis ? high.y-low.y : high.x-low.x;
++    if (thickness<=0 || thickness>.06f || high.z-low.z<.15f) return 0;
++    *opening=(BotC3Opening){axis, axis ? (low.y+high.y)*.5f : (low.x+high.x)*.5f,
++        axis ? low.x : low.y, axis ? high.x : high.y, low.z, high.z};
++    return 1;
++}
++
++static void Bot_C3ReadDoors(void)
++{
++    memset(&c3Access,0,sizeof(c3Access));
++    c3Access.lastDenied=-1;
++#ifdef SITH_DEBUG_STRUCT_NAMES
++    if (!nav.ctf || !Bot_NameIs(bot.world->map_jkl_fname,"c3.jkl")) return;
++    /* A replacement with the same filename or edited scripts keeps ordinary routing. */
++    if (!Bot_C3StockFile("jkl\\c3.jkl",3313579,"b4d804591cebebbd59f05ad42a8e059178dc468e24172bd6bc5b7d6ba1c2f0a7") ||
++        !Bot_C3StockFile("cog\\ctf_doorred.cog",1614,"06ddfe25a196f1b3186ff18dab328b04924ea19eaf6d444d9c79efa4834f7d2b") ||
++        !Bot_C3StockFile("cog\\ctf_doorgold.cog",1618,"cdba0dce328ba7a88e15eef79716886f882cd676a84d738444b3151034382338") ||
++        !Bot_C3StockFile("cog\\c3_sascolored.cog",4414,"58f163a3b26e9f7103b06983b93fcecd9fc4a0215d1c8953f7e75bdfc9053bed")) return;
++    for (int i=0;i<bot.world->numCogs && c3Access.count<6;++i) {
++        sithCog *cog=&bot.world->aCogs[i];
++        if (!cog->pScript) continue;
++        const char *script=cog->pScript->aName;
++        int paired=Bot_NameIs(script,"c3_sascolored.cog");
++        int bin=Bot_C3ScriptBin(script,paired ? Bot_CogReference(cog,"sas_color") : 0);
++        if (!bin) continue;
++        int index=Bot_CogReference(cog,paired ? "door_int" : "door");
++        SithThing *thing=Bot_NavThing(index);
++        BotC3Door *door=&c3Access.doors[c3Access.count];
++        if (!Bot_C3OpeningFor(thing,&door->opening)) continue;
++        door->thing=index; door->signature=thing->signature; door->bin=bin; door->paired=paired;
++        ++c3Access.count;
++    }
++    fprintf(stderr,"BOT_C3_ACCESS name=%s event=bind doors=%d\n",bot.name,c3Access.count);
++    if (c3Access.count!=6) c3Access.count=0;
++#endif
++}
++
++static unsigned Bot_C3DeniedMask(SithThing *self)
++{
++    if (!c3Access.count) return 0;
++    flex_t red=sithInventory_GetInventory(self,83), gold=sithInventory_GetInventory(self,84);
++    unsigned blocked=0;
++    for (int i=0;i<c3Access.count;++i) {
++        BotC3Door *door=&c3Access.doors[i];
++        SithThing *thing=Bot_NavThing(door->thing);
++        if (!thing || thing->signature!=door->signature) continue;
++        int open=thing->curframe==1 && !(thing->trackParams.flags&3);
++        if (Bot_C3Denied(door->bin,door->paired,door->bin==83 ? red : gold,open)) blocked|=1u<<i;
++    }
++    if ((int)blocked!=c3Access.lastDenied) {
++        fprintf(stderr,"BOT_C3_ACCESS name=%s event=access blocked=%u red=%.1f gold=%.1f\n",
++                bot.name,blocked,(double)red,(double)gold);
++        c3Access.lastDenied=(int)blocked;
++    }
++    return blocked;
++}
++
++static unsigned Bot_C3CrossingMask(rdVector3 a, rdVector3 b)
++{
++    unsigned mask=0;
++    for (int i=0;i<c3Access.count;++i)
++        if (Bot_C3Crosses(&c3Access.doors[i].opening,a,b)) mask|=1u<<i;
++    return mask;
++}
++
+ static void Bot_ReadCtfBindings(void)
+ {
+     nav.ctf=0;
+@@ -666,6 +786,7 @@
+     nav.maxRunSpeed=self->physicsParams.maxVelocity;
+     nav.forceJumpKnown=(int)Bot_Clamp(sithInventory_GetInventory(self,SITHBIN_F_JUMP),0,4);
+     Bot_ReadCtfBindings();
++    Bot_C3ReadDoors();
+     Bot_AddNode(self->position,self->sector,-1,0.65f);
+     /* Preserve authored spawn and pickup locations before generic geometry. */
+     for (int i=0;i<Bot_ThingCount();i++) {
+@@ -1079,6 +1200,9 @@
+     if (mode!=BOT_ROUTE_GATE && Bot_FieldBlocks(from,to)) return;
+     BotEdge *edge=&node->edges[node->nEdges++];
+     edge->to=to; edge->drop=mode;
++    /* Ballistic arcs and moving lifts can clear a door above its aperture.
++       Classify straight walking legs from their actual geometry. */
++    edge->c3Doors=mode==BOT_ROUTE_WALK ? Bot_C3CrossingMask(node->pos,bot.nodes[to].pos) : 0;
+     edge->cost=Bot_Distance(node->pos,bot.nodes[to].pos)+
+         (mode==BOT_ROUTE_DROP ? 1.8f : mode==BOT_ROUTE_JUMP ? 1.1f : (mode==BOT_ROUTE_SWIM || mode==BOT_ROUTE_WATER_ENTRY || mode==BOT_ROUTE_WATER_EXIT) ? 2.0f :
+          mode==BOT_ROUTE_LIFT ? 2.2f : mode==BOT_ROUTE_FORCEJUMP ? 3.0f : mode==BOT_ROUTE_RUNJUMP ? 5.0f : 0.0f);
+@@ -1422,6 +1546,7 @@
+ 
+ static int Bot_NearestApproach(SithThing *self,int defer)
+ {
++    unsigned denied=Bot_C3DeniedMask(self);
+     int best=-1;
+     flex_t distance=1e20f;
+     /* lip_escape: the centre can hang over a drop into another sector while
+@@ -1436,6 +1561,7 @@
+         flex_t d=Bot_Distance(n->pos,self->position);
+         int water=((n->sector->flags|self->sector->flags)&SITH_SECTOR_UNDERWATER)!=0;
+         if (d>=distance || d>2.0f || (!water && fabsf(n->pos.z-self->position.z)>0.3f)) continue;
++        if (denied && (denied&Bot_C3CrossingMask(self->position,n->pos))) continue;
+         if (!Bot_Clear(self,self->sector,self->position,n->pos,0.04f,1)) continue;
+         best=i; distance=d;
+     }
+@@ -1519,6 +1645,7 @@
+ 
+ static void Bot_SearchPaths(SithThing *self,int start,flex_t *distance,int *parent,int defer)
+ {
++    unsigned denied=Bot_C3DeniedMask(self);
+     int heap[BOT_NODES], positions[BOT_NODES], count=1;
+     int forceJump=bot.forceEnabled && sithInventory_GetInventory(self,SITHBIN_F_JUMP)>0 &&
+         sithInventory_GetInventory(self,SITHBIN_FORCEMANA)>=20;
+@@ -1541,6 +1668,7 @@
+         for (int k=0;k<n->nEdges;k++) {
+             BotEdge *e=&n->edges[k];
+             if (e->to<0 || e->to>=bot.nNodes || positions[e->to]==-2) continue;
++            if (e->c3Doors&denied) continue;
+             if (defer && e->drop==BOT_ROUTE_WATER_ENTRY && Bot_ApproachDeferred(n->sector,bot.nodes[e->to].sector)) continue;
+             if (e->drop==BOT_ROUTE_DROP && self->actorParams.health<30) continue;
+             if (e->drop==BOT_ROUTE_FORCEJUMP && !forceJump) continue;

@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "date": "2026-11-26",
+  "status": "experimental_source_candidate",
+  "package_wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+  "candidate_sha256": "67ea383f11b937ee9eb9c80890a6c9ae73818b2896071508baefc6404e702a2d",
+  "baseline_source_sha256": {
+    "src/AI/jkBot.c": "5dda91a988cfea338200d26a8d4a9eb4fa651d2e2db65b55dea9f9698f89e77b",
+    "src/AI/jkBotNavigation.inc": "9af259356ee7859fa11a25e155bee08747954d1df62c4287c5cfecad9b1542d4"
+  },
+  "stock_replay_receipt_sha256": "04a7d7199fda680b0284f268c5463a73516e5fa1d02d333db68563949a7c4775",
+  "tests": {
+    "tests/c3_door_access.c": "c5993a49d99fdeda5c0539b00aae2224cd3fd7c3569dd0cf4fb1a4aaa5879e66",
+    "tests/c3_door_graph.c": "28842fc910ed6ebbdf724ceeff711d44a769bf01fb5c9954a0c6a4648a99bac3",
+    "tests/test_c3_door_access.py": "6edb25afe933d9308d469e68f0f83ced55f753bbe1b812d6d734dd18a7070ab2"
+  },
+  "validation": {
+    "host": "Windows x64",
+    "compiler": "clang version 20.1.8",
+    "configured_tests": 3,
+    "passed": 3,
+    "default_source_hash_checks": 21,
+    "input": "Real owned stock C3 level and door COG bytes; fixture world with six stock door bindings and representative opening coordinates",
+    "path_search": "Actual Bot_AddEdge and Bot_SearchPaths on a four-node walking graph; expected parent was alternate without the key, direct with the key, direct while fully open, and alternate after closure.",
+    "controls": "Single gates require exactly one correct key. Paired interior gates accept a nonzero correct key. Exterior unkeyed path remains available. Wrong script digest, other level and non-CTF disable the candidate. A moving door takes the closed-door rule.",
+    "scope": "Ordinary first-anchor approaches and registered walking edges. Friendly airlock control, airborne routes and match performance await private gameplay trials."
+  }
+}

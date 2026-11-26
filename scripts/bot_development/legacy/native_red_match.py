@@ -41,7 +41,9 @@ def resolve_client(repo, directory, pace_build, digest, *, transfer=False, custo
     if competitive:
         pins.update({"native/red-transfer-build.json": "transfer_receipt_sha256",
                      "native/build_competitive.py": "competitive_builder_sha256"})
-        overlays = ("saber-combat.patch", "competitive-light-profile.patch")
+        overlays = ("saber-combat.patch", "competitive-light-profile.patch",
+                    "navigation-memory.patch", "competitive-navigation.patch", "supported-ramp.patch",
+                    "navigation-observation.patch", "custom-episode.patch")
         if (build["competitive_overlays"] != {name: digest(repo / "native" / name) for name in overlays}
                 or build["transfer_binary_sha256"] != json.loads(
                     (repo / "native/red-transfer-build.json").read_bytes())["binary_sha256"]):

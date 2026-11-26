@@ -44,9 +44,9 @@
               width:gl.drawingBufferWidth, height:gl.drawingBufferHeight};
   }
 
-  async function api(path, body, extra = {}) {
+  async function api(path, body, extra = {}, signal = undefined) {
     const headers = {Authorization:"Bearer "+token, ...extra};
-    const options = {headers, cache:"no-store"};
+    const options = {headers, cache:"no-store", signal};
     if (body !== undefined) {
       options.method = "POST";
       if (body instanceof Blob) options.body = body;
@@ -59,6 +59,25 @@
     if (!res.ok) throw new Error(path+" returned "+res.status+": "+(await res.text()).slice(0,180));
     return res;
   }
+  // A separate bounded queue lets a slow disk or a missed acknowledgement
+  // retry the same observation sequence while the game and coach keep running.
+  const navLines = [];
+  let navSequence = 1, navSending = false, navDropped = 0;
+  async function flushNavigation() {
+    if (navSending || !navLines.length) return;
+    navSending = true;
+    const lines = navLines.slice(0,32);
+    try {
+      const result = await (await api("navigation",{instance,first:navSequence,lines},{},AbortSignal.timeout(5000))).json();
+      if (result.next === navSequence + lines.length) {
+        navDropped = Math.min(0xffffffff, navDropped + (result.discarded || 0));
+        navSequence = result.next;
+        navLines.splice(0,lines.length);
+      }
+    } catch (err) { message(err); }
+    finally { navSending = false; }
+  }
+
   function outgoing(bytes) {
     if (!(bytes instanceof Uint8Array) || bytes.length < 20 || bytes.length > 512) return;
     const kind = bytes[5];
@@ -95,7 +114,7 @@
         if (stage === "running" && ticks++ % 20 === 0) graphics();
         const batch = queue.splice(0,32);
         const packet = {instance, frames:batch.map(f => btoa(String.fromCharCode(...f))),
-                        dropped, stage, view:latestView};
+                        dropped, navigation_dropped:navDropped, stage, view:latestView};
         if (render) packet.graphics = render;
         const t0 = wasmClock();
         const reply = await (await api("frames",packet)).json();
@@ -129,6 +148,7 @@
     let boot;
     try { boot = await (await api("boot",{instance})).json(); }
     catch (err) { token = null; throw err; }
+    if (boot.navigation) setInterval(flushNavigation, 500);
     adaptiveLily = id === "lily" && boot.env.JK_BOT_LILY === "1";
     document.querySelector("#login").hidden = true;
     document.querySelector("#title").textContent = boot.env.JK_BOT_WEB_NAME;
@@ -149,9 +169,12 @@
       mod = globalThis.Module = {
         canvas,
         arguments: boot.mod ? ["-path","jkmods/companion"] : [],
-        jkBotConfig:{lily:adaptiveLily,mode:env.JK_BOT_WEB_MODE,role:env.JK_BOT_WEB_ROLE,room:env.JK_BOT_WEB_ROOM,name:env.JK_BOT_WEB_NAME,
+        jkBotConfig:{navObserve:!!boot.navigation,
+                     edgeModel:boot.prior ? "/jk1/persist/geometry.weights" : undefined,
+                     edgeDigest:boot.prior ? boot.prior[1] : undefined,lily:adaptiveLily,mode:env.JK_BOT_WEB_MODE,role:env.JK_BOT_WEB_ROLE,room:env.JK_BOT_WEB_ROOM,name:env.JK_BOT_WEB_NAME,
                      episode:env.JK_BOT_WEB_EPISODE,map:env.JK_BOT_WEB_MAP,maxPlayers:env.JK_BOT_WEB_MAX_PLAYERS,
                      model:env.JK_BOT_WEB_MODEL,sound:env.JK_BOT_WEB_SOUND,side:env.JK_BOT_FORCE_SIDE,
+                     taunts:env.JK_BOT_TAUNTS,privateDuels:env.JK_BOT_PRIVATE_DUELS,
                      saberColor:env.JK_BOT_WEB_SABER_COLOR,trace:env.JK_BOT_TRACE_FORCE==="1",
                      style:env.JK_BOT_FORCE_STYLE,thirdPerson:env.JK_BOT_WEB_THIRD_PERSON==="1",elite:true},
         jkRelayUrl:boot.relay || "ws://"+location.host+"/relay",
@@ -159,6 +182,11 @@
         onJkBotEvent:outgoing,
         print:line => console.log(line),
         printErr:line => {
+          if (boot.navigation && typeof line === "string" && line.startsWith("BOT_EDGE_ATTEMPT ")) {
+            if (line.length <= 512 && navLines.length < 256) navLines.push(line);
+            else navDropped = Math.min(0xffffffff, navDropped + 1);
+            return;
+          }
           console.error(line);
           if (boot.relay && String(line).includes("BOT_JOIN_REJECTED")) {
             stage = "failed";
@@ -170,11 +198,13 @@
         preRun:[() => {
           const fs = mod.FS;
           for (const path of ["/jk1/player","/jk1/persist","/mots/player","/mots/persist"]) fs.mkdirTree(path);
+          if (boot.prior) fs.writeFile("/jk1/persist/geometry.weights",new TextEncoder().encode(boot.prior[0]));
           mod.jkSavesMounted = true;
           for (const [path,data] of loaded) {
             fs.mkdirTree(path.slice(0,path.lastIndexOf("/")));
             fs.writeFile(path,data,{canOwn:true});
           }
+          if (boot.persona) fs.writeFile("/jk1/bot-persona.tsv",boot.persona);
           loaded.length=0;
           if (mod.ENV || globalThis.ENV) Object.assign(mod.ENV || globalThis.ENV,env);
         }],
@@ -272,7 +302,7 @@
     return {seconds,audio_tracks:stream.getAudioTracks().length,mime};
   }
   globalThis.jkBot = {startRecording,info:()=>({id,stage,graphics:render,view:latestView,
-                                 dropped,recording:captured?.status || null})};
+                                 dropped,navigationDiscarded:navDropped,recording:captured?.status || null})};
   record.onclick=()=>startRecording().catch(message);
   document.querySelector("#credential").onchange=async ev=>{
     try {

@@ -1,0 +1,122 @@
+--- a/src/AI/jkBotBrain.inc
++++ b/src/AI/jkBotBrain.inc
+@@ -7,5 +7,5 @@
+ static struct {
+     jkBotBrainEdgeModel edge;
+-    int trace;
++    int trace, observe, start;
+     unsigned seq;
+     int lastGoal;
+@@ -17,8 +17,39 @@
+ }
+ 
++/* Observe only the actual legal directed leg the bot was following. */
++static unsigned long long Bot_BrainNodeKey(const BotNode *n)
++{
++    unsigned long long key=14695981039346656037ULL;
++    const int coords[]={n->sector ? (int)n->sector->id : -1, (int)llround(n->pos.x*65536.0),
++                        (int)llround(n->pos.y*65536.0), (int)llround(n->pos.z*65536.0)};
++    for (int i=0;i<4;i++) { key^=(unsigned)coords[i]; key*=1099511628211ULL; }
++    return key;
++}
++
++static void Bot_BrainObserve(int node,int failed)
++{
++    if (!botBrain.observe || !bot.followingRoute || bot.routePos<0 || bot.routePos>=bot.routeCount ||
++        node<0 || node>=bot.nNodes || bot.route[bot.routePos]!=node) return;
++    int from=bot.routePos ? bot.route[bot.routePos-1] : botBrain.start;
++    if (from<0 || from==node || from>=bot.nNodes) return;
++    BotNode *a=&bot.nodes[from],*b=&bot.nodes[node];
++    for (int i=0;i<a->nEdges;i++) if (a->edges[i].to==node) {
++        fprintf(stderr,"BOT_EDGE_ATTEMPT name=%s t=%.3f event=%s from_key=%llx to_key=%llx edge=%d dist_mm=%lld dz_mm=%lld from_water=%d to_water=%d dest_item=%d base_cost_milli=%lld degree_from=%d degree_to=%d\n",
++                bot.name,(double)bot.now,failed?"stall":"arrive",Bot_BrainNodeKey(a),Bot_BrainNodeKey(b),
++                (int)a->edges[i].drop,Bot_BrainMilli(Bot_Distance(a->pos,b->pos)),Bot_BrainMilli(b->pos.z-a->pos.z),
++                !!(a->sector && (a->sector->flags&SITH_SECTOR_UNDERWATER)),
++                !!(b->sector && (b->sector->flags&SITH_SECTOR_UNDERWATER)),b->item>=0,
++                Bot_BrainMilli(a->edges[i].cost),a->nEdges,b->nEdges);
++        break;
++    }
++}
++
+ static void Bot_BrainConfigure(void)
+ {
+     memset(&botBrain, 0, sizeof(botBrain));
+     botBrain.lastGoal = -1;
++    botBrain.start = -1;
++    const char *observe = getenv("JK_BOT_NAV_OBSERVE");
++    botBrain.observe = observe && !strcmp(observe,"1");
+     const char *trace = getenv("JK_BOT_TRACE_DECISIONS");
+     botBrain.trace = trace && !strcmp(trace, "1");
+@@ -37,5 +68,5 @@
+     text[count] = '\0';
+     if (jkBotBrain_ParseEdgeModel(text, count, expected, &botBrain.edge) &&
+-        botBrain.trace) {
++        (botBrain.trace || botBrain.observe)) {
+         fprintf(stderr, "BOT_BRAIN_MODEL name=%s sha256=%s status=loaded\n",
+                 bot.name, botBrain.edge.digest);
+--- a/src/AI/jkBotNavigation.inc
++++ b/src/AI/jkBotNavigation.inc
+@@ -1677,4 +1677,5 @@
+ static int Bot_SetRoute(int start,int goal,const int *parent)
+ {
++    botBrain.start=start;
+     if (goal!=bot.goal) bot.goalSetAt=bot.now;
+     bot.goal=goal; bot.routeCount=bot.routePos=0;
+--- a/src/AI/jkBot.c
++++ b/src/AI/jkBot.c
+@@ -1422,4 +1422,5 @@
+        Movement on the deadline frame still belongs to recovery. */
+     if (node>=0 && bot.routeStallTime+0.001f>=(recovering ? 1.5f : 2.0f)) {
++        if (!bot.armDirect) Bot_BrainObserve(node,1);
+         Bot_AvoidNode(&bot.nodes[node],6.0f);
+         if (bot.goal>=0) Bot_AvoidNode(&bot.nodes[bot.goal],7.0f);
+--- a/src/AI/jkBotNavigate.inc
++++ b/src/AI/jkBotNavigate.inc
+@@ -797,4 +797,27 @@
+ }
+ 
++/* Without a reachable graph leg, move on Red's collision-checked floor.
++ * Objective headings are retained, including the stock CTF lobby objective. */
++static int Bot_ExploreUnrouted(SithThing *self)
++{
++    if (bot.nextRecovery>0 || nav.seekingSurface ||
++        !(self->attach_flags & (SITH_ATTACH_SURFACE|SITH_ATTACH_THINGFACE)) ||
++        self->sector->flags&SITH_SECTOR_UNDERWATER || Bot_NavigationWaiting(self)) return 0;
++    rdVector3 desired=self->orient.lvec;
++    if (nav.objectiveValid) desired=Bot_Sub(nav.objectivePos,self->position);
++    else if (nav.ctf || nav.objective==BOT_OBJECTIVE_AIR) return 0;
++    if (Bot_Horizontal(desired)<0.12f) return 0;
++    static const flex_t angles[]={0,0.45f,-0.45f,0.95f,-0.95f};
++    for (int i=0;i<5;++i) {
++        flex_t a=angles[i]; rdVector3 blocked;
++        rdVector3 dir={desired.x*cosf(a)-desired.y*sinf(a),desired.x*sinf(a)+desired.y*cosf(a),0};
++        if (!Bot_SafeDirection(self,dir,0,0.30f,&blocked)) continue;
++        rdVector3 aim={self->position.x+dir.x,self->position.y+dir.y,self->position.z};
++        Bot_Aim(self,aim,0); Bot_Move(self,dir,0);
++        return 1;
++    }
++    return 0;
++}
++
+ static void Bot_Navigate(SithThing *self)
+ {
+@@ -853,4 +876,5 @@
+     if (Bot_JoinMove(self)) return;
+     if (bot.goal<0 || bot.routePos>=bot.routeCount) {
++        if (Bot_ExploreUnrouted(self)) return;
+         bot.axes[INPUT_FUNC_TURN]=0.35f;
+         if (self->sector->flags&SITH_SECTOR_UNDERWATER) bot.keys[INPUT_FUNC_JUMP]=1;
+@@ -884,4 +908,5 @@
+             }
+         }
++        Bot_BrainObserve(nodeIndex,0);
+         bot.routePos++;
+         if (bot.routePos>=bot.routeCount) {
+--- a/src/Gui/jkGUIMultiplayer.c
++++ b/src/Gui/jkGUIMultiplayer.c
+@@ -106,4 +106,5 @@
+ {
+     static const struct { const char *field,*environment; } options[]={
++        {"navObserve","JK_BOT_NAV_OBSERVE"},{"edgeModel","JK_BOT_EDGE_MODEL"},{"edgeDigest","JK_BOT_EDGE_MODEL_SHA256"},
+         {"role","JK_BOT_WEB_ROLE"},{"room","JK_BOT_WEB_ROOM"},{"name","JK_BOT_WEB_NAME"},
+         {"model","JK_BOT_WEB_MODEL"},{"sound","JK_BOT_WEB_SOUND"},{"thirdPerson","JK_BOT_WEB_THIRD_PERSON"},

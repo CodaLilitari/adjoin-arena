@@ -1,0 +1,84 @@
+--- a/src/AI/jkBot.c
++++ b/src/AI/jkBot.c
+@@ -259,8 +259,8 @@
+     return clear;
+ }
+ 
+-static int Bot_Floor(rdVector3 p, SithSector *hint, flex_t depth,
+-                     rdVector3 *standing, SithSector **outSector)
++static int Bot_FloorWithFlags(rdVector3 p, SithSector *hint, flex_t depth,
++                              rdVector3 *standing, SithSector **outSector, int rayFlags)
+ {
+     rdVector3 down={0,0,-1};
+     SithCollision *hit;
+@@ -269,7 +269,7 @@
+     if (!Bot_SectorSafe(sector)) return 0;
+     /* A stationary mesh can overhang its owner sector across an adjoin. */
+     sithCollision_SearchForCollisions(sector,NULL,&p,&down,depth,0.0f,
+-        RAYCAST_200|RAYCAST_800|RAYCAST_2000);
++        RAYCAST_200|RAYCAST_800|RAYCAST_2000|rayFlags);
+     while ((hit=sithCollision_PopStack())!=NULL) {
+         if ((hit->type&SITHCOLLISION_ADJOINCROSS) && hit->surface &&
+             hit->surface->pAdjoin && !Bot_SectorSafe(hit->surface->pAdjoin->sector)) break;
+@@ -280,7 +280,7 @@
+             supportSector=hit->surface->pSector;
+         } else if ((hit->type&SITHCOLLISION_THING) && Bot_StaticFixture(hit->pThingCollided)) {
+             /* Stock catwalks/crates can be mesh COGs with no travel frames. */
+-            if (hit->hitNorm.z<0.55f) continue;
++            if (hit->hitNorm.z<0.55f || (rayFlags && !(hit->pThingCollided->flags&SITH_TF_STANDABLE))) continue;
+             supportSector=hit->pThingCollided->sector;
+         } else continue;
+         *standing=p; standing->z=p.z-hit->distance+BOT_FOOT_HEIGHT;
+@@ -291,6 +291,12 @@
+     }
+     sithCollision_DecreaseStackLevel();
+     return found;
++}
++
++static int Bot_Floor(rdVector3 p, SithSector *hint, flex_t depth,
++                     rdVector3 *standing, SithSector **outSector)
++{
++    return Bot_FloorWithFlags(p,hint,depth,standing,outSector,0);
+ }
+ 
+ static int Bot_ForceReady(SithThing *self,int bin,flex_t cost);
+--- a/src/AI/jkBotNavigation.inc
++++ b/src/AI/jkBotNavigation.inc
+@@ -773,7 +773,12 @@
+     flex_t length=Bot_Horizontal(delta), previousZ=a->pos.z;
+     SithSector *hint=a->sector;
+     int dropping=(delta.z < -BOT_STEP_UP);
+-    if (length>3.5f || length<minLength || delta.z>BOT_STEP_UP || delta.z < -BOT_MAX_DROP) return 0;
++    int climbing=delta.z>BOT_STEP_UP;
++    if (length>3.5f || length<minLength || delta.z < -BOT_MAX_DROP) return 0;
++    /* A continuous inclined floor can rise several steps between sampled
++       graph nodes. Probe a body-width apart and require the standing floor
++       to follow the incline. A vertical ledge cannot pass these checks. */
++    if (climbing && delta.z>1.15f*length) return 0;
+     rdVector3 sweepA=a->pos, sweepB=b->pos;
+     if (dropping) sweepB.z=sweepA.z;
+     /* Test the actual body center first. Stock m2 sector110 is only0.20
+@@ -789,13 +794,21 @@
+             !Bot_Clear(NULL,a->sector,raisedA,raisedB,0.058f,1)) return 0;
+         sweepA=raisedA; sweepB=raisedB;
+     }
+-    int steps=(int)ceilf(length/0.22f);
++    int steps=(int)ceilf(length/(climbing ? 0.075f : 0.22f));
+     for (int i=1;i<=steps;i++) {
+         rdVector3 p=Bot_Mix(a->pos,b->pos,(flex_t)i/(flex_t)steps), floor;
+         /* Keep the ray origin below low ceilings; body clearance is above. */
+         p.z=Bot_Max(previousZ,p.z)+0.02f;
+         SithSector *floorSector;
+-        if (!Bot_Floor(p,hint,dropping ? BOT_MAX_DROP+0.3f : 0.52f,&floor,&floorSector)) return 0;
++        /* Match the engine's grounded-player ray. A collision-only chute
++           can stop a sphere but offers no uphill walking attachment. */
++        if (!Bot_FloorWithFlags(p,hint,dropping ? BOT_MAX_DROP+0.3f : 0.52f,
++                                &floor,&floorSector,climbing ? RAYCAST_10 : 0)) return 0;
++        if (climbing) {
++            flex_t expected=a->pos.z+delta.z*(flex_t)i/(flex_t)steps;
++            if (fabsf(floor.z-expected)>0.035f ||
++                fabsf(floor.z-previousZ)>1.15f*length/(flex_t)steps+0.006f) return 0;
++        }
+         if (floor.z-previousZ>BOT_STEP_UP || previousZ-floor.z>BOT_MAX_DROP) return 0;
+         previousZ=floor.z; hint=floorSector;
+     }

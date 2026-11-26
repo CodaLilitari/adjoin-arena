@@ -39,6 +39,16 @@ python -m web_bots.headless host --relay ws://127.0.0.1:8080/relay \
 
 For Jedi's High School, use `--episode-gob "/path/to/jhs.gob" --map jhs.jkl`.
 The host and the joining browsers use the operator's local episode.
+`headless join` and `join_room join` can also mount the selected room's
+locally supplied episode. They read the selected room's Force rank from
+JKWeb's lobby entry before choosing the NF or FF navigation weights.
+Intermediate or unavailable ranks still allow ordinary play and leave
+the persistent NF and FF banks untouched.
+Each seat reports its navigation memory as `enabled`, `disabled`, or `degraded`
+in `/status`. A damaged database affects its own seat only. After repairing
+that seat's database, opening its browser again retries the connection.
+The browser host automatically enables teams for the stock `JK1CTF` episode.
+Custom CTF hosting under another GOB name needs support for its team flag.
 `--mode ff-sabers` or `--mode nf-sabers` sets the bots' weapon rules.
 The separate `--model-gob` option supplies roster artwork.
 
@@ -48,6 +58,13 @@ on opposing stock teams. Both C1 browsers reported the same two red-team
 captures. The receipt includes per-seat models, camera flags, weapon inputs,
 coach acknowledgments and native item-collection events.
 [Browser gameplay and rebuild receipt](../qa/jkweb-competitive-rebuild.json)
+
+In a 100-second C2 no-Force sabers match, both clients reported three Red
+captures and one Gold capture. On C3, two 105-second full-Force matches
+(sabers and guns) reached opposing team assignment and moved toward the
+enemy flag. Both ended without a recorded capture. On the guns run both
+players stayed in the same respective sectors over their final five
+ten-second checks. [Windows C2 and C3 match telemetry](../qa/windows-stock-ctf-c2-c3.json)
 
 ## Private four-bot arena
 
@@ -98,7 +115,19 @@ The local frame bridge transfers bounded datagrams outside the engine tick. For 
 
 The separate Cross Server adapter for unchanged classic browser clients continues to target its pinned historical build. This browser-hosted arena uses the current upstream relay protocol. Results for either setup belong with the exact engine build, relay revision and client combination tested.
 
+### Challenges and game chat
+
+Use `--private-duels` with `web_bots.headless host` or `web_bots.serve` to enable JKWeb's private saber challenges in a peer-hosted free-for-all. In a game hosted by someone else, the host controls this rule. An eligible player equips a saber, approaches a bot in sight and types `/duel <slot>` in the game chat. The bot equips its saber if necessary and acknowledges the incoming offer through JKWeb's duel protocol. Host range, sight, equipment, power-effect and timeout checks still apply. JKWeb excludes team games and CTF from private duels.
+
+A browser bot can send a character line after joining, scoring or dying, or an occasional ambient remark. Its usual interval is 90–150 seconds. Public game chat delays its next line. Use `--no-taunts` to silence these lines across the launched roster.
+
+A coach can read a bot's public chat while automatic tactics continue. Run `python -m bots.coach_seat --run <headless.json> --seat red --control <private-directory>`. Incoming messages appear as `chat` records with player slot and network ID in the coach log and in the control directory's status file. Start the host or join launcher with `--companion-chat` to enable replies, then type `say On my way.` at the coach prompt or append the line to `commands.txt`. Acknowledged replies, rejected replies and tactics have independent status. The current learning window continues across a reply.
+
 ### Verified private sessions
+
+On Canyon Oasis, Red accepted a challenge from Darth Lilitari once with both seats configured for sabers and once while carrying a Bryar pistol in a guns-configured seat. In the second match she equipped her saber and both clients reported the duel result. Both coaches read and replied through public game chat, heard the other bot's character line and continued grading tactics.
+
+An 86-second repeat on the combined engine produced one challenge, one automatic acceptance and a win for Red reported by both clients. Both coaches acknowledged their replies, received the other player's words and graded two tactics windows apiece. [Results from all three private matches](../qa/jkweb-browser-duels-chat.json)
 
 The [final live receipt](../qa/bots-jkweb-companion-live.json) records two
 separate four-player runs of runtime `42154174`. The first produced a

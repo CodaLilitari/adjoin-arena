@@ -7,6 +7,8 @@ import base64
 import binascii
 import contextlib
 import hmac
+import hashlib
+import sqlite3
 import http.server
 import json
 import os
@@ -21,7 +23,9 @@ import sys
 import threading
 import time
 
+from bots.navigation_memory import NavigationMemory, memory_root, parse_observation
 from aiohttp import ClientSession, ClientTimeout, WSMsgType, web
+from bots.run import load_profiles
 from bots.companion import ACK, HEADER, KINDS, LILY_COMMANDS, LILY_EVENTS, UINT_MAX, Hub, create_private_directory
 
 HERE = Path(__file__).resolve().parent
@@ -53,6 +57,25 @@ ROSTER_MODELS = {
     "red": ("redmando.3do", "kyfemale.snd"),
     "crownbraid": ("redmandoh.3do", "kyfemale.snd"),
 }
+# Browser-only characters supplement the native roster's existing dialogue.
+VISITOR_LINES = {
+    "red": ("Helmet sealed.", "Mark cleared.", "Updating the range card.", "I've got eyes on the approach."),
+    "lilivane": ("I'll take the other stair.", "There was your opening.", "I know that step now.", "Listen for the lift."),
+    "biddy": ("I call the high ground!", "That's one for Biddy!", "Ow. Round two?", "Who put the lift way over there?"),
+    "t800": ("Visual acquisition online.", "Target assessment complete.", "Reinitializing.", "Scanning approaches."),
+    "crownbraid": ("My watch begins.", "Clean strike.", "A lesson paid for.", "Hold the crossing."),
+}
+
+
+def persona_tsv(ident, profiles):
+    if ident in VISITOR_LINES:
+        rows = zip(("spawn", "kill", "death", "ambient"), VISITOR_LINES[ident])
+    else:
+        profile = profiles[{"boba": "boba_fett", "jan": "jan_ors"}.get(ident, ident)]
+        rows = ((event, line) for event, lines in profile["taunts"].items() for line in lines)
+    return "".join(f"{event}\t{line}\n" for event, line in rows)
+
+
 SABER_COLORS = ("red", "green")
 MAX_CHUNK, MAX_CAPTURE = 8*1024*1024, 512*1024*1024
 CAPTURE_IDLE_SECONDS = 10.
@@ -166,13 +189,16 @@ def child_relay(path):
 
 class Host:
     def __init__(self, data, engine, runtime, room, model, chat, mode="ff-guns", *, adaptive_lily=False, external=None,
-                 hosted=None, red_sabers=("lily",)):
+                 hosted=None, red_sabers=("lily",), taunts=True, private_duels=False, learn_navigation=True):
         if mode not in ARENA_MODES:
             raise ValueError("Unknown arena mode. Choose one of " + ", ".join(ARENA_MODES) + ".")
         if external and hosted:
             raise ValueError("A seat either joins a listed room or hosts one.")
         self.mode = mode
         self.external = external
+        self.taunts = taunts
+        self.private_duels = private_duels
+        self.profiles = load_profiles() if taunts else {}
         # PR4: one seat that hosts an ordinary WSRelay room on a chosen relay
         # (web_bots.headless host). Other players join it by its lobby ID.
         self.hosted = hosted
@@ -204,10 +230,33 @@ class Host:
         self.tokens = {ident: secrets.token_urlsafe(32) for ident in seat_ids}
         self.channels = {ident:self.hub.open_browser_channel(ident) for ident in seat_ids}
         self.seats = {ident: {"instance":None,"cookie":None,"poll":0., "seq_base":0,"world_base":0,
-                              "graphics":None, "view":None, "stage":"waiting", "dropped":0} for ident in seat_ids}
+                              "graphics":None, "view":None, "stage":"waiting", "dropped":0, "nav_dropped":0} for ident in seat_ids}
+        self.nav_memories = {}
+        self.nav_errors = {}
+        self.nav_root = memory_root() if learn_navigation else None
+        self.nav_build = None
+        if self.nav_root:
+            try:
+                with (self.engine / "openjkdf2.wasm").open("rb") as stream:
+                    self.nav_build = hashlib.file_digest(stream, "sha256").hexdigest()
+            except OSError:
+                self.nav_errors.update((ident, "Unable to read the engine build.") for ident in seat_ids)
+            else:
+                for ident in seat_ids:
+                    self.open_navigation(ident)
         self.proxy_proof = secrets.token_hex(32)
         self.port = self.relay_port = self.http = None
         self.capture = None
+
+    def open_navigation(self, ident):
+        if self.nav_build and ident not in self.nav_memories:
+            try:
+                self.nav_memories[ident] = NavigationMemory(self.nav_root, ident, self.nav_build, self.mode)
+            except (OSError, ValueError, sqlite3.Error):
+                self.nav_errors[ident] = "Unable to open this seat's navigation database."
+            else:
+                self.nav_errors.pop(ident, None)
+        return self.nav_memories.get(ident)
 
     def set_port(self, port):
         self.port = port
@@ -272,6 +321,7 @@ class Host:
         app.router.add_post("/engine/{ident}/boot",self.boot)
         app.router.add_get("/engine/{ident}/assets/{idx}",self.asset)
         app.router.add_post("/engine/{ident}/frames",self.frames)
+        app.router.add_post("/engine/{ident}/navigation",self.navigation)
         app.router.add_post("/engine/{ident}/capture/{step}",self.record)
         app.router.add_get("/relay",self.relay)
         return app
@@ -348,11 +398,22 @@ class Host:
             seat.update(instance=body["instance"],cookie=secrets.token_urlsafe(24),stage="boot",graphics=None,view=None)
         seat["poll"] = time.monotonic()
         name,model,sound,side = seat_character(ident, self.gob_models)
+        memory = await asyncio.to_thread(self.open_navigation, ident)
+        try:
+            prior = await asyncio.to_thread(memory.snapshot) if memory else None
+            if memory:
+                self.nav_errors.pop(ident, None)
+        except (OSError, ValueError, sqlite3.Error):
+            self.nav_errors[ident] = "Unable to read this seat's navigation database."
+            prior = None
         role = "host" if ident=="lily" or self.hosted else "join"
-        response = web.json_response({"id":ident,
+        response = web.json_response({"id":ident,"navigation":bool(memory),"prior":prior,
             **({"relay":self.outside_relay} if self.outside_relay else {}),
             "assets":[{"path":path,"url":f"/engine/{ident}/assets/{n}"} for n,(path,_) in enumerate(self.assets)],
+            "persona": persona_tsv(ident, self.profiles) if self.taunts else "",
             "mod":self.model,"env":{"JK_BOT_WEB_ROLE":"external" if self.external else role,"JK_BOT_WEB_ROOM":self.room,"JK_BOT_WEB_MODE":self.mode,
+                "JK_BOT_TAUNTS":"1" if self.taunts else "0",
+                "JK_BOT_PRIVATE_DUELS":"1" if self.private_duels and not self.external and role=="host" else "0",
                 **({"JK_BOT_LILY":"1"} if self.hub.bots[ident].adaptive_lily else {}),
                 **({"JK_BOT_WEB_EPISODE":self.external.episode,"JK_BOT_WEB_MAP":self.external.level} if self.external else {}),
                 **({"JK_BOT_WEB_MAX_PLAYERS":str(self.hosted.max_players),"JK_BOT_WEB_EPISODE":self.hosted.episode,
@@ -364,6 +425,31 @@ class Host:
                 "JK_BOT_FORCE_SIDE":side,"JK_BOT_FORCE_STYLE":"competitive","JK_BOT_WEB_THIRD_PERSON":"1" if ident=="lily" else "0"}})
         response.set_cookie("jkrelay_"+ident,seat["cookie"],httponly=True,samesite="Strict",path="/relay")
         return response
+
+    async def navigation(self, request):
+        ident = request.match_info["ident"]
+        body = await self.body(request)
+        if set(body) != {"instance", "first", "lines"}:
+            raise web.HTTPBadRequest()
+        self.session(ident, body["instance"])
+        first, lines = body["first"], body["lines"]
+        if (type(first) is not int or not 1 <= first < 2**52 or type(lines) is not list
+                or not 1 <= len(lines) <= 32):
+            raise web.HTTPBadRequest()
+        name = seat_character(ident, self.gob_models)[0]
+        observations = [parse_observation(s, name) if isinstance(s, str) and len(s) <= 512 else None
+                        for s in lines]
+        memory = self.nav_memories.get(ident)
+        if memory:
+            try:
+                await asyncio.to_thread(memory.observe, body["instance"], first, observations)
+            except ValueError as exc:
+                raise web.HTTPConflict(text=str(exc))
+            except (OSError, sqlite3.Error) as exc:
+                self.nav_errors[ident] = "Unable to write this seat's navigation database."
+                raise web.HTTPServiceUnavailable(text="Navigation memory is unavailable.")
+            self.nav_errors.pop(ident, None)
+        return web.json_response({"next": first+len(lines), "discarded": observations.count(None)})
 
     async def asset(self, request):
         idx=request.match_info["idx"]
@@ -380,7 +466,7 @@ class Host:
     async def frames(self, request):
         ident=request.match_info["ident"]
         msg=await self.body(request)
-        if set(msg)-{"instance","frames","graphics","stage","dropped","view"} or not {"instance","frames"}<=msg.keys():
+        if set(msg)-{"instance","frames","graphics","stage","dropped","navigation_dropped","view"} or not {"instance","frames"}<=msg.keys():
             raise web.HTTPBadRequest()
         seat=self.session(ident,msg["instance"])
         if not isinstance(msg["frames"],list) or len(msg["frames"])>32:
@@ -423,7 +509,10 @@ class Host:
         dropped=msg.get("dropped",seat["dropped"])
         if type(dropped) is not int or not 0<=dropped<=2**32-1:
             raise web.HTTPBadRequest()
-        seat.update(stage=stage,poll=time.monotonic(),dropped=dropped)
+        nav_dropped=msg.get("navigation_dropped",seat["nav_dropped"])
+        if type(nav_dropped) is not int or not 0<=nav_dropped<=2**32-1:
+            raise web.HTTPBadRequest()
+        seat.update(stage=stage,poll=time.monotonic(),dropped=dropped,nav_dropped=nav_dropped)
         for frame in frames:
             self.channels[ident].enqueue_native_frame(frame)
         self.hub.pump()
@@ -450,7 +539,11 @@ class Host:
                 active=bool(b.state and now-b.observed<=3)
                 seats[ident]={"joined":active,"world_epoch":b.world,"life_epoch":b.life,
                     "self":None if not active else {k:b.state[k] for k in ("slot","net_id","position","health","kills","deaths","mode")},
-                    "graphics":seat["graphics"],"view":seat["view"],"stage":seat["stage"],"browser_dropped":seat["dropped"]}
+                    "graphics":seat["graphics"],"view":seat["view"],"stage":seat["stage"],"browser_dropped":seat["dropped"],
+                    "navigation_memory": "degraded" if ident in self.nav_errors else
+                                         "enabled" if ident in self.nav_memories else "disabled",
+                    **({"navigation_memory_error": self.nav_errors[ident]} if ident in self.nav_errors else {}),
+                    "navigation_discarded":seat["nav_dropped"]}
         capture={k:v for k,v in self.capture.items() if k not in ("file","capture_id","instance")} if self.capture else None
         return web.json_response({"room":self.room,"mode":self.mode,"joined_count":sum(v["joined"] for v in seats.values()),
                                   "custom_model":self.model,"seats":seats,"capture":capture})
@@ -563,7 +656,7 @@ def relay_ready_port(line):
 async def serve(args):
     run=Path(args.runtime)/("arena-"+time.strftime("%Y%m%d-%H%M%S")+"-"+secrets.token_hex(4))
     host=Host(args.data,args.engine_dir,run,args.room,args.model_gob,args.companion_chat,mode=args.mode,
-              adaptive_lily=args.adaptive_lily)
+              adaptive_lily=args.adaptive_lily, taunts=not args.no_taunts, private_duels=args.private_duels)
     runner=web.AppRunner(host.app(),access_log=None,shutdown_timeout=1.)
     proc=drain=None
     try:
@@ -629,6 +722,8 @@ def main(argv=None):
     p.add_argument("--mode", choices=ARENA_MODES, default="ff-guns", help="Force profile and bot weapon policy on Canyon Oasis.")
     p.add_argument("--room",default="Canyon_"+secrets.token_hex(4))
     p.add_argument("--adaptive-lily",action="store_true",help="Enable experimental controls on the Lily seat.")
+    p.add_argument("--no-taunts",action="store_true")
+    p.add_argument("--private-duels",action="store_true",help="Allow JKWeb's private saber challenges on this hosted free-for-all.")
     p.add_argument("--companion-chat",action="store_true")
     args=p.parse_args(argv)
     if args.relay_child:

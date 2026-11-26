@@ -1,0 +1,721 @@
+{
+  "schema": 1,
+  "sources": {
+    "map-rules-play.json": "080e93b094e5b14b3be39aef40ae73cb818d58bc3d6abe2ac35607ce3c30cc0e",
+    "windows-stock-ctf-c2-c3.json": "e04d6bd75281b832ceda1938a71b4daec4c4b8c4294c1fb872c26667dbae2552",
+    "jhs-ffa-owners.json": "0f223702a57a8ccd5caf717b81b4f96ff40d568c0854f4a5dfcca305892157d6"
+  },
+  "counts": {
+    "distinct_scheduled": 68,
+    "distinct_verified_either_runtime": 68,
+    "distinct_both_active_either_measurement": 68,
+    "ctf_distinct_scheduled": 12,
+    "ctf_distinct_both_active": 12,
+    "ctf_distinct_both_selected_flag_objectives": 12,
+    "ctf_distinct_with_a_capture": 6
+  },
+  "conditions": "One row per map/mode/weapons/Force combination. The native lane uses its published movement criterion. A browser activity pass requires sampled living motion from both owners and multiple periodic native sectors per owner. Flag objectives exclude entry, air and idle. A browser capture must be seen by both owners; a native capture is a stock host announcement.",
+  "native_active_cells_by_client_sha256": {
+    "3474e54a39cbb786a79a7978788d75e483d8c27e7faf97131490d9b636cb1743": 5,
+    "4261f6d05b79952e7424cebe490813c8219063ba26448b7b4ec59211b2e70566": 57,
+    "62f58e6a32ece910cfac204f92ce81d8274587b35e627dc6442bb116be20ccdd": 1,
+    "8bd449614fbe54cd7acee198783bb2de69f80f51d6beff80d35a7d3a1bf56426": 2,
+    "f498e71d689f5b01139752898a9a5b3981433b05de4eb28ddb252ce1fd66a5e8": 2
+  },
+  "jhs_browser_trials": {
+    "jhs-ff-sabers-front-edge": {
+      "key": "jhs-ffa-sabers-on",
+      "verified_ffa": false,
+      "both_moving": true,
+      "verified_ffa_both_moving": false
+    },
+    "jhs-ff-sabers-room-flags": {
+      "key": "jhs-ffa-sabers-on",
+      "verified_ffa": true,
+      "both_moving": false,
+      "verified_ffa_both_moving": false
+    }
+  },
+  "cells": {
+    "m10-ffa-guns-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m10-ffa-guns-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m10-ffa-sabers-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m10-ffa-sabers-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m10-tdm-guns-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m10-tdm-guns-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m10-tdm-sabers-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m10-tdm-sabers-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m2-ffa-guns-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m2-ffa-guns-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m2-ffa-sabers-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m2-ffa-sabers-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m2-tdm-guns-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m2-tdm-guns-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m2-tdm-sabers-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m2-tdm-sabers-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m4-ffa-guns-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m4-ffa-guns-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m4-ffa-sabers-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m4-ffa-sabers-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m4-tdm-guns-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m4-tdm-guns-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m4-tdm-sabers-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m4-tdm-sabers-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m5-ffa-guns-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m5-ffa-guns-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m5-ffa-sabers-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m5-ffa-sabers-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m5-tdm-guns-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m5-tdm-guns-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m5-tdm-sabers-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m5-tdm-sabers-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m_boss15-ffa-guns-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m_boss15-ffa-guns-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m_boss15-ffa-sabers-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m_boss15-ffa-sabers-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m_boss15-tdm-guns-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m_boss15-tdm-guns-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m_boss15-tdm-sabers-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m_boss15-tdm-sabers-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m_boss17-ffa-guns-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m_boss17-ffa-guns-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m_boss17-ffa-sabers-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m_boss17-ffa-sabers-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m_boss17-tdm-guns-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m_boss17-tdm-guns-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m_boss17-tdm-sabers-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "m_boss17-tdm-sabers-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "c1-ctf-guns-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": true,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "c1-ctf-guns-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": true,
+      "native_capture": true,
+      "browser_capture": false
+    },
+    "c1-ctf-sabers-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": true,
+      "native_capture": true,
+      "browser_capture": false
+    },
+    "c1-ctf-sabers-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": true,
+      "native_capture": true,
+      "browser_capture": false
+    },
+    "c2-ctf-guns-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": true,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "c2-ctf-guns-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": true,
+      "native_capture": true,
+      "browser_capture": false
+    },
+    "c2-ctf-sabers-off": {
+      "native_verified": false,
+      "native_active": false,
+      "browser_verified": true,
+      "browser_active": true,
+      "browser_team_goals": true,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": true
+    },
+    "c2-ctf-sabers-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": true,
+      "native_capture": true,
+      "browser_capture": false
+    },
+    "c3-ctf-guns-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": true,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "c3-ctf-guns-on": {
+      "native_verified": true,
+      "native_active": false,
+      "browser_verified": true,
+      "browser_active": true,
+      "browser_team_goals": true,
+      "native_team_goals": true,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "c3-ctf-sabers-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": true,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "c3-ctf-sabers-on": {
+      "native_verified": true,
+      "native_active": false,
+      "browser_verified": true,
+      "browser_active": true,
+      "browser_team_goals": true,
+      "native_team_goals": true,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "jhs-ffa-guns-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "jhs-ffa-guns-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "jhs-ffa-sabers-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "jhs-ffa-sabers-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": true,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "jhs-tdm-guns-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "jhs-tdm-guns-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "jhs-tdm-sabers-off": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    },
+    "jhs-tdm-sabers-on": {
+      "native_verified": true,
+      "native_active": true,
+      "browser_verified": false,
+      "browser_active": false,
+      "browser_team_goals": false,
+      "native_team_goals": false,
+      "native_capture": false,
+      "browser_capture": false
+    }
+  }
+}

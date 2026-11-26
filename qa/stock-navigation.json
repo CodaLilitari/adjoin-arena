@@ -1,0 +1,68 @@
+{
+  "map_sha256": {
+    "m2.jkl": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a",
+    "m4.jkl": "150eda1c2e6c7f316c8b76a0f2f060ce5d49dcc9ae24bb43e4fb42a5df20d89c"
+  },
+  "final_source_and_stock_server_sha256": {
+    "native/candidate/competitive-navigation.patch": "77347ac2e1b87e7173274f4fffa0be8f0c73df28a6a024fef4dfedc133bf04d2",
+    "web_bots/candidate/competitive-navigation.patch": "2c46b57d2c127079d4a0758ed199e6c292fef70f53e86c188d105f71efc955ff",
+    "bin/linux-x86_64/openjkdf2": "16944b47e2ceecf3f09cc2820af26372e2af8642057c2b0a963e353ff090c745"
+  },
+  "build_scope": "Each controlled case uses the navigation controller with a temporary pose/input and stock item observer. The final overlay digests identify the retained source. Weapon and Nar trials preceded the last rim-braking adjustment.",
+  "runs": {
+    "concussion": {
+      "owner_log_sha256": "5053daa00664e052884a42e7cfa18e96b266d693092830a960f41beb27968a79",
+      "joined": true,
+      "events": [
+        "REPLAY_TAKEN item=13 sec=45",
+        "REPLAY_PICKUP item=13 sector=45 life=1",
+        "REPLAY_ESCAPED item=13 sector=45 life=1",
+        "REPLAY_SAFE_EXIT item=13 life=1 sec=46 hp=97.43"
+      ]
+    },
+    "railgun": {
+      "owner_log_sha256": "c6712e8ef6769b19869a4df778af2ea55346296a9bb6a208ccf330fc00c24836",
+      "joined": true,
+      "events": [
+        "REPLAY_TAKEN item=14 sec=52",
+        "REPLAY_PICKUP item=14 sector=52 life=1",
+        "REPLAY_ESCAPED item=14 sector=52 life=1",
+        "REPLAY_SAFE_EXIT item=14 life=1 sec=53 hp=99.81"
+      ]
+    },
+    "nar": {
+      "owner_log_sha256": "366a250762e999167fd7d5c846c5eaa32b7697f573e40f767d70cb0358a3b611",
+      "joined": true,
+      "events": [
+        "NAR_APPROACH start=-8.5296,-1.6384,0.9231 sector=35 deck_z=1.266 health=100.000 life=1",
+        "NAR_RETURNED vetoes=94 hp_before=100.000 hp_after=100.000 start_life=1 life=1 sector=35 offset=-0.0740,-0.1994"
+      ]
+    },
+    "nar_veto_off": {
+      "owner_log_sha256": "e13794090542ac11c8e78f66fee3d672360812379a7d8f0e69608e6b6c0538a4",
+      "joined": true,
+      "events": [
+        "NAR_APPROACH start=-8.5296,-1.6384,0.9231 sector=35 deck_z=1.266 health=100.000 life=1"
+      ],
+      "minimum_sampled_health": 18.785,
+      "blocking_deck_height": 0.8701,
+      "last_live_sector": 109
+    },
+    "rim": {
+      "owner_log_sha256": "c73489d7f8f10246acb24ecd287bdc0212ae021b9dbe09565c027c55fba451ea",
+      "joined": true,
+      "events": [
+        "RIM_BEGIN distance=-0.1300 z=1.8738 sector=108 life=1",
+        "RIM_END min_z=1.8725 deepest=0.0059 final_depth=-0.0100 z=1.8731 sector=155 attach=1 brakes=12 hp=100.00 start_life=1 life=1 samples=34"
+      ]
+    },
+    "rim_veto_off": {
+      "owner_log_sha256": "739180bd9e29d6b13b477bb276b67e892627ecb2bb0541e762252c25507c7246",
+      "joined": true,
+      "events": [
+        "RIM_BEGIN distance=-0.1300 z=1.8738 sector=108 life=1",
+        "RIM_END min_z=0.4829 deepest=0.4962 final_depth=0.4962 z=0.4829 sector=101 attach=0 brakes=0 hp=100.00 start_life=1 life=1 samples=34"
+      ]
+    }
+  }
+}

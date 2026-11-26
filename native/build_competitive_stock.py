@@ -11,14 +11,14 @@ import subprocess
 import tarfile
 import tempfile
 
-from build_arena_pace import check, link_file, read, read_pinned_sources, run, sha
-from build_competitive import NATIVE, OVERLAYS
+from build_arena_pace import check, link_file, read, run, sha
+from build_competitive import NATIVE, compile_controller
 
 NOBLE_LIBM = "4e7324196b5d12cc5040d71b17fefb9891d103611f5e66debc7225d1884b0505"
 
 
 def relink_bundle(original, objects, destination):
-    """Retain the original distributable member list and the two rebuilt playing objects."""
+    """Retain the original distributable member list and the rebuilt playing and room-admission objects."""
     with tarfile.open(original) as source, destination.open("wb") as f:
         with gzip.GzipFile(filename="", fileobj=f, mode="wb", mtime=0) as gz, tarfile.open(fileobj=gz, mode="w|") as out:
             for member in source:
@@ -47,34 +47,12 @@ def build(args):
     libm = args.target_libm.resolve()
     check(sha(libm) == NOBLE_LIBM, "Expected Ubuntu 24.04 amd64 libc6 2.39-0ubuntu8 libm.so.6")
     archive = release / "native/bot-relink-linux-x86_64.tar.gz"
-    overlay = release / "native/bot-tactics.patch"
-    check(sha(archive) == parent["archive_sha256"] and sha(overlay) == parent["red_overlay_sha256"]
-          and sha(args.globals_header) == parent["generated_globals_sha256"], "Wrong engine inputs")
-    manifest = read(release / "native/BOT_BUILD.json")
     with tempfile.TemporaryDirectory(prefix="adjoin-stock-clock-") as tmp:
         work = Path(tmp)
-        src, objects, includes = work / "source", work / "objects", work / "generated"
-        read_pinned_sources(release, sources, src, manifest)
-        for file in (overlay, *[NATIVE / name for name in ("red-policy.patch", "red-transfer.patch", *OVERLAYS)]):
-            run(["patch", "--quiet", "--batch", "--fuzz=0", "-p1", "-i", file], cwd=src)
-        for name in ("red_policy.inc", "red_transfer.inc", "red_nav_recall.h"):
-            shutil.copyfile(NATIVE / name, src / "src/AI" / name)
-        for name, digest in parent["dependencies"].items():
-            check(sha(src / name) == digest, "Controller source mismatch: " + name)
-        includes.mkdir()
-        shutil.copyfile(args.globals_header, includes / "globals.h")
-        with tarfile.open(archive) as f:
-            f.extractall(objects, filter="data")
-        for name, digest in manifest["relink_inputs"].items():
-            check(sha(objects / name) == digest, "Invalid archived object: " + name)
-        for unit, digest in parent["rebuilt_objects"].items():
-            source = src / "src" / (unit + ".c")
-            obj = objects / "CMakeFiles/sith_engine.dir/src" / (unit + ".c.o")
-            fixed = [f"-fmacro-prefix-map={source}=/tmp/adjoin-red-fj8jyjnc/source/src/Devices/sithControl.c"
-                     ] if unit == "Devices/sithControl" else []
-            run(["cc", *parent["flags"], *fixed, "-I" + str(src / "src"), "-I" + str(includes),
-                 "-c", source, "-o", obj])
-            check(sha(obj) == digest, "Playing object differs from the tested build: " + unit)
+        _, objects_built, dependencies = compile_controller(work, release, sources, args.globals_header.resolve())
+        check(objects_built == parent["rebuilt_objects"] and dependencies == parent["dependencies"],
+              "Installed and paced competitive controllers differ")
+        objects = work / "objects"
         # The frozen linker includes this member; an empty translation unit
         # leaves every stock clock reference in the original engine objects intact.
         run(["cc", "-x", "c", "-c", "/dev/null", "-o", objects / "arena_pace.o"])

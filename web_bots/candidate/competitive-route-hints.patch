@@ -1,0 +1,330 @@
+--- a/src/AI/jkBot.c
++++ b/src/AI/jkBot.c
+@@ -265,21 +265,22 @@
+     return clear;
+ }
+ 
+-static int Bot_FloorWithFlags(rdVector3 p, SithSector *hint, flex_t depth,
+-                              rdVector3 *standing, SithSector **outSector, int rayFlags)
++static int Bot_StandingFloor(rdVector3 p, SithSector *hint, flex_t depth,
++                             rdVector3 *standing, SithSector **outSector, int platform, int *fixture, int rayFlags)
+ {
+     rdVector3 down={0,0,-1};
+     SithCollision *hit;
+     SithSector *sector=Bot_SectorAt(&p,hint);
+     int found=0;
+-    if (!Bot_SectorSafe(sector)) return 0;
++    if (!Bot_SectorSafe(sector) && !(platform && sector && (sector->flags&SITH_SECTOR_FALLDEATH) &&
++        !(sector->flags&SITH_SECTOR_NOACTORENTER))) return 0;
+     /* A stationary mesh can overhang its owner sector across an adjoin. */
+     sithCollision_SearchForCollisions(sector,NULL,&p,&down,depth,0.0f,
+         RAYCAST_200|RAYCAST_800|RAYCAST_2000|rayFlags);
+     while ((hit=sithCollision_PopStack())!=NULL) {
+         if ((hit->type&SITHCOLLISION_ADJOINCROSS) && hit->surface &&
+             hit->surface->pAdjoin && !Bot_SectorSafe(hit->surface->pAdjoin->sector)) break;
+-        SithSector *supportSector=NULL;
++        SithSector *supportSector=NULL; SithThing *mesh=NULL;
+         if (hit->type&SITHCOLLISION_WORLD) {
+             if (!hit->surface || hit->hitNorm.z<0.55f ||
+                 (hit->surface->flags&(SITH_SURFACE_WATER|SITH_SURFACE_VERYDEEPWATER))) break;
+@@ -287,16 +288,26 @@
+         } else if ((hit->type&SITHCOLLISION_THING) && Bot_StaticFixture(hit->pThingCollided)) {
+             /* Stock catwalks/crates can be mesh COGs with no travel frames. */
+             if (hit->hitNorm.z<0.55f || (rayFlags && !(hit->pThingCollided->flags&SITH_TF_STANDABLE))) continue;
+-            supportSector=hit->pThingCollided->sector;
++            mesh=hit->pThingCollided; supportSector=mesh->sector;
+         } else continue;
+         *standing=p; standing->z=p.z-hit->distance+BOT_FOOT_HEIGHT;
+         /* The standing point can belong to the adjacent sector even when
+            its support fixture is stored in the other sector's thing list. */
+         *outSector=Bot_SectorAt(standing,supportSector);
+-        found=Bot_SectorSafe(*outSector); break;
++        found=Bot_SectorSafe(*outSector);
++        if (!found && platform && *outSector && ((*outSector)->flags&SITH_SECTOR_FALLDEATH) &&
++            !((*outSector)->flags&SITH_SECTOR_NOACTORENTER) && mesh && (mesh->flags&SITH_TF_STANDABLE)) found=1;
++        if (found && fixture) *fixture=mesh ? (int)(mesh-bot.world->aThings) : -1;
++        break;
+     }
+     sithCollision_DecreaseStackLevel();
+     return found;
++}
++
++static int Bot_FloorWithFlags(rdVector3 p, SithSector *hint, flex_t depth,
++                              rdVector3 *standing, SithSector **outSector, int rayFlags)
++{
++    return Bot_StandingFloor(p,hint,depth,standing,outSector,0,NULL,rayFlags);
+ }
+ 
+ static int Bot_Floor(rdVector3 p, SithSector *hint, flex_t depth,
+@@ -1722,6 +1733,8 @@
+     return bot.now-bot.deadAt>1.5f && fmodf(bot.now-bot.deadAt,1.4f)<0.18f;
+ }
+ 
++#include "AI/jkBotRouteHints.inc"
++
+ void jkBot_Tick(flex_t dt)
+ {
+     memcpy(bot.previous,bot.keys,sizeof(bot.keys));
+@@ -1751,6 +1764,7 @@
+         Bot_ResetHearing();
+         bot.world=sithWorld_g_pCurrentWorld;
+         Companion_NewWorld();
++        Hint_NewWorld();
+         memset(bot.peers,0,sizeof(bot.peers));
+         bot.forceBin=bot.forceTarget=bot.forceEffectBin=bot.forceEffectTarget=-1;
+         bot.pullItem=bot.pullPhase=bot.pullItemLast=0; bot.pullCheckAt=0;
+@@ -1835,9 +1849,10 @@
+             Bot_Confinement(self);
+             if (!Bot_DeadEnd(self)) Bot_Recovery(self);
+             if (!releasingPower) Bot_TryMovementSpeed(self);
+-            Bot_GuardGround(self);
+-            Bot_MoveTelemetry(self);
+-        }
++        }
++        if (!Hint_Walk(self)) Platform_Recover(self);
++        Bot_GuardGround(self);
++        Bot_MoveTelemetry(self);
+     }
+     Companion_Publish(self,dead);
+     if (lily.enabled) Lily_EndFrame();
+--- /dev/null
++++ b/src/AI/jkBotRouteHints.inc
+@@ -0,0 +1,213 @@
++/* Original Jedi High School arrival walk. These are authored coordinates in
++   the project's jhs-school-entry.route. Live collision and standing fixtures
++   qualify every step. No map bytes or artwork are distributed here. */
++#ifdef _WIN32
++#include <process.h>
++#define HINT_PID() ((long)_getpid())
++#else
++#include <unistd.h>
++#define HINT_PID() ((long)getpid())
++#endif
++#define ENTRY_MAP_SHA "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d"
++#define ENTRY_ROUTE_SHA "c9a86f5b438146d8f7c27d76f90af1d253ead33e1e0d47b748a310aad2b1f92c"
++typedef struct { int sector, fixture; rdVector3 pos; } HintPoint;
++static const HintPoint entryPoints[] = {
++    {5, 184, {-0.605f, -12.300f, 0.120f}},
++    {5, 184, {-0.605f, -12.055f, 0.120f}},
++    {5, 183, {-0.605f, -11.795f, 0.137f}},
++    {5, 183, {-0.605f, -11.480f, 0.137f}},
++    {5, 182, {-0.605f, -10.830f, 0.132f}},
++    {5, 182, {-0.605f, -10.535f, 0.132f}},
++    {5, 181, {-0.605f, -9.900f, 0.132f}},
++    {5, 181, {-0.605f, -9.495f, 0.132f}},
++    {5, 181, {-0.605f, -9.230f, 0.132f}},
++    {7, -1, {-0.605f, -8.855f, 0.120f}},
++};
++enum { ENTRY_POINTS=sizeof(entryPoints)/sizeof(entryPoints[0]) };
++static struct {
++    int ready, announced, life, active, seq, done, trace;
++    flex_t nextLog;
++    rdVector3 last;
++} hint;
++
++static void Hint_NewWorld(void)
++{
++    memset(&hint,0,sizeof(hint));
++    hint.trace=getenv("ADJOIN_RED_TRACE") || getenv("JK_BOT_NAV_OBSERVE");
++    if (!bot.world || !Bot_NameIs(bot.world->map_jkl_fname,"jhs.jkl") || !std_g_pHS) return;
++    char path[72],digest[65]={0};
++    snprintf(path,sizeof(path),"jkl%c%s",LEC_PATH_SEPARATOR_CHR,bot.world->map_jkl_fname);
++    stdFile_t file=std_g_pHS->fileOpen(path,"rb");
++    if (!file) return;
++    /* The original JKL is exactly this long. Only hash a candidate once on
++       world entry; a same-name remix continues with the geometry planner. */
++    if (std_g_pHS->fileSize(file)==597187) {
++        unsigned char *bytes=malloc(597187);
++        if (bytes && std_g_pHS->fileRead(file,bytes,597187)==597187) jkBotBrain_Sha256Hex(bytes,597187,digest);
++        free(bytes);
++    }
++    std_g_pHS->fileClose(file);
++    if (strcmp(digest,ENTRY_MAP_SHA)) return;
++    for (int i=0;i<ENTRY_POINTS;i++) {
++        const HintPoint *p=&entryPoints[i];
++        if (p->sector<0 || p->sector>=(int)bot.world->numSectors) return;
++        if (p->fixture<0) continue;
++        SithThing *fixture=Bot_NavThing(p->fixture);
++        if (!Bot_StaticFixture(fixture) || !(fixture->flags&SITH_TF_STANDABLE) ||
++            !fixture->sector || (int)fixture->sector->id!=p->sector) return;
++    }
++    hint.ready=1;
++}
++
++static void Hint_Log(SithThing *self,const char *phase,const char *status,int fixture)
++{
++    if (!hint.trace) return;
++    rdVector3 goal=entryPoints[hint.seq].pos;
++    fprintf(stderr,"BOT_ROUTE_HINT phase=%s status=%s name=%s pid=%ld t=%.3f life=%d map_sha=%s hint_sha=%s seq=%d sector=%u fixture=%d pos=%.5f,%.5f,%.5f goal=%.5f,%.5f,%.5f fwd=%.5f slide=%.5f\n",
++        phase,status,bot.name,HINT_PID(),(double)bot.now,hint.life,ENTRY_MAP_SHA,ENTRY_ROUTE_SHA,hint.seq,(unsigned)self->sector->id,fixture,
++        (double)self->position.x,(double)self->position.y,(double)self->position.z,
++        (double)goal.x,(double)goal.y,(double)goal.z,(double)bot.axes[INPUT_FUNC_FORWARD],(double)bot.axes[INPUT_FUNC_SLIDE]);
++}
++/* Local recovery from verified static footing in fall-death sectors. */
++static int Platform_Step(SithThing *self, rdVector3 dir, rdVector3 *ahead,
++                         int *nextFixture, int *probes, int *unsupported)
++{
++    const flex_t step=0.04f;
++    flex_t distance=0.22f+Bot_Min(0.24f,0.16f*Bot_Horizontal(self->physicsParams.vel));
++    int count=(int)ceilf(distance/step);
++    SithSector *hint=self->sector;
++    rdVector3 previous=self->position;
++    for (int n=1;n<=count;n++) {
++        rdVector3 pos={self->position.x+dir.x*step*n,self->position.y+dir.y*step*n,previous.z+0.055f};
++        rdVector3 floor; SithSector *sector; int fixture=-1;
++        for (int lane=-1;lane<=1;lane++) {
++            rdVector3 probe=pos,foot; SithSector *on=NULL;int id=-1;
++            probe.x-=lane*dir.y*self->moveSize*0.65f;
++            probe.y+=lane*dir.x*self->moveSize*0.65f;
++            ++*probes;
++            if (!Bot_StandingFloor(probe,hint,BOT_FOOT_HEIGHT+0.14f,&foot,&on,1,&id,0) ||
++                fabsf(foot.z-previous.z)>0.065f) { ++*unsupported;return 0; }
++            if (!lane) { floor=foot;sector=on;fixture=id; }
++        }
++        if (!Bot_Clear(self,hint,previous,floor,self->collideSize*0.85f,0)) return 0;
++        hint=sector; previous=floor; *nextFixture=fixture;
++    }
++    *ahead=previous; return 1;
++}
++
++/* Use the nearest ordinary passable doorway and, where present, the next
++ * stationary fixture leading toward it. Geometry still qualifies every step. */
++static int Platform_Heading(SithThing *self,rdVector3 *dir)
++{
++    flex_t best=1e20f; int sector=-1; rdVector3 goal={0};
++    for (SithSurfaceAdjoin *a=self->sector->adjoins;a;a=a->next) {
++        rdVector3 p;
++        if (!(a->flags&SITHSURF_ADJOIN_ALLOW_MOVEMENT) || (a->flags&SITHSURF_ADJOIN_ALLOW_AI_ONLY) ||
++            !Bot_SectorSafe(a->sector) || !a->surface || !Bot_FaceCenter(a->surface,&p)) continue;
++        flex_t d=Bot_Distance(p,self->position);
++        if (d<best) {best=d;goal=p;sector=(int)a->sector->id;}
++    }
++    if (sector<0) return -1;
++    if (nav.ctf && nav.objectiveValid) goal=nav.objectivePos;
++    rdVector3 toward=Bot_Sub(goal,self->position);
++    flex_t length=Bot_Horizontal(toward);
++    if (length<0.01f) return -1;
++    *dir=(rdVector3){toward.x/length,toward.y/length,0};
++    /* Aim for the centre of the next bridge panel, not a diagonal line
++       toward a wide portal that can run along the outside of the deck. */
++    best=1e20f;
++    rdVector3 exitDirection=*dir;
++    for (SithThing *t=self->sector->pFirstThingInSector;t;t=t->pNextThingInSector) {
++        if (t==self->attachedThing || !Bot_StaticFixture(t) || !(t->flags&SITH_TF_STANDABLE)) continue;
++        rdVector3 v=Bot_Sub(t->position,self->position); flex_t d=Bot_Horizontal(v);
++        if (d<0.08f || d>1.8f || d>=length || fabsf(v.z)>0.45f ||
++            v.x*exitDirection.x+v.y*exitDirection.y<0.72f*d || d>=best) continue;
++        best=d; *dir=(rdVector3){v.x/d,v.y/d,0};
++    }
++    return sector;
++}
++
++static void Platform_Recover(SithThing *self)
++{
++    static flex_t nextLog; static SithWorld *world;
++    if (!self->sector || !(self->sector->flags&SITH_SECTOR_FALLDEATH) ||
++        self->sector->flags&(SITH_SECTOR_NOACTORENTER|SITH_SECTOR_UNDERWATER) ||
++        !(self->attach_flags&SITH_ATTACH_THINGFACE) || !Bot_StaticFixture(self->attachedThing) ||
++        !(self->attachedThing->flags&SITH_TF_STANDABLE) || bot.goal>=0 ||
++        bot.axes[INPUT_FUNC_FORWARD] || bot.axes[INPUT_FUNC_SLIDE] || Bot_NavigationWaiting(self) ||
++        nav.waterExitUntil>0 || nav.combatJumpUntil>bot.now) return;
++    rdVector3 heading;
++    int exit=Platform_Heading(self,&heading);
++    if (exit<0) return;
++    static const int angles[]={0,1,-1,2,-2,3,-3,4,-4,5,-5,6,-6};
++    int probes=0,unsupported=0,next=-1;rdVector3 ahead={0};
++    for (unsigned i=0;i<sizeof(angles)/sizeof(*angles);i++) {
++        flex_t angle=angles[i]*(flex_t)(M_PI/12);
++        rdVector3 dir={heading.x*cosf(angle)-heading.y*sinf(angle),
++                       heading.x*sinf(angle)+heading.y*cosf(angle),0};
++        if (!Platform_Step(self,dir,&ahead,&next,&probes,&unsupported)) continue;
++        bot.keys[INPUT_FUNC_JUMP]=bot.keys[INPUT_FUNC_FAST]=0;
++        if (bot.targetSlot<0) Bot_Aim(self,ahead,0);
++        Bot_ThrustAxes(self,dir,0);
++        bot.axes[INPUT_FUNC_FORWARD]*=0.65f;bot.axes[INPUT_FUNC_SLIDE]*=0.65f;
++        bot.tele.moved=1;
++        if (world!=bot.world) {world=bot.world;nextLog=0;}
++        if (hint.trace && bot.now>=nextLog) {
++            nextLog=bot.now+0.25f;
++            fprintf(stderr,"BOT_PLATFORM_SUPPORT name=%s t=%.3f sector=%u fixture=%d next_fixture=%d pos=%.5f,%.5f,%.5f ahead=%.5f,%.5f,%.5f probes=%d void_rejects=%d exit_sector=%d fwd=%.5f slide=%.5f\n",
++                    bot.name,(double)bot.now,(unsigned)self->sector->id,(int)(self->attachedThing-bot.world->aThings),next,
++                    (double)self->position.x,(double)self->position.y,(double)self->position.z,
++                    (double)ahead.x,(double)ahead.y,(double)ahead.z,probes,unsupported,exit,
++                    (double)bot.axes[INPUT_FUNC_FORWARD],(double)bot.axes[INPUT_FUNC_SLIDE]);
++        }
++        return;
++    }
++}
++
++static int Hint_Walk(SithThing *self)
++{
++    int fixture=(self->attach_flags&SITH_ATTACH_THINGFACE) && self->attachedThing ?
++        (int)(self->attachedThing-bot.world->aThings) : -1;
++    if (bot.wasDead || !hint.life) {
++        ++hint.life; hint.active=hint.done=hint.seq=0; hint.nextLog=0;
++    }
++    if (hint.ready && !hint.announced) { Hint_Log(self,"load","ready",fixture); hint.announced=1; }
++    if (!hint.ready || nav.ctf || nav.seekingSurface || nav.waterExitUntil>0 ||
++        self->sector->flags&(SITH_SECTOR_NOACTORENTER|SITH_SECTOR_UNDERWATER)) return 0;
++    if (hint.done) return 0;
++    const HintPoint *p=&entryPoints[hint.seq];
++    if (!hint.active) {
++        if ((int)self->sector->id!=p->sector || fixture!=p->fixture || Bot_Distance(p->pos,self->position)>0.70f) return 0;
++        hint.active=1;hint.last=self->position;Hint_Log(self,"start","ready",fixture);
++    }
++    if (Bot_Distance(hint.last,self->position)>0.55f) {hint.active=0;hint.done=1;Hint_Log(self,"blocked","discontinuity",fixture);return 0;}
++    hint.last=self->position;
++    int sector=(int)self->sector->id;
++    if (hint.seq==ENTRY_POINTS-1 && sector==p->sector && Bot_SectorSafe(self->sector) &&
++        Bot_Distance(self->position,p->pos)<0.42f) {
++        Hint_Log(self,"exit","reached",fixture);hint.active=0;hint.done=1;
++        bot.goal=-1;bot.routeCount=0;bot.nextPlan=0;return 0;
++    }
++    if (hint.seq<ENTRY_POINTS-1 && sector==p->sector && fixture==p->fixture &&
++        Bot_Horizontal(Bot_Sub(p->pos,self->position))<0.09f && fabsf(self->position.z-p->pos.z)<0.15f) {
++        Hint_Log(self,"arrive","reached",fixture);p=&entryPoints[++hint.seq];
++    }
++    if (fixture<0 || !Bot_StaticFixture(self->attachedThing) || !(self->attachedThing->flags&SITH_TF_STANDABLE)) return 0;
++    rdVector3 dir=Bot_Sub(p->pos,self->position);flex_t length=Bot_Horizontal(dir);
++    if (length<0.001f || length>1.6f || fabsf(dir.z)>0.20f) return 0;
++    dir.x/=length;dir.y/=length;dir.z=0;
++    int probes=0,rejects=0,next=-1;rdVector3 ahead={0};
++    if (!Platform_Step(self,dir,&ahead,&next,&probes,&rejects)) {
++        if (bot.now>=hint.nextLog) {Hint_Log(self,"blocked","footing",fixture);hint.nextLog=bot.now+0.5f;}
++        return 0;
++    }
++    bot.keys[INPUT_FUNC_JUMP]=bot.keys[INPUT_FUNC_FAST]=0;
++    if (bot.targetSlot<0) Bot_Aim(self,ahead,0);
++    Bot_ThrustAxes(self,dir,0);
++    bot.axes[INPUT_FUNC_FORWARD]*=0.65f;bot.axes[INPUT_FUNC_SLIDE]*=0.65f;bot.tele.moved=1;
++    /* This local segment owns the legs, so it cannot be attributed as
++       feedback to an unrelated ordinary graph goal selected this tick. */
++    bot.progressPos=self->position;bot.stuckAt=bot.now;bot.routeStallTime=0;
++    if (bot.now>=hint.nextLog) {Hint_Log(self,"step","applied",fixture);hint.nextLog=bot.now+0.25f;}
++    return 1;
++}
+--- a/src/AI/jkBotNavigate.inc
++++ b/src/AI/jkBotNavigate.inc
+@@ -869,6 +869,7 @@
+ 
+ /* Final ordinary-ground input check. A lateral coast can put the body over
+    a catwalk even if the next requested direction is along the catwalk. */
++#define JKBOT_MESH_COAST_GUARD 1
+ static void Bot_GuardGround(SithThing *self)
+ {
+     if (nav.shelfBackUntil>bot.now && nav.shelfLift>0 && nav.shelfLift<=nav.liftCount) {
+@@ -911,7 +912,13 @@
+         }
+         if (self->attach_flags&SITH_ATTACH_SURFACE) nav.dismountUntil=0;
+     }
+-    if (!(self->attach_flags&SITH_ATTACH_SURFACE) || !self->sector ||
++    /* Ordinary catwalk meshes provide real floor attachment just like a
++       world face. Moving decks and fall-death-sector bridge fixtures have
++       their own checked movement above and in Platform_Step. */
++    int onCatwalk=(self->attach_flags&SITH_ATTACH_THINGFACE) && Bot_StaticFixture(self->attachedThing) &&
++        (self->attachedThing->flags&SITH_TF_STANDABLE) && self->sector &&
++        !(self->sector->flags&SITH_SECTOR_FALLDEATH);
++    if ((!(self->attach_flags&SITH_ATTACH_SURFACE) && !onCatwalk) || !self->sector ||
+         self->sector->flags&(SITH_SECTOR_UNDERWATER|SITH_SECTOR_USETHRUST|SITH_SECTOR_NOGRAVITY)) return;
+     flex_t radius=Bot_Max(self->moveSize,0.025f);
+     flex_t f=bot.axes[INPUT_FUNC_FORWARD], s=bot.axes[INPUT_FUNC_SLIDE]*BOT_STRAFE_GAIN;

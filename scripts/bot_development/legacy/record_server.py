@@ -152,7 +152,7 @@ async def session(command, env, output, port, prepared, launched, recording_dir,
         target = None
         station = False
         capped = False
-        with tempfile.TemporaryDirectory(prefix="adjoin-follow-") as tmp:
+        with tempfile.TemporaryDirectory(prefix="adjoin-follow-", dir=env.get("TMPDIR")) as tmp:
             frames = Path(tmp)
             while not _stop.is_set() and child.poll() is None and time.monotonic() - first < 150:
                 s = obs.status()

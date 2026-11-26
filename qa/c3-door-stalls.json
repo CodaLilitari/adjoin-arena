@@ -1,0 +1,196 @@
+{
+  "episode_sha256": "da98fe3fc769168f1bb562cc1f6532560b12d8e920fd6c34586d69b424b5b1fc",
+  "map_sha256": "b4d804591cebebbd59f05ad42a8e059178dc468e24172bd6bc5b7d6ba1c2f0a7",
+  "script_sha256": {
+    "c3_sascolored.cog": "58f163a3b26e9f7103b06983b93fcecd9fc4a0215d1c8953f7e75bdfc9053bed",
+    "ctf_doorred.cog": "06ddfe25a196f1b3186ff18dab328b04924ea19eaf6d444d9c79efa4834f7d2b",
+    "ctf_doorgold.cog": "cdba0dce328ba7a88e15eef79716886f882cd676a84d738444b3151034382338"
+  },
+  "criterion": "At least four consecutive living/status samples spanning 29 game seconds on the same first walk leg, with the same team and death count, no combat target, and horizontal drift within 0.03 units of the first sample.",
+  "owners": [
+    {
+      "owner": "Darth_Lilitari",
+      "status_weapon_bins": [
+        10
+      ],
+      "source_sha256": "17989b9b8724e2a49a722331b655aec5e660a0711087f50bc193a4e395600c82",
+      "owner_session_key_denials": {},
+      "sustained_stalls": [
+        {
+          "sector": 505,
+          "next_node": 736,
+          "team": 1,
+          "samples": 10,
+          "game_seconds": [
+            30.0,
+            120.1
+          ],
+          "reference_xy": [
+            -5.612,
+            -0.563
+          ],
+          "max_xy_drift": 0.0,
+          "vertical_range": [
+            2.357,
+            2.614
+          ],
+          "distinct_route_goals": 8,
+          "nearby_doors": [
+            {
+              "thing": 74,
+              "sector": 507,
+              "instance": 9,
+              "script": "c3_sascolored.cog",
+              "role": "interior",
+              "key_bin": 83,
+              "horizontal_distance": 0.131,
+              "via_sectors": [
+                509
+              ]
+            },
+            {
+              "thing": 73,
+              "sector": 506,
+              "instance": 9,
+              "script": "c3_sascolored.cog",
+              "role": "exterior",
+              "key_bin": null,
+              "horizontal_distance": 0.202,
+              "via_sectors": [
+                510
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "owner": "Bot_Red",
+      "status_weapon_bins": [
+        10
+      ],
+      "source_sha256": "007915970d7b38821957f9bc043de418fd293fa3166326a8914b6dafcc64939c",
+      "owner_session_key_denials": {},
+      "sustained_stalls": []
+    },
+    {
+      "owner": "Darth_Lilitari",
+      "status_weapon_bins": [
+        3,
+        6
+      ],
+      "source_sha256": "d1522ad9efd52519652ce009f72677833dd61c58d64e17c9e2786bbc011ce5b7",
+      "owner_session_key_denials": {
+        "gold": 12
+      },
+      "sustained_stalls": [
+        {
+          "sector": 605,
+          "next_node": 595,
+          "team": 1,
+          "samples": 5,
+          "game_seconds": [
+            80.1,
+            120.1
+          ],
+          "reference_xy": [
+            3.532,
+            2.441
+          ],
+          "max_xy_drift": 0.0,
+          "vertical_range": [
+            2.069,
+            2.275
+          ],
+          "distinct_route_goals": 3,
+          "nearby_doors": [
+            {
+              "thing": 71,
+              "sector": 612,
+              "instance": 8,
+              "script": "c3_sascolored.cog",
+              "role": "exterior",
+              "key_bin": null,
+              "horizontal_distance": 0.106,
+              "via_sectors": [
+                609
+              ]
+            },
+            {
+              "thing": 72,
+              "sector": 611,
+              "instance": 8,
+              "script": "c3_sascolored.cog",
+              "role": "interior",
+              "key_bin": 84,
+              "horizontal_distance": 0.245,
+              "via_sectors": [
+                608
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "owner": "Bot_Red",
+      "status_weapon_bins": [
+        2,
+        3,
+        6
+      ],
+      "source_sha256": "fc4c44f2da9e10af67171a7049c530a166285159f21fc398d8890a7a0c99c5dd",
+      "owner_session_key_denials": {
+        "red": 3
+      },
+      "sustained_stalls": [
+        {
+          "sector": 393,
+          "next_node": 475,
+          "team": 2,
+          "samples": 5,
+          "game_seconds": [
+            60.1,
+            100.1
+          ],
+          "reference_xy": [
+            -2.046,
+            -1.758
+          ],
+          "max_xy_drift": 0.0,
+          "vertical_range": [
+            2.617,
+            2.834
+          ],
+          "distinct_route_goals": 3,
+          "nearby_doors": [
+            {
+              "thing": 24,
+              "sector": 394,
+              "instance": 4,
+              "script": "ctf_doorred.cog",
+              "role": "single",
+              "key_bin": 83,
+              "horizontal_distance": 0.217,
+              "via_sectors": [
+                396
+              ]
+            },
+            {
+              "thing": 25,
+              "sector": 401,
+              "instance": 5,
+              "script": "ctf_doorgold.cog",
+              "role": "single",
+              "key_bin": 84,
+              "horizontal_distance": 0.583,
+              "via_sectors": [
+                402
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

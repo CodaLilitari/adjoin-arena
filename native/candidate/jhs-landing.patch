@@ -1,0 +1,56 @@
+--- a/src/AI/jkBotRouteHints.inc
++++ b/src/AI/jkBotRouteHints.inc
+@@ -164,6 +164,44 @@
+     }
+ }
+ 
++/* At the final adjoin the sector-5 mesh continues over the lip of the
++   sector-7 world floor. The engine may omit the mesh in a downcast made
++   from the other sector. Require a real attachment, the measured overlap
++   and a live, walkable landing across the width of the player's feet. */
++static int Hint_Landing(SithThing *self, rdVector3 *ahead, int fixture)
++{
++    const HintPoint *landing=&entryPoints[ENTRY_POINTS-1];
++    const rdVector3 p=self->position;
++    if (!hint.ready || !hint.active || hint.seq!=ENTRY_POINTS-1 ||
++        self->sector->id!=5 || fixture!=181 || !Bot_StaticFixture(self->attachedThing) ||
++        !(self->attachedThing->flags&SITH_TF_STANDABLE) ||
++        p.y< -9.27f || p.y> -9.095f || fabsf(p.x-landing->pos.x)+self->moveSize>0.145f ||
++        fabsf(p.z-0.132f)>0.035f) return 0;
++    SithSector *dest=&bot.world->aSectors[landing->sector];
++    if (!Bot_SectorSafe(dest)) return 0;
++    rdVector3 landingPos=landing->pos;
++    for (int lane=-1;lane<=1;lane++) {
++        rdVector3 probe=landing->pos,standing; SithSector *on=NULL;
++        probe.x+=lane*self->moveSize;
++        probe.z=p.z+0.06f;
++        if (!Bot_StandingFloor(probe,dest,BOT_FOOT_HEIGHT+0.16f,&standing,&on,0,NULL,0) ||
++            on!=dest || fabsf(standing.z-p.z)>0.065f) {
++            if (hint.trace && bot.now>=hint.nextLog) Hint_Log(self,"landing","floor",fixture);
++            return 0;
++        }
++        if (!lane) landingPos=standing;
++    }
++    rdVector3 torso=p,goal=landingPos;
++    torso.z+=0.04f; goal.z+=0.04f;
++    if (!Bot_Clear(self,self->sector,torso,goal,self->collideSize*0.85f,0)) {
++        if (hint.trace && bot.now>=hint.nextLog) Hint_Log(self,"landing","obstacle",fixture);
++        return 0;
++    }
++    *ahead=landingPos;
++    if (hint.trace && bot.now>=hint.nextLog) Hint_Log(self,"landing","walk",fixture);
++    return 1;
++}
++
+ static int Hint_Walk(SithThing *self)
+ {
+     int fixture=(self->attach_flags&SITH_ATTACH_THINGFACE) && self->attachedThing ?
+@@ -197,7 +235,7 @@
+     if (length<0.001f || length>1.6f || fabsf(dir.z)>0.20f) return 0;
+     dir.x/=length;dir.y/=length;dir.z=0;
+     int probes=0,rejects=0,next=-1;rdVector3 ahead={0};
+-    if (!Platform_Step(self,dir,&ahead,&next,&probes,&rejects)) {
++    if (!Platform_Step(self,dir,&ahead,&next,&probes,&rejects) && !Hint_Landing(self,&ahead,fixture)) {
+         if (bot.now>=hint.nextLog) {Hint_Log(self,"blocked","footing",fixture);hint.nextLog=bot.now+0.5f;}
+         return 0;
+     }

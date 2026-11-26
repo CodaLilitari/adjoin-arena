@@ -1,0 +1,3078 @@
+{
+  "schema": 1,
+  "score": "Same-life interior lift or ground-to-shuttle approach and two successive living supported roof observations at Z >= 4.545. Each listed run is a separate physical trial.",
+  "runs": [
+    {
+      "opening": "original-two-owners",
+      "original_starts": true,
+      "episode_sha256": "a62c94789c521af2746cc8378301a4940a59a24f6fb44dd4c443caacc0211b04",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "nf-guns",
+      "owners": {
+        "lily": {
+          "native_status_samples": 9,
+          "sectors": [
+            73,
+            76,
+            168,
+            195,
+            199
+          ],
+          "position_samples": 81,
+          "max_live_z": 0.34726,
+          "console_sha256": "35320b6a415fa7a6dd741f059c50307af909c4fe05bfc3916e9c413d07bbfcdc"
+        },
+        "red": {
+          "native_status_samples": 7,
+          "sectors": [
+            5
+          ],
+          "position_samples": 81,
+          "max_live_z": 0.38409,
+          "console_sha256": "f583d48a8685269aa0e12dc6ef868041cfc9adde081623181c965deb699f6bca"
+        }
+      },
+      "paired_poll_sha256": "49cf85f2569888af8fcc97e83d9c13c3058d632777f11b08ad34f4df02e3ab25"
+    },
+    {
+      "opening": "chute-top",
+      "original_starts": false,
+      "episode_sha256": "6df4dee02b78eb99fe096c002a5170cf5495171c87ac814041119034bae49b12",
+      "map_sha256": "d9fbca703528cc65ca2c773b3c5dcab5118b79e7a477395a2093a1cfd736dce5",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "nf-guns",
+      "owners": {
+        "lily": {
+          "native_status_samples": 8,
+          "sectors": [
+            119,
+            120
+          ],
+          "position_samples": 64,
+          "max_live_z": 3.60451,
+          "console_sha256": "14596bd96227d44f9b4d5948f5a4ad55a958c3a4a19e97ebb9835b5f63ba55fa"
+        },
+        "red": {
+          "native_status_samples": 5,
+          "sectors": [
+            120,
+            121
+          ],
+          "position_samples": 64,
+          "max_live_z": 3.44814,
+          "console_sha256": "ead062e15eafc14655d501a77f2071267edb7b22b2c92be0990ab17d90e53d36"
+        }
+      },
+      "paired_poll_sha256": "603ee0a1724e46dd5f72cefdecb097202c8913da1afea9e6a0d0b0a7a07f6a4e",
+      "lily_trace": {
+        "trace_sha256": "5e6b14186caf6399781c17fd1799cf00c8287970defd722ec31c6f59110a4546",
+        "policy_hashes": [
+          "50230a9f6ae2823cf12515cfdaa5c496f9b630ec46b3bff079880e631c6df958"
+        ],
+        "live_sense_counts": {
+          "119": 637,
+          "120": 338,
+          "121": 47,
+          "122": 17,
+          "123": 63
+        },
+        "motor_outcomes": {
+          "stale_telemetry": 2,
+          "transport_stale": 1,
+          "playback": 164,
+          "fence_changed": 1
+        },
+        "max_live_z": 3.85966,
+        "first_observed_per_life": [],
+        "supported_roof_witness": [],
+        "first_living_sample": {
+          "sector": 119,
+          "position": [
+            2.03,
+            -2.118,
+            3.85966
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [],
+        "same_life_ground_shuttle_roof": false
+      }
+    },
+    {
+      "opening": "middle-hall",
+      "original_starts": false,
+      "episode_sha256": "bc32e7d02aedadc63fbb1deffe44777f8ec1c1de926265bbdea632f79654f77f",
+      "map_sha256": "cba1a90ef07d2f87487fe1d4b8f943d11eadf2cc9d1fb9b5dbebc31d1c252a43",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "nf-guns",
+      "owners": {
+        "lily": {
+          "native_status_samples": 8,
+          "sectors": [
+            51,
+            52,
+            79
+          ],
+          "position_samples": 77,
+          "max_live_z": 3.09792,
+          "console_sha256": "3a8cc070e050cb2f99f38711e5b4d890d0f9008998b41878b6c48fa67a15a2c0"
+        },
+        "red": {
+          "native_status_samples": 6,
+          "sectors": [
+            0
+          ],
+          "position_samples": 73,
+          "max_live_z": 4.72344,
+          "console_sha256": "9a09e780fc6c02556e6b6700057e087d4a9e778a6f49b2e02b81d832c4daa0ec"
+        }
+      },
+      "paired_poll_sha256": "1ee74a54b06978a565378e6a5052112d566a25c1448c22c5ef4f6b45090bf90e",
+      "lily_trace": {
+        "trace_sha256": "d123394950e94e74b4a7820a239a1cb95f1ba2d2cc44c9f5dbdbd1dcb1a8897a",
+        "policy_hashes": [
+          "dc780ada24a619afe2820d4b0397587cd379fcdbf62f872d21d5f0e12f55f5ae"
+        ],
+        "live_sense_counts": {
+          "51": 28,
+          "52": 99,
+          "79": 556
+        },
+        "motor_outcomes": {
+          "playback": 85,
+          "stale_telemetry": 1
+        },
+        "max_live_z": 3.10503,
+        "first_observed_per_life": [],
+        "supported_roof_witness": [],
+        "first_living_sample": {
+          "sector": 79,
+          "position": [
+            -0.4399,
+            -3.02542,
+            2.80914
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [],
+        "same_life_ground_shuttle_roof": false
+      }
+    },
+    {
+      "opening": "lower-deck",
+      "original_starts": false,
+      "episode_sha256": "4ad43a05a735d876fcc88229d0a1a01728247817a8b71a63615132a3f4ec5837",
+      "map_sha256": "0f7e5f7c146f9360b1500c84dbb8269bd46f8f47e0dc70f2d467a87e3d955d81",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "nf-guns",
+      "owners": {
+        "lily": {
+          "native_status_samples": 5,
+          "sectors": [
+            0
+          ],
+          "position_samples": 64,
+          "max_live_z": 4.66511,
+          "console_sha256": "049c75b67376439097dc98113b2276d1a455a927bb592543daf51323f548ca2e"
+        },
+        "red": {
+          "native_status_samples": 4,
+          "sectors": [
+            79
+          ],
+          "position_samples": 64,
+          "max_live_z": 3.13986,
+          "console_sha256": "30381c3113d89e83c17792396292a94407f883bd5597da5b7ed1ba7b626dd80c"
+        }
+      },
+      "paired_poll_sha256": "e152319723e4c837e4429ea68d5407350efb224c9111b61b5348da88587bfe15",
+      "lily_trace": {
+        "trace_sha256": "f83d2c03d4bb0141efff933e9bfe54d4d1cb9d4bb6d2029d4fa559dd56c5125f",
+        "policy_hashes": [
+          "61543c7759625495529f542d61f469b38fc3d43ae422724d915b7dd0120f9466"
+        ],
+        "live_sense_counts": {
+          "0": 824,
+          "30": 2,
+          "31": 19
+        },
+        "motor_outcomes": {
+          "playback": 43,
+          "motor_goal_reached": 2,
+          "expired_deadline": 2
+        },
+        "max_live_z": 4.66511,
+        "first_observed_per_life": [
+          {
+            "life": 1,
+            "sector": 30,
+            "elapsed_wall_s": 0.0,
+            "elapsed_game_s": 0.0,
+            "position": [
+              0.575,
+              -2.972,
+              2.855
+            ],
+            "supported": true
+          },
+          {
+            "life": 1,
+            "sector": 31,
+            "elapsed_wall_s": 0.107,
+            "elapsed_game_s": 0.0,
+            "position": [
+              0.575,
+              -2.972,
+              3.0173
+            ],
+            "supported": false
+          },
+          {
+            "life": 1,
+            "sector": 0,
+            "elapsed_wall_s": 2.229,
+            "elapsed_game_s": 2.216,
+            "position": [
+              0.54024,
+              -2.9853,
+              4.56153
+            ],
+            "supported": true
+          }
+        ],
+        "supported_roof_witness": [
+          {
+            "life": 1,
+            "sample_id": 38,
+            "sector": 0,
+            "z": 4.56153,
+            "elapsed_game_s": 2.216,
+            "health": 100.0,
+            "supported": true
+          },
+          {
+            "life": 1,
+            "sample_id": 39,
+            "sector": 0,
+            "z": 4.62175,
+            "elapsed_game_s": 2.216,
+            "health": 100.0,
+            "supported": true
+          }
+        ],
+        "first_living_sample": {
+          "sector": 30,
+          "position": [
+            0.575,
+            -2.972,
+            2.855
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": true,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [],
+        "same_life_ground_shuttle_roof": false
+      }
+    },
+    {
+      "opening": "hall-grate",
+      "original_starts": false,
+      "episode_sha256": "69269caee94a0c192e84fe4ad12dc1c4104ff1dac6488dee12314a251a81bd61",
+      "map_sha256": "58c31b4b534dcab501cf76742afc90cfb9e85403ceeba40a6c4f0f79c6a3bb3c",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "nf-sabers",
+      "owners": {
+        "lily": {
+          "native_status_samples": 4,
+          "sectors": [
+            79
+          ],
+          "position_samples": 48,
+          "max_live_z": 2.85914,
+          "console_sha256": "7e67c3eab0ec9a41d418916b4b6089256856ecc8805a4bc906ca6d612163594c"
+        },
+        "red": {
+          "native_status_samples": 4,
+          "sectors": [
+            51,
+            79
+          ],
+          "position_samples": 44,
+          "max_live_z": 3.04609,
+          "console_sha256": "476dbac07a6e283e4f775d552c9f2fbf8927664eee091f260e7b5a6f070655c3"
+        }
+      },
+      "paired_poll_sha256": "e88519a8b10586a1ceaddca9dc31b5d467869e38909f8b21dd59b585a608e605",
+      "lily_trace": {
+        "trace_sha256": "0edef5f003902d6bdc2af63c006e86770648ff31b63fb4f4c9c5e0c130e8651a",
+        "policy_hashes": [
+          "4c98eb28ae2cd6e797c93821143d63d0a264067de2d68392e66760cd17fa8cc1"
+        ],
+        "live_sense_counts": {
+          "51": 23,
+          "52": 69,
+          "79": 797
+        },
+        "motor_outcomes": {
+          "playback": 117,
+          "fence_changed": 1,
+          "stale_telemetry": 1
+        },
+        "max_live_z": 3.09663,
+        "first_observed_per_life": [],
+        "supported_roof_witness": [],
+        "first_living_sample": {
+          "sector": 79,
+          "position": [
+            0.17,
+            -2.977,
+            2.815
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [],
+        "same_life_ground_shuttle_roof": false
+      }
+    },
+    {
+      "opening": "hall-grate-solo",
+      "original_starts": false,
+      "episode_sha256": "647a3afc52516336b86a3e91dcd06daf880048b1b88ddf4acd028978c8a00abd",
+      "map_sha256": "3545ca4371edc8855e3b022237e172cda40389f1ae510afe51756cba8172cca1",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "nf-sabers",
+      "owners": {
+        "lily": {
+          "native_status_samples": 6,
+          "sectors": [
+            79
+          ],
+          "position_samples": 65,
+          "max_live_z": 2.85914,
+          "console_sha256": "44993e459c4ddd7e0ba1c65bad9ce9a443fd1b8ea79803fc15440772eb0abb28"
+        }
+      },
+      "paired_poll_sha256": "8b6b2fe36457c9ec2d91b0cc44670aee1be596915e6a82041b539f42b1063809",
+      "lily_trace": {
+        "trace_sha256": "9c671b2c058f7cbb1d428becbffb88bddac55bd4f55a40abf669e686ca3f4ca7",
+        "policy_hashes": [
+          "ec131b2466604ffc231c960dcfe5a93c0f0faaf6ee888a965f63b45383ba5b91"
+        ],
+        "live_sense_counts": {
+          "51": 32,
+          "52": 43,
+          "79": 836
+        },
+        "motor_outcomes": {
+          "playback": 80,
+          "motor_goal_reached": 1,
+          "stale_telemetry": 1
+        },
+        "max_live_z": 2.85968,
+        "first_observed_per_life": [],
+        "supported_roof_witness": [],
+        "first_living_sample": {
+          "sector": 79,
+          "position": [
+            0.28,
+            -2.977,
+            2.815
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [],
+        "same_life_ground_shuttle_roof": false
+      }
+    },
+    {
+      "opening": "grate-sensor-primary",
+      "original_starts": false,
+      "episode_sha256": "e26030e45ff429b708127207faafc736ea82e005766d202bcf1a130890f40e84",
+      "map_sha256": "3545ca4371edc8855e3b022237e172cda40389f1ae510afe51756cba8172cca1",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "nf-sabers",
+      "owners": {
+        "lily": {
+          "native_status_samples": 3,
+          "sectors": [
+            79
+          ],
+          "position_samples": 38,
+          "max_live_z": 2.96733,
+          "console_sha256": "cc3e02079cfb5ba8a57787a2e31959b5dfdefcf5671801ab772a99a634ee527b"
+        }
+      },
+      "paired_poll_sha256": "c36704a04d3ebdf1c4583168b122cd01142c4ad85fd61adfbe2d6f17f17cc276",
+      "lily_trace": {
+        "trace_sha256": "3c9d18cb29bf74bb1a27f064a8c13f55bcfd229ff629a2b1c36d92797853a1a5",
+        "policy_hashes": [
+          "ec131b2466604ffc231c960dcfe5a93c0f0faaf6ee888a965f63b45383ba5b91"
+        ],
+        "live_sense_counts": {
+          "79": 526
+        },
+        "motor_outcomes": {
+          "playback": 51,
+          "stale_telemetry": 1
+        },
+        "max_live_z": 3.05566,
+        "first_observed_per_life": [],
+        "supported_roof_witness": [],
+        "first_living_sample": {
+          "sector": 79,
+          "position": [
+            0.28,
+            -2.977,
+            2.815
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [],
+        "same_life_ground_shuttle_roof": false
+      },
+      "grate_diagnostic": {
+        "intact_samples": 518,
+        "damage_message_samples": 0,
+        "accepted_damage_samples": 0,
+        "method": "Private diagnostic copy of stock grate COG periodically reports its state in the solo player's shields. Only surface 868 reports. The position and movement tests use owner sense samples."
+      }
+    },
+    {
+      "opening": "grate-open-control",
+      "original_starts": false,
+      "episode_sha256": "aae906f1d29bd6ca7645479e908098dbdb5371b8db035de48b1a53918312c764",
+      "map_sha256": "a877d6371702ae86d6fdcb0bd4cca445ccc07064692bf27aac72fdf96ea3aa0a",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "nf-sabers",
+      "owners": {
+        "lily": {
+          "native_status_samples": 3,
+          "sectors": [
+            79
+          ],
+          "position_samples": 38,
+          "max_live_z": 3.04885,
+          "console_sha256": "e513335f261158f73bd2cb80967b605bf628c8a31b4aef3390c293d3035a2359"
+        }
+      },
+      "paired_poll_sha256": "7d028083378ed4e2c0b61082ea17d4ff6ad18abd29dd5e74f1a0d566b46f9efd",
+      "lily_trace": {
+        "trace_sha256": "8162c094a7b1728fa63a6ef725c68fc9e657c24d96640f43778ee29d69da2095",
+        "policy_hashes": [
+          "ec131b2466604ffc231c960dcfe5a93c0f0faaf6ee888a965f63b45383ba5b91"
+        ],
+        "live_sense_counts": {
+          "30": 7,
+          "51": 11,
+          "79": 513
+        },
+        "motor_outcomes": {
+          "playback": 51
+        },
+        "max_live_z": 3.05595,
+        "first_observed_per_life": [
+          {
+            "life": 1,
+            "sector": 30,
+            "elapsed_wall_s": 5.47,
+            "elapsed_game_s": 5.449,
+            "position": [
+              0.35853,
+              -3.06413,
+              2.81866
+            ],
+            "supported": true
+          }
+        ],
+        "supported_roof_witness": [],
+        "first_living_sample": {
+          "sector": 79,
+          "position": [
+            0.28,
+            -2.977,
+            2.815
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [],
+        "same_life_ground_shuttle_roof": false
+      }
+    },
+    {
+      "opening": "grate-sensor-aligned-secondary",
+      "original_starts": false,
+      "episode_sha256": "e26030e45ff429b708127207faafc736ea82e005766d202bcf1a130890f40e84",
+      "map_sha256": "3545ca4371edc8855e3b022237e172cda40389f1ae510afe51756cba8172cca1",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "nf-sabers",
+      "owners": {
+        "lily": {
+          "native_status_samples": 7,
+          "sectors": [
+            51,
+            79
+          ],
+          "position_samples": 77,
+          "max_live_z": 3.05502,
+          "console_sha256": "f3439f9ddcaa35e86e981dae67f3369388161fbf03df0617257cf73fb8dc9e24"
+        }
+      },
+      "paired_poll_sha256": "54a35e48d9af95dbe2046aa3b730ed40e772c308689fabd5990ec0baa89a36c7",
+      "lily_trace": {
+        "trace_sha256": "6a71ae401a22747ee89f91cc57031d7e3e0a1a826a7946ffad252e00d838fce2",
+        "policy_hashes": [
+          "6ddd29f8339595500ac68b222bd2bdd92ac4ea38c10467cbc1bdde6503e8e375"
+        ],
+        "live_sense_counts": {
+          "51": 297,
+          "79": 755
+        },
+        "motor_outcomes": {
+          "playback": 134,
+          "motor_goal_reached": 11,
+          "stale_telemetry": 1
+        },
+        "max_live_z": 3.05502,
+        "first_observed_per_life": [],
+        "supported_roof_witness": [],
+        "first_living_sample": {
+          "sector": 79,
+          "position": [
+            0.28,
+            -2.977,
+            2.815
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [],
+        "same_life_ground_shuttle_roof": false
+      },
+      "grate_diagnostic": {
+        "intact_samples": 38,
+        "damage_message_samples": 0,
+        "accepted_damage_samples": 1006,
+        "method": "Private diagnostic copy of stock grate COG periodically reports its state in the solo player's shields. Only surface 868 reports. The position and movement tests use owner sense samples."
+      }
+    },
+    {
+      "opening": "grate-sensor-queued",
+      "original_starts": false,
+      "episode_sha256": "e26030e45ff429b708127207faafc736ea82e005766d202bcf1a130890f40e84",
+      "map_sha256": "3545ca4371edc8855e3b022237e172cda40389f1ae510afe51756cba8172cca1",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "nf-sabers",
+      "owners": {
+        "lily": {
+          "native_status_samples": 7,
+          "sectors": [
+            0,
+            79
+          ],
+          "position_samples": 82,
+          "max_live_z": 4.6651,
+          "console_sha256": "69f861faf5445f88352128338e7c931894085afa920e29d206e7463e3245c46c"
+        }
+      },
+      "paired_poll_sha256": "8f1f9aaa9595582100b8ca81802dd710fbc0e022973c16ead9909bde45761b52",
+      "lily_trace": {
+        "trace_sha256": "02bfa98101723bb72216d93aa08e373aff489f311a37dc48f16cc6ab5b68fdf5",
+        "policy_hashes": [
+          "1f9042d335b00cd20be95667ccd49e0628eff1915e16735486a9468dfebe2fab"
+        ],
+        "live_sense_counts": {
+          "0": 871,
+          "30": 6,
+          "31": 15,
+          "79": 235
+        },
+        "motor_outcomes": {},
+        "max_live_z": 4.6651,
+        "first_observed_per_life": [
+          {
+            "life": 1,
+            "sector": 30,
+            "elapsed_wall_s": 15.963,
+            "elapsed_game_s": 15.948,
+            "position": [
+              0.38282,
+              -3.02253,
+              2.83769
+            ],
+            "supported": true
+          },
+          {
+            "life": 1,
+            "sector": 31,
+            "elapsed_wall_s": 16.367,
+            "elapsed_game_s": 16.382,
+            "position": [
+              0.55,
+              -3.02222,
+              3.02604
+            ],
+            "supported": true
+          },
+          {
+            "life": 1,
+            "sector": 0,
+            "elapsed_wall_s": 17.389,
+            "elapsed_game_s": 17.415,
+            "position": [
+              0.55,
+              -3.02222,
+              4.56762
+            ],
+            "supported": true
+          }
+        ],
+        "supported_roof_witness": [
+          {
+            "life": 1,
+            "sample_id": 280,
+            "sector": 0,
+            "z": 4.56762,
+            "elapsed_game_s": 17.415,
+            "health": 100.0,
+            "supported": true
+          },
+          {
+            "life": 1,
+            "sample_id": 281,
+            "sector": 0,
+            "z": 4.62121,
+            "elapsed_game_s": 17.415,
+            "health": 100.0,
+            "supported": true
+          }
+        ],
+        "first_living_sample": {
+          "sector": 79,
+          "position": [
+            0.28,
+            -2.977,
+            2.815
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": true,
+        "same_life_hall_deck_roof": true,
+        "ground_to_upper_shuttle": [],
+        "same_life_ground_shuttle_roof": false
+      },
+      "grate_diagnostic": {
+        "intact_samples": 185,
+        "damage_message_samples": 0,
+        "accepted_damage_samples": 934,
+        "method": "Private diagnostic copy of stock grate COG periodically reports its state in the solo player's shields. Only surface 868 reports. The position and movement tests use owner sense samples."
+      }
+    },
+    {
+      "opening": "hall-grate-queued",
+      "original_starts": false,
+      "episode_sha256": "647a3afc52516336b86a3e91dcd06daf880048b1b88ddf4acd028978c8a00abd",
+      "map_sha256": "3545ca4371edc8855e3b022237e172cda40389f1ae510afe51756cba8172cca1",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "nf-sabers",
+      "owners": {
+        "lily": {
+          "native_status_samples": 5,
+          "sectors": [
+            0,
+            79
+          ],
+          "position_samples": 60,
+          "max_live_z": 4.6651,
+          "console_sha256": "3b07d984acfcef82661dba60c014541a6d9254ef2315ec83e7e0f213fdcad85c"
+        }
+      },
+      "paired_poll_sha256": "16f82d013b6aac4ebb376785abea9162e025a8cb4fdda3d558d7473d26c650e1",
+      "lily_trace": {
+        "trace_sha256": "2857b71915be75e3a8e84fb00f7cfd5864a8cc0ca12f489851c894aa3f48d1f5",
+        "policy_hashes": [
+          "1f9042d335b00cd20be95667ccd49e0628eff1915e16735486a9468dfebe2fab"
+        ],
+        "live_sense_counts": {
+          "0": 566,
+          "30": 7,
+          "31": 15,
+          "79": 237
+        },
+        "motor_outcomes": {},
+        "max_live_z": 4.6651,
+        "first_observed_per_life": [
+          {
+            "life": 1,
+            "sector": 30,
+            "elapsed_wall_s": 15.866,
+            "elapsed_game_s": 15.916,
+            "position": [
+              0.3655,
+              -3.02312,
+              2.82183
+            ],
+            "supported": true
+          },
+          {
+            "life": 1,
+            "sector": 31,
+            "elapsed_wall_s": 16.364,
+            "elapsed_game_s": 16.382,
+            "position": [
+              0.55,
+              -3.02295,
+              3.02604
+            ],
+            "supported": true
+          },
+          {
+            "life": 1,
+            "sector": 0,
+            "elapsed_wall_s": 17.444,
+            "elapsed_game_s": 17.482,
+            "position": [
+              0.55,
+              -3.02295,
+              4.62122
+            ],
+            "supported": true
+          }
+        ],
+        "supported_roof_witness": [
+          {
+            "life": 1,
+            "sample_id": 285,
+            "sector": 0,
+            "z": 4.62122,
+            "elapsed_game_s": 17.482,
+            "health": 100.0,
+            "supported": true
+          },
+          {
+            "life": 1,
+            "sample_id": 286,
+            "sector": 0,
+            "z": 4.65315,
+            "elapsed_game_s": 17.482,
+            "health": 100.0,
+            "supported": true
+          }
+        ],
+        "first_living_sample": {
+          "sector": 79,
+          "position": [
+            0.28,
+            -2.977,
+            2.815
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": true,
+        "same_life_hall_deck_roof": true,
+        "ground_to_upper_shuttle": [],
+        "same_life_ground_shuttle_roof": false
+      }
+    },
+    {
+      "opening": "integrated-coach-hall-grate",
+      "original_starts": false,
+      "episode_sha256": "647a3afc52516336b86a3e91dcd06daf880048b1b88ddf4acd028978c8a00abd",
+      "map_sha256": "3545ca4371edc8855e3b022237e172cda40389f1ae510afe51756cba8172cca1",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "nf-sabers",
+      "owners": {
+        "lily": {
+          "native_status_samples": 6,
+          "sectors": [
+            0,
+            79
+          ],
+          "position_samples": 71,
+          "max_live_z": 4.71292,
+          "console_sha256": "d3cbaa7e01c8b92a6754890d8770c66eae9b060a68af0dce1f24d0d7fc19aa4e"
+        }
+      },
+      "paired_poll_sha256": "bd28df8dc0d8da36af78d0633e9093282833d8a8fa2f3d002bba4303b996f894",
+      "coach": {
+        "events": [
+          {
+            "kind": "jhs_roof_start",
+            "content": "hall-grate",
+            "attempt": 1,
+            "sector": 79,
+            "game_time": 0.019999999552965164
+          },
+          {
+            "kind": "jhs_roof_end",
+            "reason": "supported_roof"
+          }
+        ],
+        "log_sha256": "1c57c83033b98f4d98899291b7d4b7c11f0fb09ee834cbe8d41809a121935ade"
+      },
+      "lily_trace": {
+        "trace_sha256": "b71923ea9bb42aca597745cc7fff7d787c9d4b6ad5be288a5026dad12890d5e8",
+        "policy_hashes": [],
+        "live_sense_counts": {
+          "0": 499,
+          "14": 6,
+          "30": 7,
+          "31": 16,
+          "35": 22,
+          "36": 189,
+          "79": 244
+        },
+        "motor_outcomes": {},
+        "max_live_z": 4.72003,
+        "first_observed_per_life": [
+          {
+            "life": 1,
+            "sector": 30,
+            "elapsed_wall_s": 15.86,
+            "elapsed_game_s": 15.883,
+            "position": [
+              0.36611,
+              -3.02213,
+              2.82183
+            ],
+            "supported": true
+          },
+          {
+            "life": 1,
+            "sector": 31,
+            "elapsed_wall_s": 16.371,
+            "elapsed_game_s": 16.35,
+            "position": [
+              0.55,
+              -3.02182,
+              3.02604
+            ],
+            "supported": true
+          },
+          {
+            "life": 1,
+            "sector": 0,
+            "elapsed_wall_s": 17.385,
+            "elapsed_game_s": 17.383,
+            "position": [
+              0.55,
+              -3.02182,
+              4.56762
+            ],
+            "supported": true
+          }
+        ],
+        "supported_roof_witness": [
+          {
+            "life": 1,
+            "sample_id": 283,
+            "sector": 0,
+            "z": 4.56762,
+            "elapsed_game_s": 17.383,
+            "health": 100.0,
+            "supported": true
+          },
+          {
+            "life": 1,
+            "sample_id": 284,
+            "sector": 0,
+            "z": 4.62122,
+            "elapsed_game_s": 17.383,
+            "health": 100.0,
+            "supported": true
+          }
+        ],
+        "first_living_sample": {
+          "sector": 79,
+          "position": [
+            0.28,
+            -2.977,
+            2.815
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": true,
+        "same_life_hall_deck_roof": true,
+        "ground_to_upper_shuttle": [],
+        "same_life_ground_shuttle_roof": false
+      }
+    },
+    {
+      "opening": "original-integrated-coach",
+      "original_starts": true,
+      "episode_sha256": "a62c94789c521af2746cc8378301a4940a59a24f6fb44dd4c443caacc0211b04",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "nf-sabers",
+      "owners": {
+        "lily": {
+          "native_status_samples": 15,
+          "sectors": [
+            60,
+            75,
+            114,
+            116,
+            117,
+            180,
+            205,
+            206,
+            212
+          ],
+          "position_samples": 166,
+          "max_live_z": 0.43963,
+          "console_sha256": "bee312f453b5041e3a69d0835f2ed14d76715c0db95756e3e254621481c6f786"
+        }
+      },
+      "paired_poll_sha256": "87a844446a52503e7b918ed8b9910d14471a330dfd5e664324e8bb7773cbdce0",
+      "coach": {
+        "events": [],
+        "log_sha256": "ac7b5eaef14c49e3db218bdd6aa04d13f1eb1ebc709c01a1875d22d61940d612"
+      },
+      "lily_trace": {
+        "trace_sha256": "d99dc39ce5edf8d7728ed20192ec010279e869fe0ec4e94fad449c42155278e5",
+        "policy_hashes": [],
+        "live_sense_counts": {
+          "45": 11,
+          "50": 3,
+          "60": 136,
+          "73": 38,
+          "75": 56,
+          "102": 73,
+          "108": 28,
+          "113": 5,
+          "114": 124,
+          "116": 23,
+          "117": 210,
+          "130": 10,
+          "132": 9,
+          "168": 19,
+          "174": 7,
+          "178": 1,
+          "180": 186,
+          "183": 7,
+          "189": 15,
+          "195": 145,
+          "196": 1,
+          "199": 206,
+          "205": 128,
+          "206": 127,
+          "208": 1,
+          "212": 709
+        },
+        "motor_outcomes": {},
+        "max_live_z": 0.45681,
+        "first_observed_per_life": [],
+        "supported_roof_witness": [],
+        "first_living_sample": {
+          "sector": 199,
+          "position": [
+            6.755,
+            6.115,
+            0.165
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [],
+        "same_life_ground_shuttle_roof": false
+      }
+    },
+    {
+      "opening": "original-start-pair-swapped",
+      "original_starts": false,
+      "episode_sha256": "b3bff7fb12f9c0cf28076b0e002cb317bde55fd77ce4578be11d965a86aa7065",
+      "map_sha256": "d6f578ba8cf1c016121a19065827fcbf1b43365f0a44d3662d542b76fb26d927",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "nf-sabers",
+      "owners": {
+        "lily": {
+          "native_status_samples": 13,
+          "sectors": [
+            7,
+            9,
+            16,
+            33,
+            63,
+            66,
+            91,
+            135
+          ],
+          "position_samples": 154,
+          "max_live_z": 4.73755,
+          "console_sha256": "4ca32e380459136ef8872c57e044e44092b17bf198118fd9267893118695570e"
+        }
+      },
+      "paired_poll_sha256": "429d94df11456844276368046c04cec83bcf2dd99b7db4a6d8825d57643d9522",
+      "coach": {
+        "events": [],
+        "log_sha256": "e6737c21501b87b2550c6ad66aeb66a2dcea6f37dac95b310d681134297fa66b"
+      },
+      "lily_trace": {
+        "trace_sha256": "734d6e20a70cf1bae7d24ab9573701da91d4d2fe8f1ea990e24896c5772b254d",
+        "policy_hashes": [],
+        "live_sense_counts": {
+          "3": 24,
+          "7": 137,
+          "9": 312,
+          "12": 4,
+          "15": 3,
+          "16": 625,
+          "17": 6,
+          "23": 6,
+          "33": 44,
+          "45": 14,
+          "50": 4,
+          "59": 26,
+          "60": 52,
+          "61": 19,
+          "63": 33,
+          "64": 1,
+          "66": 46,
+          "67": 3,
+          "73": 71,
+          "74": 26,
+          "75": 44,
+          "91": 80,
+          "101": 38,
+          "112": 19,
+          "129": 35,
+          "134": 2,
+          "135": 196,
+          "148": 17,
+          "168": 37,
+          "195": 20
+        },
+        "motor_outcomes": {},
+        "max_live_z": 4.76058,
+        "first_observed_per_life": [],
+        "supported_roof_witness": [],
+        "first_living_sample": {
+          "sector": 135,
+          "position": [
+            3.26497,
+            -0.72255,
+            0.12452
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [
+          {
+            "life": 1,
+            "sector": 16,
+            "sample_id": 1621,
+            "elapsed_game_s": 100.517,
+            "position": [
+              -0.63138,
+              -4.46946,
+              4.47782
+            ]
+          }
+        ],
+        "same_life_ground_shuttle_roof": false
+      }
+    },
+    {
+      "opening": "shuttle-ground-deck",
+      "original_starts": false,
+      "episode_sha256": "c7d3170ef611dd14059dd5025d1f643f56d20b74570a2c1ea47edef7d303acd1",
+      "map_sha256": "668dffec7440591235d6557b9dc1f1f7f0fc35440fc3c86b886b7b63b5c4a912",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "nf-sabers",
+      "owners": {
+        "lily": {
+          "native_status_samples": 5,
+          "sectors": [
+            0,
+            16
+          ],
+          "position_samples": 60,
+          "max_live_z": 4.82942,
+          "console_sha256": "86c826271e26884f95c0ef85c7742f3d9cc4e9879b179038c518a69a2fc814ae"
+        }
+      },
+      "paired_poll_sha256": "a35b440f8c6616a08506bf75df039db7c15f13240db26051ecc84b7ca9865a5d",
+      "lily_trace": {
+        "trace_sha256": "ee41472a1c126d04c4db8a9885090b89dd3286db0eb631524954f01ffd1c742b",
+        "policy_hashes": [
+          "d3dbb88714c72882f11f3d446984f475281aab6c844d10cff883beedd305cc2e"
+        ],
+        "live_sense_counts": {
+          "0": 582,
+          "3": 8,
+          "7": 33,
+          "9": 42,
+          "16": 126,
+          "19": 8
+        },
+        "motor_outcomes": {},
+        "max_live_z": 4.82942,
+        "first_observed_per_life": [
+          {
+            "life": 1,
+            "sector": 0,
+            "elapsed_wall_s": 15.375,
+            "elapsed_game_s": 15.383,
+            "position": [
+              -0.692,
+              -3.93579,
+              4.64313
+            ],
+            "supported": true
+          }
+        ],
+        "supported_roof_witness": [
+          {
+            "life": 1,
+            "sample_id": 249,
+            "sector": 0,
+            "z": 4.64313,
+            "elapsed_game_s": 15.383,
+            "health": 100.0,
+            "supported": true
+          },
+          {
+            "life": 1,
+            "sample_id": 250,
+            "sector": 0,
+            "z": 4.6604,
+            "elapsed_game_s": 15.383,
+            "health": 100.0,
+            "supported": true
+          }
+        ],
+        "first_living_sample": {
+          "sector": 7,
+          "position": [
+            -0.641,
+            -8.183,
+            0.17
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [
+          {
+            "life": 1,
+            "sector": 16,
+            "sample_id": 200,
+            "elapsed_game_s": 12.183,
+            "position": [
+              -0.65861,
+              -4.42634,
+              4.46969
+            ]
+          }
+        ],
+        "same_life_ground_shuttle_roof": true
+      }
+    },
+    {
+      "opening": "front-pose-first-lip",
+      "original_starts": false,
+      "episode_sha256": "14744f3e32ef69d00d86fc5d99e14c984732023524ded360008e96114de77a0a",
+      "map_sha256": "cfb26514fceae289e3a9bd38f0b412f49b81d5be5c731ef8a223a9c079c32cad",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "nf-sabers",
+      "owners": {
+        "lily": {
+          "native_status_samples": 5,
+          "sectors": [
+            5,
+            7,
+            16,
+            19
+          ],
+          "position_samples": 62,
+          "max_live_z": 4.68867,
+          "console_sha256": "a70c69afa115a23a7ee9058ca879ddcac6460b983b829dbdd041ab4c0795a472"
+        }
+      },
+      "paired_poll_sha256": "86e212687203b6358f1976456df86924d03b82f27fe3ec399385c61317d61a14",
+      "coach": {
+        "events": [
+          {
+            "kind": "jhs_roof_start",
+            "route": "entrance",
+            "content": "entrance-original",
+            "attempt": 1,
+            "sector": 5,
+            "game_time": 0.023000000044703484
+          },
+          {
+            "kind": "jhs_roof_end",
+            "reason": "timeout_or_departure"
+          },
+          {
+            "kind": "jhs_roof_start",
+            "route": "entrance",
+            "content": "entrance-original",
+            "attempt": 1,
+            "sector": 5,
+            "game_time": 52.41600036621094
+          },
+          {
+            "kind": "jhs_roof_end",
+            "reason": "coach_release"
+          }
+        ],
+        "log_sha256": "955465941e0f27eb1bb92faa3b57aa7962f1a3e7b7155602f5bb399518d7f6cb"
+      },
+      "lily_trace": {
+        "trace_sha256": "ef00d2bb28f21001e0552aaafbc3a4e7aebe2307ef399c12396f8681cf62aa2f",
+        "policy_hashes": [],
+        "live_sense_counts": {
+          "3": 10,
+          "5": 235,
+          "7": 66,
+          "9": 40,
+          "16": 103,
+          "17": 12,
+          "18": 6,
+          "19": 349
+        },
+        "motor_outcomes": {},
+        "max_live_z": 4.81446,
+        "first_observed_per_life": [],
+        "supported_roof_witness": [],
+        "first_living_sample": {
+          "sector": 5,
+          "position": [
+            -0.59,
+            -12.44,
+            0.12
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [
+          {
+            "life": 1,
+            "sector": 16,
+            "sample_id": 339,
+            "elapsed_game_s": 20.993,
+            "position": [
+              -0.66386,
+              -4.98932,
+              4.46025
+            ]
+          }
+        ],
+        "same_life_ground_shuttle_roof": false
+      }
+    },
+    {
+      "opening": "front-pose-complete",
+      "original_starts": false,
+      "episode_sha256": "14744f3e32ef69d00d86fc5d99e14c984732023524ded360008e96114de77a0a",
+      "map_sha256": "cfb26514fceae289e3a9bd38f0b412f49b81d5be5c731ef8a223a9c079c32cad",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "nf-sabers",
+      "owners": {
+        "lily": {
+          "native_status_samples": 6,
+          "sectors": [
+            0,
+            7,
+            16
+          ],
+          "position_samples": 65,
+          "max_live_z": 4.77437,
+          "console_sha256": "216813ca7b8c158d62b97279e642ec98afc80b6010f2e221d073002c8ad0ba8c"
+        }
+      },
+      "paired_poll_sha256": "a46625142e6f543adc8743119a44a23c9860878e4e39961b538ac9e5e6f4033f",
+      "coach": {
+        "events": [
+          {
+            "kind": "jhs_roof_start",
+            "route": "entrance",
+            "content": "entrance-original",
+            "attempt": 1,
+            "sector": 5,
+            "game_time": 0.014000000432133675
+          },
+          {
+            "kind": "jhs_roof_end",
+            "reason": "supported_roof"
+          }
+        ],
+        "log_sha256": "78beb8f4dfc09cca7a20c0bb54104a4ce7ab99d21642558f229e4d01a4e576f6"
+      },
+      "lily_trace": {
+        "trace_sha256": "e5afed0afa0237a86484e245c85eea4583b186be38bd2acab3498c2063afad0c",
+        "policy_hashes": [],
+        "live_sense_counts": {
+          "0": 288,
+          "2": 5,
+          "3": 6,
+          "5": 120,
+          "7": 64,
+          "9": 44,
+          "16": 129,
+          "19": 10,
+          "34": 18,
+          "35": 88,
+          "36": 111
+        },
+        "motor_outcomes": {},
+        "max_live_z": 4.82279,
+        "first_observed_per_life": [
+          {
+            "life": 1,
+            "sector": 0,
+            "elapsed_wall_s": 25.455,
+            "elapsed_game_s": 25.342,
+            "position": [
+              -0.6151,
+              -3.91752,
+              4.77342
+            ],
+            "supported": false
+          }
+        ],
+        "supported_roof_witness": [
+          {
+            "life": 1,
+            "sample_id": 412,
+            "sector": 0,
+            "z": 4.6637,
+            "elapsed_game_s": 25.542,
+            "health": 100.0,
+            "supported": true
+          },
+          {
+            "life": 1,
+            "sample_id": 414,
+            "sector": 0,
+            "z": 4.66164,
+            "elapsed_game_s": 25.776,
+            "health": 100.0,
+            "supported": true
+          }
+        ],
+        "first_living_sample": {
+          "sector": 5,
+          "position": [
+            -0.59,
+            -12.44,
+            0.12
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [
+          {
+            "life": 1,
+            "sector": 16,
+            "sample_id": 337,
+            "elapsed_game_s": 20.875,
+            "position": [
+              -0.66529,
+              -4.9507,
+              4.47534
+            ]
+          }
+        ],
+        "same_life_ground_shuttle_roof": true
+      }
+    },
+    {
+      "opening": "original-two-owner-coach",
+      "original_starts": true,
+      "episode_sha256": "a62c94789c521af2746cc8378301a4940a59a24f6fb44dd4c443caacc0211b04",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "nf-sabers",
+      "owners": {
+        "lily": {
+          "native_status_samples": 16,
+          "sectors": [
+            5,
+            7,
+            16,
+            33,
+            59,
+            66,
+            67,
+            75,
+            86,
+            129,
+            135,
+            195,
+            206
+          ],
+          "position_samples": 185,
+          "max_live_z": 4.51773,
+          "console_sha256": "ca7cc12700cd8276189c4b33fc2dfe73c6b3261b861f40764da965bb81d5c64c"
+        },
+        "red": {
+          "native_status_samples": 17,
+          "sectors": [
+            5,
+            16,
+            180,
+            199,
+            205
+          ],
+          "position_samples": 182,
+          "max_live_z": 0.38409,
+          "console_sha256": "984591a395299156d91ec45097ae9b3e8616bdd5a8b47b3b2bb88cd99bca5f43"
+        }
+      },
+      "paired_poll_sha256": "dc00afe1d9efaededd5e6e4d90c80b9d7adcd399a6e4d5b163c0d2ee01ec5685",
+      "coach": {
+        "events": [
+          {
+            "kind": "jhs_roof_start",
+            "route": "entrance",
+            "content": "original",
+            "attempt": 1,
+            "sector": 5,
+            "game_time": 0.020999999716877937
+          },
+          {
+            "kind": "jhs_roof_end",
+            "reason": "timeout_or_departure"
+          }
+        ],
+        "log_sha256": "2fb1f01e21429841841abf1f068df59be4080ec228f7784fb203d829e00c518f"
+      },
+      "lily_trace": {
+        "trace_sha256": "4790bb0f214fafd305f046bd3efb8c1c7e665ab9c37672dd4de35f90307519c3",
+        "policy_hashes": [],
+        "live_sense_counts": {
+          "3": 15,
+          "5": 185,
+          "7": 236,
+          "9": 115,
+          "16": 203,
+          "33": 34,
+          "45": 24,
+          "50": 8,
+          "55": 6,
+          "59": 85,
+          "60": 80,
+          "61": 43,
+          "62": 7,
+          "63": 5,
+          "64": 16,
+          "65": 5,
+          "66": 119,
+          "67": 53,
+          "68": 24,
+          "73": 87,
+          "74": 3,
+          "75": 115,
+          "76": 25,
+          "85": 11,
+          "86": 204,
+          "129": 37,
+          "134": 13,
+          "135": 278,
+          "148": 22,
+          "149": 6,
+          "168": 37,
+          "174": 2,
+          "180": 97,
+          "195": 132,
+          "199": 31,
+          "206": 43
+        },
+        "motor_outcomes": {},
+        "max_live_z": 4.51773,
+        "first_observed_per_life": [],
+        "supported_roof_witness": [],
+        "first_living_sample": {
+          "sector": 5,
+          "position": [
+            -0.42,
+            -12.44,
+            0.12
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [
+          {
+            "life": 1,
+            "sector": 16,
+            "sample_id": 370,
+            "elapsed_game_s": 22.809,
+            "position": [
+              -0.65885,
+              -5.06236,
+              4.47027
+            ]
+          }
+        ],
+        "same_life_ground_shuttle_roof": false
+      }
+    },
+    {
+      "opening": "original-nf-sabers-front-to-roof",
+      "original_starts": true,
+      "episode_sha256": "a62c94789c521af2746cc8378301a4940a59a24f6fb44dd4c443caacc0211b04",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "nf-sabers",
+      "owners": {
+        "lily": {
+          "native_status_samples": 7,
+          "sectors": [
+            0,
+            7,
+            16,
+            34,
+            36
+          ],
+          "position_samples": 77,
+          "max_live_z": 4.71714,
+          "console_sha256": "347500a05dc5e2d99b514ab7eeceac78bedff7bd9f92658a751692fe4f3c1146"
+        },
+        "red": {
+          "native_status_samples": 8,
+          "sectors": [
+            61,
+            65,
+            175,
+            180,
+            195,
+            205,
+            206
+          ],
+          "position_samples": 77,
+          "max_live_z": 0.4512,
+          "console_sha256": "c95f626ab3ab37b7df11d2873074508f6003366c56f7377288d1eabcac35be29"
+        }
+      },
+      "paired_poll_sha256": "fc1cac8a9e4e3be4bb3388c4ecc859c2b7640b8031ed4b1b02224e15a5864500",
+      "coach": {
+        "events": [
+          {
+            "kind": "jhs_roof_start",
+            "route": "entrance",
+            "content": "original",
+            "attempt": 1,
+            "sector": 5,
+            "game_time": 0.017000000923871994
+          },
+          {
+            "kind": "jhs_roof_end",
+            "reason": "supported_roof"
+          }
+        ],
+        "log_sha256": "914ec7ffc842ad7961269a7dd7b764ac9a6343bbcbc894dc038b8ec51f39455b"
+      },
+      "lily_trace": {
+        "trace_sha256": "315537a6a30d28c4bc231278f6998dc6e458fbade26717d75ba29a3ef1d4fdf4",
+        "policy_hashes": [],
+        "live_sense_counts": {
+          "0": 345,
+          "3": 9,
+          "5": 131,
+          "7": 67,
+          "9": 43,
+          "16": 103,
+          "17": 2,
+          "18": 1,
+          "19": 5,
+          "34": 104,
+          "35": 47,
+          "36": 179
+        },
+        "motor_outcomes": {},
+        "max_live_z": 4.90134,
+        "first_observed_per_life": [
+          {
+            "life": 1,
+            "sector": 0,
+            "elapsed_wall_s": 24.189,
+            "elapsed_game_s": 24.068,
+            "position": [
+              -0.64324,
+              -3.9371,
+              4.71405
+            ],
+            "supported": false
+          }
+        ],
+        "supported_roof_witness": [
+          {
+            "life": 1,
+            "sample_id": 399,
+            "sector": 0,
+            "z": 4.67337,
+            "elapsed_game_s": 24.535,
+            "health": 100.0,
+            "supported": true
+          },
+          {
+            "life": 1,
+            "sample_id": 401,
+            "sector": 0,
+            "z": 4.66277,
+            "elapsed_game_s": 24.535,
+            "health": 100.0,
+            "supported": true
+          }
+        ],
+        "first_living_sample": {
+          "sector": 5,
+          "position": [
+            -0.42,
+            -12.44,
+            0.13472
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [
+          {
+            "life": 1,
+            "sector": 16,
+            "sample_id": 354,
+            "elapsed_game_s": 21.702,
+            "position": [
+              -0.66402,
+              -4.92577,
+              4.46025
+            ]
+          }
+        ],
+        "same_life_ground_shuttle_roof": true
+      }
+    },
+    {
+      "opening": "original-ff-guns-saber-adviser",
+      "original_starts": true,
+      "episode_sha256": "a62c94789c521af2746cc8378301a4940a59a24f6fb44dd4c443caacc0211b04",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "ff-guns",
+      "owners": {
+        "lily": {
+          "native_status_samples": 6,
+          "sectors": [
+            0,
+            7,
+            16
+          ],
+          "position_samples": 70,
+          "max_live_z": 4.91003,
+          "console_sha256": "1fb53d2c11db3e74d43c3e774942617d93047d20dcb8611aaeea4a6fe97a5595"
+        },
+        "red": {
+          "native_status_samples": 8,
+          "sectors": [
+            197
+          ],
+          "position_samples": 70,
+          "max_live_z": 0.32178,
+          "console_sha256": "fbb5aa9472620ac92d7c15894cc298d99139e7d1a25fd0c8d4bce6a1f80d58b8"
+        }
+      },
+      "paired_poll_sha256": "94bf55784918d45a34e5f019796efe49d0382ec937fa65abb27c00424b0f6bfb",
+      "coach": {
+        "events": [
+          {
+            "kind": "jhs_roof_start",
+            "route": "entrance",
+            "content": "original",
+            "attempt": 1,
+            "sector": 5,
+            "game_time": 0.014999999664723873
+          },
+          {
+            "kind": "jhs_roof_end",
+            "reason": "supported_roof"
+          }
+        ],
+        "log_sha256": "bb9d2831a65b90177016ec64ea23c790a4cbaa1a931b5ca902d9e86fcc0a8d6e"
+      },
+      "lily_trace": {
+        "trace_sha256": "6e2fbaf8f23b0faad623647860b7496443413e882cacb06530303bf904b94ed9",
+        "policy_hashes": [],
+        "live_sense_counts": {
+          "0": 559,
+          "3": 7,
+          "5": 133,
+          "7": 63,
+          "9": 44,
+          "16": 112,
+          "19": 5,
+          "35": 10,
+          "36": 29
+        },
+        "motor_outcomes": {},
+        "max_live_z": 4.91003,
+        "first_observed_per_life": [
+          {
+            "life": 1,
+            "sector": 0,
+            "elapsed_wall_s": 25.089,
+            "elapsed_game_s": 24.991,
+            "position": [
+              -0.61396,
+              -3.93249,
+              4.76973
+            ],
+            "supported": false
+          }
+        ],
+        "supported_roof_witness": [
+          {
+            "life": 1,
+            "sample_id": 407,
+            "sector": 0,
+            "z": 4.67423,
+            "elapsed_game_s": 25.225,
+            "health": 100.0,
+            "supported": true
+          },
+          {
+            "life": 1,
+            "sample_id": 409,
+            "sector": 0,
+            "z": 4.66012,
+            "elapsed_game_s": 25.458,
+            "health": 100.0,
+            "supported": true
+          }
+        ],
+        "first_living_sample": {
+          "sector": 5,
+          "position": [
+            -0.42,
+            -12.44,
+            0.12
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [
+          {
+            "life": 1,
+            "sector": 16,
+            "sample_id": 352,
+            "elapsed_game_s": 21.925,
+            "position": [
+              -0.66685,
+              -4.91829,
+              4.48288
+            ]
+          }
+        ],
+        "same_life_ground_shuttle_roof": true
+      }
+    },
+    {
+      "opening": "original-matched-ff-guns-first",
+      "original_starts": true,
+      "episode_sha256": "a62c94789c521af2746cc8378301a4940a59a24f6fb44dd4c443caacc0211b04",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "ff-guns",
+      "owners": {
+        "lily": {
+          "native_status_samples": 5,
+          "sectors": [
+            5,
+            7,
+            16,
+            148
+          ],
+          "position_samples": 59,
+          "max_live_z": 1.28685,
+          "console_sha256": "084def9f46f2c37e04df618ea6df877fa35c57c0c79f0c680439bac011fdce4a"
+        },
+        "red": {
+          "native_status_samples": 7,
+          "sectors": [
+            16,
+            76,
+            107,
+            197,
+            206
+          ],
+          "position_samples": 53,
+          "max_live_z": 0.5557,
+          "console_sha256": "a7d077084adfb46e763c681b6cbd4bf7ad27603a239a5aceddc4166bd91ecfd6"
+        }
+      },
+      "paired_poll_sha256": "98afabccbb239533733684c0d66bdd8342f7444c29986c7ca85899d217a29e08",
+      "coach": {
+        "events": [
+          {
+            "kind": "jhs_roof_start",
+            "route": "entrance",
+            "content": "original",
+            "attempt": 1,
+            "sector": 5,
+            "game_time": 0.03200000151991844
+          },
+          {
+            "kind": "jhs_roof_end",
+            "reason": "combat"
+          },
+          {
+            "kind": "jhs_roof_start",
+            "route": "entrance",
+            "content": "original",
+            "attempt": 1,
+            "sector": 5,
+            "game_time": 30.613000869750977
+          },
+          {
+            "kind": "jhs_roof_end",
+            "reason": "combat"
+          }
+        ],
+        "log_sha256": "09d5613f006b12cf72de5f82d70ebb3db7523ac1348f137001a984a1261f3f94"
+      },
+      "lily_trace": {
+        "trace_sha256": "71b99f0e0ca6d87f4fed2acba34ab97b33020f78f57c8909b3209a8287afd2e0",
+        "policy_hashes": [],
+        "live_sense_counts": {
+          "3": 5,
+          "5": 418,
+          "7": 124,
+          "9": 5,
+          "15": 1,
+          "16": 40,
+          "23": 3,
+          "33": 78,
+          "148": 44
+        },
+        "motor_outcomes": {},
+        "max_live_z": 1.2816,
+        "first_observed_per_life": [],
+        "supported_roof_witness": [],
+        "first_living_sample": {
+          "sector": 5,
+          "position": [
+            -0.42,
+            -12.44,
+            0.12
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [],
+        "same_life_ground_shuttle_roof": false
+      }
+    },
+    {
+      "opening": "original-matched-ff-guns-repeat",
+      "original_starts": true,
+      "episode_sha256": "a62c94789c521af2746cc8378301a4940a59a24f6fb44dd4c443caacc0211b04",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "ff-guns",
+      "owners": {
+        "lily": {
+          "native_status_samples": 5,
+          "sectors": [
+            0,
+            5,
+            9,
+            35
+          ],
+          "position_samples": 56,
+          "max_live_z": 4.72072,
+          "console_sha256": "9fbcf9dc62dfdc0f973366dd699e8fd4bbc5c8cc21c3a08cfba90dec81676bb8"
+        },
+        "red": {
+          "native_status_samples": 7,
+          "sectors": [
+            195,
+            197
+          ],
+          "position_samples": 56,
+          "max_live_z": 0.31256,
+          "console_sha256": "e09297339d39406cb8a577a5170273f8451eddd6c58ca8571863ee8d0c6547e9"
+        }
+      },
+      "paired_poll_sha256": "3a71573e4edbfbdbc27fff58f2a48828263c5a0c64518372f187e0a8e14ff396",
+      "coach": {
+        "events": [
+          {
+            "kind": "jhs_roof_start",
+            "route": "entrance",
+            "content": "original",
+            "attempt": 1,
+            "sector": 5,
+            "game_time": 0.029999999329447746
+          },
+          {
+            "kind": "jhs_roof_end",
+            "reason": "supported_roof"
+          }
+        ],
+        "log_sha256": "949d7ffa2b4c339f3f6e0f6a8886cd4807eff9525684db5c4853b13dab7093c6"
+      },
+      "lily_trace": {
+        "trace_sha256": "493eff650b6f26fa4711bbcd8ef4ecc3c6ee155e1b1105ac507999b589ed66e0",
+        "policy_hashes": [],
+        "live_sense_counts": {
+          "0": 275,
+          "3": 7,
+          "5": 156,
+          "7": 56,
+          "9": 45,
+          "16": 114,
+          "19": 7,
+          "35": 35,
+          "36": 15
+        },
+        "motor_outcomes": {},
+        "max_live_z": 4.83533,
+        "first_observed_per_life": [
+          {
+            "life": 1,
+            "sector": 0,
+            "elapsed_wall_s": 29.393,
+            "elapsed_game_s": 29.444,
+            "position": [
+              -0.62991,
+              -3.93352,
+              4.72533
+            ],
+            "supported": false
+          }
+        ],
+        "supported_roof_witness": [
+          {
+            "life": 1,
+            "sample_id": 422,
+            "sector": 0,
+            "z": 4.66367,
+            "elapsed_game_s": 29.444,
+            "health": 100.0,
+            "supported": true
+          },
+          {
+            "life": 1,
+            "sample_id": 423,
+            "sector": 0,
+            "z": 4.65776,
+            "elapsed_game_s": 29.444,
+            "health": 100.0,
+            "supported": true
+          }
+        ],
+        "first_living_sample": {
+          "sector": 5,
+          "position": [
+            -0.42,
+            -12.44,
+            0.12
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [
+          {
+            "life": 1,
+            "sector": 16,
+            "sample_id": 355,
+            "elapsed_game_s": 25.189,
+            "position": [
+              -0.66138,
+              -5.0497,
+              4.48032
+            ]
+          }
+        ],
+        "same_life_ground_shuttle_roof": true
+      }
+    },
+    {
+      "opening": "original-matched-nf-guns",
+      "original_starts": true,
+      "episode_sha256": "a62c94789c521af2746cc8378301a4940a59a24f6fb44dd4c443caacc0211b04",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "nf-guns",
+      "owners": {
+        "lily": {
+          "native_status_samples": 4,
+          "sectors": [
+            0,
+            7,
+            16,
+            36
+          ],
+          "position_samples": 48,
+          "max_live_z": 4.85365,
+          "console_sha256": "d4ae3947abe749e3876eda609ecf6bca5e89f55f55ed8734d9a8a5e57f47f483"
+        },
+        "red": {
+          "native_status_samples": 6,
+          "sectors": [
+            66,
+            75,
+            76,
+            199,
+            206
+          ],
+          "position_samples": 48,
+          "max_live_z": 0.28504,
+          "console_sha256": "de2a961331cb2e81d0b13337f3802dcbc99684e16d79fa81192b0f0eee775540"
+        }
+      },
+      "paired_poll_sha256": "ff2503780d8d72f61932079eac17003198c46d9264d6e8efbfbdab889e156540",
+      "coach": {
+        "events": [
+          {
+            "kind": "jhs_roof_start",
+            "route": "entrance",
+            "content": "original",
+            "attempt": 1,
+            "sector": 5,
+            "game_time": 0.02500000037252903
+          },
+          {
+            "kind": "jhs_roof_end",
+            "reason": "supported_roof"
+          }
+        ],
+        "log_sha256": "2acbb8afe90ff100f981cb86cd736aee21c08065ccd78ccc91dd2d45da0cd245"
+      },
+      "lily_trace": {
+        "trace_sha256": "d1e98d2feec394ca64a94a8cc01b8b47dddd53b098a1d034902e8b06ebf82097",
+        "policy_hashes": [],
+        "live_sense_counts": {
+          "0": 226,
+          "3": 6,
+          "5": 135,
+          "7": 64,
+          "9": 36,
+          "16": 91,
+          "19": 8,
+          "36": 73
+        },
+        "motor_outcomes": {},
+        "max_live_z": 4.91787,
+        "first_observed_per_life": [
+          {
+            "life": 1,
+            "sector": 0,
+            "elapsed_wall_s": 24.624,
+            "elapsed_game_s": 24.534,
+            "position": [
+              -0.66906,
+              -3.92535,
+              4.76207
+            ],
+            "supported": false
+          }
+        ],
+        "supported_roof_witness": [
+          {
+            "life": 1,
+            "sample_id": 382,
+            "sector": 0,
+            "z": 4.65466,
+            "elapsed_game_s": 24.734,
+            "health": 100.0,
+            "supported": true
+          },
+          {
+            "life": 1,
+            "sample_id": 383,
+            "sector": 0,
+            "z": 4.66006,
+            "elapsed_game_s": 24.734,
+            "health": 100.0,
+            "supported": true
+          }
+        ],
+        "first_living_sample": {
+          "sector": 5,
+          "position": [
+            -0.42,
+            -12.44,
+            0.12
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [
+          {
+            "life": 1,
+            "sector": 16,
+            "sample_id": 338,
+            "elapsed_game_s": 21.935,
+            "position": [
+              -0.67874,
+              -4.9361,
+              4.46789
+            ]
+          }
+        ],
+        "same_life_ground_shuttle_roof": true
+      }
+    },
+    {
+      "opening": "original-matched-ff-sabers-first",
+      "original_starts": true,
+      "episode_sha256": "a62c94789c521af2746cc8378301a4940a59a24f6fb44dd4c443caacc0211b04",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "ff-sabers",
+      "owners": {
+        "lily": {
+          "native_status_samples": 3,
+          "sectors": [
+            5,
+            7,
+            16
+          ],
+          "position_samples": 42,
+          "max_live_z": 1.19433,
+          "console_sha256": "520867d6ec4a89a279dc654e2f8bbffc1530930f7b12b5aa822533f0fcf75e63"
+        },
+        "red": {
+          "native_status_samples": 6,
+          "sectors": [
+            9,
+            16,
+            59,
+            75,
+            205
+          ],
+          "position_samples": 48,
+          "max_live_z": 0.44836,
+          "console_sha256": "2c89462cf4155b1ff8a6f4cae00fd6b69ad70f462be74da221cb4edd4a541ce8"
+        }
+      },
+      "paired_poll_sha256": "90f82c171da2ccaf34fcd9dc8a304019ddf0cf59e2ac46c08093d1e0114d1a68",
+      "coach": {
+        "events": [
+          {
+            "kind": "jhs_roof_start",
+            "route": "entrance",
+            "content": "original",
+            "attempt": 1,
+            "sector": 5,
+            "game_time": 0.026000000536441803
+          },
+          {
+            "kind": "jhs_roof_end",
+            "reason": "combat"
+          },
+          {
+            "kind": "jhs_roof_start",
+            "route": "entrance",
+            "content": "original",
+            "attempt": 1,
+            "sector": 5,
+            "game_time": 37.82500076293945
+          },
+          {
+            "kind": "jhs_roof_end",
+            "reason": "combat"
+          }
+        ],
+        "log_sha256": "2bce210747efbe278fba99dddfbfd398fab380c7ecaf65d865559cb13b60547a"
+      },
+      "lily_trace": {
+        "trace_sha256": "a6ccea1cd34ebfd9f0f7b8a67aebb64c2b0f7aa8302b0484f13555e7a96b6b6d",
+        "policy_hashes": [],
+        "live_sense_counts": {
+          "3": 1,
+          "5": 233,
+          "7": 83,
+          "9": 10,
+          "15": 5,
+          "16": 133,
+          "23": 6,
+          "33": 14,
+          "75": 5,
+          "134": 2,
+          "135": 34,
+          "149": 1,
+          "195": 15
+        },
+        "motor_outcomes": {},
+        "max_live_z": 1.22423,
+        "first_observed_per_life": [],
+        "supported_roof_witness": [],
+        "first_living_sample": {
+          "sector": 5,
+          "position": [
+            -0.42,
+            -12.44,
+            0.13883
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [],
+        "same_life_ground_shuttle_roof": false
+      }
+    },
+    {
+      "opening": "original-matched-ff-sabers-repeat",
+      "original_starts": true,
+      "episode_sha256": "a62c94789c521af2746cc8378301a4940a59a24f6fb44dd4c443caacc0211b04",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "ff-sabers",
+      "owners": {
+        "lily": {
+          "native_status_samples": 6,
+          "sectors": [
+            5,
+            9,
+            16,
+            60,
+            67,
+            75
+          ],
+          "position_samples": 65,
+          "max_live_z": 4.76708,
+          "console_sha256": "f76ef2a9f588b69ec36f762947d0c2192858807315b10794ddc589e9d66360f4"
+        },
+        "red": {
+          "native_status_samples": 7,
+          "sectors": [
+            199,
+            205
+          ],
+          "position_samples": 65,
+          "max_live_z": 0.39671,
+          "console_sha256": "e21b7e9f63c7d308336add7d67c6972b4bdf584b4460d4f10015b20f2b6782dc"
+        }
+      },
+      "paired_poll_sha256": "2768655217f0f66af629876c4f1abb2086760ee1ae6b5ccb45b0a0363c2c9cca",
+      "coach": {
+        "events": [
+          {
+            "kind": "jhs_roof_start",
+            "route": "entrance",
+            "content": "original",
+            "attempt": 1,
+            "sector": 5,
+            "game_time": 0.027000000700354576
+          },
+          {
+            "kind": "jhs_roof_end",
+            "reason": "timeout_or_departure"
+          }
+        ],
+        "log_sha256": "1d8b896f9c626b5d7d6a69d5fdb9cdc64376faf44509e231bbde777d04fe3ae2"
+      },
+      "lily_trace": {
+        "trace_sha256": "bde079b6ef6626493a9e289e502761f8dd99d6cb0afd4b995a04445bc881b1ee",
+        "policy_hashes": [],
+        "live_sense_counts": {
+          "3": 7,
+          "5": 141,
+          "7": 82,
+          "9": 43,
+          "15": 1,
+          "16": 184,
+          "23": 2,
+          "33": 12,
+          "45": 26,
+          "50": 3,
+          "59": 8,
+          "60": 52,
+          "61": 7,
+          "62": 1,
+          "63": 1,
+          "65": 6,
+          "66": 61,
+          "67": 44,
+          "68": 4,
+          "73": 58,
+          "75": 28,
+          "129": 28,
+          "148": 14,
+          "168": 38,
+          "195": 7
+        },
+        "motor_outcomes": {},
+        "max_live_z": 4.82294,
+        "first_observed_per_life": [],
+        "supported_roof_witness": [],
+        "first_living_sample": {
+          "sector": 5,
+          "position": [
+            -0.42,
+            -12.44,
+            0.12993
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [
+          {
+            "life": 1,
+            "sector": 16,
+            "sample_id": 390,
+            "elapsed_game_s": 24.283,
+            "position": [
+              -0.65812,
+              -5.17925,
+              4.46524
+            ]
+          }
+        ],
+        "same_life_ground_shuttle_roof": false
+      }
+    },
+    {
+      "opening": "original-ff-sabers-front-half",
+      "original_starts": true,
+      "episode_sha256": "a62c94789c521af2746cc8378301a4940a59a24f6fb44dd4c443caacc0211b04",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "ff-sabers",
+      "owners": {
+        "lily": {
+          "native_status_samples": 5,
+          "sectors": [
+            5,
+            6,
+            7,
+            9
+          ],
+          "position_samples": 41,
+          "max_live_z": 0.77935,
+          "console_sha256": "1bd659189552ed5431d51df8d7f95f326e3761d4a91204d9bd35b54373954346"
+        },
+        "red": {
+          "native_status_samples": 7,
+          "sectors": [
+            177,
+            180,
+            199,
+            213
+          ],
+          "position_samples": 41,
+          "max_live_z": 0.39766,
+          "console_sha256": "c9b72640b6cc5e0187e9726162257c39b05d87dc112ef222253532b4c46afe7e"
+        }
+      },
+      "paired_poll_sha256": "fbea66c420727dcfa4509026e3f4345e826e4af22fe20638c114e074f21854fe",
+      "coach": {
+        "events": [
+          {
+            "kind": "jhs_roof_start",
+            "route": "entrance",
+            "content": "original",
+            "attempt": 1,
+            "sector": 5,
+            "game_time": 0.026000000536441803
+          },
+          {
+            "kind": "jhs_roof_end",
+            "reason": "handoff"
+          },
+          {
+            "kind": "jhs_roof_start",
+            "route": "entrance",
+            "content": "original",
+            "attempt": 1,
+            "sector": 5,
+            "game_time": 42.00899887084961
+          },
+          {
+            "kind": "jhs_roof_end",
+            "reason": "handoff"
+          }
+        ],
+        "log_sha256": "2d86989da9fd2da35c2cef8663c4c9faebc83215e9fd515fbe219bad51306ec1"
+      },
+      "lily_trace": {
+        "trace_sha256": "c557e2af844cf3012829d330a701d8e83246c1e334a0f0c87385d4f768837e80",
+        "policy_hashes": [],
+        "live_sense_counts": {
+          "3": 5,
+          "4": 3,
+          "5": 300,
+          "6": 36,
+          "7": 237,
+          "9": 52,
+          "16": 30,
+          "74": 7
+        },
+        "motor_outcomes": {},
+        "max_live_z": 0.85478,
+        "first_observed_per_life": [],
+        "supported_roof_witness": [],
+        "first_living_sample": {
+          "sector": 5,
+          "position": [
+            -0.42,
+            -12.44,
+            0.12
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [],
+        "same_life_ground_shuttle_roof": false
+      }
+    },
+    {
+      "opening": "original-nf-sabers-front-half",
+      "original_starts": true,
+      "episode_sha256": "a62c94789c521af2746cc8378301a4940a59a24f6fb44dd4c443caacc0211b04",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "nf-sabers",
+      "owners": {
+        "lily": {
+          "native_status_samples": 3,
+          "sectors": [
+            5,
+            7
+          ],
+          "position_samples": 31,
+          "max_live_z": 4.54716,
+          "console_sha256": "6e1340c352b97137d8ec2d2badc77060753ce4a3d10eb6b39d86c561885120ab"
+        },
+        "red": {
+          "native_status_samples": 6,
+          "sectors": [
+            175,
+            177,
+            180,
+            199,
+            205,
+            212
+          ],
+          "position_samples": 31,
+          "max_live_z": 0.40234,
+          "console_sha256": "12e29d788e6455010491b53780328f1597ad3ad4c988de78b6a0ef217d252a8d"
+        }
+      },
+      "paired_poll_sha256": "8fe79d510f1a3917d856fe6e53b6a7e4e6f6bdca6e58cb7ed8e64a0ede5e027b",
+      "coach": {
+        "events": [
+          {
+            "kind": "jhs_roof_start",
+            "route": "entrance",
+            "content": "original",
+            "attempt": 1,
+            "sector": 5,
+            "game_time": 16.64299964904785
+          },
+          {
+            "kind": "jhs_roof_end",
+            "reason": "handoff"
+          }
+        ],
+        "log_sha256": "8c40274010f24891c6fa90ba6ca467517c1ec50e4b5f13e06a48d4ac098086de"
+      },
+      "lily_trace": {
+        "trace_sha256": "9d0f69474226dd1c805122c51c9255f88dd77eb154960c85765bccaf57be9d77",
+        "policy_hashes": [],
+        "live_sense_counts": {
+          "3": 8,
+          "5": 356,
+          "7": 61,
+          "9": 40,
+          "16": 59
+        },
+        "motor_outcomes": {},
+        "max_live_z": 4.56176,
+        "first_observed_per_life": [],
+        "supported_roof_witness": [],
+        "first_living_sample": {
+          "sector": 5,
+          "position": [
+            -0.42,
+            -12.44,
+            0.12993
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [],
+        "same_life_ground_shuttle_roof": false
+      }
+    },
+    {
+      "opening": "original-latest-ff-sabers",
+      "original_starts": true,
+      "episode_sha256": "a62c94789c521af2746cc8378301a4940a59a24f6fb44dd4c443caacc0211b04",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "ff-sabers",
+      "owners": {
+        "lily": {
+          "native_status_samples": 10,
+          "sectors": [
+            5,
+            9,
+            16,
+            75,
+            175,
+            195
+          ],
+          "position_samples": 138,
+          "max_live_z": 1.21558,
+          "console_sha256": "0b5be5beaa64ed0bc7cf9c872fc7f0a7d987842c83a575f763f4d0f01bce7730"
+        },
+        "red": {
+          "native_status_samples": 10,
+          "sectors": [
+            199,
+            205,
+            212,
+            213
+          ],
+          "position_samples": 136,
+          "max_live_z": 0.3782,
+          "console_sha256": "bc45764771e77e7f3abf2e0f3d7653f0012a4bf4b563aaa2a79e2cab24f89cba"
+        }
+      },
+      "paired_poll_sha256": "7deeb5187aa77fe5d906ca8047061d385faf45247a9dbcdaec7f57bb0b598b34",
+      "coach": {
+        "events": [
+          {
+            "kind": "jhs_roof_start",
+            "route": "entrance",
+            "content": "original",
+            "attempt": 1,
+            "sector": 5,
+            "game_time": 0.032999999821186066
+          },
+          {
+            "kind": "jhs_roof_end",
+            "reason": "combat"
+          }
+        ],
+        "log_sha256": "0817fd7d301a56568b31b3989b80baa014cd6c1b251e86e3683a4f67e120aeb8",
+        "source_sha256": {
+          "bots/coach_seat.py": "8a4ebda01d3921fe3e70a0eeed1b97aa27c18a099daf6aa943da48461cd6f5e4",
+          "bots/jhs_roof.py": "7e0f3703ecb434aea74998a43bd7c38875a61fae4a35a358c57c1df63d6fc0a4"
+        }
+      },
+      "lily_trace": {
+        "trace_sha256": "6edb555e8cc99ff50109de696165b76203acd7681722ab646b05216293c12575",
+        "policy_hashes": [],
+        "live_sense_counts": {
+          "3": 12,
+          "4": 25,
+          "5": 160,
+          "7": 188,
+          "9": 306,
+          "12": 7,
+          "15": 1,
+          "16": 256,
+          "17": 15,
+          "23": 8,
+          "33": 20,
+          "74": 28,
+          "75": 53,
+          "76": 3,
+          "101": 22,
+          "118": 4,
+          "148": 15,
+          "163": 1,
+          "175": 116,
+          "180": 3,
+          "186": 6,
+          "195": 114
+        },
+        "motor_outcomes": {},
+        "max_live_z": 1.22423,
+        "first_observed_per_life": [],
+        "supported_roof_witness": [],
+        "first_living_sample": {
+          "sector": 5,
+          "position": [
+            -0.42,
+            -12.44,
+            0.13768
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [],
+        "same_life_ground_shuttle_roof": false
+      }
+    },
+    {
+      "opening": "ff-sabers-solo-front-pose",
+      "original_starts": false,
+      "episode_sha256": "14744f3e32ef69d00d86fc5d99e14c984732023524ded360008e96114de77a0a",
+      "map_sha256": "cfb26514fceae289e3a9bd38f0b412f49b81d5be5c731ef8a223a9c079c32cad",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "ff-sabers",
+      "owners": {
+        "lily": {
+          "native_status_samples": 5,
+          "sectors": [
+            5,
+            16,
+            199
+          ],
+          "position_samples": 62,
+          "max_live_z": 4.76464,
+          "console_sha256": "d7663e34d09b2ddd179a87ccf673c8387c053f10bd07d50491a18e4a5987642b"
+        }
+      },
+      "paired_poll_sha256": "57fd021afe84243de826bc64bfcf24a0cc47c9921d766a70fec9d9f07cb7648d",
+      "coach": {
+        "events": [
+          {
+            "kind": "jhs_roof_start",
+            "route": "entrance",
+            "content": "entrance-original",
+            "attempt": 1,
+            "sector": 5,
+            "game_time": 0.029999999329447746
+          },
+          {
+            "kind": "jhs_roof_end",
+            "reason": "timeout_or_departure"
+          }
+        ],
+        "log_sha256": "f312fe592132c91fcba5fcb6d34fd1f188b054beb755ebd86e0f3041fde0077d"
+      },
+      "lily_trace": {
+        "trace_sha256": "eee462d6acbb77d60308afb224f45c05eda35ca4e8f355721408ecea2328f07d",
+        "policy_hashes": [],
+        "live_sense_counts": {
+          "3": 8,
+          "5": 152,
+          "7": 66,
+          "9": 37,
+          "16": 163,
+          "199": 235
+        },
+        "motor_outcomes": {},
+        "max_live_z": 4.77541,
+        "first_observed_per_life": [],
+        "supported_roof_witness": [],
+        "first_living_sample": {
+          "sector": 5,
+          "position": [
+            -0.59,
+            -12.44,
+            0.12
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [
+          {
+            "life": 1,
+            "sector": 16,
+            "sample_id": 397,
+            "elapsed_game_s": 24.442,
+            "position": [
+              -0.60155,
+              -4.50426,
+              4.46933
+            ]
+          }
+        ],
+        "same_life_ground_shuttle_roof": false
+      }
+    },
+    {
+      "opening": "original-ff-sabers-front-edge",
+      "original_starts": true,
+      "episode_sha256": "a62c94789c521af2746cc8378301a4940a59a24f6fb44dd4c443caacc0211b04",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "ff-sabers",
+      "owners": {
+        "lily": {
+          "native_status_samples": 6,
+          "sectors": [
+            0,
+            5,
+            7,
+            10,
+            16,
+            35
+          ],
+          "position_samples": 64,
+          "max_live_z": 5.90595,
+          "console_sha256": "5c39f94ca448fe019369699f427c0fbd199472305eb1a989427bfca101f3cb87"
+        },
+        "red": {
+          "native_status_samples": 8,
+          "sectors": [
+            60,
+            65,
+            195,
+            199,
+            205
+          ],
+          "position_samples": 67,
+          "max_live_z": 0.40901,
+          "console_sha256": "a5cabbc78f64e5dd2f2e23e54d2ae38f156953580edd7aff1fb97d417d8d6f07"
+        }
+      },
+      "paired_poll_sha256": "c3bf7f85f4e3e3a22f608615fbe955ebe5e1adcb3787081554fcfd7db54b386e",
+      "coach": {
+        "events": [
+          {
+            "kind": "jhs_roof_start",
+            "route": "entrance",
+            "content": "original",
+            "attempt": 1,
+            "sector": 5,
+            "game_time": 0.02800000086426735
+          },
+          {
+            "kind": "jhs_roof_end",
+            "reason": "supported_roof"
+          },
+          {
+            "kind": "jhs_roof_start",
+            "route": "entrance",
+            "content": "original",
+            "attempt": 1,
+            "sector": 5,
+            "game_time": 56.95899963378906
+          },
+          {
+            "kind": "jhs_roof_end",
+            "reason": "handoff"
+          }
+        ],
+        "log_sha256": "494f54cc5afe54541896216c13926b2d026baac4ffefcd694383b3cba77ad324"
+      },
+      "lily_trace": {
+        "trace_sha256": "a157cdf9d3e77cad004484aea6dbce4177cce0a385ca1944d0577c0abd3efec4",
+        "policy_hashes": [],
+        "live_sense_counts": {
+          "0": 173,
+          "2": 26,
+          "3": 6,
+          "5": 242,
+          "7": 66,
+          "9": 33,
+          "10": 66,
+          "12": 22,
+          "16": 100,
+          "17": 4,
+          "19": 38,
+          "35": 21,
+          "36": 83
+        },
+        "motor_outcomes": {},
+        "max_live_z": 5.90595,
+        "first_observed_per_life": [
+          {
+            "life": 1,
+            "sector": 0,
+            "elapsed_wall_s": 26.52,
+            "elapsed_game_s": 26.632,
+            "position": [
+              -0.72272,
+              -3.93369,
+              4.6914
+            ],
+            "supported": false
+          }
+        ],
+        "supported_roof_witness": [
+          {
+            "life": 1,
+            "sample_id": 432,
+            "sector": 0,
+            "z": 4.65652,
+            "elapsed_game_s": 26.632,
+            "health": 100.0,
+            "supported": true
+          },
+          {
+            "life": 1,
+            "sample_id": 433,
+            "sector": 0,
+            "z": 4.66089,
+            "elapsed_game_s": 26.632,
+            "health": 100.0,
+            "supported": true
+          }
+        ],
+        "first_living_sample": {
+          "sector": 5,
+          "position": [
+            -0.42,
+            -12.44,
+            0.12993
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [
+          {
+            "life": 1,
+            "sector": 16,
+            "sample_id": 369,
+            "elapsed_game_s": 22.765,
+            "position": [
+              -0.67746,
+              -4.34486,
+              4.47946
+            ]
+          }
+        ],
+        "same_life_ground_shuttle_roof": true
+      }
+    },
+    {
+      "opening": "original-nf-sabers-front-edge",
+      "original_starts": true,
+      "episode_sha256": "a62c94789c521af2746cc8378301a4940a59a24f6fb44dd4c443caacc0211b04",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "nf-sabers",
+      "owners": {
+        "lily": {
+          "native_status_samples": 5,
+          "sectors": [
+            5,
+            7,
+            16,
+            195
+          ],
+          "position_samples": 54,
+          "max_live_z": 1.23677,
+          "console_sha256": "482db4ae6f924f053e5f9d68212104cfa466d4e610da3b953adec368ed1e5460"
+        },
+        "red": {
+          "native_status_samples": 6,
+          "sectors": [
+            175,
+            180,
+            195,
+            199,
+            205
+          ],
+          "position_samples": 57,
+          "max_live_z": 0.36503,
+          "console_sha256": "385a086d77318de32453aeeb1b6ef991e109a975e9f622d28387b12e9be43aa9"
+        }
+      },
+      "paired_poll_sha256": "b112bd66dd7974bb1c970b40719383c00f7ed24f9db680a511949ca98af0bce7",
+      "coach": {
+        "events": [
+          {
+            "kind": "jhs_roof_start",
+            "route": "entrance",
+            "content": "original",
+            "attempt": 1,
+            "sector": 5,
+            "game_time": 0.029999999329447746
+          },
+          {
+            "kind": "jhs_roof_end",
+            "reason": "combat"
+          },
+          {
+            "kind": "jhs_roof_start",
+            "route": "entrance",
+            "content": "original",
+            "attempt": 1,
+            "sector": 5,
+            "game_time": 47.32500076293945
+          },
+          {
+            "kind": "jhs_roof_end",
+            "reason": "handoff"
+          }
+        ],
+        "log_sha256": "b99fede80fea2e53426b8aa334a2e8640b22ee7577ba5fe2dc669a9958ac21d9",
+        "source_sha256": {
+          "bots/coach_seat.py": "c96b0db5868a484186006f1f985f26dfe69cf272c08121ce8e85f345db7c76a7",
+          "bots/jhs_roof.py": "5680b5986271e99bf6993e5301782f82e3a7abdb119df7df6ad9aeeeededdaef"
+        }
+      },
+      "lily_trace": {
+        "trace_sha256": "39d2ec831401033c4a434d519b9f82e041ec4c61d4bf9c17dadd1fb603ecaf7d",
+        "policy_hashes": [],
+        "live_sense_counts": {
+          "3": 17,
+          "5": 217,
+          "7": 124,
+          "9": 25,
+          "12": 2,
+          "15": 2,
+          "16": 115,
+          "17": 7,
+          "23": 8,
+          "33": 21,
+          "74": 3,
+          "75": 10,
+          "101": 49,
+          "149": 2,
+          "195": 71
+        },
+        "motor_outcomes": {},
+        "max_live_z": 1.24856,
+        "first_observed_per_life": [],
+        "supported_roof_witness": [],
+        "first_living_sample": {
+          "sector": 5,
+          "position": [
+            -0.42,
+            -12.44,
+            0.13147
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [],
+        "same_life_ground_shuttle_roof": false
+      }
+    },
+    {
+      "opening": "original-ff-sabers-lobby-repeat",
+      "original_starts": true,
+      "episode_sha256": "a62c94789c521af2746cc8378301a4940a59a24f6fb44dd4c443caacc0211b04",
+      "map_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "mode": "ff-sabers",
+      "owners": {
+        "lily": {
+          "native_status_samples": 6,
+          "sectors": [
+            5
+          ],
+          "position_samples": 131,
+          "max_live_z": 0.37023,
+          "console_sha256": "e640139c00ceb895e6e690301fde6fde71b326c3a411c9d6ff902f98141d8566"
+        },
+        "red": {
+          "native_status_samples": 8,
+          "sectors": [
+            59,
+            60,
+            67,
+            68,
+            112,
+            180
+          ],
+          "position_samples": 131,
+          "max_live_z": 0.36473,
+          "console_sha256": "7a348be498b97cebe7d6ad27416b692e591604a03ee9b5e3514124397aad7f98"
+        }
+      },
+      "paired_poll_sha256": "7acc785b2703676b1793bb8a3e1e4a4ffd73a8d39a19109f6fc815f15da4f8cc",
+      "coach": {
+        "events": [
+          {
+            "kind": "jhs_roof_start",
+            "route": "entrance",
+            "content": "original",
+            "attempt": 1,
+            "sector": 5,
+            "game_time": 0.027000000700354576
+          },
+          {
+            "kind": "jhs_roof_end",
+            "reason": "handoff"
+          }
+        ],
+        "log_sha256": "632017aabd0c5aba32c56248d24bc077a962c821e185877732221ffd1b3db952",
+        "source_sha256": {
+          "bots/coach_seat.py": "c96b0db5868a484186006f1f985f26dfe69cf272c08121ce8e85f345db7c76a7",
+          "bots/jhs_roof.py": "5680b5986271e99bf6993e5301782f82e3a7abdb119df7df6ad9aeeeededdaef"
+        }
+      },
+      "lily_trace": {
+        "trace_sha256": "63ad94e55016ac07b7a0797c0e3775bbe6440d07ccb91b95ab3958133d9c8c81",
+        "policy_hashes": [],
+        "live_sense_counts": {
+          "5": 922
+        },
+        "motor_outcomes": {},
+        "max_live_z": 0.37733,
+        "first_observed_per_life": [],
+        "supported_roof_witness": [],
+        "first_living_sample": {
+          "sector": 5,
+          "position": [
+            -0.42,
+            -12.44,
+            0.12
+          ],
+          "life": 1
+        },
+        "same_life_deck_to_supported_roof": false,
+        "same_life_hall_deck_roof": false,
+        "ground_to_upper_shuttle": [],
+        "same_life_ground_shuttle_roof": false
+      }
+    }
+  ]
+}

@@ -499,7 +499,7 @@ class Hub:
                 if route == "observation":
                     extra = {"lily": bot.lily_observation(now)} if bot.adaptive_lily else {}
                     return 200, dict(fence, **extra, state=bot.state, native_active=fresh,
-                                     age_seconds=(now-bot.observed if bot.state else None))
+                                     event_cursor=bot.cursor, age_seconds=(now-bot.observed if bot.state else None))
                 if route == "tactics":
                     return 200, dict(fence, **tactics.describe(), now=now, applied=list(bot.tactic_log))
                 if route == "events":

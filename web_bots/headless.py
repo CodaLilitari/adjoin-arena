@@ -27,6 +27,7 @@ import argparse
 import asyncio
 import contextlib
 from dataclasses import dataclass
+from functools import cached_property
 import json
 import os
 from pathlib import Path
@@ -39,7 +40,7 @@ import time
 from types import SimpleNamespace
 
 from aiohttp import web
-from web_bots.join_room import ZONE_RELAY, episode_file, list_games, relay_url, select_room
+from web_bots.join_room import ZONE_RELAY, episode_file, join_rules, list_games, relay_url, select_room
 from web_bots.serve import ARENA_MODES, HERE, ROOM_PLAYERS, Host
 
 MAX_BOTS = 11
@@ -59,9 +60,14 @@ class HostedRoom:
     episode: str = "JK1MP"
     episode_file: Path | None = None
 
+    @cached_property
+    def content_identity(self):
+        from bots.jhs_roof import episode_identity
+        return episode_identity(self.episode_file, self.level)
+
     def public(self):
         return {"relay": self.relay, "seat": self.seat, "max_players": self.max_players,
-                "episode": self.episode, "map": self.level, "room": self.room, "netcode": 2}
+                "episode": self.episode, "map": self.level, "room": self.room, "netcode": 2, **self.content_identity}
 
 
 def parse_seats(text, *, host_seat=None, max_players=None):
@@ -189,7 +195,8 @@ class Launcher:
         seat = host.seats[ident]
         return {"joined": bool(fresh), "stage": seat["stage"], "kills": state.get("kills"),
                 "deaths": state.get("deaths"), "health": state.get("health"),
-                "renderer": (seat.get("graphics") or {}).get("renderer")}
+                "renderer": (seat.get("graphics") or {}).get("renderer"),
+                "navigation_discarded": seat["nav_dropped"]}
 
     async def wait_joined(self, ident, timeout):
         deadline = time.monotonic() + timeout
@@ -235,15 +242,17 @@ class Launcher:
     async def join_seats(self, browser, room_id, seats):
         games = await list_games(self.args.relay)
         results = {}
+        rules = (self.args.mode, True) if self.args.command == "host" else None
         for ident in seats:
             spec = SimpleNamespace(data=self.args.data, room_id=room_id, seat=ident, relay=self.args.relay,
                                    episode_gob=self.args.episode_gob, allow_mod=self.args.model_gob is not None)
             room = select_room(games, spec)
-            host = Host(self.args.data, self.args.engine_dir, self.run / ident, str(room_id), self.args.model_gob, False,
-                        self.args.mode if self.args.command == "host" else
-                        ("ff-sabers" if self.args.sabers_only else "ff-guns"),
+            if rules is None:
+                rules = await join_rules(room, self.args.sabers_only)
+            host = Host(self.args.data, self.args.engine_dir, self.run / ident, str(room_id), self.args.model_gob, self.args.companion_chat,
+                        rules[0], learn_navigation=rules[1],
                         adaptive_lily=self.args.adaptive_lily and ident == "lily", external=room,
-                        red_sabers=self.args.red_sabers)
+                        red_sabers=self.args.red_sabers, taunts=not self.args.no_taunts)
             await self.add_host(ident, host, "join")
             await self.open_seat(browser, ident)
             ok = await self.wait_joined(ident, self.args.join_timeout)
@@ -265,9 +274,9 @@ class Launcher:
                 if a.command == "host":
                     archive = episode_file(a.data, a.episode, a.map, a.episode_gob)
                     hosted = HostedRoom(a.relay, a.host_seat, a.max_players, a.map, a.room_name, a.episode, archive)
-                    host = Host(a.data, a.engine_dir, self.run / a.host_seat, a.room_name, a.model_gob, False, a.mode,
+                    host = Host(a.data, a.engine_dir, self.run / a.host_seat, a.room_name, a.model_gob, a.companion_chat, a.mode,
                                 adaptive_lily=a.adaptive_lily and a.host_seat == "lily", hosted=hosted,
-                                red_sabers=a.red_sabers)
+                                red_sabers=a.red_sabers, taunts=not a.no_taunts, private_duels=a.private_duels)
                     self.manifest["hosted"] = hosted.public()
                     await self.add_host(a.host_seat, host, "host")
                     await self.open_seat(browser, a.host_seat)
@@ -343,6 +352,8 @@ def build_parser():
         c.add_argument("--raster-threads", type=int, default=0, help="Chromium --num-raster-threads (0 = default).")
         c.add_argument("--exit-on-drop", action=argparse.BooleanOptionalAction, default=True,
                        help="Exit non-zero if Chrome disconnects or the host seat crashes/drops.")
+        c.add_argument("--companion-chat", action="store_true", help="Allow an attached local coach to reply in public game chat.")
+        c.add_argument("--no-taunts", action="store_true", help="Silence automatic character lines.")
         c.add_argument("--model-gob", type=Path,
                        help="A -path mod GOB loaded by every seat (jkmods/companion); seats whose roster body it "
                             "carries wear it. The host's JKWeb shares it with joiners and spectators in-game.")
@@ -356,6 +367,7 @@ def build_parser():
     host.add_argument("--episode", help="Host JK1MP, JK1CTF, or the basename of a locally owned episode GOB.")
     host.add_argument("--map", help="JKL inside the episode. Defaults to m10.jkl in JK1MP or c1.jkl in JK1CTF.")
     host.add_argument("--mode", choices=ARENA_MODES, default="ff-guns", help="ff-guns hosts Jedi rank 8 (full Force).")
+    host.add_argument("--private-duels", action="store_true", help="Allow ordinary JKWeb saber challenges in this hosted free-for-all.")
     host.add_argument("--public-room", action="store_true",
                       help="Required to host on the public Jedi Knight Zone relay (listed, on its leaderboard).")
     return p

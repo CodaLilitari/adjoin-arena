@@ -1,0 +1,56 @@
+--- a/src/AI/jkBotRouteHints.inc
++++ b/src/AI/jkBotRouteHints.inc
+@@ -168,6 +168,44 @@
+    sector-7 world floor. The engine may omit the mesh in a downcast made
+    from the other sector. Require a real attachment, the measured overlap
+    and a live, walkable landing across the width of the player's feet. */
++/* The long probe can reach the transporter beyond the portal. Test only
++   the next body-sized walking increment. A cross record for the supporting
++   sector is harmless here; solid walls, closed doors and other actors are
++   still obstructions and ordinary game collision owns the actual movement. */
++static int Hint_LandingClear(SithThing *self, rdVector3 from, rdVector3 to, int fixture)
++{
++    rdVector3 dir=Bot_Sub(to,from);
++    flex_t distance=Bot_Len(dir);
++    if (distance<0.001f) return 1;
++    dir.x/=distance; dir.y/=distance; dir.z/=distance;
++    distance=Bot_Min(distance,0.055f);
++    sithCollision_SearchForCollisions(self->sector,self,&from,&dir,distance,
++                                      self->collideSize,RAYCAST_200);
++    SithCollision *hit;
++    int clear=1;
++    while ((hit=sithCollision_PopStack())!=NULL) {
++        if (hit->distance>distance) continue;
++        SithThing *thing=(hit->type&SITHCOLLISION_THING) ? hit->pThingCollided : NULL;
++        int wall=(hit->type&SITHCOLLISION_WORLD)!=0;
++        int body=thing && thing!=self && thing!=self->attachedThing &&
++                 thing->type!=SITH_THING_ITEM && thing->type!=SITH_THING_WEAPON &&
++                 thing->type!=SITH_THING_PARTICLE;
++        SithSurfaceAdjoin *portal=(hit->type&SITHCOLLISION_ADJOINCROSS) && hit->surface ?
++                                  hit->surface->pAdjoin : NULL;
++        int foreign=portal && (!(portal->flags&SITHSURF_ADJOIN_ALLOW_MOVEMENT) ||
++                    !portal->sector || (portal->sector->id!=5 && portal->sector->id!=7));
++        if (wall || body || foreign) {
++            if (hint.trace && bot.now>=hint.nextLog)
++                fprintf(stderr,"BOT_ENTRY_BLOCK t=%.3f type=%u distance=%.4f thing=%d fixture=%d\n",
++                        (double)bot.now,(unsigned)hit->type,(double)hit->distance,
++                        thing ? (int)(thing-bot.world->aThings) : -1,fixture);
++            clear=0;break;
++        }
++    }
++    sithCollision_DecreaseStackLevel();
++    return clear;
++}
++
+ static int Hint_Landing(SithThing *self, rdVector3 *ahead, int fixture)
+ {
+     const HintPoint *landing=&entryPoints[ENTRY_POINTS-1];
+@@ -193,7 +231,7 @@
+     }
+     rdVector3 torso=p,goal=landingPos;
+     torso.z+=0.04f; goal.z+=0.04f;
+-    if (!Bot_Clear(self,self->sector,torso,goal,self->collideSize*0.85f,0)) {
++    if (!Hint_LandingClear(self,torso,goal,fixture)) {
+         if (hint.trace && bot.now>=hint.nextLog) Hint_Log(self,"landing","obstacle",fixture);
+         return 0;
+     }

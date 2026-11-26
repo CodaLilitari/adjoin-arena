@@ -11,9 +11,9 @@ BEHAVIOR_FIELDS = ("bots_sabers_only", "bots_fists_peace", "bots_force_enabled")
 
 def check_scope(config: dict, count: int) -> None:
     if (config["game"] != "jk" or config["password"] or config["mod_dir"]
-            or config["game_flags"] & ~0x1BF or config["episode"].casefold() not in ("jk1mp", "jk1ctf")
+            or config["game_flags"] & ~0x1BF or config["episode"].casefold() == "jk1mpdem"
             or type(config["rank"]) is not int or not 0 <= config["rank"] <= 8):
-        raise ValueError("Bots support stock JK1MP or JK1CTF, ranks 0–8, no password, no mod, and ordinary JK multiplayer flags only.")
+        raise ValueError("Bots require a full-version JK multiplayer episode, rank 0–8, no password, no mod and ordinary multiplayer flags.")
     if config["episode"].casefold() == "jk1ctf" and not config["teams"]:
         raise ValueError("Stock JK1CTF bots require Team game to be enabled.")
     if config["episode"].casefold() == "jk1mp":

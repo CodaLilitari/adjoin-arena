@@ -1,0 +1,36 @@
+--- a/src/AI/jkBotNavigation.inc
++++ b/src/AI/jkBotNavigation.inc
+@@ -773,7 +773,12 @@
+     flex_t length=Bot_Horizontal(delta), previousZ=a->pos.z;
+     SithSector *hint=a->sector;
+     int dropping=(delta.z < -BOT_STEP_UP);
+-    if (length>3.5f || length<minLength || delta.z>BOT_STEP_UP || delta.z < -BOT_MAX_DROP) return 0;
++    int climbing=delta.z>BOT_STEP_UP;
++    if (length>3.5f || length<minLength || delta.z < -BOT_MAX_DROP) return 0;
++    /* A continuous inclined floor can rise several steps between sampled
++       graph nodes. Probe a body-width apart and require the standing floor
++       to follow the incline. A vertical ledge cannot pass these checks. */
++    if (climbing && delta.z>1.15f*length) return 0;
+     rdVector3 sweepA=a->pos, sweepB=b->pos;
+     if (dropping) sweepB.z=sweepA.z;
+     /* Test the actual body center first. Stock m2 sector110 is only0.20
+@@ -789,13 +794,18 @@
+             !Bot_Clear(NULL,a->sector,raisedA,raisedB,0.058f,1)) return 0;
+         sweepA=raisedA; sweepB=raisedB;
+     }
+-    int steps=(int)ceilf(length/0.22f);
++    int steps=(int)ceilf(length/(climbing ? 0.075f : 0.22f));
+     for (int i=1;i<=steps;i++) {
+         rdVector3 p=Bot_Mix(a->pos,b->pos,(flex_t)i/(flex_t)steps), floor;
+         /* Keep the ray origin below low ceilings; body clearance is above. */
+         p.z=Bot_Max(previousZ,p.z)+0.02f;
+         SithSector *floorSector;
+         if (!Bot_Floor(p,hint,dropping ? BOT_MAX_DROP+0.3f : 0.52f,&floor,&floorSector)) return 0;
++        if (climbing) {
++            flex_t expected=a->pos.z+delta.z*(flex_t)i/(flex_t)steps;
++            if (fabsf(floor.z-expected)>0.035f ||
++                fabsf(floor.z-previousZ)>1.15f*length/(flex_t)steps+0.006f) return 0;
++        }
+         if (floor.z-previousZ>BOT_STEP_UP || previousZ-floor.z>BOT_MAX_DROP) return 0;
+         previousZ=floor.z; hint=floorSector;
+     }

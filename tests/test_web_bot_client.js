@@ -16,6 +16,9 @@ async function check(mode, adaptive) {
   const heap = new Uint8Array(2048);
   let sent = false, payloadReceived = false, inited = false;
   let wasmNow = 100;
+  const navigation = mode === "nf-guns";
+  const batches = [];
+  let flush;
   const clockCmd = new Uint8Array(20+28);
   clockCmd.set(Buffer.from("JKCP")); clockCmd[4]=1; clockCmd[5]=16;
   const view = new DataView(clockCmd.buffer);
@@ -45,10 +48,18 @@ async function check(mode, adaptive) {
       inited=true;
     }}},
     setTimeout:(fn,ms)=>setTimeout(fn,Math.min(3,ms)).unref(),
+    AbortSignal, setInterval:fn => { flush = fn; },
     __JK_BOT_TOKEN:"synthetic-key",
     fetch:async (url, opts)=>{
       assert.equal(opts.headers.Authorization,"Bearer synthetic-key");
-      if(url.endsWith("/boot")) return {ok:true,json:async()=>({mod:true,assets:[{path:"/jk1/resource/Res2.gob"}],
+      if(url.endsWith("/navigation")) {
+        const request = JSON.parse(opts.body);
+        assert.ok(opts.signal instanceof AbortSignal);
+        batches.push(request);
+        if (batches.length === 1) throw Error("simulated lost acknowledgement");
+        return {ok:true,json:async()=>({next:request.first+request.lines.length,discarded:1})};
+      }
+      if(url.endsWith("/boot")) return {ok:true,json:async()=>({mod:true,navigation,assets:[{path:"/jk1/resource/Res2.gob"}],
         env:{JK_BOT_LILY:adaptive ? "1" : "0",JK_BOT_WEB_NAME:"Darth_Lilitari",JK_BOT_WEB_MODEL:"dlil.3do",JK_BOT_WEB_SOUND:"dlil.snd",
              JK_BOT_WEB_MODE:mode,JK_BOT_WEB_ROOM:"Canyon",JK_BOT_WEB_ROLE:"host",JK_BOT_FORCE_SIDE:"dark",JK_BOT_FORCE_STYLE:"competitive",JK_BOT_WEB_THIRD_PERSON:"1"}})};
       if(url.endsWith("/assets/0"))return {ok:true,arrayBuffer:async()=>new ArrayBuffer(17)};
@@ -72,6 +83,15 @@ async function check(mode, adaptive) {
   assert.deepEqual(files,[["/jk1/resource/Res2.gob",17]]);
   assert.equal(ctx.Module.jkSavesMounted,true);
   assert.equal(ctx.Module.jkBotConfig.mode,mode);
+  if (navigation) {
+    for (let i=0; i<258; i++) ctx.Module.printErr("BOT_EDGE_ATTEMPT "+i);
+    assert.equal(ctx.jkBot.info().navigationDiscarded,2);
+    await flush(); await flush(); await flush();
+    assert.deepEqual(batches[0],batches[1]);
+    assert.equal(batches[2].first,33);
+    assert.equal(batches[2].lines[0],"BOT_EDGE_ATTEMPT 32");
+    assert.equal(ctx.jkBot.info().navigationDiscarded,4);
+  }
   assert.equal(ctx.Module.ENV.JK_BOT_WEB_MODE,mode);
   assert.equal(ctx.Module.jkBotConfig.elite,true);
   assert.equal(ctx.Module.jkBotConfig.sound,"dlil.snd");

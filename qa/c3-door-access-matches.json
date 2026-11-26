@@ -1,0 +1,341 @@
+{
+  "schema": 1,
+  "baseline_wasm": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+  "candidate_wasm": "f2df1a48fea2397cff23ae6cc160febb8e1dee53de7046ff6192e1661fdc1ad0",
+  "candidate_patch": "67ea383f11b937ee9eb9c80890a6c9ae73818b2896071508baefc6404e702a2d",
+  "build_reproduction": {
+    "stock_js_sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+    "candidate_js_sha256": "e826d69114e95083ab37efa7a1778e7b7b071274821eb1e801aff42a606fa079",
+    "released_input_objects": 224,
+    "rebuilt_stock_object": "79ab7149d0f1ac96e9b9ee5ccaa974d206903e6024df93b56388b0922951a782",
+    "shipped_stock_object": "79ab7149d0f1ac96e9b9ee5ccaa974d206903e6024df93b56388b0922951a782",
+    "matched_source_files_after_unmount": 48
+  },
+  "prior_baseline_receipt": "e04d6bd75281b832ceda1938a71b4daec4c4b8c4294c1fb872c26667dbae2552",
+  "requested_seconds": 105,
+  "team_and_loadout": "Host Lily team 1; external Red team 2. Both ordinary browser owners, native game at 1x. Host mode and each owner FF rank verified.",
+  "design": "One fresh control and one fresh candidate for each ruleset in separate private rooms. Same stock files, owner order, clock rate and frame cap. Random spawn/peer timing is uncontrolled.",
+  "map": "JK1CTF/c3.jkl",
+  "gameplay_measures": {
+    "distinct_sectors": "Distinct sectors in ten-second native status observations while the owner was alive and team-assigned, within the two-player window.",
+    "movement_intervals": "Two consecutive living samples without a death, in the two-player window, 0 < delta game time <= 3 seconds and position distance strictly between 0.005 and 2 game units. The polling interval is approximately 0.7 wall seconds.",
+    "keys": "Owner-console denial messages between the launcher's shared playing event and 105 wall seconds later.",
+    "stall_sites": "Sampled visits to any of the three previously identified stall sectors (393, 505, 605) in the shared window. An exit requires a following living sample outside that sector with the same death count. Short visits can fall between native status frames.",
+    "enemy_flag_start": "Minimum straight-line distance from sampled, living assigned positions to the enemy flag's stock start. A sample in its sector is reported separately.",
+    "objectives": "Owner-session BOT_OBJECTIVE with the assigned team. Mode 2 seeks the enemy flag. Mode 3 returns with it, 4 recovers own flag, 5 escorts, 6 defends, 7 intercepts, and 8 seeks air. Captures require the announcement on both owner consoles."
+  },
+  "rooms": [
+    {
+      "mode": "ff-guns",
+      "engine": "control",
+      "captures": {
+        "red": 0,
+        "gold": 0
+      },
+      "owners": {
+        "lily": {
+          "team": 1,
+          "net_player_slot": 0,
+          "game_per_wall": 0.979,
+          "observed_game_seconds": 104.8,
+          "sampled_weapon_bins": [
+            3,
+            6
+          ],
+          "living_assigned_status_samples": 11,
+          "distinct_sectors": 3,
+          "movement_intervals": 139,
+          "keys": {
+            "gold": 99
+          },
+          "observed_stall_sites": [
+            {
+              "sector": 393,
+              "visits": [
+                {
+                  "first": 50.1,
+                  "last": 120.2,
+                  "samples": 8,
+                  "alive_exit": false
+                }
+              ]
+            }
+          ],
+          "closest_enemy_flag_start_jku": 6.238,
+          "enemy_flag_sector_samples": 0,
+          "objective_modes": {
+            "2": 12
+          },
+          "candidate_bound_doors": [],
+          "candidate_blocked_masks": [],
+          "sustained_route_stalls_owner_session": [
+            {
+              "sector": 393,
+              "next": 483,
+              "samples": 8,
+              "times": [
+                50.1,
+                120.2
+              ]
+            }
+          ],
+          "source_console_sha256": "86ce7f83149f1915c063423584942f1dc0e1c515ac996318454e845a4daf5171"
+        },
+        "red": {
+          "team": 2,
+          "net_player_slot": 1,
+          "game_per_wall": 0.977,
+          "observed_game_seconds": 104.6,
+          "sampled_weapon_bins": [
+            2,
+            6
+          ],
+          "living_assigned_status_samples": 9,
+          "distinct_sectors": 1,
+          "movement_intervals": 32,
+          "keys": {},
+          "observed_stall_sites": [],
+          "closest_enemy_flag_start_jku": 7.433,
+          "enemy_flag_sector_samples": 0,
+          "objective_modes": {
+            "2": 10
+          },
+          "candidate_bound_doors": [],
+          "candidate_blocked_masks": [],
+          "sustained_route_stalls_owner_session": [],
+          "source_console_sha256": "eedef2664ef8c8fe7abe0460bc0f01c861c138df9a01a75db6cd18e6c369ecf2"
+        }
+      }
+    },
+    {
+      "mode": "ff-guns",
+      "engine": "candidate",
+      "captures": {
+        "red": 0,
+        "gold": 0
+      },
+      "owners": {
+        "lily": {
+          "team": 1,
+          "net_player_slot": 0,
+          "game_per_wall": 0.982,
+          "observed_game_seconds": 103.37,
+          "sampled_weapon_bins": [
+            2,
+            3,
+            6
+          ],
+          "living_assigned_status_samples": 11,
+          "distinct_sectors": 8,
+          "movement_intervals": 135,
+          "keys": {},
+          "observed_stall_sites": [],
+          "closest_enemy_flag_start_jku": 6.258,
+          "enemy_flag_sector_samples": 0,
+          "objective_modes": {
+            "2": 11
+          },
+          "candidate_bound_doors": [
+            6
+          ],
+          "candidate_blocked_masks": [
+            28,
+            63
+          ],
+          "sustained_route_stalls_owner_session": [],
+          "source_console_sha256": "e90900377369fafe65017d70d1af1d51a6e5c02c503d3cdbaf162bed75189815"
+        },
+        "red": {
+          "team": 2,
+          "net_player_slot": 1,
+          "game_per_wall": 0.978,
+          "observed_game_seconds": 102.94,
+          "sampled_weapon_bins": [
+            2,
+            3
+          ],
+          "living_assigned_status_samples": 9,
+          "distinct_sectors": 8,
+          "movement_intervals": 126,
+          "keys": {},
+          "observed_stall_sites": [],
+          "closest_enemy_flag_start_jku": 4.653,
+          "enemy_flag_sector_samples": 0,
+          "objective_modes": {
+            "2": 7,
+            "8": 3
+          },
+          "candidate_bound_doors": [
+            6
+          ],
+          "candidate_blocked_masks": [
+            3,
+            33,
+            34,
+            35,
+            63
+          ],
+          "sustained_route_stalls_owner_session": [],
+          "source_console_sha256": "59a6691f57bbf8a716fb8f84c7a2a1af66eab7a2757f02acdcd692fb4116f802"
+        }
+      }
+    },
+    {
+      "mode": "ff-sabers",
+      "engine": "control",
+      "captures": {
+        "red": 0,
+        "gold": 0
+      },
+      "owners": {
+        "lily": {
+          "team": 1,
+          "net_player_slot": 0,
+          "game_per_wall": 1.005,
+          "observed_game_seconds": 100.73,
+          "sampled_weapon_bins": [
+            10
+          ],
+          "living_assigned_status_samples": 10,
+          "distinct_sectors": 4,
+          "movement_intervals": 116,
+          "keys": {
+            "gold": 104
+          },
+          "observed_stall_sites": [
+            {
+              "sector": 393,
+              "visits": [
+                {
+                  "first": 30.1,
+                  "last": 70.2,
+                  "samples": 5,
+                  "alive_exit": true
+                }
+              ]
+            }
+          ],
+          "closest_enemy_flag_start_jku": 5.263,
+          "enemy_flag_sector_samples": 0,
+          "objective_modes": {
+            "2": 12
+          },
+          "candidate_bound_doors": [],
+          "candidate_blocked_masks": [],
+          "sustained_route_stalls_owner_session": [],
+          "source_console_sha256": "941dbef99f089095e2d7128a3a60faf391203bf259428e6c2fc1e2b2309954ee"
+        },
+        "red": {
+          "team": 2,
+          "net_player_slot": 1,
+          "game_per_wall": 0.999,
+          "observed_game_seconds": 100.12,
+          "sampled_weapon_bins": [
+            10
+          ],
+          "living_assigned_status_samples": 7,
+          "distinct_sectors": 5,
+          "movement_intervals": 120,
+          "keys": {},
+          "observed_stall_sites": [
+            {
+              "sector": 605,
+              "visits": [
+                {
+                  "first": 50.1,
+                  "last": 50.1,
+                  "samples": 1,
+                  "alive_exit": true
+                },
+                {
+                  "first": 90.1,
+                  "last": 90.1,
+                  "samples": 1,
+                  "alive_exit": true
+                }
+              ]
+            }
+          ],
+          "closest_enemy_flag_start_jku": 6.218,
+          "enemy_flag_sector_samples": 0,
+          "objective_modes": {
+            "2": 7
+          },
+          "candidate_bound_doors": [],
+          "candidate_blocked_masks": [],
+          "sustained_route_stalls_owner_session": [],
+          "source_console_sha256": "47568317bc0c48b1f66d799829148ef3eb4e58d672f921615a2f0dffa95291a5"
+        }
+      }
+    },
+    {
+      "mode": "ff-sabers",
+      "engine": "candidate",
+      "captures": {
+        "red": 0,
+        "gold": 0
+      },
+      "owners": {
+        "lily": {
+          "team": 1,
+          "net_player_slot": 0,
+          "game_per_wall": 1.004,
+          "observed_game_seconds": 104.5,
+          "sampled_weapon_bins": [
+            10
+          ],
+          "living_assigned_status_samples": 11,
+          "distinct_sectors": 4,
+          "movement_intervals": 109,
+          "keys": {},
+          "observed_stall_sites": [],
+          "closest_enemy_flag_start_jku": 7.218,
+          "enemy_flag_sector_samples": 0,
+          "objective_modes": {
+            "2": 11
+          },
+          "candidate_bound_doors": [
+            6
+          ],
+          "candidate_blocked_masks": [
+            28,
+            63
+          ],
+          "sustained_route_stalls_owner_session": [],
+          "source_console_sha256": "78a6fc370039553d1313e8c4a608d7bc7adf2bbcea44ccabbfd630e8781b3255"
+        },
+        "red": {
+          "team": 2,
+          "net_player_slot": 1,
+          "game_per_wall": 0.998,
+          "observed_game_seconds": 103.87,
+          "sampled_weapon_bins": [
+            10
+          ],
+          "living_assigned_status_samples": 9,
+          "distinct_sectors": 8,
+          "movement_intervals": 140,
+          "keys": {},
+          "observed_stall_sites": [],
+          "closest_enemy_flag_start_jku": 3.214,
+          "enemy_flag_sector_samples": 0,
+          "objective_modes": {
+            "2": 9,
+            "8": 2
+          },
+          "candidate_bound_doors": [
+            6
+          ],
+          "candidate_blocked_masks": [
+            3,
+            31,
+            35,
+            63
+          ],
+          "sustained_route_stalls_owner_session": [],
+          "source_console_sha256": "322a93bcfc38ccc1ecdc9b898a2988c44823b70f6aa7855093b13ea222ac1efc"
+        }
+      }
+    }
+  ]
+}

@@ -1,14 +1,15 @@
 {
-  "competitive_receipt_sha256": "77b26c6f5846588fdc80901cf6201080beb0147219be6e50ad5b139ce83f19fb",
-  "builder_sha256": "7bd9f7d9833f462d7b89c3cf5587ed3a032489321d35c2fd83c73843d6e74c44",
-  "binary_sha256": "3dfd4837571295a4cca2067ef0a9e7c100c1e88d5a7f6f97244d0a9f67a3904c",
+  "competitive_receipt_sha256": "698d335e1b59c3fa231b46488f62af8d2c9825a6ff6a823688622a481432b39d",
+  "builder_sha256": "c955507ba6146d7c816c3bfec0e7e0772a81f0e46583e13008a64aa3e62ee0b2",
+  "binary_sha256": "f5777b0181e425fe3b896c43410408ef197540d259dc521efee997d43373a612",
   "gns_sha256": "8246a869b1d72115ecc849309629aa1abbce0bf1a0f23cc70deaded98d82d8e9",
   "clock": "original engine clock",
   "rebuilt_objects": {
-    "AI/jkBot": "f6e718ef12cd34c37703f6e5beead40068f6ac68deb5cdda01a005189dcdedd1",
-    "Devices/sithControl": "5e66f96e086f38da20b8d608ea87e832dc1404d3bd6dca2fbd2f1cbf7c4774a7"
+    "AI/jkBot": "4addc7c24ace2adf38129fd49f9eb0f7dcfdc1a4d713e3a73a667b642fa6a18c",
+    "Devices/sithControl": "5e66f96e086f38da20b8d608ea87e832dc1404d3bd6dca2fbd2f1cbf7c4774a7",
+    "Gui/jkGUIMultiplayer": "d008420fc806b5407c94fb0676491233cae199def34e1f8cfeeb5166e2a874a8"
   },
   "target_libm_sha256": "4e7324196b5d12cc5040d71b17fefb9891d103611f5e66debc7225d1884b0505",
   "required_glibc": "2.38",
-  "relink_sha256": "888be0df94a62cb050e92260947ab283f9760571cab25f23f3cd63c870ab8731"
+  "relink_sha256": "62889c56dc994bb1f12a34a5c0f8c5809c7876a85066ca88a2f30f1934945d40"
 }

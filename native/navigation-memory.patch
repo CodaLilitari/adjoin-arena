@@ -1,0 +1,42 @@
+--- a/src/AI/jkBotNavigation.inc
++++ b/src/AI/jkBotNavigation.inc
+@@ -1497,6 +1497,17 @@
+ 
+ #include "red_transfer.inc"
+ 
++/* Ordinary sessions need just edge outcomes. Leave the larger research
++ * trace disabled between observations. */
++static void Bot_ObserveTravel(int node,int failed)
++{
++    const int trace=transfer.trace;
++    const char *observe=getenv("JK_BOT_NAV_OBSERVE");
++    if (observe && !strcmp(observe,"1")) transfer.trace=1;
++    Transfer_Observe(node,failed);
++    transfer.trace=trace;
++}
++
+ static void Bot_HeapUp(int *heap, int *positions, flex_t *distance, int at)
+ {
+     int node=heap[at];
+--- a/src/AI/jkBotNavigate.inc
++++ b/src/AI/jkBotNavigate.inc
+@@ -1030,7 +1030,7 @@
+                 return;
+             }
+         }
+-        Transfer_Observe(nodeIndex,0);
++        Bot_ObserveTravel(nodeIndex,0);
+         bot.routePos++;
+         if (bot.routePos>=bot.routeCount) {
+             if (bot.goal>=0) Bot_AvoidNode(&bot.nodes[bot.goal],3.0f);
+--- a/src/AI/jkBot.c
++++ b/src/AI/jkBot.c
+@@ -1456,7 +1456,7 @@
+     /* Charge only the route actually driven across this failed interval.
+        Movement on the deadline frame still belongs to recovery. */
+     if (node>=0 && bot.routeStallTime+0.001f>=(recovering ? 1.5f : 2.0f)) {
+-        if (!bot.armDirect) Transfer_Observe(node,1);
++        if (!bot.armDirect) Bot_ObserveTravel(node,1);
+         Bot_AvoidNode(&bot.nodes[node],6.0f);
+         if (bot.goal>=0) Bot_AvoidNode(&bot.nodes[bot.goal],7.0f);
+     }

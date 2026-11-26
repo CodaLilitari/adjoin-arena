@@ -29,7 +29,7 @@ server's normal display/GL dependencies for a host without `DISPLAY`. Follow
 the [server setup instructions](../README.md#start-on-linux) to open the panel.
 
 1. While the session is stopped, select **Jedi Knight: Dark Forces II**, the
-   stock episode and map, and a **Force rank** from 0 through 8.
+   locally installed multiplayer episode and map, and a **Force rank** from 0 through 8.
 2. In **Bot roster**, check **Add bots when the server starts** and choose one
    to four different characters. Set **Player slots** to at least the bot count
    plus two, allowing one slot for the dedicated host and one for a human.
@@ -81,8 +81,26 @@ cancel that stock effect.
 | Team deathmatch | As above, **Team game** enabled and **Additional game flags** including `256` for stock team skins | The same six JK1MP maps |
 | Capture the flag | `game: "jk"`, `episode: "JK1CTF"`, rank 0–8, **Team game** enabled | `c1.jkl`, `c2.jkl`, `c3.jkl` |
 
-Leave the legacy game password and mod folder empty. The launcher rejects MotS,
-other episodes, unsupported multiplayer flag bits, passwords, and mod folders.
+To play a custom level, install the same episode GOB in the `episode` folder of
+the server's and bots' JK data directories. For Jedi's High School, choose
+`jhs` and `jhs.jkl` in the server configuration. With the dedicated server
+running, the ordinary Linux launcher can join it directly:
+
+```sh
+python -m bots.run --server-config /path/to/server-config.json \
+  --profiles jan_ors,boba_fett --connect 127.0.0.1:3500 \
+  --runtime /path/to/private/bot-runs
+```
+
+Use the configured native port for `--connect`, or omit this option for the
+local server. The bot checks the selected endpoint, advertised episode, level
+and mode, the installed archive digest and the digest of the level its engine
+actually opened. A map can start with no saved navigation weights. In two JHS
+visits, the launcher staged each seat's learned geometry weights on the second
+visit. [Native JHS match observations](../qa/native-custom-jhs.json)
+
+Leave the legacy game password and mod folder empty. The launcher accepts
+ordinary full-version Jedi Knight multiplayer games with supported flags.
 For advanced configuration, additional flags must be a subset of `0x1bf`;
 normally leave them at `0`, except the `256` team-skin bit for JK1MP team games.
 Selecting **Team game** alone is insufficient for JK1MP bots. Stock CTF uses its
@@ -285,8 +303,14 @@ python3 -m bots.run --server-config /absolute/path/server.json \
 | `--no-taunts` | Disable all bot chat for this invocation. |
 | `--behavior-file /absolute/path/behavior.cfg` | Read live rules from an existing file managed by the caller. |
 
-A standalone run normally creates `behavior.cfg` in its run directory. To
-change it live, atomically replace the complete file with all four lines:
+A standalone run uses fixed rules by default. Its retained `behavior.cfg`
+records the settings, and the engines read a private snapshot. This allows a
+later match with the same seat, engine and rules to apply a learned geometry
+prior at startup. To use live controls from the command line, create a
+behavior file before launching and pass its path with `--behavior-file`.
+The control panel uses live mode for its managed seats.
+
+In a live run, replace the supplied file atomically with all four lines:
 
 ```ini
 version=1
@@ -299,9 +323,14 @@ force_enabled=1
 ignore it: a player holding fists is fought like anyone else.
 
 Only `0` and `1` are accepted. A missing, partial, duplicate, or invalid setting
-preserves the last valid rules. Editing the server's JSON during a standalone
-run does not update that run's behavior file. The panel handles publication
-automatically for its managed bots.
+preserves the last valid rules. Each seat's engine reports when it applies a
+change. Subsequent edge outcomes train the corresponding guns/sabers and Force
+bank. Intermediate Force ranks can play and train the no-Force bank whenever
+Force is explicitly disabled. Map-specific route recall follows the effective
+rules. The distributed native engine loads a general geometry prior once at
+startup, so live runs leave automatic general priors off. A later fixed run can
+use the weights earned in live games. The panel handles live file updates for
+its managed bots.
 
 Use Ctrl+C to stop the launched bots. The launcher owns their process groups
 and its own Xvfb, if needed, and leaves the running server and unrelated

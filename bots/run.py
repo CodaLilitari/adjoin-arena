@@ -9,6 +9,8 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import hashlib
+import sqlite3
 import math
 import os
 from pathlib import Path
@@ -20,10 +22,14 @@ import signal
 import subprocess
 import sys
 import time
-from dataclasses import dataclass
+from contextlib import ExitStack
+from dataclasses import dataclass, field
 from typing import BinaryIO
 
 from manager import config as server_config
+from manager.content import archive_index
+from .match_storage import configured_scratch, match_scratch
+from .navigation_memory import LiveNavigationMemory, NavigationMemory, memory_root, navigation_rules, parse_observation
 from .companion import Hub
 from .settings import behavior_values, check_scope, engine_path, write_behavior
 
@@ -109,7 +115,8 @@ def ensure_separate(source: Path, destination: Path) -> None:
         raise ValueError("Bot runtime and original game data must be separate, non-overlapping directories.")
 
 
-def stage_tree(source: Path, destination: Path, ancestors: frozenset[Path] = frozenset()) -> None:
+def stage_tree(source: Path, destination: Path, ancestors: frozenset[Path] = frozenset(),
+               *, private_source: bool = False) -> None:
     """Lowercase game input names; never import human profiles or settings."""
     resolved = source.resolve()
     if resolved in ancestors:
@@ -128,14 +135,59 @@ def stage_tree(source: Path, destination: Path, ancestors: frozenset[Path] = fro
         used.add(name)
         output = destination / name
         if child.is_dir():
-            stage_tree(child, output, ancestors)
+            stage_tree(child, output, ancestors, private_source=private_source)
         elif child.is_file():
-            try:
-                os.link(child.resolve(), output)
-            except OSError:
-                shutil.copy2(child, output)
+            if private_source:
+                try:
+                    os.link(child.resolve(), output)
+                    continue
+                except OSError:
+                    pass
+            shutil.copy2(child, output)
         else:
             raise ValueError(f"Unsupported game input file: {child}")
+
+
+def custom_episode(config: dict, data: Path, connect: str) -> dict[str, str]:
+    episode, level = config["episode"], config["map"]
+    if episode.casefold() in ("jk1mp", "jk1ctf"):
+        return {}
+    folder = child_casefold(data, "episode")
+    matches = [p for p in folder.iterdir() if p.name.casefold() == episode.casefold() + ".gob" and p.is_file()]
+    if len(matches) != 1:
+        raise ValueError(f"Install one {episode}.gob in the game's episode directory.")
+    archive = matches[0]
+    entries = {row["name"].casefold(): row for row in archive_index(archive)}
+    entry = entries.get("jkl/" + level.casefold())
+    metadata = entries.get("episode.jk")
+    if not entry or not entry["size"] or not metadata or metadata["size"] > 1024*1024:
+        raise ValueError(f"Expected episode.jk and jkl/{level} inside {archive.name}.")
+    digest = hashlib.sha256()
+    with archive.open("rb") as stream:
+        gob_sha = hashlib.file_digest(stream, "sha256").hexdigest()
+        stream.seek(metadata["offset"])
+        descriptor = stream.read(metadata["size"]).decode("latin1")
+        kind = re.search(r"(?im)^\s*TYPE\s+(\d+)\b", descriptor)
+        flags = int(kind[1]) if kind else 0
+        if not flags & (2|8):
+            raise ValueError(f"{archive.name} does not declare a multiplayer deathmatch or special episode.")
+        if flags & 8 and not config["teams"]:
+            raise ValueError("Enable Team game for a custom CTF episode.")
+        if not flags & 8 and config["teams"] and not config["game_flags"] & 0x100:
+            raise ValueError("Custom team deathmatch requires the team-skins game flag (256).")
+        if not config["teams"] and config["game_flags"] & 0x101:
+            raise ValueError("Enable Team game for team or team-skin flags.")
+        stream.seek(entry["offset"])
+        remaining = entry["size"]
+        while remaining:
+            chunk = stream.read(min(remaining, 1024*1024))
+            if not chunk:
+                raise ValueError(f"Could not read the entire selected JKL from {archive.name}.")
+            digest.update(chunk)
+            remaining -= len(chunk)
+    return {"ADJOIN_CUSTOM_ENDPOINT": connect, "ADJOIN_CUSTOM_EPISODE": episode, "ADJOIN_CUSTOM_MAP": level,
+            "ADJOIN_CUSTOM_GOB_SHA256": gob_sha, "ADJOIN_CUSTOM_MAP_SHA256": digest.hexdigest(),
+            "ADJOIN_CUSTOM_MODE": "ctf" if flags & 8 else "tdm" if config["teams"] else "ffa"}
 
 
 def write_json(path: Path, value: dict) -> None:
@@ -144,11 +196,11 @@ def write_json(path: Path, value: dict) -> None:
     temporary.replace(path)
 
 
-def prepare_bot(data: Path, directory: Path, profile: dict) -> None:
+def prepare_bot(data: Path, directory: Path, profile: dict, *, private_source: bool = False) -> None:
     ensure_separate(data, directory)
     directory.mkdir(mode=0o700)
     for name in ("resource", "episode"):
-        stage_tree(child_casefold(data, name), directory / name)
+        stage_tree(child_casefold(data, name), directory / name, private_source=private_source)
     for name in ("player", "xdg", "config"):
         (directory / name).mkdir(mode=0o700)
     write_json(directory / "registry.json", {
@@ -193,6 +245,12 @@ class Child:
     started: float = 0.0
     offset: int = 0
     pending: bytes = b""
+    memory: NavigationMemory | LiveNavigationMemory | None = None
+    navigation_session: str = ""
+    observations: int = 0
+    pending_observations: list = field(default_factory=list)
+    next_navigation_write: float = 0.
+
 
 
 def group_alive(pid: int) -> bool:
@@ -268,7 +326,7 @@ def start_display(run_directory: Path, children: list[Child], *, managed: bool =
         raise
 
 
-def inspect_log(child: Child) -> bool:
+def inspect_log(child: Child, *, final=False) -> bool:
     """Read bounded incremental output and record a normal joined player ID."""
     if child.record is None:
         return False
@@ -279,7 +337,23 @@ def inspect_log(child: Child) -> bool:
     changed = False
     lines = (child.pending + chunk).split(b"\n")
     child.pending = lines.pop()[-8192:]
+    discarded = 0
     for line in lines:
+        if isinstance(child.memory, LiveNavigationMemory) and line.startswith(b"BOT_BEHAVIOR "):
+            behavior = re.fullmatch(rb"BOT_BEHAVIOR name=(\S+) sabers_only=([01]) fists_peace=[01] force_enabled=([01])\r?", line)
+            if behavior and behavior[1] == child.label.encode("ascii"):
+                child.memory.rules = navigation_rules(child.memory.rank, behavior[2] == b"1", behavior[3] == b"1")
+                child.record["navigation_rules"] = child.memory.rules
+                changed = True
+        if child.memory and line.startswith(b"BOT_EDGE_ATTEMPT "):
+            event = parse_observation(line.decode("utf-8", "replace").rstrip("\r"), child.label)
+            if event is not None and isinstance(child.memory, LiveNavigationMemory):
+                rules = child.memory.rules
+                event = (rules, event) if rules else None
+            if event is not None:
+                child.pending_observations.append(event)
+            else:
+                discarded += 1
         if line.startswith(b"BOT_JOIN_REJECTED"):
             message = line[:500].decode("utf-8", "replace")
             child.record["error"] = message
@@ -292,6 +366,30 @@ def inspect_log(child: Child) -> bool:
             child.record.update(joined=True, slot=slot, network_id=network_id, joined_at=utc_now())
             print(f"{child.label}: joined slot {slot}, network ID {network_id}", flush=True)
             changed = True
+    if child.pending_observations and (final or time.monotonic() >= child.next_navigation_write):
+        try:
+            while child.pending_observations:
+                batch = child.pending_observations[:256]
+                child.memory.observe(child.navigation_session, child.observations+1, batch)
+                child.observations += len(batch)
+                del child.pending_observations[:len(batch)]
+                child.record["navigation_observations"] = child.observations
+            child.next_navigation_write = 0.
+            changed |= child.record.pop("navigation_memory_error", None) is not None
+        except (OSError, sqlite3.Error, ValueError) as exc:
+            changed |= child.record.get("navigation_memory_error") != str(exc)
+            child.record["navigation_memory_error"] = str(exc)
+            child.next_navigation_write = time.monotonic() + 1.
+    # A healthy writer can consume the whole bounded log chunk. Only the
+    # backlog retained across polls during storage outages needs a tighter cap.
+    if len(child.pending_observations) > 256:
+        discarded += len(child.pending_observations) - 256
+        del child.pending_observations[256:]
+    if discarded:
+        child.record["navigation_discarded"] = child.record.get("navigation_discarded", 0) + discarded
+        changed = True
+    if child.memory:
+        child.record["navigation_pending"] = len(child.pending_observations)
     return changed
 
 
@@ -303,7 +401,8 @@ def launch(config: dict, profiles: list[dict], *, engine: Path, connect: str,
            runtime: Path, seconds: float, taunts: bool, behavior_file: Path | None = None,
            status_file: Path | None = None, managed: bool = False,
            companion_port: int | None = None, companion_chat: bool = False,
-           adaptive_lily: bool = False, tactics_file: Path | None = None) -> tuple[int, Path]:
+           adaptive_lily: bool = False, tactics_file: Path | None = None,
+           scratch_root: Path | None = None) -> tuple[int, Path]:
     check_scope(config, len(profiles))
     if tactics_file is not None:
         tactics_file = tactics_file.resolve()
@@ -333,9 +432,11 @@ def launch(config: dict, profiles: list[dict], *, engine: Path, connect: str,
     runtime, engine = runtime.resolve(), engine.resolve()
     ensure_separate(data, runtime)
     connect = endpoint(connect)
+    admission = custom_episode(config, data, connect)
     stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     run_directory = runtime / (stamp + "-" + secrets.token_hex(4))
     run_directory.mkdir(parents=True, mode=0o700)
+    live_rules = managed or behavior_file is not None
     if behavior_file is None:
         behavior_file = run_directory / "behavior.cfg"
         write_behavior(behavior_file, config)
@@ -347,10 +448,21 @@ def launch(config: dict, profiles: list[dict], *, engine: Path, connect: str,
         status_file = status_file.resolve()
     session = {"version": 1, "started_at": utc_now(), "server": connect,
                "engine": str(engine), "game": "jk", "result": "starting", "bots": [],
-               "behavior_file": str(behavior_file), "initial_behavior": behavior_values(config),
+               "behavior_file": str(behavior_file), "behavior_mode": "live" if live_rules else "fixed",
+               "initial_behavior": behavior_values(config),
                "episode": config["episode"], "map": config["map"], "rank": config["rank"],
                "teams": config["teams"], "managed": managed,
                "seat_policy": "Static count check only; no live human reservation or cross-run coordination."}
+    # Intermediate Force ranks may play, but have no exact persistent rules bank.
+    initial_rules = navigation_rules(config["rank"], config.get("bots_sabers_only", False),
+                                     config.get("bots_force_enabled", True))
+    nav_root = memory_root() if initial_rules or live_rules else None
+    with engine.open("rb") as stream:
+        nav_build = hashlib.file_digest(stream, "sha256").hexdigest()
+    if admission:
+        session["custom_episode"] = {"gob_sha256": admission["ADJOIN_CUSTOM_GOB_SHA256"],
+                                     "jkl_sha256": admission["ADJOIN_CUSTOM_MAP_SHA256"],
+                                     "mode": admission["ADJOIN_CUSTOM_MODE"]}
     receipt = run_directory / "session.json"
     def publish():
         write_json(receipt, session)
@@ -365,7 +477,26 @@ def launch(config: dict, profiles: list[dict], *, engine: Path, connect: str,
     errors = []
     exit_code = 1
     hub = None
+    scratch_context = ExitStack()
+    owned_bulk = []
+    # Preserve seat working paths for existing external runtimes. Inside a
+    # checkout, or when an operator selects scratch, keep all game copies
+    # off the retained log volume.
+    detached = configured_scratch(scratch_root) is not None or any(
+        (p / ".git").exists() for p in (runtime, *runtime.parents))
     try:
+        scratch = scratch_context.enter_context(match_scratch(
+            scratch_root, (data, run_directory), default=None if detached else runtime))
+        engine_behavior = behavior_file
+        if not live_rules:
+            # The public run copy is a receipt. A fixed match uses a private
+            # snapshot so editing the receipt cannot invalidate a loaded prior.
+            engine_behavior = scratch / "behavior.cfg"
+            write_behavior(engine_behavior, config)
+        baseline = scratch / "inputs"
+        baseline.mkdir(mode=0o700)
+        for name in ("resource", "episode"):
+            stage_tree(child_casefold(data, name), baseline / name)
         if companion_ids:
             hub = Hub(run_directory, companion_ids, companion_port or 0, allow_chat=companion_chat,
                       experimental_ids=("lily",) if adaptive_lily else ())
@@ -376,23 +507,66 @@ def launch(config: dict, profiles: list[dict], *, engine: Path, connect: str,
         if not display:
             display, display_read_fd = start_display(run_directory, children, managed=managed)
         for index, profile in enumerate(profiles):
-            directory = run_directory / profile["id"]
-            prepare_bot(data, directory, profile)
+            retained = run_directory / profile["id"]
+            directory = scratch / profile["id"] if detached else retained
+            if detached:
+                retained.mkdir(mode=0o700)
+            else:
+                owned_bulk.extend(directory / name for name in ("resource", "episode"))
+            prepare_bot(baseline, directory, profile, private_source=True)
+            if detached:
+                for name in ("profile.json", "registry.json", "persona.tsv"):
+                    shutil.copy2(directory / name, retained / name)
             team = 1 + index % 2 if config["teams"] else 0
             force_side = profile.get("force_side", "light")
             force_style = profile.get("force_style", "balanced")
             record = {"id": profile["id"], "name": profile["name"], "model": profile["model"],
-                      "sound": profile["sound"], "directory": str(directory), "joined": False,
+                      "sound": profile["sound"], "directory": str(retained), "joined": False,
                       "requested_team": team, "force_side": force_side, "force_style": force_style}
             session["bots"].append(record)
-            log = (directory / "client.log").open("wb")
+            if detached:
+                record["engine_directory"] = str(directory)
+            log = (retained / "client.log").open("wb")
             command = [str(engine), "-headless", "-botConnect", connect,
                        "-botName", profile["name"], "-botSkin", profile["model"], "-botSound", profile["sound"]]
             channel = None
             try:
                 env = bot_environment(engine, directory, run_directory, index, display, taunts,
-                                      behavior_file=behavior_file, team=team, force_side=force_side,
+                                      behavior_file=engine_behavior, team=team, force_side=force_side,
                                       force_style=force_style, tactics_file=tactics_file)
+                env["JK_BOT_PERSONA_FILE"] = str(retained / "persona.tsv")
+                for key in tuple(env):
+                    if key.startswith("ADJOIN_CUSTOM_"):
+                        del env[key]
+                env.update(admission)
+                memory = None
+                if nav_root:
+                    try:
+                        if live_rules:
+                            memory = LiveNavigationMemory(nav_root, profile["id"], nav_build, config["rank"])
+                            # The native map cache filenames already include the effective
+                            # rules and rank. Keep them distinct from the global learned prior.
+                            map_cache = nav_root / nav_build / profile["id"]
+                            if initial_rules:
+                                map_cache /= initial_rules
+                            map_cache.mkdir(mode=0o700, parents=True, exist_ok=True)
+                            env["ADJOIN_NAV_CACHE"] = str(map_cache)
+                            record["navigation_rules"] = memory.rules
+                            record["navigation_prior_mode"] = "map recall only while rules are editable"
+                        else:
+                            memory = NavigationMemory(nav_root, profile["id"], nav_build, initial_rules)
+                            env["ADJOIN_NAV_CACHE"] = str(memory.directory)
+                            record["navigation_rules"] = initial_rules
+                        env["JK_BOT_NAV_OBSERVE"] = "1"
+                        snapshot = None if live_rules else memory.snapshot()
+                        if snapshot and not env.get("ADJOIN_EDGE_MODEL"):
+                            weights = retained / "geometry.weights"
+                            weights.write_bytes(snapshot[0].encode("ascii"))
+                            env.update(ADJOIN_EDGE_MODEL=str(weights), ADJOIN_EDGE_MODEL_SHA256=snapshot[1])
+                            record.update(navigation_prior_sha256=snapshot[1], navigation_prior_steps=snapshot[2])
+                    except (OSError, sqlite3.Error, ValueError) as exc:
+                        record["navigation_memory_error"] = str(exc)
+                        memory = None
                 if adaptive_lily and profile["id"] == "lily":
                     env["JK_BOT_LILY"] = "1"
                 if profile["id"] in companion_ids:
@@ -408,7 +582,8 @@ def launch(config: dict, profiles: list[dict], *, engine: Path, connect: str,
                 if channel:
                     channel.close()
             record["pid"] = process.pid
-            children.append(Child(profile["name"], process, log, record, time.monotonic()))
+            children.append(Child(profile["name"], process, log, record, time.monotonic(),
+                                  memory=memory, navigation_session=secrets.token_hex(16)))
             publish()
         started = time.monotonic()
         session["result"] = "running"
@@ -468,10 +643,28 @@ def launch(config: dict, profiles: list[dict], *, engine: Path, connect: str,
                 errors.append(f"Cleanup {child.label}: {error}")
             if child.record is not None:
                 child.record["returncode"] = child.process.poll()
+                if child.memory:
+                    try:
+                        while child.offset < Path(child.log.name).stat().st_size:
+                            inspect_log(child)
+                        if child.pending_observations:
+                            inspect_log(child, final=True)
+                    except (OSError, RuntimeError) as error:
+                        errors.append(f"Read final {child.label} telemetry: {error}")
             try:
                 child.log.close()
             except Exception as error:
                 errors.append(f"Close {child.label} log: {error}")
+        for tree in owned_bulk:
+            try:
+                if tree.is_dir() and not tree.is_symlink() and tree.resolve().parent.parent == run_directory:
+                    shutil.rmtree(tree)
+            except OSError as error:
+                errors.append(f"Clean staged game inputs: {error}")
+        try:
+            scratch_context.close()
+        except OSError as error:
+            errors.append(f"Clean match scratch: {error}")
         if display_read_fd is not None:
             try:
                 os.close(display_read_fd)
@@ -492,6 +685,7 @@ def launch(config: dict, profiles: list[dict], *, engine: Path, connect: str,
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--list-profiles", action="store_true")
+    parser.add_argument("--scratch-root", type=Path, help="External private game staging (or ADJOIN_MATCH_SCRATCH).")
     parser.add_argument("--server-config", type=Path)
     parser.add_argument("--profiles", help="Comma-separated stock profile ids; defaults to bots_profiles in the server config")
     parser.add_argument("--engine", type=Path, help="Override the server-configured or packaged competitive client.")
@@ -524,7 +718,7 @@ def main(argv: list[str] | None = None) -> int:
                          taunts=config["bots_taunts"] and not args.no_taunts,
                          behavior_file=args.behavior_file, status_file=args.status_file, managed=args.managed,
                          companion_port=args.companion_port, companion_chat=args.companion_chat,
-                         adaptive_lily=args.adaptive_lily, tactics_file=args.tactics_file)
+                         adaptive_lily=args.adaptive_lily, tactics_file=args.tactics_file, scratch_root=args.scratch_root)
         return code
     except (OSError, ValueError, RuntimeError) as error:
         print("Bot launcher: " + str(error), file=sys.stderr)

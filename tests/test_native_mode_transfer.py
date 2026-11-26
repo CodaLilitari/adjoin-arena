@@ -8,6 +8,13 @@ from scripts.bot_development.legacy import native_mode_transfer as transfer
 
 
 class NativeModeTransferTests(unittest.TestCase):
+    def test_competitive_custom_admission_pins_the_selected_endpoint(self):
+        content = dict(episode="jhs", map="jhs.jkl", episode_sha256="a"*64, map_sha256="b"*64)
+        original = transfer.custom_environment(content, "tdm")
+        self.assertNotIn("ADJOIN_CUSTOM_ENDPOINT", original)
+        self.assertEqual(transfer.custom_environment(content, "tdm", endpoint="127.0.0.1:37245"),
+                         {**original, "ADJOIN_CUSTOM_ENDPOINT":"127.0.0.1:37245"})
+
     def test_route_choice_is_bound_to_geometry_and_requires_same_life_arrivals_for_an_exit(self):
         with TemporaryDirectory() as d:
             root = Path(d)

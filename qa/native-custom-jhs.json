@@ -1,0 +1,75 @@
+{
+  "date": "2026-11-26",
+  "game": "Jedi Knight Dark Forces II",
+  "episode": "jhs",
+  "level": "jhs.jkl",
+  "rules": "nf-guns",
+  "transport": "Two native game processes against a native dedicated server in an isolated loopback Linux network namespace.",
+  "entry": "python -m bots.run with the default packaged jk-bot-competitive selected by settings.engine_path and installed local game data, without an engine override.",
+  "visits": [
+    {
+      "visit": "cold",
+      "returncode": 0,
+      "seats": {
+        "jan_ors": {
+          "verified": {
+            "admission": true,
+            "world": true
+          },
+          "player_slot": 2,
+          "log_sha256": "3dc67c9ec36c04c60d2029791593cdf2f3f8983eba669197b0b7a7e0edc4f53f",
+          "staged_prior_sha256": null,
+          "prior_training_steps": 0,
+          "new_training_observations": 16,
+          "discarded_training_observations": 0
+        },
+        "boba_fett": {
+          "verified": {
+            "admission": true,
+            "world": true
+          },
+          "player_slot": 1,
+          "log_sha256": "18e8efeaa3559378faca21236f92907444ba7b64df12ee95042cd3f8830494bd",
+          "staged_prior_sha256": null,
+          "prior_training_steps": 0,
+          "new_training_observations": 12,
+          "discarded_training_observations": 0
+        }
+      }
+    },
+    {
+      "visit": "return",
+      "returncode": 0,
+      "seats": {
+        "jan_ors": {
+          "verified": {
+            "admission": true,
+            "world": true
+          },
+          "player_slot": 1,
+          "log_sha256": "d7e0efa8697dea40f3713774b92474040029beff2f7c104131a884cc0b1c813b",
+          "staged_prior_sha256": "24818812982997fbc15447b3dd4426ff0cf6940d8b3894f0c86a275acdd161f8",
+          "prior_training_steps": 16,
+          "new_training_observations": 0,
+          "discarded_training_observations": 0
+        },
+        "boba_fett": {
+          "verified": {
+            "admission": true,
+            "world": true
+          },
+          "player_slot": 2,
+          "log_sha256": "66480f1bd7e25aba55a63a6b1b6b2b9ff94d4dc4a252b7e7eb2dfce1102d3640",
+          "staged_prior_sha256": "1a4dc6470e881052a8c5cd2ceadfbc4af0914b6889a46e2ab2ba00cdcb775f68",
+          "prior_training_steps": 12,
+          "new_training_observations": 13,
+          "discarded_training_observations": 0
+        }
+      }
+    }
+  ],
+  "archive_sha256": "a62c94789c521af2746cc8378301a4940a59a24f6fb44dd4c443caacc0211b04",
+  "level_sha256": "90e2641a58e0ec0102355dca9d3ec5eb55c4cbc9945a427227dcc8244885619d",
+  "binary_sha256": "f5777b0181e425fe3b896c43410408ef197540d259dc521efee997d43373a612",
+  "server_sha256": "16944b47e2ceecf3f09cc2820af26372e2af8642057c2b0a963e353ff090c745"
+}

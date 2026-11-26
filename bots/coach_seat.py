@@ -85,7 +85,7 @@ class ControlFile:
 class CoachSeat:
     def __init__(self, cred, coach: Coach, *, memory=None, label="default", build=None,
                  request=call, clock=time.monotonic, log=print, control: ControlFile | None = None,
-                 start="auto", controller="coach", save_record=None, weapons="guns"):
+                 start="auto", controller="coach", save_record=None, weapons="guns", roof=None):
         self.cred, self.coach, self.memory, self.label, self.build = cred, coach, memory, label, build
         self.save_record = save_record
         self.request, self.clock, self.out, self.control = request, clock, log, control
@@ -99,6 +99,12 @@ class CoachSeat:
         self.manual = None           # description of what the operator applied
         self.controller = controller
         self.history = []
+        self.chat_cursor = 0
+        self.chat_run = None
+        self.chat_queue = []
+        self.chat_pending = None
+        self.roof = roof
+        self.next_chat_read = self.next_renewal = 0.0
 
     # -- helpers ---------------------------------------------------------
     def say(self, kind, **fields):
@@ -123,6 +129,8 @@ class CoachSeat:
                 "bandit": self.coach.bandit.export(),
                 "state": {k: state.get(k) for k in ("kills", "deaths", "health", "shields", "mana", "weapon",
                                                      "mode", "sector", "position") if k in state},
+                "chat_cursor": self.chat_cursor,
+                "chat": [entry for entry in self.history if entry["kind"] == "chat"][-8:],
                 "recent": self.history[-8:]}
 
     # -- operator commands -----------------------------------------------
@@ -172,24 +180,29 @@ class CoachSeat:
             elif op == "say":
                 if not args:
                     raise ValueError("say TEXT")
-                self.takeover(("say", {"text": " ".join(args)}, "say"), keep_mode=True)
+                if self.mode == "released":
+                    raise ValueError("Attach the coach seat before replying.")
+                self.chat_queue.append(" ".join(args))
             else:
                 raise ValueError("unknown command " + op)
         except ValueError as error:
             self.say("error", line=line, error=str(error))
         return True
 
-    def takeover(self, action, keep_mode=False):
-        if not keep_mode:
-            self.controller_epoch += 1
-            if self.mode == "auto" and self.coach.current is not None:
-                self.say("takeover", dropped_window_of=self.coach.current)
-            self.mode = "manual"
-            self.coach.current = None  # the open window is dropped, never graded
+    def takeover(self, action):
+        self.controller_epoch += 1
+        if self.mode == "auto" and self.coach.current is not None:
+            self.say("takeover", dropped_window_of=self.coach.current)
+        self.mode = "manual"
+        self.coach.current = None  # the open window is dropped, never graded
         self.queued.append(action)  # FIFO: commands arriving together are all sent, in order
 
     # -- lease and coaching ----------------------------------------------
     def release(self):
+        if self.roof:
+            self.roof.stop(self, self.clock(), "coach_release")
+        self.chat_queue.clear()
+        self.chat_pending = None
         if self.lease:
             try:
                 self.request(self.cred, "release", dict(self.lease, request_id=secrets.token_hex(12)))
@@ -216,9 +229,42 @@ class CoachSeat:
         self.say("hub", error=text)
         self.lease = self.pending = None
 
+    def read_chat(self, observed):
+        if self.chat_run != observed["run_id"]:
+            self.chat_run = observed["run_id"]
+            self.chat_cursor = 0
+        if observed.get("event_cursor", 0) <= self.chat_cursor:
+            return
+        page = self.request(self.cred, "events?after=" + str(self.chat_cursor))
+        if page.get("gap"):
+            self.say("chat_history_gap", after=self.chat_cursor)
+        for event in page["events"]:
+            if event["kind"] == "chat":
+                self.say("chat", **{key: event[key] for key in ("cursor", "slot", "net_id", "text", "world_epoch", "life_epoch")})
+        self.chat_cursor = page["cursor"]
+
+    def reply(self):
+        # Chat acknowledgments never occupy a tactics command or restart a dwell.
+        if self.chat_pending:
+            result = self.request(self.cred, "commands/" + self.chat_pending)
+            if result["status"] != "pending":
+                self.say("chat_result", status=result["status"], reason=result.get("reason"))
+                self.chat_pending = None
+        elif self.chat_queue:
+            key = secrets.token_hex(12)
+            self.request(self.cred, "say", dict(self.lease, request_id=key, text=self.chat_queue.pop(0)))
+            self.chat_pending = key
+
     def tick(self):
         observed = self.request(self.cred, "observation")
         self.last = observed
+        now = self.clock()
+        try:
+            if not self.roof or now >= self.next_chat_read:
+                self.read_chat(observed)
+                self.next_chat_read = now + .3
+        except (ValueError, OSError, http.client.HTTPException) as error:
+            self.say("chat_error", error=str(error))
         fence = {key: observed[key] for key in FENCE}
         if self.mode == "released" and not self.queued:
             return
@@ -228,13 +274,25 @@ class CoachSeat:
             if observed["native_active"]:
                 ticket = self.request(self.cred, "attach", dict(fence, controller=self.controller))
                 self.lease = dict(fence, lease_id=ticket["lease_id"])
+                if self.roof:
+                    self.roof.counter = max(self.roof.counter, time.time_ns(), int(ticket.get("lily_request_floor", 0)))
                 if self.mode == "released":
                     self.mode = "manual"
-        else:
+        elif not self.roof or now >= self.next_renewal:
             self.request(self.cred, "renew", self.lease)
+            self.next_renewal = now + 2
         if not self.lease:
             return
-        now = self.clock()
+        try:
+            self.reply()
+        except (ValueError, OSError, http.client.HTTPException) as error:
+            self.chat_pending = None
+            self.say("chat_error", error=str(error))
+        if self.roof:
+            try:
+                self.roof.update(self, observed, now)
+            except (OSError, ValueError, http.client.HTTPException):
+                self.roof.stop(self, now, "motor_unavailable")
         game_time = observed["state"].get("game_time", now)
         if self.pending:
             route, label, key, coach_preset, owner, epoch = self.pending
@@ -275,6 +333,7 @@ class CoachSeat:
 
 def run(seat: CoachSeat, *, seconds=0.0, poll=1.0, sleep=time.sleep, inputs=None):
     started = seat.clock()
+    next_status = started
     try:
         while not seconds or seat.clock() - started < seconds:
             lines = []
@@ -296,9 +355,17 @@ def run(seat: CoachSeat, *, seconds=0.0, poll=1.0, sleep=time.sleep, inputs=None
                 seat.refused(error)
             except (OSError, http.client.HTTPException) as error:
                 seat.say("unreachable", error=str(error))
-            if seat.control:
+            if seat.control and (not seat.roof or seat.clock() >= next_status):
                 seat.control.status(seat.summary())
-            sleep(poll)
+                next_status = seat.clock() + .25
+            delay = poll
+            if seat.roof:
+                # Most of an ordinary match runs on the existing coach cadence.
+                # Queued handoffs need a fast poll only on an opted-in route or observed ride.
+                responsive = seat.roof.active or seat.roof.riding or not seat.roof.opportunistic
+                if responsive:
+                    delay = min(delay, .035)
+            sleep(delay)
     finally:
         seat.release()
         if seat.control:
@@ -343,6 +410,8 @@ def main(argv=None) -> int:
     p.add_argument("--build-id")
     p.add_argument("--seconds", type=float, default=0.0)
     p.add_argument("--poll", type=float, default=1.0)
+    p.add_argument("--jhs-roof", action=argparse.BooleanOptionalAction, default=None,
+                   help="Opt into the full JHS entrance and grate routes. By default Lilivane only exits a verified upper shuttle ride.")
     p.add_argument("--start", choices=("auto", "lilivane", "manual", "hold"), default="auto")
     p.add_argument("--weapons", choices=("guns", "sabers"), default="guns", help="Match weapon rules for Lilivane.")
     p.add_argument("--interactive", action="store_true", help="Read operator commands from the terminal.")
@@ -369,11 +438,27 @@ def main(argv=None) -> int:
         else:
             bandit = Bandit(arms, record=load_memory(args.memory, args.label, build))
         coach = Coach(bandit, args.dwell_seconds)
+        roof = None
+        if args.jhs_roof and (not args.run or args.seat != "lily"):
+            raise ValueError("--jhs-roof requires a hosted headless run and --seat lily.")
+        if args.jhs_roof is not False and args.run and args.seat == "lily":
+            from .jhs_roof import RoofLift
+            host = json.loads(args.run.read_text(encoding="utf-8"))
+            if args.jhs_roof or (host.get("hosted") or {}).get("map_sha256"):
+                try:
+                    local = json.loads(Path(host["seats"]["lily"]["run"]).read_bytes())
+                    candidate = RoofLift.from_session(host, local, opportunistic=not args.jhs_roof)
+                    if args.jhs_roof or candidate.identity == "original":
+                        roof = candidate
+                except (OSError, KeyError, ValueError):
+                    if args.jhs_roof:
+                        raise
         seat = CoachSeat(load_private(resolve_credentials(args)), coach, memory=args.memory, label=args.label,
                          build=build, control=ControlFile(args.control) if args.control else None, start=args.start,
-                         weapons=args.weapons)
+                         weapons=args.weapons, roof=roof)
         try:
-            run(seat, seconds=args.seconds, poll=args.poll, inputs=stdin_lines() if args.interactive else None)
+            run(seat, seconds=args.seconds, poll=args.poll,
+                inputs=stdin_lines() if args.interactive else None)
         finally:
             if store is not None:
                 store.close()

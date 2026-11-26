@@ -1,0 +1,605 @@
+{
+  "map": "Nar Shaddaa Loading Terminal",
+  "weapon_cell": "FFA NF guns",
+  "fixture": "Only the 16 player/respawn markers change in the controlled episode. Two close markers share stock room 61 near rifle 30. All stock things and other entries are retained.",
+  "fixture_archive_sha256": "33f9147279d393e02e679c3471fb2c592adbfdb2d6438908178e66e2938432de",
+  "movement_model": "Retained Red transfer research engine, independent of the current navigation engine",
+  "weights_sha256": "aea2da99abad7b19a093238b5ee8988fb956c3ea98f962efb1b67eb1b6943ce9",
+  "clock": "40 game seconds at 1x per match",
+  "arms": {
+    "controlled": {
+      "weights_sha256": "aea2da99abad7b19a093238b5ee8988fb956c3ea98f962efb1b67eb1b6943ce9",
+      "game_seconds": 40,
+      "matches": [
+        {
+          "run": "match-0000",
+          "receipt_sha256": "961ae8b1d89a230017c4de16db0b6844ee883ee9222f52d61ab351ceba5dc053",
+          "status": "live_join_and_loadout_verified",
+          "map": "m2.jkl",
+          "map_sha256": "81d791a31c3afc4e0719bfa741ef72c10369f6891c67ab285910906239240fb6",
+          "seat": "dark",
+          "first": "boba_fett",
+          "candidate": {
+            "kills": 0,
+            "deaths": 0,
+            "sectors": 23,
+            "duel_labels": 62,
+            "model_label_1": 62,
+            "weapon_gains": 1,
+            "stars": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "red": {
+            "kills": 0,
+            "deaths": 0,
+            "sectors": 9,
+            "duel_labels": 64,
+            "weapon_gains": 2,
+            "stars": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "decisions": {
+            "engage": 0,
+            "pickup": 62
+          },
+          "delivered_nonzero_axis": {
+            "engage": 0,
+            "pickup": 62
+          },
+          "eligible_encounters": 1,
+          "same_life_positions_changed": 3
+        },
+        {
+          "run": "match-0001",
+          "receipt_sha256": "9343114174862ada87561e8f737185367e4d736d49211fa7826afc8a7090a0a6",
+          "status": "live_join_and_loadout_verified",
+          "map": "m2.jkl",
+          "map_sha256": "81d791a31c3afc4e0719bfa741ef72c10369f6891c67ab285910906239240fb6",
+          "seat": "dark",
+          "first": "jan_ors",
+          "candidate": {
+            "kills": 0,
+            "deaths": 1,
+            "sectors": 16,
+            "duel_labels": 98,
+            "model_label_1": 57,
+            "weapon_gains": 2,
+            "model_label_0": 41,
+            "stars": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "red": {
+            "kills": 1,
+            "deaths": 0,
+            "sectors": 9,
+            "weapon_gains": 1,
+            "duel_labels": 94,
+            "stars": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "decisions": {
+            "engage": 41,
+            "pickup": 57
+          },
+          "delivered_nonzero_axis": {
+            "engage": 41,
+            "pickup": 56
+          },
+          "eligible_encounters": 3,
+          "same_life_positions_changed": 3
+        },
+        {
+          "run": "match-0002",
+          "receipt_sha256": "80c90e71ff2ec6aed79c4e8de515b7245147730f0ccdd077ee7508df1eb5cb8b",
+          "status": "live_join_and_loadout_verified",
+          "map": "m2.jkl",
+          "map_sha256": "81d791a31c3afc4e0719bfa741ef72c10369f6891c67ab285910906239240fb6",
+          "seat": "light",
+          "first": "boba_fett",
+          "candidate": {
+            "kills": 1,
+            "deaths": 2,
+            "sectors": 14,
+            "weapon_gains": 3,
+            "duel_labels": 248,
+            "model_label_1": 172,
+            "model_label_0": 76,
+            "stars": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "red": {
+            "kills": 2,
+            "deaths": 1,
+            "sectors": 11,
+            "duel_labels": 252,
+            "weapon_gains": 2,
+            "stars": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "decisions": {
+            "engage": 76,
+            "pickup": 172
+          },
+          "delivered_nonzero_axis": {
+            "engage": 75,
+            "pickup": 172
+          },
+          "eligible_encounters": 5,
+          "same_life_positions_changed": 2
+        },
+        {
+          "run": "match-0003",
+          "receipt_sha256": "7cf7a3825c1adf476166ba0e621c6f69a17c315d00e7ac9d5e3249a97d9f03ca",
+          "status": "live_join_and_loadout_verified",
+          "map": "m2.jkl",
+          "map_sha256": "81d791a31c3afc4e0719bfa741ef72c10369f6891c67ab285910906239240fb6",
+          "seat": "light",
+          "first": "jan_ors",
+          "candidate": {
+            "kills": 1,
+            "deaths": 0,
+            "sectors": 12,
+            "duel_labels": 238,
+            "model_label_1": 238,
+            "weapon_gains": 1,
+            "stars": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "red": {
+            "kills": 0,
+            "deaths": 1,
+            "sectors": 16,
+            "weapon_gains": 2,
+            "duel_labels": 110,
+            "stars": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "decisions": {
+            "engage": 0,
+            "pickup": 238
+          },
+          "delivered_nonzero_axis": {
+            "engage": 0,
+            "pickup": 238
+          },
+          "eligible_encounters": 3,
+          "same_life_positions_changed": 2
+        }
+      ],
+      "coverage": {
+        "m2.jkl": {
+          "cells": {
+            "dark/boba_fett-first": {
+              "verified_games": 1,
+              "games_with_consumed_choice_and_observed_motion": 1
+            },
+            "dark/jan_ors-first": {
+              "verified_games": 1,
+              "games_with_consumed_choice_and_observed_motion": 1
+            },
+            "light/boba_fett-first": {
+              "verified_games": 1,
+              "games_with_consumed_choice_and_observed_motion": 1
+            },
+            "light/jan_ors-first": {
+              "verified_games": 1,
+              "games_with_consumed_choice_and_observed_motion": 1
+            }
+          },
+          "missing_cells": [],
+          "missing_movement_cells": [],
+          "delivered_actions": {
+            "engage": 116,
+            "pickup": 528
+          }
+        }
+      }
+    },
+    "normal": {
+      "weights_sha256": "aea2da99abad7b19a093238b5ee8988fb956c3ea98f962efb1b67eb1b6943ce9",
+      "game_seconds": 40,
+      "matches": [
+        {
+          "run": "match-0000",
+          "receipt_sha256": "dae9c7e7573294169cf7b64f9e2aaf767c0149326dfbf89c31e80a10df04483e",
+          "status": "live_join_and_loadout_verified",
+          "map": "m2.jkl",
+          "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a",
+          "seat": "dark",
+          "first": "boba_fett",
+          "candidate": {
+            "kills": 0,
+            "deaths": 0,
+            "sectors": 11,
+            "weapon_gains": 2,
+            "stars": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "red": {
+            "kills": 0,
+            "deaths": 0,
+            "sectors": 17,
+            "weapon_gains": 2,
+            "duel_labels": 90,
+            "stars": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "decisions": {
+            "engage": 0,
+            "pickup": 0
+          },
+          "delivered_nonzero_axis": {
+            "engage": 0,
+            "pickup": 0
+          },
+          "eligible_encounters": 0,
+          "same_life_positions_changed": 3
+        },
+        {
+          "run": "match-0001",
+          "receipt_sha256": "4a5cc03c00ea053ca90fb006fd6e90a44bf313b42d0376f4366ff4913c455b13",
+          "status": "live_join_and_loadout_verified",
+          "map": "m2.jkl",
+          "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a",
+          "seat": "dark",
+          "first": "jan_ors",
+          "candidate": {
+            "kills": 0,
+            "deaths": 0,
+            "sectors": 10,
+            "weapon_gains": 2,
+            "stars": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "red": {
+            "kills": 0,
+            "deaths": 0,
+            "sectors": 10,
+            "weapon_gains": 1,
+            "stars": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "decisions": {
+            "engage": 0,
+            "pickup": 0
+          },
+          "delivered_nonzero_axis": {
+            "engage": 0,
+            "pickup": 0
+          },
+          "eligible_encounters": 0,
+          "same_life_positions_changed": 3
+        },
+        {
+          "run": "match-0002",
+          "receipt_sha256": "dc8b90c6ed7e64bf80ffd227e6015d8dbca0c7308fcfe8ead06e80868c1e66e4",
+          "status": "live_join_and_loadout_verified",
+          "map": "m2.jkl",
+          "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a",
+          "seat": "light",
+          "first": "boba_fett",
+          "candidate": {
+            "kills": 0,
+            "deaths": 1,
+            "sectors": 14,
+            "weapon_gains": 1,
+            "duel_labels": 93,
+            "model_label_1": 93,
+            "stars": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "red": {
+            "kills": 1,
+            "deaths": 0,
+            "sectors": 14,
+            "duel_labels": 111,
+            "weapon_gains": 2,
+            "stars": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "decisions": {
+            "engage": 0,
+            "pickup": 93
+          },
+          "delivered_nonzero_axis": {
+            "engage": 0,
+            "pickup": 93
+          },
+          "eligible_encounters": 2,
+          "same_life_positions_changed": 3
+        },
+        {
+          "run": "match-0003",
+          "receipt_sha256": "c185a457a0c4760b955ff20fd3dffa57580c565b0974188e7b8d89b1a3bbb204",
+          "status": "live_join_and_loadout_verified",
+          "map": "m2.jkl",
+          "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a",
+          "seat": "light",
+          "first": "jan_ors",
+          "candidate": {
+            "kills": 0,
+            "deaths": 1,
+            "sectors": 15,
+            "weapon_gains": 3,
+            "stars": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "red": {
+            "kills": 1,
+            "deaths": 0,
+            "sectors": 14,
+            "weapon_gains": 3,
+            "stars": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "decisions": {
+            "engage": 0,
+            "pickup": 0
+          },
+          "delivered_nonzero_axis": {
+            "engage": 0,
+            "pickup": 0
+          },
+          "eligible_encounters": 0,
+          "same_life_positions_changed": 1
+        }
+      ],
+      "coverage": {
+        "m2.jkl": {
+          "cells": {
+            "dark/boba_fett-first": {
+              "verified_games": 1,
+              "games_with_consumed_choice_and_observed_motion": 0
+            },
+            "dark/jan_ors-first": {
+              "verified_games": 1,
+              "games_with_consumed_choice_and_observed_motion": 0
+            },
+            "light/boba_fett-first": {
+              "verified_games": 1,
+              "games_with_consumed_choice_and_observed_motion": 1
+            },
+            "light/jan_ors-first": {
+              "verified_games": 1,
+              "games_with_consumed_choice_and_observed_motion": 0
+            }
+          },
+          "missing_cells": [],
+          "missing_movement_cells": [
+            "dark/boba_fett-first",
+            "dark/jan_ors-first",
+            "light/jan_ors-first"
+          ],
+          "delivered_actions": {
+            "engage": 0,
+            "pickup": 93
+          }
+        }
+      }
+    }
+  }
+}

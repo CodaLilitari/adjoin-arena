@@ -1,0 +1,149 @@
+{
+  "schema": 1,
+  "engine": "JKWeb / WASM",
+  "engine_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+  "rules": "nf-guns",
+  "private_rooms": true,
+  "sequence": "Start with empty navigation state. Run the original JHS twice, then launch stock m4 (Bespin) for the first time with the same profiles.",
+  "counts_source": "Final per-profile navigation databases. Only sessions with accepted route outcomes appear. Rows preserve insertion order.",
+  "owners": {
+    "lily": {
+      "updates": 69,
+      "updates_by_nonempty_session": [
+        21,
+        19,
+        29
+      ]
+    },
+    "red": {
+      "updates": 19,
+      "updates_by_nonempty_session": [
+        19
+      ]
+    }
+  },
+  "visits": [
+    {
+      "visit": "jhs-first",
+      "owners": {
+        "lily": {
+          "cost_uses_logged": 0,
+          "prior_sha256": null,
+          "console_sha256": "2526af621bfe2842e41adf27e05638115e14f1693ba25ac41515d3457b22615f"
+        },
+        "red": {
+          "cost_uses_logged": 0,
+          "prior_sha256": null,
+          "console_sha256": "338cc501e1a2e81e658fcdbe2dc250f0fa140fd31bb0bfd817821ab06943abc5"
+        }
+      }
+    },
+    {
+      "visit": "jhs-second",
+      "owners": {
+        "lily": {
+          "cost_uses_logged": 1,
+          "prior_sha256": "9a12746f670857c493931a6d31c94296a63cdb1d934171cb34f395bda4f13106",
+          "console_sha256": "cde5d0a5c62177591ed3de69abc5c9d8bd3935bcd0412b624add1f8a0ff97641",
+          "first_reported_cost": 0.551535
+        },
+        "red": {
+          "cost_uses_logged": 0,
+          "prior_sha256": null,
+          "console_sha256": "28ac1c63e71ef15a38d3b27a57ab6fc56a576b0c95994e43c6895a3088d4cbb4"
+        }
+      }
+    },
+    {
+      "visit": "bespin-unseen",
+      "owners": {
+        "lily": {
+          "cost_uses_logged": 1,
+          "prior_sha256": "8435d9735ce92b9a5a4bd681dd54c1de4f78c91566559ca965bf79144f8b891b",
+          "console_sha256": "3d4e7081a103dfdcb3afc27a3bd2a43d5c9d813f5e71ce70fd9bb3e035ca1cec",
+          "first_reported_cost": 0.581635
+        },
+        "red": {
+          "cost_uses_logged": 0,
+          "prior_sha256": null,
+          "console_sha256": "50536c2de111febdda7ca50370ddde48a761d49d28ba8d4f98be4e7112352f49"
+        }
+      }
+    }
+  ],
+  "limit": "A reported cost proves the engine consulted persisted weights. No paired win-rate or traversal-speed improvement was measured.",
+  "native_repeat": {
+    "platform": "First two visits on Ubuntu 24.04.5, third on original Ubuntu 26.04. All used a dedicated private loopback server, the same packaged clients and the same persistent navigation store.",
+    "map": "m2.jkl",
+    "rules": "nf-guns",
+    "requested_wall_seconds_per_visit": 35,
+    "engine_sha256": "f5777b0181e425fe3b896c43410408ef197540d259dc521efee997d43373a612",
+    "server_sha256": "16944b47e2ceecf3f09cc2820af26372e2af8642057c2b0a963e353ff090c745",
+    "visits": [
+      {
+        "players": {
+          "jan_ors": {
+            "joined": true,
+            "navigation_updates": 16,
+            "loaded_prior_steps": 0,
+            "staged_prior_sha256": null,
+            "prior_used_by_engine": false,
+            "console_sha256": "8be1c49b136eebfd061823ca1036ec1805cf6c83e67012709f99fc11937a1998"
+          },
+          "boba_fett": {
+            "joined": true,
+            "navigation_updates": 25,
+            "loaded_prior_steps": 0,
+            "staged_prior_sha256": null,
+            "prior_used_by_engine": false,
+            "console_sha256": "ca7eca6caa203c7de88c4908685722b924d29b62ca620535fb22e98276750e94"
+          }
+        },
+        "launcher_exit": 0
+      },
+      {
+        "players": {
+          "jan_ors": {
+            "joined": true,
+            "navigation_updates": 33,
+            "loaded_prior_steps": 16,
+            "staged_prior_sha256": "efe211cf9c0e5112954220f4e0815b7e5ba62df855e7b596952a088b48c4841a",
+            "prior_used_by_engine": true,
+            "console_sha256": "fa013fd3ec33b5744a9a6bd8a72b6152ac790744bb4a7ad85a9f8c7306138393"
+          },
+          "boba_fett": {
+            "joined": true,
+            "navigation_updates": 3,
+            "loaded_prior_steps": 25,
+            "staged_prior_sha256": "96268c62e04913368a7509651be45d1a4ae058377b6148f84bda0c8b3f1290e4",
+            "prior_used_by_engine": true,
+            "console_sha256": "5c8d590889a13ea484e45318ec7423410528a702c42dfe23e3f288e14caa9d67"
+          }
+        },
+        "launcher_exit": 0
+      },
+      {
+        "platform": "Ubuntu 26.04",
+        "players": {
+          "jan_ors": {
+            "joined": true,
+            "navigation_updates": 4,
+            "loaded_prior_steps": 49,
+            "staged_prior_sha256": "1ddf74becac5d375f3ced89d351c24f64c326170f5e1a11e39a7adb81c544ff1",
+            "prior_used_by_engine": true,
+            "console_sha256": "b12537a77a4b3af6cd65344e1b6563db46f7810154ad7f8e8efd0520f43448a4"
+          },
+          "boba_fett": {
+            "joined": true,
+            "navigation_updates": 11,
+            "loaded_prior_steps": 28,
+            "staged_prior_sha256": "00846d2fbbc788f71e34c4fa3a807a9bf3b0c3e786382f892e16d95d25e3865e",
+            "prior_used_by_engine": true,
+            "console_sha256": "f1a5f8f5730ccc80362eab49254c45d424dbd1fbb8914b2938635d7b6c20c96a"
+          }
+        },
+        "launcher_exit": 0
+      }
+    ]
+  }
+}

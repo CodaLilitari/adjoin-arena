@@ -9,11 +9,14 @@ from collections import Counter
 HEX = re.compile(r"[a-f0-9]{64}")
 
 
-def custom_environment(content, mode):
+def custom_environment(content, mode, *, endpoint=None):
     """Forward pins obtained from the staged GOB and its declared JKL to the native join check."""
-    return {"ADJOIN_CUSTOM_EPISODE": content["episode"], "ADJOIN_CUSTOM_MAP": content["map"],
+    environment = {"ADJOIN_CUSTOM_EPISODE": content["episode"], "ADJOIN_CUSTOM_MAP": content["map"],
             "ADJOIN_CUSTOM_GOB_SHA256": content["episode_sha256"],
             "ADJOIN_CUSTOM_MAP_SHA256": content["map_sha256"], "ADJOIN_CUSTOM_MODE": mode}
+    if endpoint is not None:
+        environment["ADJOIN_CUSTOM_ENDPOINT"] = endpoint
+    return environment
 
 
 def stage_route_hint(args, content, target):

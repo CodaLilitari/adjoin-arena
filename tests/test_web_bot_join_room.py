@@ -4,10 +4,52 @@ import unittest
 from argparse import Namespace
 from pathlib import Path
 
-from web_bots.join_room import ZONE_RELAY, relay_url, select_room, unsupported
+from web_bots.join_room import SelectedRoom, ZONE_RELAY, join_rules, listed_rank, relay_url, select_room, unsupported
+
+
+class JoiningRulesTests(unittest.IsolatedAsyncioTestCase):
+    async def test_bank_comes_from_selected_lobby_entry(self):
+        from aiohttp import web
+        from aiohttp.test_utils import TestServer
+
+        entry = bytearray(240)
+        entry[88:91] = b"jhs"
+        entry[120:127] = b"jhs.jkl"
+        queries = []
+        async def relay(request):
+            socket = web.WebSocketResponse()
+            await socket.prepare(request)
+            msg = await socket.receive_str()
+            queries.append((msg, request.query.get("net"), request.query.get("pw")))
+            await socket.send_str("list 12 1 "+entry.hex())
+            return socket
+
+        app = web.Application()
+        app.router.add_get("/relay", relay)
+        async with TestServer(app, host="127.0.0.1") as server:
+            room = SelectedRoom(f"ws://127.0.0.1:{server.port}/relay", 12, "jhs", "jhs.jkl", "red", None)
+            for rank, rules, saving in [(0,"nf-guns",True),(8,"ff-guns",True),(3,"ff-guns",False)]:
+                struct.pack_into("<i",entry,236,rank)
+                self.assertEqual(await join_rules(room, False),(rules,saving))
+            entry[120] = ord("x")
+            self.assertEqual(await join_rules(room, True),("ff-sabers",False))
+            self.assertEqual(queries, [("list jk1","2","1")]*4)
 
 
 class SelectedRoomTests(unittest.TestCase):
+    def test_native_room_entry_identity_and_force_rank(self):
+        room = SelectedRoom("ws://127.0.0.1:3421/relay", 12, "jhs", "jhs.jkl", "red", None)
+        raw = bytearray(240)
+        raw[88:91] = b"JHS"
+        raw[120:127] = b"jhs.jkl"
+        for rank in (0, 4, 8, 255):
+            struct.pack_into("<i",raw,236,rank)
+            result = listed_rank("list 12 1 "+raw.hex(), room)
+            self.assertEqual(result,rank if rank <= 8 else None)
+        self.assertIsNone(listed_rank("list 12 1 abc", room))
+        raw[120] = ord("x")
+        self.assertIsNone(listed_rank("list 12 1 "+raw.hex(), room))
+
     def setUp(self):
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)

@@ -15,7 +15,12 @@
     "web_bots/pickup-owner.patch",
     "web_bots/saber-combat.patch",
     "web_bots/host-episode.patch",
-    "web_bots/ctf-spawn-slots.patch"
+    "web_bots/ctf-spawn-slots.patch",
+    "web_bots/social-duels.patch",
+    "web_bots/navigation-memory.patch",
+    "web_bots/competitive-navigation.patch",
+    "web_bots/supported-ramp.patch",
+    "web_bots/navigation-observation.patch"
   ],
   "verify_recompiled_libsmacker": true,
   "relink": "web_bots/engine-relink.tar.gz",
@@ -36,23 +41,23 @@
     ]
   },
   "changed_sources": {
-    "src/AI/jkBot.c": "dba2e920e41ce7e360db2514a0e3d4b2cb2e166640b6d98cb4a9671118fffe26",
+    "src/AI/jkBot.c": "5dda91a988cfea338200d26a8d4a9eb4fa651d2e2db65b55dea9f9698f89e77b",
     "src/AI/jkBot.h": "ca79130f28aa28014d5a4e49a8db188a829cccd3acf79f966407b14b985cd2cc",
     "src/AI/jkBotBehavior.h": "59ff972747fb3aa9514fae11c003e803da8b40f1e42b68801db969414a2416df",
     "src/AI/jkBotBehavior.inc": "734075a19f4b2b14be525f941a5586494cdf49a9b4b3f3aeeaab8ac05ca9ab26",
-    "src/AI/jkBotBrain.inc": "46fa1ba396f5f7952cf44faa2d697afbeb24cfe7102a84886b572ef042414ea9",
+    "src/AI/jkBotBrain.inc": "806c9f69361edda58f5f7b06cfeb4ccbe8a8861e9445c4994123c4ec4e52ec5b",
     "src/AI/jkBotBrainModel.h": "bcdde813d1c7c4dafce0ead106b269d30fe767cc3ea5cdd3ccc56772769281ec",
     "src/AI/jkBotCombat.inc": "72e6a0361e81c4ac3ff54513d608c8b3391b80f0e9c73ac5d9df29d177da4e29",
-    "src/AI/jkBotCompanion.inc": "f121202ecbb1b23aaa3eff6241ab938a302fd0da20bdb44c744a3a3b5872a235",
+    "src/AI/jkBotCompanion.inc": "5cdf91003ef9778fa9331c7cda3212a822b39a435a1df34568db93660c27d61c",
     "src/AI/jkBotForce.inc": "c2d27a2edfd9c9779a4bec5068d6d961c809be84dfb3657085d3be9ae1d2739d",
     "src/AI/jkBotHearing.inc": "7fe0d477b9f43a9317f0405de3eade5796c193ea1753dc4d9c80e1558120ba6f",
     "src/AI/jkBotLily.inc": "85c859c37dec81ea43e316227c657069a61c1275938a74a028d2290929dc842d",
     "src/AI/jkBotLoadout.h": "aab6d025bb9ec2c431beb2d6bd559992b664e9ce075fcaa9c1103ae9ed5dcdc1",
-    "src/AI/jkBotNavigate.inc": "a3228547f696322e97ce9607012df5b4bde423c807a6771398bd1ef7d1774c84",
-    "src/AI/jkBotNavigation.inc": "cbf1602bc718330ef997eac5e49a087ccb8c4c5c5904d24fd909237f4c6e3c46",
+    "src/AI/jkBotNavigate.inc": "7b0d42bc7e5bdd0b9d5351f47e83daacda6f3db782cdd27697c9f94d27ad94dd",
+    "src/AI/jkBotNavigation.inc": "9af259356ee7859fa11a25e155bee08747954d1df62c4287c5cfecad9b1542d4",
     "src/AI/jkBotOrdnance.inc": "aa3ae8c206afbcc5dd453ceb7fa26cad96e1beb065c48a3efd6dd63e6891da66",
-    "src/AI/jkBotPersona.c": "618f31f58e45a13d89b5dc0493233d446d5eaeada681bd0de758a155a50d578d",
-    "src/AI/jkBotPersona.h": "e193097d937ed22400fe84d86a1e9e7f18884cc2be876fb1540627bee96e0bfb",
+    "src/AI/jkBotPersona.c": "1d3233a3dbe4aaf747bfebb23a14a2c9e6ca3da044bd40b804a88c90bd53e5bf",
+    "src/AI/jkBotPersona.h": "d2619c5a27e30c297df3ec91e3d9ffff7f5421b34ee656a5fb6aa2481a5651d6",
     "src/AI/jkBotRunJump.inc": "305c6a62ee5a0f4780520606efe4f9c12ba06239c0d60cd51ed39b45d61eaa6a",
     "src/AI/jkBotTactics.inc": "72e3361531b422d5ff6dcaccc27307ed7a20444959f3368f768de9e523cc0a20",
     "src/AI/jkBotTraps.inc": "9772e4cea3664af17767d27dfbf7ddb9e027858308234e4e44ce7a5f62ba8d01",
@@ -64,7 +69,9 @@
     "src/Dss/jkDSS.c": "4247d3b91168bd08b6d7c5900acbd3a933194568dc37877b4a2ec4990bb135c1",
     "src/Dss/sithMulti.c": "9a5b731da79bbc217ae8560ae49645a15ce64415899abbcd818c345181382e77",
     "src/Dss/sithMulti.h": "61845e2093f7728db70c1a106ee95e94c918f5181d9e30ecddfeb3bc53f4f184",
-    "src/Gui/jkGUIMultiplayer.c": "23faf25c170c9b6917d60482377cd017d49b1b35ebcc9433996b4f6bc9ecc610",
+    "src/Gameplay/sithDuel.c": "487c6e257082135ab55e05a4119c434adbf9467f7e2112d2721f4faf1d78176a",
+    "src/Gameplay/sithDuel.h": "2a3a14c4583c3dd845a9b731023b0a9a99ff5c1aa8a8663706c07f4d36d2140e",
+    "src/Gui/jkGUIMultiplayer.c": "52380f5ef72434a92b02f207c08beb774f0dd2770667ca4f1d7a41b6117e6429",
     "src/Gui/jkGUIMultiplayer.h": "504d0390e4d6f4fa31f42230ce273fa3125d24d42053feec9d85cc601a0d4287",
     "src/Main/Main.c": "5bcfdaa2a985f542310b675929dda6f00b0b7bbe9c783bb0fada6ad2677ac4f7",
     "src/Platform/Networking/WSRelay/stdComm_WSRelay.c": "cc17bbed6354c237bd4e884bacf92f64a4c939bbbeb7fd6aa32af42b99f53178",
@@ -104,17 +111,37 @@
       "sha256": "7c6a6c7eaa0e250b8fefd982580340586d9f8a874655b91ca25e931300ede589",
       "bytes": 4009
     },
+    "web_bots/social-duels.patch": {
+      "sha256": "623f65273333bc736b1e038dee22443227bd3b4abc62ae42a4fd86e5cdcb8e07",
+      "bytes": 8244
+    },
+    "web_bots/navigation-memory.patch": {
+      "sha256": "14d3c14456f98b28e1aa6ff42dc6defa47c74c1e286fe3c2d2b1427d15139ce7",
+      "bytes": 5483
+    },
+    "web_bots/competitive-navigation.patch": {
+      "sha256": "6c50bf0d175007135eaa6aaafcfad6938c4f7cc53354f30e50423874a14ae342",
+      "bytes": 17656
+    },
+    "web_bots/supported-ramp.patch": {
+      "sha256": "4ec504cc26b984b1baa03d7f15d89870cc643169a4bee7c781a708a11a2cf91f",
+      "bytes": 1888
+    },
+    "web_bots/navigation-observation.patch": {
+      "sha256": "1a5b4210745e6f3e88c890036e3a27afef67fcc0977f36682f24a22b0986d036",
+      "bytes": 919
+    },
     "bin/bots-jkweb/openjkdf2.js": {
-      "sha256": "38164521db8d3ab5451fb95dd3973069f5e1a98d721663a926f082b85e11e9f0",
-      "bytes": 573194
+      "sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
+      "bytes": 572942
     },
     "bin/bots-jkweb/openjkdf2.wasm": {
-      "sha256": "b22d351f0d5cf7462da35020ae85ba367626a911375981a3cae6a1a34c832fe6",
-      "bytes": 4069567
+      "sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+      "bytes": 4081455
     },
     "web_bots/engine-relink.tar.gz": {
-      "sha256": "b03ddeadfd94d0d078059713d0560bef3ac9051e349859cb66e3715606597111",
-      "bytes": 1690624
+      "sha256": "57b32bd079f6946ddf820c4a08c62f1e017e2a71e9e9a16fc197b1635ae4e15d",
+      "bytes": 1696800
     }
   }
 }

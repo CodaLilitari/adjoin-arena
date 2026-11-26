@@ -1,0 +1,528 @@
+{
+  "date": "2026-11-26",
+  "engine_wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
+  "architecture": "Unmodified packaged browser engine, two independent WASM owners and standard game controls on Windows headless Chromium. The private stock WSRelay bound an ephemeral loopback port for each game. Free-running game clocks at normal speed.",
+  "episode": "JK1CTF",
+  "coverage": [
+    {
+      "map": "c2.jkl",
+      "rules": "nf-sabers",
+      "requested_seconds": 100,
+      "seats": {
+        "lily": {
+          "slot": 0,
+          "network_id": 1,
+          "negotiated_rank": 0,
+          "requested_team": 1,
+          "actual_team_reports": [
+            0,
+            1
+          ],
+          "seconds_from_join_to_first_assigned_report": 15.31,
+          "final_five_periodic_routes": [
+            {
+              "game_seconds": 70.0,
+              "sector": 193,
+              "goal": 92,
+              "route_step": 1,
+              "route_length": 23,
+              "next_node": 1248
+            },
+            {
+              "game_seconds": 80.0,
+              "sector": 31,
+              "goal": 1279,
+              "route_step": 2,
+              "route_length": 20,
+              "next_node": 842
+            },
+            {
+              "game_seconds": 90.0,
+              "sector": 214,
+              "goal": 93,
+              "route_step": 0,
+              "route_length": 1,
+              "next_node": 93
+            },
+            {
+              "game_seconds": 100.0,
+              "sector": 66,
+              "goal": 92,
+              "route_step": 0,
+              "route_length": 9,
+              "next_node": 363
+            },
+            {
+              "game_seconds": 110.0,
+              "sector": 18,
+              "goal": 93,
+              "route_step": 0,
+              "route_length": 22,
+              "next_node": 192
+            }
+          ],
+          "team_objectives": [
+            "carry_home",
+            "intercept",
+            "take_enemy_flag"
+          ],
+          "objective_nodes": [
+            92,
+            93,
+            1392
+          ],
+          "observations": 145,
+          "wall_seconds": 102.58,
+          "game_seconds": 100.13,
+          "game_per_wall": 0.976,
+          "sectors_seen_in_native_status": 9,
+          "observed_living_motion_intervals": 133,
+          "sampled_living_motion_jku": 76.25,
+          "equipped_weapon_bins": [
+            2,
+            10
+          ],
+          "maximum_kills": 1,
+          "maximum_deaths": 1,
+          "capture_announcements": {
+            "red": 3,
+            "gold": 1
+          },
+          "last_stock_score_announcement": "RED Team Leads by 55 to 19"
+        },
+        "red": {
+          "slot": 1,
+          "network_id": 2,
+          "negotiated_rank": 0,
+          "requested_team": 2,
+          "actual_team_reports": [
+            0,
+            2
+          ],
+          "seconds_from_join_to_first_assigned_report": 35.33,
+          "final_five_periodic_routes": [
+            {
+              "game_seconds": 60.1,
+              "sector": 6,
+              "goal": 93,
+              "route_step": 1,
+              "route_length": 17,
+              "next_node": 674
+            },
+            {
+              "game_seconds": 70.1,
+              "sector": 210,
+              "goal": 92,
+              "route_step": 2,
+              "route_length": 36,
+              "next_node": 144
+            },
+            {
+              "game_seconds": 80.1,
+              "sector": 193,
+              "goal": -1,
+              "route_step": 0,
+              "route_length": 1,
+              "next_node": 278
+            },
+            {
+              "game_seconds": 90.1,
+              "sector": 6,
+              "goal": 901,
+              "route_step": 0,
+              "route_length": 14,
+              "next_node": 374
+            },
+            {
+              "game_seconds": 100.1,
+              "sector": 6,
+              "goal": 963,
+              "route_step": 0,
+              "route_length": 15,
+              "next_node": 376
+            }
+          ],
+          "team_objectives": [
+            "carry_home",
+            "intercept",
+            "take_enemy_flag"
+          ],
+          "objective_nodes": [
+            92,
+            93,
+            402,
+            973,
+            1394
+          ],
+          "observations": 145,
+          "wall_seconds": 102.58,
+          "game_seconds": 100.1,
+          "game_per_wall": 0.976,
+          "sectors_seen_in_native_status": 6,
+          "observed_living_motion_intervals": 131,
+          "sampled_living_motion_jku": 53.1,
+          "equipped_weapon_bins": [
+            2,
+            10
+          ],
+          "maximum_kills": 1,
+          "maximum_deaths": 1,
+          "capture_announcements": {
+            "red": 3,
+            "gold": 1
+          },
+          "last_stock_score_announcement": "RED Team Leads by 55 to 19"
+        }
+      },
+      "captures_seen_by_both_owners": {
+        "red": 3,
+        "gold": 1
+      }
+    },
+    {
+      "map": "c3.jkl",
+      "rules": "ff-sabers",
+      "requested_seconds": 105,
+      "seats": {
+        "lily": {
+          "slot": 0,
+          "network_id": 1,
+          "negotiated_rank": 8,
+          "requested_team": 1,
+          "actual_team_reports": [
+            0,
+            1
+          ],
+          "seconds_from_join_to_first_assigned_report": 15.49,
+          "final_five_periodic_routes": [
+            {
+              "game_seconds": 80.1,
+              "sector": 505,
+              "goal": 2571,
+              "route_step": 0,
+              "route_length": 46,
+              "next_node": 736
+            },
+            {
+              "game_seconds": 90.1,
+              "sector": 505,
+              "goal": 2595,
+              "route_step": 0,
+              "route_length": 43,
+              "next_node": 736
+            },
+            {
+              "game_seconds": 100.1,
+              "sector": 505,
+              "goal": 2573,
+              "route_step": 0,
+              "route_length": 45,
+              "next_node": 736
+            },
+            {
+              "game_seconds": 110.1,
+              "sector": 505,
+              "goal": 2573,
+              "route_step": 0,
+              "route_length": 45,
+              "next_node": 736
+            },
+            {
+              "game_seconds": 120.1,
+              "sector": 505,
+              "goal": 2574,
+              "route_step": 0,
+              "route_length": 45,
+              "next_node": 736
+            }
+          ],
+          "team_objectives": [
+            "take_enemy_flag"
+          ],
+          "objective_nodes": [
+            2569,
+            2571,
+            2573,
+            2580,
+            2589,
+            2597,
+            2604
+          ],
+          "observations": 147,
+          "wall_seconds": 104.81,
+          "game_seconds": 104.43,
+          "game_per_wall": 0.996,
+          "sectors_seen_in_native_status": 3,
+          "observed_living_motion_intervals": 138,
+          "sampled_living_motion_jku": 29.25,
+          "equipped_weapon_bins": [
+            10
+          ],
+          "maximum_kills": 0,
+          "maximum_deaths": 0,
+          "capture_announcements": {},
+          "last_stock_score_announcement": null
+        },
+        "red": {
+          "slot": 1,
+          "network_id": 2,
+          "negotiated_rank": 8,
+          "requested_team": 2,
+          "actual_team_reports": [
+            0,
+            2
+          ],
+          "seconds_from_join_to_first_assigned_report": 72.86,
+          "final_five_periodic_routes": [
+            {
+              "game_seconds": 60.0,
+              "sector": 636,
+              "goal": 2485,
+              "route_step": 0,
+              "route_length": 2,
+              "next_node": 226
+            },
+            {
+              "game_seconds": 70.0,
+              "sector": 636,
+              "goal": 231,
+              "route_step": 1,
+              "route_length": 3,
+              "next_node": 1090
+            },
+            {
+              "game_seconds": 80.0,
+              "sector": 793,
+              "goal": 1112,
+              "route_step": 0,
+              "route_length": 42,
+              "next_node": 249
+            },
+            {
+              "game_seconds": 90.1,
+              "sector": 793,
+              "goal": 1112,
+              "route_step": 0,
+              "route_length": 42,
+              "next_node": 249
+            },
+            {
+              "game_seconds": 100.1,
+              "sector": 793,
+              "goal": 1112,
+              "route_step": 0,
+              "route_length": 43,
+              "next_node": 249
+            }
+          ],
+          "team_objectives": [
+            "take_enemy_flag"
+          ],
+          "objective_nodes": [
+            1112
+          ],
+          "observations": 147,
+          "wall_seconds": 104.81,
+          "game_seconds": 104.23,
+          "game_per_wall": 0.995,
+          "sectors_seen_in_native_status": 3,
+          "observed_living_motion_intervals": 102,
+          "sampled_living_motion_jku": 47.8,
+          "equipped_weapon_bins": [
+            2,
+            10
+          ],
+          "maximum_kills": 0,
+          "maximum_deaths": 1,
+          "capture_announcements": {},
+          "last_stock_score_announcement": null
+        }
+      },
+      "captures_seen_by_both_owners": {}
+    },
+    {
+      "map": "c3.jkl",
+      "rules": "ff-guns",
+      "requested_seconds": 105,
+      "seats": {
+        "lily": {
+          "slot": 0,
+          "network_id": 1,
+          "negotiated_rank": 8,
+          "requested_team": 1,
+          "actual_team_reports": [
+            0,
+            1
+          ],
+          "seconds_from_join_to_first_assigned_report": 6.98,
+          "final_five_periodic_routes": [
+            {
+              "game_seconds": 80.1,
+              "sector": 605,
+              "goal": 2589,
+              "route_step": 0,
+              "route_length": 8,
+              "next_node": 595
+            },
+            {
+              "game_seconds": 90.1,
+              "sector": 605,
+              "goal": 2589,
+              "route_step": 0,
+              "route_length": 8,
+              "next_node": 595
+            },
+            {
+              "game_seconds": 100.1,
+              "sector": 605,
+              "goal": 2569,
+              "route_step": 0,
+              "route_length": 11,
+              "next_node": 595
+            },
+            {
+              "game_seconds": 110.1,
+              "sector": 605,
+              "goal": 2571,
+              "route_step": 0,
+              "route_length": 11,
+              "next_node": 595
+            },
+            {
+              "game_seconds": 120.1,
+              "sector": 605,
+              "goal": 2569,
+              "route_step": 0,
+              "route_length": 11,
+              "next_node": 595
+            }
+          ],
+          "team_objectives": [
+            "take_enemy_flag"
+          ],
+          "objective_nodes": [
+            12,
+            83,
+            2567,
+            2569,
+            2571,
+            2597,
+            2604,
+            2606
+          ],
+          "observations": 141,
+          "wall_seconds": 100.32,
+          "game_seconds": 101.6,
+          "game_per_wall": 1.013,
+          "sectors_seen_in_native_status": 6,
+          "observed_living_motion_intervals": 126,
+          "sampled_living_motion_jku": 40.43,
+          "equipped_weapon_bins": [
+            6
+          ],
+          "maximum_kills": 0,
+          "maximum_deaths": 0,
+          "capture_announcements": {},
+          "last_stock_score_announcement": null
+        },
+        "red": {
+          "slot": 1,
+          "network_id": 2,
+          "negotiated_rank": 8,
+          "requested_team": 2,
+          "actual_team_reports": [
+            0,
+            2
+          ],
+          "seconds_from_join_to_first_assigned_report": 15.9,
+          "final_five_periodic_routes": [
+            {
+              "game_seconds": 60.1,
+              "sector": 393,
+              "goal": 2654,
+              "route_step": 0,
+              "route_length": 21,
+              "next_node": 475
+            },
+            {
+              "game_seconds": 70.1,
+              "sector": 393,
+              "goal": 2654,
+              "route_step": 0,
+              "route_length": 21,
+              "next_node": 475
+            },
+            {
+              "game_seconds": 80.1,
+              "sector": 393,
+              "goal": 2654,
+              "route_step": 0,
+              "route_length": 21,
+              "next_node": 475
+            },
+            {
+              "game_seconds": 90.1,
+              "sector": 393,
+              "goal": 2641,
+              "route_step": 0,
+              "route_length": 23,
+              "next_node": 475
+            },
+            {
+              "game_seconds": 100.1,
+              "sector": 393,
+              "goal": 2658,
+              "route_step": 0,
+              "route_length": 19,
+              "next_node": 475
+            }
+          ],
+          "team_objectives": [
+            "take_enemy_flag"
+          ],
+          "objective_nodes": [
+            1112,
+            2641,
+            2649,
+            2651,
+            2654
+          ],
+          "observations": 141,
+          "wall_seconds": 100.32,
+          "game_seconds": 100.2,
+          "game_per_wall": 0.999,
+          "sectors_seen_in_native_status": 4,
+          "observed_living_motion_intervals": 132,
+          "sampled_living_motion_jku": 45.25,
+          "equipped_weapon_bins": [
+            2,
+            3,
+            6
+          ],
+          "maximum_kills": 0,
+          "maximum_deaths": 0,
+          "capture_announcements": {},
+          "last_stock_score_announcement": null
+        }
+      },
+      "captures_seen_by_both_owners": {}
+    }
+  ],
+  "private_file_checks": {
+    "files_by_match": {
+      "c3-ff-guns": 9,
+      "c3-ff-sabers": 9,
+      "c2-nf-sabers": 9
+    },
+    "files_checked": 27.0,
+    "scope": "Per-run relay and launcher logs, both native browser console logs, private manifests and both seats of engine and companion credentials. Each checked DACL grants access only to the current Windows user.",
+    "unexpected_allowed_principals": 0,
+    "secret_scan": {
+      "match": "c3-ff-guns",
+      "live_tokens_checked": 4,
+      "case_sensitive_log_checks": 5,
+      "logs_containing_a_live_token": 0
+    }
+  },
+  "interpretation": "Individual objectives are native planner choices. Only stock capture announcements observed by both owners count as confirmed captures. Team 0 means the owner was in the team-entry lobby. Movement sums successive living, same-life position samples with 0.005 to 2 JKU horizontal or vertical displacement. These are brief two-bot windows."
+}

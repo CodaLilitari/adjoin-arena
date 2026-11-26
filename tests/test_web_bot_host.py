@@ -35,6 +35,9 @@ class HostTests(unittest.IsolatedAsyncioTestCase):
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
         self.root = Path(tmp.name)
+        nav_env = patch.dict(os.environ, {"ADJOIN_NAV_MEMORY": str(self.root / "navigation")})
+        nav_env.start()
+        self.addCleanup(nav_env.stop)
         for filename in serve.ASSETS:
             f = self.root / "game" / filename
             f.parent.mkdir(exist_ok=True,parents=True)
@@ -54,6 +57,9 @@ class HostTests(unittest.IsolatedAsyncioTestCase):
 
     @unittest.skipUnless(os.name == "nt", "Windows token SID and filesystem DACL")
     async def test_generated_windows_credentials_and_lease(self):
+        # This checks file permissions and lease ownership with a single synthetic
+        # frame. Keep that frame fresh while Windows performs its ACL calls.
+        self.host.hub.clock = lambda: 100.0
         # Each depth receives a file through its ordinary production path.
         self.assertEqual(cli.load_private(self.host.runtime / "run.json")["room"], "My_Room")
         self.assertEqual(cli.load_private(self.host.secrets_dir / "lily.json")["id"], "lily")
@@ -91,6 +97,9 @@ class HostTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(res.status,200)
         data = await res.json()
         self.assertEqual(data["env"]["JK_BOT_WEB_ROLE"],"host")
+        self.assertEqual(data["env"]["JK_BOT_PRIVATE_DUELS"],"0")
+        self.assertEqual(data["env"]["JK_BOT_TAUNTS"],"1")
+        self.assertIn("ambient\t", data["persona"])
         self.assertNotIn(self.host.tokens["lily"],json.dumps(data))
         self.assertNotIn("JK_BOT_LILY", data["env"])
         self.assertEqual((await self.exchange([cp.frame(5,1,1,2,struct.pack("<IIB",42,13,0))])).status,400)
@@ -104,6 +113,63 @@ class HostTests(unittest.IsolatedAsyncioTestCase):
         result=await self.client.post("/engine/lily/boot",json={"instance":"a"*32},headers=self.auth)
         self.assertEqual(result.status,200)
         return await result.json()
+
+    async def test_navigation_skips_bad_row_and_deduplicates_lost_ack(self):
+        from bots.navigation_memory import NavigationMemory
+        self.host.nav_memories["lily"] = memory = NavigationMemory(self.root / "edges", "lily", "a"*64)
+        await self.boot()
+        body = {"instance": "a"*32, "first": 1, "lines": ["BOT_EDGE_ATTEMPT malformed"]}
+        async def send():
+            response = await self.client.post("/engine/lily/navigation", json=body, headers=self.auth)
+            self.assertEqual(response.status, 200)
+            return await response.json()
+        self.assertEqual(await send(), {"next": 2, "discarded": 1})
+        self.assertIsNone(memory.snapshot())
+        line = ("BOT_EDGE_ATTEMPT name=Darth_Lilitari t=1.0 event=arrive from_key=aa to_key=bb "
+                "edge=1 dist_mm=600 dz_mm=400 from_water=0 to_water=0 dest_item=0 "
+                "base_cost_milli=1500 degree_from=2 degree_to=3")
+        body.update(first=2, lines=[line, None, line])
+        self.assertEqual(await send(), {"next": 5, "discarded": 1})
+        self.assertEqual(await send(), {"next": 5, "discarded": 1})
+        self.assertEqual(memory.snapshot()[2], 2)
+        body.update(first=5, lines=[line])
+        self.assertEqual(await send(), {"next": 6, "discarded": 0})
+        self.assertEqual(memory.snapshot()[2], 3)
+
+    async def test_bad_seat_database_leaves_other_seats_learning_and_can_recover(self):
+        jan = self.host.nav_memories["jan"].db
+        jan.write_bytes(b"damaged navigation data" * 32)
+        arena = serve.Host(self.root/"game", self.root/"engine", self.root/"second_run", "Second", None, False)
+        cli = TestClient(TestServer(arena.app(), host="127.0.0.1"))
+        try:
+            await cli.start_server()
+            arena.set_port(cli.server.port)
+            instance = "b" * 32
+            async def post(ident, path, **fields):
+                result = await cli.post(f"/engine/{ident}/{path}", json={"instance":instance, **fields},
+                                        headers={"Authorization":"Bearer "+arena.tokens[ident]})
+                self.assertEqual(result.status, 200)
+                return await result.json()
+            self.assertFalse((await post("jan", "boot"))["navigation"])
+            self.assertTrue((await post("lily", "boot"))["navigation"])
+            line = ("BOT_EDGE_ATTEMPT name=Darth_Lilitari t=1.0 event=arrive from_key=aa to_key=bb "
+                    "edge=1 dist_mm=600 dz_mm=400 from_water=0 to_water=0 dest_item=0 "
+                    "base_cost_milli=1500 degree_from=2 degree_to=3")
+            self.assertEqual(await post("lily","navigation",first=1,lines=[line]), {"next":2,"discarded":0})
+            self.assertEqual((await post("lily","boot"))["prior"][2], 1)
+            seats = (await (await cli.get("/status")).json())["seats"]
+            self.assertEqual({key for key, seat in seats.items() if seat["navigation_memory"]=="enabled"},
+                             {"lily", "boba", "yun"})
+            self.assertEqual(seats["jan"]["navigation_memory"], "degraded")
+            self.assertIn("navigation_memory_error", seats["jan"])
+            jan.unlink()  # operator repairs the fixture before the next visit
+            self.assertTrue((await post("jan", "boot"))["navigation"])
+            jan_status = (await (await cli.get("/status")).json())["seats"]["jan"]
+            self.assertEqual(jan_status["navigation_memory"], "enabled")
+            self.assertNotIn("navigation_memory_error", jan_status)
+        finally:
+            await cli.close()
+            arena.close()
 
     async def exchange(self, datagrams, **extra):
         body=dict(instance="a"*32,frames=[base64.b64encode(raw).decode() for raw in datagrams],**extra)

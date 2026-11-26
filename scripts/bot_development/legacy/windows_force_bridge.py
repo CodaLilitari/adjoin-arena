@@ -122,6 +122,8 @@ def qualify(tmp):
     script = tmp/"qualification.py"
     cmd = ["/usr/bin/unshare","-Urn",sys.executable,"-I","-c",LOOPBACK,str(script),
            "--repo",str(REPO),"--data",str(tmp/"data"),"--output",str(OUT),"--duration",str(CONFIG["duration"]),"--map",CONFIG["map"]]
+    if CONFIG["scratch_root"]:
+        cmd += ["--scratch-root", CONFIG["scratch_root"]]
     child = None
     with (tmp/"private-stdout").open("x+b") as output, (tmp/"private-stderr").open("xb") as err:
         try:
@@ -156,8 +158,16 @@ def main():
     try:
         if os.path.lexists(OUT):
             raise Stop("output_already_exists")
-        with tempfile.TemporaryDirectory(prefix="jk-force-input-",dir="/var/tmp") as name:
+        root = Path(CONFIG["scratch_root"] or "/var/tmp")
+        if not root.is_absolute() or not root.is_dir():
+            raise Stop("invalid_linux_scratch_root")
+        root = root.resolve()
+        if root.is_relative_to(REPO) or root.is_relative_to(OUT) or any((p/".git").exists() for p in (root,*root.parents)):
+            raise Stop("linux_scratch_overlaps_inputs_or_output")
+        with tempfile.TemporaryDirectory(prefix="jk-force-input-",dir=root) as name:
             tmp=Path(name)
+            if tmp.stat().st_mode & 0o077:
+                raise Stop("linux_scratch_not_private")
             receive(tmp)
             result,code=qualify(tmp)
     except Stop as error:
@@ -232,7 +242,7 @@ def execute(args):
     if not args.harness.is_file() or not 1 <= args.harness.stat().st_size <= 128 * 1024:
         return {"error":"harness_missing_or_oversized"},1
     harness_sha256 = hashlib.sha256(args.harness.read_bytes()).hexdigest()
-    configuration = {"repo":args.repo,"output":args.output,"duration":args.duration,
+    configuration = {"repo":args.repo,"output":args.output,"scratch_root":getattr(args,"scratch_root",None),"duration":args.duration,
                      "map":args.map,"harness_sha256":harness_sha256}
     pre=subprocess.run(wsl(PREFLIGHT,args.distro,configuration),stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,timeout=90)
     report=public_json(pre.stdout)
@@ -263,6 +273,7 @@ def execute(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--scratch-root", help="Absolute directory inside Linux for the transferred inputs and match.")
     parser.add_argument("--distro", required=True, help="An existing WSL distribution.")
     parser.add_argument("--data", type=Path, required=True, help="Owned Windows JK installation.")
     parser.add_argument("--repo", required=True, help="Absolute repository path inside WSL.")
@@ -277,9 +288,9 @@ def main():
         parser.error("Run this bridge on Windows; run native_force_observation.py directly on Linux.")
     if not args.data.is_dir():
         parser.error("--data must identify an existing game installation.")
-    for value in (args.repo, args.output):
+    for value in (args.repo, args.output, *([args.scratch_root] if args.scratch_root else [])):
         if not PurePosixPath(value).is_absolute() or "\x00" in value:
-            parser.error("WSL repository and output paths must be absolute Linux paths.")
+            parser.error("WSL repository, output and scratch paths must be absolute Linux paths.")
     try:
         result, code=execute(args)
     except (KeyboardInterrupt,subprocess.TimeoutExpired):

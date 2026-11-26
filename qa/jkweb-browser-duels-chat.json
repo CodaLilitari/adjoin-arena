@@ -1,0 +1,169 @@
+{
+  "date": "2026-11-26",
+  "transport": "private loopback WSRelay, two independently running Chromium WASM clients",
+  "episode": "JK1MP",
+  "level": "m10.jkl",
+  "force": "NF",
+  "candidate_wasm_sha256": "287d25aa4c2fbe9b91bda85ae6ada8898fb6523b54e80b2aeff11c1bb1b9e572",
+  "social_patch_sha256": "623f65273333bc736b1e038dee22443227bd3b4abc62ae42a4fd86e5cdcb8e07",
+  "method": "The saber-equipped host entered duel 1 through the regular local game console when Red was alive and within range. JKWeb's host validated eligibility and sight. Both coach seats used the companion API and continued automatic coaching.",
+  "runs": [
+    {
+      "condition": "Both seats configured for sabers",
+      "seconds_observed": 130.2,
+      "observation_count": 299,
+      "host_challenge_count": 1,
+      "bot_accept_count": 1,
+      "preparation_seen_by": [
+        "lily",
+        "red"
+      ],
+      "winner_seen_by": [
+        "lily",
+        "red"
+      ],
+      "winner": "Darth_Lilitari",
+      "red_weapon_bin_at_challenge": 2,
+      "red_first_saber_observation_seconds_after_challenge": 0.9,
+      "automatic_taunts": {
+        "red": "Mark cleared.",
+        "lily": "Time for a different approach."
+      },
+      "coaches": {
+        "lily": {
+          "reply_acknowledgements": [
+            "applied"
+          ],
+          "first_game_seconds": 6.99,
+          "last_game_seconds": 136.99,
+          "graded_tactics_windows": 6,
+          "native_modes_observed": [
+            "autonomous"
+          ],
+          "coach_modes_observed": [
+            "auto"
+          ],
+          "received_remote_public_chat": [
+            "Clear signal. Still moving.",
+            "Mark cleared."
+          ]
+        },
+        "red": {
+          "reply_acknowledgements": [
+            "applied"
+          ],
+          "first_game_seconds": 0.9,
+          "last_game_seconds": 130.71,
+          "graded_tactics_windows": 6,
+          "native_modes_observed": [
+            "autonomous"
+          ],
+          "coach_modes_observed": [
+            "auto"
+          ],
+          "received_remote_public_chat": [
+            "Red, can you see this?",
+            "Time for a different approach."
+          ]
+        }
+      }
+    },
+    {
+      "condition": "Saber-host challenge to guns-configured visitor",
+      "seconds_observed": 89.9,
+      "observation_count": 207,
+      "host_challenge_count": 1,
+      "bot_accept_count": 1,
+      "preparation_seen_by": [
+        "lily",
+        "red"
+      ],
+      "winner_seen_by": [
+        "lily",
+        "red"
+      ],
+      "winner": "Darth_Lilitari",
+      "red_weapon_bin_at_challenge": 2,
+      "red_first_saber_observation_seconds_after_challenge": 1.79,
+      "automatic_taunts": {
+        "red": "Updating the range card.",
+        "lily": "Time for a different approach."
+      },
+      "coaches": {
+        "lily": {
+          "reply_acknowledgements": [
+            "applied"
+          ],
+          "first_game_seconds": 5.89,
+          "last_game_seconds": 95.86,
+          "graded_tactics_windows": 4,
+          "native_modes_observed": [
+            "autonomous"
+          ],
+          "coach_modes_observed": [
+            "auto"
+          ],
+          "received_remote_public_chat": [
+            "Clear signal. Still moving.",
+            "Updating the range card."
+          ]
+        },
+        "red": {
+          "reply_acknowledgements": [
+            "applied"
+          ],
+          "first_game_seconds": 0.44,
+          "last_game_seconds": 90.04,
+          "graded_tactics_windows": 4,
+          "native_modes_observed": [
+            "autonomous"
+          ],
+          "coach_modes_observed": [
+            "auto"
+          ],
+          "received_remote_public_chat": [
+            "Red, can you see this?",
+            "Time for a different approach."
+          ]
+        }
+      }
+    }
+  ],
+  "combined_engine_smoke": {
+    "wasm_sha256": "86bdb3334a0916e06be166461e6383bd0b40f31dc4b26e5bedb87172ffd80a69",
+    "rules": "nf-sabers",
+    "episode": "JK1MP",
+    "level": "m10.jkl",
+    "seconds_observed": 86.7,
+    "native_observation_samples": 201,
+    "host_challenge_count": 1,
+    "bot_accept_count": 1,
+    "winner_as_seen_by_client": {
+      "lily": "Bot_Red",
+      "red": "Bot_Red"
+    },
+    "all_sampled_coach_modes_auto": true,
+    "applied_reply_acks": {
+      "lily": [
+        "applied"
+      ],
+      "red": [
+        "applied"
+      ]
+    },
+    "public_chat_received_by_peer": {
+      "lily": [
+        "Clear signal. Still moving.",
+        "Updating the range card."
+      ],
+      "red": [
+        "Red, can you see this?",
+        "Listening for footsteps."
+      ]
+    },
+    "graded_windows": {
+      "lily": 2,
+      "red": 2
+    }
+  }
+}

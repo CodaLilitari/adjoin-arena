@@ -100,6 +100,18 @@ trigger:""")
     return script.replace("\n", "\r\n").encode("ascii")
 
 
+def encode_entries(entries):
+    payload = bytearray(b"GOB " + struct.pack("<II", 20, 0))
+    index = bytearray(struct.pack("<I", len(entries)))
+    for name, content in entries.items():
+        raw_name = name.replace("/", "\\").encode("ascii")
+        index.extend(struct.pack("<II128s", len(payload), len(content), raw_name))
+        payload.extend(content)
+    struct.pack_into("<I", payload, 8, len(payload))
+    payload.extend(index)
+    return payload
+
+
 def build(archive, output, *, ready_gate=False, swap_starts=False, observe_repeater=False):
     """Build one pinned scenario in a new path using an owned stock episode."""
     script = opening_script(ready_gate, swap_starts, observe_repeater)
@@ -114,14 +126,7 @@ def build(archive, output, *, ready_gate=False, swap_starts=False, observe_repea
         expected_gob = REPEATER_GATE_GOBS[swap_starts]
     entries[SCRIPT] = script
 
-    payload = bytearray(b"GOB " + struct.pack("<II", 20, 0))
-    index = bytearray(struct.pack("<I", len(entries)))
-    for name, content in entries.items():
-        raw_name = name.replace("/", "\\").encode("ascii")
-        index.extend(struct.pack("<II128s", len(payload), len(content), raw_name))
-        payload.extend(content)
-    struct.pack_into("<I", payload, 8, len(payload))
-    payload.extend(index)
+    payload = encode_entries(entries)
     if digest(payload) != expected_gob or digest(entries[LEVEL]) != VARIANT_MAP:
         raise ValueError("Derived content differs from the qualified start fixture")
     with output.open("xb") as stream:

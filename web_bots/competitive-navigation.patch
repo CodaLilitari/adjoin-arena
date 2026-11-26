@@ -1,0 +1,317 @@
+--- a/src/AI/jkBotNavigation.inc
++++ b/src/AI/jkBotNavigation.inc
+@@ -5,6 +5,8 @@
+  * and the unchanged stock level COGs.
+  */
+ #include <stdlib.h>
++#define JKBOT_LIFT_LEDGE 1
++#define JKBOT_GROUND_GUARD 1
+ #include "Primitives/rdModel3.h"
+ 
+ enum { BOT_ROUTE_WALK, BOT_ROUTE_DROP, BOT_ROUTE_JUMP, BOT_ROUTE_SWIM, BOT_ROUTE_LIFT, BOT_ROUTE_FORCEJUMP, BOT_ROUTE_WATER_ENTRY, BOT_ROUTE_WATER_EXIT, BOT_ROUTE_RUNJUMP,
+@@ -50,7 +52,7 @@
+ static int Bot_JumpFailed(int from, int to);
+ typedef struct BotArc { flex_t pitch, flight, miss; rdVector3 impact; int ok; } BotArc;
+ typedef struct BotLift {
+-    int thing, node[2]; flex_t top;
++    int thing, node[2]; flex_t top, bottom, minX, maxX, minY, maxY;
+     /* lift_call: what sets it moving, from its level COG (jkBotTraps.inc):
+        buttons to press and threshold adjoins to cross. */
+     int buttons, button[5], thresholds, threshold[3];
+@@ -108,6 +110,7 @@
+        off onto a landing across a threshold. fjump_margin: a graph build.
+        dead_end: since when the bot has had no goal, the node it stood
+        nearest, how many nodes that one reaches, and when to count again. */
++    int ledgeTo, shelfLift, shelfItem; flex_t ledgeUntil, shelfBackUntil, dismountUntil;
+     int liftTrack, liftStep, fjBuild, deadNode, deadReach, deadLogged;
+     flex_t deadSince, deadCheckAt, deadSeamUntil;
+     /* lift_hop: the deck's height and when it was read, its rate of climb,
+@@ -618,13 +621,17 @@
+         if (Bot_Distance(frames[0].rot,frames[1].rot)>0.1f) continue;
+         rdModel3 *model=thing->renderData.model3;
+         if (!model->numGeos || !model->aGeos[0].aMeshes) continue;
+-        flex_t top=-1e20f;
++        flex_t top=-1e20f, bottom=1e20f, minX=1e20f, maxX=-1e20f, minY=1e20f, maxY=-1e20f;
+         for (uint32_t m=0;m<model->aGeos[0].numMeshes;m++) {
+             rdMesh *mesh=&model->aGeos[0].aMeshes[m];
+             for (int v=0;v<mesh->numVertices;v++) {
+                 rdVector3 p=mesh->aVertices[v];
+                 flex_t z=p.x*thing->orient.rvec.z+p.y*thing->orient.lvec.z+p.z*thing->orient.uvec.z;
+-                top=Bot_Max(top,z);
++                flex_t x=p.x*thing->orient.rvec.x+p.y*thing->orient.lvec.x+p.z*thing->orient.uvec.x;
++                flex_t y=p.x*thing->orient.rvec.y+p.y*thing->orient.lvec.y+p.z*thing->orient.uvec.y;
++                top=Bot_Max(top,z); bottom=Bot_Min(bottom,z);
++                minX=Bot_Min(minX,x); maxX=Bot_Max(maxX,x);
++                minY=Bot_Min(minY,y); maxY=Bot_Max(maxY,y);
+             }
+         }
+         if (!isfinite(top) || top < -1.0f || top>1.0f) continue;
+@@ -636,7 +643,8 @@
+         }
+         if (!valid || bot.nNodes+2>BOT_NODES) continue;
+         int liftIndex=nav.liftCount++;
+-        BotLift *lift=&nav.lifts[liftIndex]; lift->thing=i; lift->top=top;
++        BotLift *lift=&nav.lifts[liftIndex]; lift->thing=i; lift->top=top; lift->bottom=bottom;
++        lift->minX=minX; lift->maxX=maxX; lift->minY=minY; lift->maxY=maxY;
+         for (int k=0;k<2;k++) {
+             int node=bot.nNodes++; lift->node[k]=node;
+             memset(&bot.nodes[node],0,sizeof(bot.nodes[node]));
+@@ -1023,15 +1031,20 @@
+         if (nav.liftForNode[from] && nav.liftForNode[from]==nav.liftForNode[to]) return BOT_ROUTE_LIFT;
+         if (length<0.6f && fabsf(delta.z)<0.10f && Bot_Clear(NULL,a->sector,a->pos,b->pos,0.045f,1))
+             return BOT_ROUTE_LIFT;
+-        /* lift_hop: from a ledge beside the shaft, between the lift's two
+-           stops, onto its deck: the deck is boarded as it passes or from
+-           where it stands below. Not the other way yet. */
+-        if (BT_ON(LIFT_HOP) && !nav.liftForNode[from] && Bot_Horizontal(delta)<0.6f) {
+-            const BotLift *lift=&nav.lifts[nav.liftForNode[to]-1];
+-            flex_t low=Bot_Min(bot.nodes[lift->node[0]].pos.z,bot.nodes[lift->node[1]].pos.z);
+-            flex_t high=Bot_Max(bot.nodes[lift->node[0]].pos.z,bot.nodes[lift->node[1]].pos.z);
+-            rdVector3 over={b->pos.x,b->pos.y,a->pos.z};
+-            if (a->pos.z>low+0.3f && a->pos.z<high-0.3f && Bot_Clear(NULL,a->sector,a->pos,over,0.045f,1))
++        /* A fixed shelf can connect to the middle of a vertical lift's
++           travel. Probe the actual doorway at shelf height in both directions. */
++        if (BT_ON(LIFT_HOP) && (!nav.liftForNode[from] || !nav.liftForNode[to]) && Bot_Horizontal(delta)<0.6f) {
++            int endpoint=nav.liftForNode[from] ? from : to;
++            const BotLift *lift=&nav.lifts[nav.liftForNode[endpoint]-1];
++            const BotNode *shelf=nav.liftForNode[from] ? b : a;
++            const rdVector3 p=bot.nodes[lift->node[0]].pos, q=bot.nodes[lift->node[1]].pos;
++            rdVector3 over={p.x,p.y,shelf->pos.z};
++            flex_t radius=sithPlayer_g_pLocalPlayerThing ? sithPlayer_g_pLocalPlayerThing->moveSize : 0.065f;
++            /* The old outward hop aligns separately at the lip. A new inward
++               route must clear the body along its actual approach. */
++            flex_t margin=nav.liftForNode[from] ? Bot_Max(radius,0.045f) : 0.045f;
++            if (Bot_Horizontal(Bot_Sub(p,q))<0.025f && shelf->pos.z>Bot_Min(p.z,q.z)+0.3f &&
++                shelf->pos.z<Bot_Max(p.z,q.z)-0.3f && Bot_Clear(NULL,shelf->sector,shelf->pos,over,margin,1))
+                 return BOT_ROUTE_LIFT;
+         }
+         return -1;
+@@ -1078,6 +1091,13 @@
+         if (nav.liftForNode[i]) {
+             BotLift *lift=&nav.lifts[nav.liftForNode[i]-1];
+             Bot_AddEdge(i,lift->node[0]==i ? lift->node[1] : lift->node[0],BOT_ROUTE_LIFT);
++            /* Distance-ranked candidates near a stop can all be closer than
++               the gun halfway along its shaft. Give eligible pickups a slot. */
++            if (BT_ON(LIFT_HOP)) for (int j=0;j<bot.nNodes;j++) {
++                if (bot.nodes[j].item<0 || fabsf(bot.nodes[j].pos.z-a->pos.z)<0.3f ||
++                    nav.liftForNode[j] || Bot_Horizontal(Bot_Sub(bot.nodes[j].pos,a->pos))>=0.6f) continue;
++                if (Bot_EdgeMode(i,j)==BOT_ROUTE_LIFT) Bot_AddEdge(i,j,BOT_ROUTE_LIFT);
++            }
+         }
+         for (int j=0;j<bot.nNodes;j++) {
+             if (i==j) continue;
+--- a/src/AI/jkBotNavigate.inc
++++ b/src/AI/jkBotNavigate.inc
+@@ -550,6 +550,48 @@
+     int atStop=Bot_Distance(thing->position,thing->trackParams.aFrames[frame].pos)<0.07f;
+     /* lift_call: the lift stands still away from the stop wanted. */
+     flex_t still=Bot_LiftStill(thing,id);
++    int shelfLeg=BT_ON(LIFT_HOP) && from>=0 && nav.liftForNode[from] && !nav.liftForNode[to] &&
++        fabsf(bot.nodes[to].pos.z-bot.nodes[from].pos.z)>0.3f;
++    if (shelfLeg && nav.shelfBackUntil<=bot.now) {
++        const BotNode *shelf=&bot.nodes[to];
++        if (!riding && bot.now<nav.ledgeUntil && nav.ledgeTo==to+1 &&
++            fabsf(self->position.z-shelf->pos.z)<0.28f) {
++            rdVector3 dir=Bot_Sub(shelf->pos,self->position);
++            Bot_Aim(self,shelf->pos,0);
++            if (Bot_Horizontal(dir)>0.035f) Bot_ThrustAxes(self,dir,0);
++            return 1;
++        }
++        if (!riding && (self->attach_flags&SITH_ATTACH_SURFACE) && self->sector==shelf->sector &&
++            fabsf(self->position.z-shelf->pos.z)<0.18f) {
++            nav.waitUntil=nav.liftWaitAt=0;
++            Bot_Aim(self,shelf->pos,0);
++            Bot_AxisMove(self,bot.nodes[from].pos,shelf->pos);
++            return 1;
++        }
++        if (riding) {
++            /* Keep the selected leg through its pass; endpoint anchors can
++               be metres away from the rider halfway up the shaft. */
++            bot.nextPlan=bot.now+0.6f;
++            rdVector3 aim=shelf->pos;
++            flex_t dz=self->position.z-shelf->pos.z;
++            aim.z=self->position.z;
++            /* Approach the shaft wall before the sill passes. The deck is
++               only about a body-width from that wall. Waiting for the whole
++               horizontal sweep to clear first loses most of the opening. */
++            if ((nav.liftRate>0.02f && dz>=-0.40f && dz<=0.19f) ||
++                (nav.liftRate< -0.02f && dz>=0.015f && dz<=0.42f)) {
++                nav.waitUntil=bot.now+0.4f;
++                Bot_Aim(self,aim,0);
++                nav.shelfLift=id; nav.shelfItem=shelf->item+1;
++                nav.shelfBackUntil=0;
++                Bot_ThrustAxes(self,Bot_Sub(aim,self->position),0);
++                if (dz>=-0.015f && dz<0.22f) { nav.ledgeTo=to+1; nav.ledgeUntil=bot.now+0.45f; }
++                return 1;
++            }
++            /* A resting endpoint may need a press or a fresh threshold crossing. */
++            atStop=0;
++        }
++    }
+     int stuck=BT_ON(LIFT_CALL) && !atStop && still>=0.8f;
+     /* lift_hop: off a ledge partway up the shaft. */
+     if (!riding && BT_ON(LIFT_HOP) && from>=0 && !nav.liftForNode[from] && nav.liftForNode[to] &&
+@@ -823,6 +865,136 @@
+         return 1;
+     }
+     return 0;
++}
++
++/* Final ordinary-ground input check. A lateral coast can put the body over
++   a catwalk even if the next requested direction is along the catwalk. */
++static void Bot_GuardGround(SithThing *self)
++{
++    if (nav.shelfBackUntil>bot.now && nav.shelfLift>0 && nav.shelfLift<=nav.liftCount) {
++        SithThing *deck=Bot_NavThing(nav.lifts[nav.shelfLift-1].thing);
++        if (deck && self->attachedThing==deck) {
++            rdVector3 back=Bot_Sub(deck->position,self->position);
++            if (Bot_Horizontal(back)>0.035f) Bot_ThrustAxes(self,back,0);
++            else bot.axes[INPUT_FUNC_FORWARD]=bot.axes[INPUT_FUNC_SLIDE]=0;
++            bot.keys[INPUT_FUNC_FAST]=bot.keys[INPUT_FUNC_JUMP]=0;
++            nav.waitUntil=bot.now+0.2f;
++            return;
++        }
++    }
++    if (nav.dismountUntil>bot.now && nav.shelfLift>0 && nav.shelfLift<=nav.liftCount) {
++        const BotLift *lift=&nav.lifts[nav.shelfLift-1];
++        SithThing *deck=Bot_NavThing(lift->thing);
++        if (deck && self->attachedThing==deck) {
++            nav.waitUntil=bot.now+0.25f;
++            for (int k=0;k<2;k++) {
++                const BotNode *stop=&bot.nodes[lift->node[k]];
++                if (fabsf(deck->position.z+lift->top+BOT_FOOT_HEIGHT-stop->pos.z)>0.045f) continue;
++                int best=-1; flex_t nearest=1e6f;
++                for (int j=0;j<stop->nEdges;j++) {
++                    const BotEdge *edge=&stop->edges[j]; const BotNode *next=&bot.nodes[edge->to];
++                    flex_t dist=Bot_Horizontal(Bot_Sub(stop->pos,next->pos));
++                    if (edge->drop==BOT_ROUTE_LIFT && !nav.liftForNode[edge->to] &&
++                        fabsf(next->pos.z-stop->pos.z)<0.10f && dist>0.12f && dist<nearest) {
++                        best=edge->to; nearest=dist;
++                    }
++                }
++                if (best>=0) {
++                    Bot_Aim(self,bot.nodes[best].pos,0); Bot_AxisMove(self,stop->pos,bot.nodes[best].pos);
++                    bot.keys[INPUT_FUNC_FAST]=bot.keys[INPUT_FUNC_JUMP]=0;
++                    return;
++                }
++            }
++            bot.axes[INPUT_FUNC_FORWARD]=bot.axes[INPUT_FUNC_SLIDE]=0;
++            bot.keys[INPUT_FUNC_FAST]=bot.keys[INPUT_FUNC_JUMP]=0;
++            return;
++        }
++        if (self->attach_flags&SITH_ATTACH_SURFACE) nav.dismountUntil=0;
++    }
++    if (!(self->attach_flags&SITH_ATTACH_SURFACE) || !self->sector ||
++        self->sector->flags&(SITH_SECTOR_UNDERWATER|SITH_SECTOR_USETHRUST|SITH_SECTOR_NOGRAVITY)) return;
++    flex_t radius=Bot_Max(self->moveSize,0.025f);
++    flex_t f=bot.axes[INPUT_FUNC_FORWARD], s=bot.axes[INPUT_FUNC_SLIDE]*BOT_STRAFE_GAIN;
++    if (f<0) f*=0.5f;
++    rdVector3 input={f*self->orient.lvec.x+s*self->orient.rvec.x,f*self->orient.lvec.y+s*self->orient.rvec.y,0};
++    rdVector3 velocity=self->physicsParams.vel;
++    flex_t speed=Bot_Horizontal(velocity), drag=self->physicsParams.surfDrag;
++    /* On the floor below a raised vertical elevator, stay outside the
++       swept footprint. If already underneath it, take the nearest supported
++       exit. Use measured model bounds, not an approximate pickup radius. */
++    for (int i=0;i<nav.liftCount;i++) {
++        const BotLift *lift=&nav.lifts[i];
++        SithThing *deck=Bot_NavThing(lift->thing);
++        if (!deck || !deck->trackParams.aFrames || deck->trackParams.loadedFrames!=2 ||
++            lift->maxX<=lift->minX || lift->maxY<=lift->minY) continue;
++        const SithPathFrame *frames=deck->trackParams.aFrames;
++        if (Bot_Horizontal(Bot_Sub(frames[0].pos,frames[1].pos))>=0.025f) continue;
++        flex_t foot=self->position.z-BOT_FOOT_HEIGHT;
++        if (deck->position.z+lift->bottom < foot+0.025f ||
++            foot<Bot_Min(frames[0].pos.z,frames[1].pos.z)+lift->bottom-0.20f) continue;
++        rdVector3 pos=Bot_Sub(self->position,deck->position);
++        flex_t margin=radius*0.55f;
++        flex_t distances[4]={pos.x-lift->minX+margin,lift->maxX-pos.x+margin,
++                             pos.y-lift->minY+margin,lift->maxY-pos.y+margin};
++        int nearest=0;
++        for (int j=1;j<4;j++) if (distances[j]<distances[nearest]) nearest=j;
++        rdVector3 dirs[4]={{-1,0,0},{1,0,0},{0,-1,0},{0,1,0}};
++        if (distances[nearest]<0) {
++            rdVector3 next={pos.x+input.x*0.13f+velocity.x*0.09f,pos.y+input.y*0.13f+velocity.y*0.09f,0};
++            if (next.x<lift->minX-margin || next.x>lift->maxX+margin ||
++                next.y<lift->minY-margin || next.y>lift->maxY+margin) continue;
++            if (Bot_Dot(velocity,dirs[nearest])<-0.06f) Bot_ThrustAxes(self,dirs[nearest],0);
++            else bot.axes[INPUT_FUNC_FORWARD]=bot.axes[INPUT_FUNC_SLIDE]=0;
++        } else {
++            rdVector3 blocked;
++            int escape=-1; flex_t best=1e6f;
++            for (int j=0;j<4;j++) if (distances[j]<best &&
++                Bot_GroundCorridor(self,dirs[j],0,distances[j]+radius,0,&blocked)) { escape=j; best=distances[j]; }
++            if (escape<0) continue;
++            Bot_ThrustAxes(self,dirs[escape],0);
++        }
++        bot.keys[INPUT_FUNC_FAST]=bot.keys[INPUT_FUNC_JUMP]=0;
++        return;
++    }
++
++    if (bot.keys[INPUT_FUNC_JUMP] || nav.jumpUntil>bot.now || nav.forceJumpPending ||
++        nav.hopUntil>bot.now || nav.liftStep || bot.routeMode==BOT_ROUTE_LIFT ||
++        bot.routeMode==BOT_ROUTE_DROP || bot.routeMode==BOT_ROUTE_RUNJUMP ||
++        bot.routeMode==BOT_ROUTE_WATER_ENTRY || bot.routeMode==BOT_ROUTE_WATER_EXIT) return;
++    rdVector3 pos=self->position, floor;
++    SithSector *sector;
++    pos.z+=0.03f;
++    if (!Bot_Floor(pos,self->sector,BOT_FOOT_HEIGHT+0.31f,&floor,&sector)) {
++        /* A body may remain attached with the origin a few hundredths past
++           the rim. Find footing within the body's radius, then move onto it. */
++        rdVector3 toward={0};
++        for (int i=0;i<8;i++) {
++            flex_t angle=(flex_t)i*(flex_t)M_PI/4.0f;
++            rdVector3 dir={cosf(angle),sinf(angle),0};
++            rdVector3 foot={pos.x+dir.x*radius*0.85f,pos.y+dir.y*radius*0.85f,pos.z};
++            if (Bot_Floor(foot,self->sector,BOT_FOOT_HEIGHT+0.12f,&floor,&sector) &&
++                fabsf(floor.z-self->position.z)<0.09f && Bot_Clear(self,self->sector,self->position,floor,radius*0.8f,0)) {
++                toward.x+=dir.x; toward.y+=dir.y;
++            }
++        }
++        if (Bot_Horizontal(toward)>0.1f) { Bot_ThrustAxes(self,toward,0); bot.keys[INPUT_FUNC_FAST]=0; }
++        return;
++    }
++    if (speed<0.2f || drag<1.0f) return;
++    rdVector3 dir={velocity.x/speed,velocity.y/speed,0};
++    flex_t coast=Bot_Min(0.65f,speed/drag+speed*Bot_Min(bot.frameDt,0.05f)+0.025f);
++    rdVector3 previous=pos;
++    for (flex_t d=0;d<coast;) {
++        d=Bot_Min(coast,d+0.045f);
++        rdVector3 ahead={pos.x+dir.x*d,pos.y+dir.y*d,previous.z};
++        if (!Bot_Clear(self,self->sector,previous,ahead,radius*0.8f,0)) return;
++        if (!Bot_Floor(ahead,self->sector,BOT_FOOT_HEIGHT+0.31f,&floor,&sector)) {
++            Bot_ThrustAxes(self,(rdVector3){-dir.x,-dir.y,0},0);
++            bot.keys[INPUT_FUNC_FAST]=0;
++            return;
++        }
++        previous=ahead; previous.z=floor.z+0.03f;
++    }
+ }
+ 
+ static void Bot_Navigate(SithThing *self)
+--- a/src/AI/jkBot.c
++++ b/src/AI/jkBot.c
+@@ -829,6 +829,16 @@
+    pending a host ACK. Decide while the planned identity is still live. */
+ void jkBot_ObserveItemTouch(SithThing *player,const SithThing *item)
+ {
++    /* Stock TOUCHED is issued before the server's TAKEN comes back. Once
++       the pickup is within reach, clear the lip of a moving lift before
++       it carries the body into the alcove ceiling. */
++    if (bot.enabled && bot.joined && nav.shelfLift>0 && nav.shelfLift<=nav.liftCount &&
++        bot.world==sithWorld_g_pCurrentWorld && player && player==sithPlayer_g_pLocalPlayerThing &&
++        item && item==Bot_NavThing(nav.shelfItem-1) &&
++        player->attachedThing==Bot_NavThing(nav.lifts[nav.shelfLift-1].thing)) {
++        nav.shelfBackUntil=bot.now+0.85f; nav.dismountUntil=bot.now+12.0f;
++        nav.ledgeUntil=0; nav.shelfItem=0;
++    }
+     if (!bot.enabled || !bot.joined || !sithNet_isMulti || !bot.armItem || !Bot_EquipmentMode() ||
+         bot.world!=sithWorld_g_pCurrentWorld || !player || player!=sithPlayer_g_pLocalPlayerThing ||
+         bot.wasDead || (player->flags&SITH_TF_DEAD) || player->actorParams.health<=0 ||
+@@ -1819,6 +1819,7 @@
+             Bot_Confinement(self);
+             if (!Bot_DeadEnd(self)) Bot_Recovery(self);
+             if (!releasingPower) Bot_TryMovementSpeed(self);
++            Bot_GuardGround(self);
+             Bot_MoveTelemetry(self);
+         }
+     }

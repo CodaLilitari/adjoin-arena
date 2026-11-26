@@ -1,0 +1,106 @@
+{
+  "native": {
+    "target": "native",
+    "packaged_manifest_sha256": "698d335e1b59c3fa231b46488f62af8d2c9825a6ff6a823688622a481432b39d",
+    "input_files": {
+      "src/AI/jkBot.c": "d2e37a5b2c65f6137d93e1f3ce04ff884f0de4ee108b1524e78972c57dba4fc1",
+      "src/AI/jkBotNavigate.inc": "a798362830ca1e6c58d4b8501bbb5d8014341096a073b2f51e6180a480c99bac",
+      "src/AI/jkBotNavigation.inc": "da959b79e17ddb45954dc136afa3eba8a941428cef5255ac41c4cf2907507b5b"
+    },
+    "steps": [
+      {
+        "operation": "reverse",
+        "path": "native/supported-ramp.patch",
+        "sha256": "4ec504cc26b984b1baa03d7f15d89870cc643169a4bee7c781a708a11a2cf91f"
+      },
+      {
+        "operation": "reverse",
+        "path": "native/competitive-navigation.patch",
+        "sha256": "17d4d4f9a71aba233572b1b133468d4012b85d7ba10929bb970e11d1fd67a200"
+      },
+      {
+        "operation": "apply",
+        "path": "native/candidate/competitive-navigation.patch",
+        "sha256": "77347ac2e1b87e7173274f4fffa0be8f0c73df28a6a024fef4dfedc133bf04d2"
+      },
+      {
+        "operation": "apply",
+        "path": "native/candidate/supported-ramp.patch",
+        "sha256": "d82bbf3b498c7ea697aec90682dc87dba380e6a149becb2c03889abd378bb7f9"
+      },
+      {
+        "operation": "apply",
+        "path": "native/candidate/competitive-route-hints.patch",
+        "sha256": "f107bb48de14694816b6d667811610e064d9c2543b5f13281fabb3686f01fd73"
+      },
+      {
+        "operation": "apply",
+        "path": "native/candidate/jhs-landing.patch",
+        "sha256": "d24341ad913515ef1c65e3bcd944636c8ffc140256c92633343df4ed78508530"
+      },
+      {
+        "operation": "apply",
+        "path": "native/candidate/jhs-landing-step.patch",
+        "sha256": "ea82ffcefaea053f4ba2afd650c814711d1e52674467f2ffc5db75f0b6011c7e"
+      }
+    ],
+    "output_files": {
+      "src/AI/jkBot.c": "8ea56a7aa9f40832f2e2e54f8877861812bfc6e73a6c04bc4749bc2ac704df1a",
+      "src/AI/jkBotNavigate.inc": "ff475cfe03608a554bcfe740909ed3770c9b03a2539b3309feafff456c25c242",
+      "src/AI/jkBotNavigation.inc": "c6374074feed536df5bed69b8bbf486b9f9be895cf46b1a629fc0b8474c14730",
+      "src/AI/jkBotRouteHints.inc": "1d88ec653cefbacccfbca390d9860c4d85bc8da87f7c8c9458c40426012aee26"
+    }
+  },
+  "web_bots": {
+    "target": "web_bots",
+    "packaged_manifest_sha256": "0b0065880d4055afade23f6debb60e21a89696043fec17b50a0193898d9fbb34",
+    "input_files": {
+      "src/AI/jkBot.c": "5dda91a988cfea338200d26a8d4a9eb4fa651d2e2db65b55dea9f9698f89e77b",
+      "src/AI/jkBotNavigate.inc": "7b0d42bc7e5bdd0b9d5351f47e83daacda6f3db782cdd27697c9f94d27ad94dd",
+      "src/AI/jkBotNavigation.inc": "9af259356ee7859fa11a25e155bee08747954d1df62c4287c5cfecad9b1542d4"
+    },
+    "steps": [
+      {
+        "operation": "reverse",
+        "path": "web_bots/supported-ramp.patch",
+        "sha256": "4ec504cc26b984b1baa03d7f15d89870cc643169a4bee7c781a708a11a2cf91f"
+      },
+      {
+        "operation": "reverse",
+        "path": "web_bots/competitive-navigation.patch",
+        "sha256": "6c50bf0d175007135eaa6aaafcfad6938c4f7cc53354f30e50423874a14ae342"
+      },
+      {
+        "operation": "apply",
+        "path": "web_bots/candidate/competitive-navigation.patch",
+        "sha256": "2c46b57d2c127079d4a0758ed199e6c292fef70f53e86c188d105f71efc955ff"
+      },
+      {
+        "operation": "apply",
+        "path": "web_bots/candidate/supported-ramp.patch",
+        "sha256": "d82bbf3b498c7ea697aec90682dc87dba380e6a149becb2c03889abd378bb7f9"
+      },
+      {
+        "operation": "apply",
+        "path": "web_bots/candidate/competitive-route-hints.patch",
+        "sha256": "658d0664c6ba1d879b33a2aeb46275bd7c8d91c50c131d8ecfd950bc767d24b7"
+      },
+      {
+        "operation": "apply",
+        "path": "web_bots/candidate/jhs-landing.patch",
+        "sha256": "d24341ad913515ef1c65e3bcd944636c8ffc140256c92633343df4ed78508530"
+      },
+      {
+        "operation": "apply",
+        "path": "web_bots/candidate/jhs-landing-step.patch",
+        "sha256": "ea82ffcefaea053f4ba2afd650c814711d1e52674467f2ffc5db75f0b6011c7e"
+      }
+    ],
+    "output_files": {
+      "src/AI/jkBot.c": "b9fa10e2fc13365d3c509a2ce6367467e3ff7595f212f23d3342ef84ca27e640",
+      "src/AI/jkBotNavigate.inc": "4d03227a0e39053decf7b579e9e16feb0d13a603f53b99447e4ae24101f3987e",
+      "src/AI/jkBotNavigation.inc": "e6926c5658e4b7820e8cac649bfa0641e8e23fb1759de4dbb061bc4049378c5c",
+      "src/AI/jkBotRouteHints.inc": "1d88ec653cefbacccfbca390d9860c4d85bc8da87f7c8c9458c40426012aee26"
+    }
+  }
+}

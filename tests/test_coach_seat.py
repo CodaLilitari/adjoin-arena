@@ -112,6 +112,56 @@ class Seat(unittest.TestCase):
         for _ in range(n):
             seat.tick(); self.clock["t"] += dt
 
+    def test_chat_reply_and_tactics_use_independent_acknowledgements(self):
+        seat = self.make()
+        observation = self.hub.request
+        event = dict(kind="chat", text="Watch the upper lift.", cursor=1, slot=2,
+                     net_id=17, world_epoch=1, life_epoch=1)
+        reads = []
+
+        def request(cred, route, body=None):
+            if route == "observation":
+                return dict(observation(cred, route, body), event_cursor=1)
+            if route.startswith("events?"):
+                reads.append(route)
+                return dict(events=[event], gap=False, cursor=1)
+            return observation(cred, route, body)
+
+        seat.request = request
+        seat.tick()
+        preset_id = seat.pending[2]
+        seat.command("say On my way.")
+        seat.tick()
+        self.assertEqual(self.hub.sent[-1], ("say", {"text": "On my way."}))
+        self.assertEqual(seat.mode, "auto")
+        self.assertIsNotNone(seat.coach.current)
+        self.assertNotEqual(seat.chat_pending, preset_id)
+        self.hub.results[seat.chat_pending] = "pending"
+        self.hub.kills += 1
+        self.clock["t"] += 100
+        seat.tick()
+        self.assertEqual(sum(seat.coach.bandit.plays.values()), 1)
+        self.assertIsNone(seat.manual)
+        self.assertEqual(reads, ["events?after=0"])
+        self.assertEqual([row["text"] for row in seat.summary()["chat"]], ["Watch the upper lift."])
+
+    def test_rejected_chat_keeps_tactics_and_lease(self):
+        seat = self.make()
+        self.ticks(seat, 2)
+        current, lease, epoch = seat.coach.current, seat.lease, seat.controller_epoch
+        request = self.hub.request
+        def disabled(cred, route, body=None):
+            if route == "say":
+                raise ValueError("This bot run has outbound companion chat disabled.")
+            return request(cred, route, body)
+        seat.request = disabled
+        seat.command("say Test")
+        seat.tick()
+        self.assertEqual((seat.mode, seat.coach.current, seat.lease, seat.controller_epoch),
+                         ("auto", current, lease, epoch))
+        self.assertEqual(seat.history[-1]["kind"], "chat_error")
+        self.assertIsNone(seat.chat_pending)
+
     def test_lilivane_ack_dwell_and_manual_handback(self):
         seat = self.make(statuses=["rejected"], start="lilivane")
         original = self.hub.request
@@ -254,7 +304,8 @@ class Seat(unittest.TestCase):
         d = tempfile.TemporaryDirectory(); self.addCleanup(d.cleanup)
         control = S.ControlFile(Path(d.name))
         seat = self.make(control=control)
-        (Path(d.name) / "commands.txt").open("a").write("preset standoff\nstatus\n")
+        with (Path(d.name) / "commands.txt").open("a") as commands:
+            commands.write("preset standoff\nstatus\n")
         clock = self.clock
         S.run(seat, seconds=5, poll=1.0, sleep=lambda dt: clock.__setitem__("t", clock["t"] + dt))
         status = json.loads((Path(d.name) / "status.json").read_text())

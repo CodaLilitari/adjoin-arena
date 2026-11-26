@@ -1411,8 +1411,13 @@ static void test_fix_lift_hop(void)
     bot.nodes[1].pos.z=-1.5f+BOT_FOOT_HEIGHT; bot.nodes[2].pos.z=1.2f+BOT_FOOT_HEIGHT;
     nav.liftCount=1; nav.lifts[0].thing=0; nav.lifts[0].node[0]=1; nav.lifts[0].node[1]=2; nav.lifts[0].top=0;
     nav.liftForNode[1]=nav.liftForNode[2]=1;
-    /* The graph: a leg off the ledge to either stop, none back. */
-    assert(Bot_EdgeMode(0,1)==BOT_ROUTE_LIFT && Bot_EdgeMode(0,2)==BOT_ROUTE_LIFT && Bot_EdgeMode(1,0)<0);
+    /* The graph: a leg off the ledge to either stop, and back on equipped builds. */
+    assert(Bot_EdgeMode(0,1)==BOT_ROUTE_LIFT && Bot_EdgeMode(0,2)==BOT_ROUTE_LIFT);
+#ifdef JKBOT_LIFT_LEDGE
+    assert(Bot_EdgeMode(1,0)==BOT_ROUTE_LIFT && Bot_EdgeMode(2,0)==BOT_ROUTE_LIFT);
+#else
+    assert(Bot_EdgeMode(1,0)<0);
+#endif
     TacticsUse(1); assert(Bot_EdgeMode(0,1)<0 && "legacy: no way off"); TacticsUse(0);
     #define HOP_AT(z,rate,stillFor) (things[0].position=(rdVector3){0,0.3f,z}, nav.liftTrack=1, \
         nav.liftSeen=(stillFor)>0 ? things[0].position : (rdVector3){0,0.3f,(z)-0.01f}, nav.liftMovedAt=bot.now-(stillFor), \
@@ -1445,6 +1450,44 @@ static void test_fix_lift_hop(void)
     /* Committed while it rises past the ledge: stop short of the shaft. */
     HOP_AT(0.05f,1.0f,0); nav.hopUntil=bot.now+0.5f;
     assert(Bot_LiftMove(&self,0,1) && !nav.hopUntil && fabsf(PlainThrust(&self).y)<0.05f);
+#ifdef JKBOT_LIFT_LEDGE
+    /* On the rising deck, stay aboard far below the aperture. At shelf
+       height issue movement off the real attachment toward the pickup. */
+    self.attachedThing=&things[0]; self.attach_flags=SITH_ATTACH_THINGFACE;
+    self.position=(rdVector3){0,0.3f,-0.8f+BOT_FOOT_HEIGHT}; HOP_AT(-0.8f,1.0f,0);
+    assert(Bot_LiftMove(&self,1,0) && fabsf(PlainThrust(&self).y)<0.05f);
+    self.position.z=BOT_FOOT_HEIGHT+0.055f; HOP_AT(0.055f,1.0f,0);
+    assert(Bot_LiftMove(&self,1,0) && PlainThrust(&self).y < -0.3f && bot.nextPlan>bot.now);
+    self.position=(rdVector3){0,0,BOT_FOOT_HEIGHT}; self.attach_flags=SITH_ATTACH_SURFACE; self.attachedThing=NULL;
+#endif
+#ifdef JKBOT_GROUND_GUARD
+    plainEdge=0.08f; self.physicsParams.surfDrag=10; self.physicsParams.vel=(rdVector3){1,0,0};
+    nav.hopUntil=nav.jumpUntil=0; bot.routeMode=BOT_ROUTE_WALK;
+    Bot_ThrustAxes(&self,(rdVector3){0,1,0},0);
+    Bot_GuardGround(&self);
+    assert(PlainThrust(&self).x < -0.2f && "brake sideways coast off a narrow catwalk");
+#ifdef JKBOT_MESH_COAST_GUARD
+    SithThing bridge={0};
+    bridge.type=SITH_THING_COG; bridge.collide=SITH_COLLIDE_FACE; bridge.flags=SITH_TF_STANDABLE;
+    self.attachedThing=&bridge; self.attach_flags=SITH_ATTACH_THINGFACE;
+    Bot_ThrustAxes(&self,(rdVector3){0,1,0},0); Bot_GuardGround(&self);
+    assert(PlainThrust(&self).x < -0.2f && "brake on a static mesh catwalk as well as on a world floor");
+    self.attachedThing=NULL; self.attach_flags=SITH_ATTACH_SURFACE;
+#endif
+    self.physicsParams.vel=(rdVector3){0,0,0}; self.position.x=0.09f;
+    Bot_GuardGround(&self);
+    assert(PlainThrust(&self).x < -0.2f && "recover when attached by the body but centre is over the rim");
+    plainEdge=1e9f; self.position=(rdVector3){0,0,BOT_FOOT_HEIGHT};
+    nav.lifts[0].minX=nav.lifts[0].minY=-0.15f; nav.lifts[0].maxX=nav.lifts[0].maxY=0.15f;
+    frames[0].pos.z=0; things[0].position.z=0.45f;
+    self.position.y=0.10f;
+    Bot_ThrustAxes(&self,(rdVector3){0,1,0},0);
+    Bot_GuardGround(&self);
+    assert(PlainThrust(&self).y<=0.0f && "never walk under an absent deck");
+    self.position.y=0.20f; Bot_GuardGround(&self);
+    assert(PlainThrust(&self).y<-0.2f && "step out of the returning lift footprint");
+    self.position.y=0; frames[0].pos.z=-1.5f;
+#endif
     /* Legacy: no hop; a lift away from the stop is waited for. */
     TacticsUse(1); HOP_AT(-1.5f,0,1.0f);
     assert(Bot_LiftMove(&self,0,2) && !nav.hopUntil && bot.tele.liftHops==3); TacticsUse(0);

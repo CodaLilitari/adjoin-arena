@@ -6,6 +6,7 @@ import asyncio
 import base64
 import binascii
 from dataclasses import dataclass
+from functools import cached_property
 import json
 from pathlib import Path
 import re
@@ -13,7 +14,7 @@ import secrets
 import time
 from urllib.parse import urlsplit
 
-from aiohttp import ClientSession, WSMsgType, web
+from aiohttp import ClientError, ClientSession, WSMsgType, web
 from manager.content import archive_index
 from web_bots.serve import HERE, ROOM_PLAYERS, Host, game_file
 
@@ -58,9 +59,61 @@ class SelectedRoom:
     seat: str
     episode_file: Path | None
 
+    @cached_property
+    def content_identity(self):
+        from bots.jhs_roof import episode_identity
+        return episode_identity(self.episode_file, self.level)
+
     def public(self):
         return {"relay":self.relay, "id":self.room_id, "episode":self.episode,
-                "map":self.level, "seat":self.seat, "netcode":2}
+                "map":self.level, "seat":self.seat, "netcode":2, **self.content_identity}
+
+
+def listed_rank(message: str, room: SelectedRoom) -> int | None:
+    # The status JSON omits the rank. The game's own v2 lobby enumeration
+    # carries jkMultiEntry (240 bytes), followed by optional mod metadata.
+    words = message.split()
+    if not words or words[0] != "list" or (len(words)-1) % 3:
+        return None
+    for ident, _, entry in zip(words[1::3], words[2::3], words[3::3]):
+        if ident != str(room.room_id):
+            continue
+        try:
+            raw = bytes.fromhex(entry[:480])
+            if len(raw) != 240:
+                return None
+            episode = raw[88:120].split(b"\0",1)[0].decode("ascii")
+            level = raw[120:152].split(b"\0",1)[0].decode("ascii")
+        except (ValueError, UnicodeError):
+            return None
+        if episode.casefold() != room.episode.casefold() or level.casefold() != room.level.casefold():
+            return None
+        rank = int.from_bytes(raw[236:240], "little", signed=True)
+        return rank if 0 <= rank <= 8 else None
+    return None
+
+
+async def join_rules(room: SelectedRoom, sabers_only: bool) -> tuple[str, bool]:
+    rank = None
+    try:
+        async with asyncio.timeout(4), ClientSession() as client:
+            async with client.ws_connect(relay_url(room.relay)+"?net=2&pw=1",
+                                         max_msg_size=512*1024, compress=0) as ws:
+                await ws.send_str("list jk1")
+                async for reply in ws:
+                    if reply.type == WSMsgType.TEXT and reply.data.split(" ",1)[0] == "list":
+                        rank = listed_rank(reply.data, room)
+                        break
+                    if reply.type != WSMsgType.TEXT or reply.data.startswith("error "):
+                        break
+    except (OSError, TimeoutError, ClientError):
+        pass
+    # JKWeb itself negotiates the actual force rank. Restrict persistent
+    # geometry to the two exact banks the launcher supports.
+    if rank not in (0, 8):
+        print("Navigation learning disabled for this visit: the advertised rank is unverified or intermediate.",
+              flush=True)
+    return ("nf" if rank == 0 else "ff") + ("-sabers" if sabers_only else "-guns"), rank in (0,8)
 
 
 def unsupported(game, allow_mod=False):
@@ -125,9 +178,9 @@ async def run(args):
         return
     room = select_room(games, args)
     runtime = args.runtime / ("selected-room-"+time.strftime("%Y%m%d-%H%M%S")+"-"+secrets.token_hex(4))
-    mode = "ff-sabers" if args.sabers_only else "ff-guns"
-    host = Host(args.data, args.engine_dir, runtime, str(room.room_id), None, False, mode,
-                adaptive_lily=args.adaptive_lily, external=room)
+    mode, learn = await join_rules(room, args.sabers_only)
+    host = Host(args.data, args.engine_dir, runtime, str(room.room_id), None, args.companion_chat, mode,
+                adaptive_lily=args.adaptive_lily, external=room, taunts=not args.no_taunts, learn_navigation=learn)
     runner = web.AppRunner(host.app(), access_log=None, shutdown_timeout=1.)
     try:
         await runner.setup()
@@ -159,6 +212,8 @@ def main(argv=None):
     join.add_argument("--episode-gob", type=Path, help="Locally owned episode containing the advertised map.")
     join.add_argument("--seat", choices=tuple(ROOM_PLAYERS), default="lily")
     join.add_argument("--sabers-only", action="store_true", help="Restrict this bot's weapon choices.")
+    join.add_argument("--companion-chat", action="store_true", help="Allow an attached local coach to reply in public game chat.")
+    join.add_argument("--no-taunts", action="store_true", help="Silence automatic character lines.")
     join.add_argument("--adaptive-lily", action="store_true", help="Enable the existing experimental Lily controls.")
     args = parser.parse_args(argv)
     try:

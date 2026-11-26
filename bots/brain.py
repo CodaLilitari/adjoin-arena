@@ -744,14 +744,18 @@ def save_edge_model(model: dict, path: Path) -> str:
     return hashlib.sha256(raw).hexdigest()
 
 
-def export_edge_native(model: dict, path: Path) -> str:
-    """Write the ADJOIN_EDGE_V1 text form consumed by red_transfer.inc."""
+def edge_native_bytes(model: dict) -> bytes:
+    """Serialize the engine-portable ADJOIN_EDGE_V1 geometry weights."""
     _validate_edge_model(model)
     lines = [f"ADJOIN_EDGE_V1 {len(EDGE_FEATURES)}"]
     for key in ("centers", "scales", "weights"):
         lines.append(" ".join(f"{float(v):.9g}" for v in model[key]))
     lines.append(f"{float(model['bias']):.9g}")
-    raw = ("\n".join(lines) + "\n").encode("ascii")
+    return ("\n".join(lines) + "\n").encode("ascii")
+
+
+def export_edge_native(model: dict, path: Path) -> str:
+    raw = edge_native_bytes(model)
     Path(path).write_bytes(raw)
     return hashlib.sha256(raw).hexdigest()
 

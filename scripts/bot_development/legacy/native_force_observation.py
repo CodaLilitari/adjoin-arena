@@ -317,7 +317,7 @@ def run(args, receipt, tmp):
         receipt.update(kind="adjoin-arena-native-duel", network_interfaces=interfaces,
                        pacing="normal engine wall-clock", seed_control="not assigned or observed",
                        seat_order=[profile for _, (_, profile) in schedule], launcher_sha256=digest(Path(__file__)))
-        paths = ("bots/profiles.json", "bots/run.py", "bots/companion.py", "bots/settings.py", "manager/config.py",
+        paths = ("bots/profiles.json", "bots/run.py", "bots/match_storage.py", "bots/companion.py", "bots/settings.py", "manager/config.py",
                  "manager/content.py", "native/BOT_BUILD.json", "qa/bots-stock-map-audit.json")
         if args.recorder:
             paths += ("web_gateway/ipc.py", "manager/spectator.py", "manager/spectator_geometry.py")
@@ -379,8 +379,6 @@ def run(args, receipt, tmp):
         receipt["mode_transfer"] = {"content":asset,"mode":args.mode,"weapons":args.weapons,"force":args.force,
                                     "policy_selection":{k:v for k,v in policy.items() if k!="path"},
                                     "registry_side":args.registry_side}
-        if args.custom_build:
-            receipt["mode_transfer"]["custom_admission"] = transfer.custom_environment(asset, args.mode)
         if args.platform_build:
             receipt["mode_transfer"]["mesh_support"] = True
         if args.hint_build:
@@ -427,6 +425,9 @@ def run(args, receipt, tmp):
                bots_sabers_only=False,bots_taunts=False,web_enabled=False,spectator_rendering=False,
                name="Native Force QA",max_players=4)
     if args.transfer_build:
+        if args.custom_build or (args.competitive_build and asset["episode"].casefold() not in ("jk1mp", "jk1ctf")):
+            receipt["mode_transfer"]["custom_admission"] = transfer.custom_environment(
+                asset, args.mode, endpoint=f"127.0.0.1:{port}" if args.competitive_build else None)
         cfg.update(episode=asset["episode"],teams=args.mode!="ffa",game_flags=0x100 if args.mode=="tdm" else 0,
                    rank=8 if args.force=="on" else 0,bots_force_enabled=args.force=="on",bots_sabers_only=args.weapons=="sabers")
         receipt["bot_options"]["requested_teams"] = {"dark":1,"light":2} if cfg["teams"] else {"dark":0,"light":0}
@@ -450,7 +451,7 @@ def run(args, receipt, tmp):
     for side, pid in LABELS.items():
         if (profiles[pid]["force_side"],profiles[pid]["force_style"]) != (side,"competitive"):
             raise Failure(side+"_incorrect_profile")
-        prepare_bot(server_dir,tmp/side,profiles[pid])
+        prepare_bot(server_dir,tmp/side,profiles[pid],private_source=True)
     host_env = private_env(server_dir, server)
     if args.pace_build:
         host_env.update(ADJOIN_PACE_ROLE="host", ADJOIN_PACE_RATE=str(args.pace_rate))
@@ -647,6 +648,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for key in ("repo","data","output"):
         parser.add_argument("--"+key,type=Path,required=True)
+    parser.add_argument("--scratch-root", type=Path, help="Fresh private match staging under this Linux directory or ADJOIN_MATCH_SCRATCH.")
     parser.add_argument("--map", default="m2.jkl")
     parser.add_argument("--duration",type=int,default=75,choices=range(1,3601),metavar="1..3600")
     parser.add_argument("--arena-baseline", action="store_true",
@@ -794,7 +796,9 @@ def main():
                 raise Failure("output_overlaps_inputs")
         out.mkdir(mode=0o700)
         made_output = True
-        with tempfile.TemporaryDirectory(prefix="jk-force-",dir="/tmp") as temp:
+        sys.path.insert(0, str(args.repo.resolve()))
+        from bots.match_storage import match_scratch
+        with match_scratch(args.scratch_root, (args.data, args.repo, out)) as temp:
             try:
                 run(args,receipt,Path(temp))
             finally:
@@ -830,7 +834,7 @@ def main():
     except Failure as e:
         receipt["error"] = str(e)
     except ValueError as e:
-        receipt["error"] = str(e) if args.pace_build and re.fullmatch(r"native_(pace|red|transfer)_[a-z_]+", str(e)) else "ValueError"
+        receipt["error"] = str(e) if args.pace_build and re.fullmatch(r"native_(pace|red|transfer|competitive)_[a-z_]+", str(e)) else "ValueError"
     except Exception as e:
         # OSError strings often contain private installation paths.
         receipt["error"] = type(e).__name__
