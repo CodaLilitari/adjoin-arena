@@ -30,7 +30,7 @@ accepts `--duration` up to 3600 game-seconds.
 each in its own loopback network namespace, and writes a `summary.json`
 with per-match receipts digests and aggregate throughput. One match is
 three engine processes; at high pace each is about one busy core, so the
-default is `cpu_count // 4` jobs. Failed matches are retried sequentially
+default for accelerated practice is `cpu_count // 4` jobs. Real-time or held-out batches use one job by default so that neighbouring matches have less opportunity to distort the clock. Failed matches are retried sequentially
 (`--retries 1`) because oversubscription can fail pace verification
 through harness poll lag rather than engine misbehavior.
 

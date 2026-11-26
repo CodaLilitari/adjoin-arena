@@ -41,7 +41,10 @@ class Bandit:
         self.exploration = exploration
         self.plays = {arm: 0 for arm in self.arms}
         self.total = {arm: 0.0 for arm in self.arms}
-        for arm, row in (record or {}).items():
+        self._load(record or {})
+
+    def _load(self, record: dict) -> None:
+        for arm, row in record.items():
             if arm in self.plays and type(row) is dict:
                 plays, total = row.get("plays"), row.get("total")
                 if type(plays) is int and plays >= 0 and type(total) in (int, float) and math.isfinite(total):
@@ -63,6 +66,18 @@ class Bandit:
 
     def export(self) -> dict:
         return {arm: {"plays": self.plays[arm], "total": self.total[arm]} for arm in self.arms}
+
+
+class BrainBandit(Bandit):
+    """Persist each completed window, then choose with all seats' latest scores."""
+
+    def __init__(self, arms, store, label, build):
+        self.store, self.label, self.build = store, label, build
+        super().__init__(arms, record=load_brain_memory(store, label, build))
+
+    def record(self, arm: str, reward: float) -> None:
+        self.store.record_coach(self.label, self.build, arm, reward)
+        self._load(load_brain_memory(self.store, self.label, self.build))
 
 
 class Coach:
@@ -252,18 +267,15 @@ def main(argv=None) -> int:
         if unknown:
             raise ValueError("Unknown presets: " + ", ".join(unknown))
         build = args.build_id or build_id(args.engine)
-        save_record = None
         if args.brain_root is not None:
             from .brain import BrainStore
             store = BrainStore(args.brain_root, args.brain_profile)
-            record = load_brain_memory(store, args.label, build)
-            save_record = lambda label, snapshot, saved_build: save_brain_memory(
-                store, label, snapshot, saved_build)
+            bandit = BrainBandit(arms, store, args.label, build)
         else:
-            record = load_memory(args.memory, args.label, build)
-        coach = Coach(Bandit(arms, record=record), args.dwell_seconds)
+            bandit = Bandit(arms, record=load_memory(args.memory, args.label, build))
+        coach = Coach(bandit, args.dwell_seconds)
         session(load_private(args.credentials), coach, memory=args.memory, label=args.label, seconds=args.seconds,
-                build=build, save_record=save_record)
+                build=build)
         return 0
     except KeyboardInterrupt:
         return 0

@@ -43,7 +43,7 @@ import time
 
 from . import tactics
 from .lilivane_policy import Policy as LilivanePolicy
-from .coach import Bandit, Coach, build_id, load_brain_memory, load_memory, save_brain_memory, save_memory
+from .coach import Bandit, BrainBandit, Coach, build_id, load_memory, save_memory
 from .companion import MODES
 from .companion_cli import call, load_private
 
@@ -361,19 +361,17 @@ def main(argv=None) -> int:
         if unknown:
             raise ValueError("Unknown presets: " + ", ".join(unknown))
         build = args.build_id or build_id(args.engine)
-        store = save_record = None
+        store = None
         if args.brain_root is not None:
             from .brain import BrainStore
             store = BrainStore(args.brain_root, args.brain_profile)
-            record = load_brain_memory(store, args.label, build)
-            save_record = lambda label, snapshot, saved_build: save_brain_memory(
-                store, label, snapshot, saved_build)
+            bandit = BrainBandit(arms, store, args.label, build)
         else:
-            record = load_memory(args.memory, args.label, build)
-        coach = Coach(Bandit(arms, record=record), args.dwell_seconds)
+            bandit = Bandit(arms, record=load_memory(args.memory, args.label, build))
+        coach = Coach(bandit, args.dwell_seconds)
         seat = CoachSeat(load_private(resolve_credentials(args)), coach, memory=args.memory, label=args.label,
                          build=build, control=ControlFile(args.control) if args.control else None, start=args.start,
-                         save_record=save_record, weapons=args.weapons)
+                         weapons=args.weapons)
         try:
             run(seat, seconds=args.seconds, poll=args.poll, inputs=stdin_lines() if args.interactive else None)
         finally:

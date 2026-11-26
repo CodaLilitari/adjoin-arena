@@ -7,8 +7,8 @@ adds concurrency, per-match output directories, an aggregate summary, and
 optional BrainStore ingestion of the bot logs under the match's pace lane.
 
 A match needs three engine processes (dedicated host + two bot clients).
-At high pace each is roughly one busy core, so the default job count is
-``cpu_count // 4``. Linux/WSL only (``unshare`` user+net namespaces).
+Real-time or held-out matches run serially by default. Accelerated practice
+uses ``cpu_count // 4`` jobs. Linux/WSL only (``unshare`` user+net namespaces).
 """
 import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -202,7 +202,7 @@ def main() -> int:
     parser.add_argument("--retries", type=int, default=1,
                         help="Sequential re-runs of failed matches (load-shedding)")
     parser.add_argument("--jobs", type=int, default=0,
-                        help="Concurrent matches (default cpu_count//4, min 1)")
+                        help="Concurrent matches (default 1 for real-time/holdout, cpu_count//4 for fast practice)")
     parser.add_argument("--rate", type=int, choices=RATES, default=0,
                         help="Pace rate; 0 = uncapped (fastest measured lane)")
     parser.add_argument("--duration", type=int, default=120, help="Requested game seconds")
@@ -273,7 +273,8 @@ def main() -> int:
     if args.policy_weights:
         args.policy_weights = args.policy_weights.resolve(strict=True)
         args.weights_digest = hashlib.sha256(args.policy_weights.read_bytes()).hexdigest()
-    jobs = args.jobs or max(1, (os.cpu_count() or 4) // 4)
+    default_jobs = 1 if args.rate == 1 or args.split == "holdout" else max(1, (os.cpu_count() or 4) // 4)
+    jobs = args.jobs or default_jobs
     args.out.mkdir(parents=True)
 
     started = time.monotonic()
