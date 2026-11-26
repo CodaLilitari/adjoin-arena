@@ -236,7 +236,7 @@ class Host:
         self.nav_errors = {}
         self.nav_root = memory_root() if learn_navigation else None
         if practice_rate is not None and self.nav_root is not None:
-            if practice_rate not in (1, 2):
+            if practice_rate not in (1, 2, 4):
                 raise ValueError("Practice navigation needs a supported clock rate.")
             self.nav_root = self.nav_root / f"practice-{practice_rate}x"
         self.nav_build = None

@@ -28,7 +28,7 @@ class PrivatePracticeClock(unittest.TestCase):
             seat = SimpleNamespace(seat="lily", episode_file=None)
             for role in ("hosted", "external"):
                 for pace, base, suffix in ((1, str(root/"nav"), "practice-1x"),
-                                           (2, str(root/"nav"), "practice-2x"),
+                                           (2, str(root/"nav"), "practice-2x"), (4, str(root/"nav"), "practice-4x"),
                                            (None, str(root/"nav"), ""), (2, "off", None)):
                     with patch.dict(os.environ, {"ADJOIN_NAV_MEMORY": base}):
                         host = serve.Host(root, root, root/f"{role}-{pace}-{suffix}", "Test", None, False,
@@ -52,6 +52,11 @@ class PrivatePracticeClock(unittest.TestCase):
                                       "--engine-dir", temp])
             headless.validate(args, parser)
             with contextlib.redirect_stderr(io.StringIO()):
+                args.practice_rate = 4
+                with self.assertRaises(SystemExit):
+                    headless.validate(args, parser)
+                (path/"practice-clock.json").write_text(json.dumps({"files": files, "supported_rates":[1, 2, 4]}))
+                headless.validate(args, parser)
                 args.public_room = True
                 with self.assertRaises(SystemExit):
                     headless.validate(args, parser)
@@ -99,6 +104,7 @@ int __real_sithUpdate(void) {
 int main(int argc, char **argv) {
     rate = atoi(argv[1]);
     for (int i=0; i<60; ++i) { wall=0.01+i*(1000.0/30); __wrap_sithUpdate(); }
+    if (argc == 3) { wall += atof(argv[2]); __wrap_sithUpdate(); }
     printf("%d %d %d %u\n", updates, policy, phys, sithTime_g_msecGameTime);
     return 0;
 }
@@ -107,7 +113,7 @@ int main(int argc, char **argv) {
             compiler = shutil.which("clang") or shutil.which("cc")
             subprocess.run([compiler, "-I"+temp, str(source), str(main), "-o", str(exe),
                             *([] if sys.platform=="win32" else ["-lm"])], check=True, timeout=60)
-            for rate in (0, 1, 2):
+            for rate in (0, 1, 2, 4):
                 run = subprocess.run([exe, str(rate)], capture_output=True, text=True, check=True, timeout=10)
                 updates, controls, physics, game_ms = map(int, run.stdout.split())
                 self.assertEqual((controls, physics), (updates, 5*updates))
@@ -115,6 +121,10 @@ int main(int argc, char **argv) {
                     self.assertEqual((updates, game_ms), (60, 1020))
                     self.assertEqual(run.stderr, "")
                 else:
-                    self.assertLessEqual(abs(updates - 60*rate), 2)
+                    self.assertLessEqual(abs(updates - (1 + 59*rate)), 1)
                     self.assertEqual(game_ms, (updates*1000)//30)
                     self.assertTrue(re.search(r"physics_us=6667,6667 control_us=33333,33333", run.stderr))
+                if rate == 4:
+                    for gap, min_steps, max_steps in ((240, 28, 31), (500, 1, 1)):
+                        after = subprocess.check_output([exe, "4", str(gap)], text=True, stderr=subprocess.DEVNULL)
+                        self.assertIn(int(after.split()[0])-updates, range(min_steps, max_steps+1))

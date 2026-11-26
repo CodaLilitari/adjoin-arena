@@ -54,9 +54,12 @@ void __wrap_jkBot_Tick(float seconds)
 int __wrap_sithUpdate(void)
 {
     if (rate < 0) rate = requested_rate();
-    if (rate != 1 && rate != 2) return __real_sithUpdate();
+    if (rate != 1 && rate != 2 && rate != 4) return __real_sithUpdate();
     double now = emscripten_get_now(), period = 1000.0 / (30 * rate);
     if (!steps) due = now;
+    /* At 4x, 250 ms of wall debt is at most 31 scheduled steps. Each
+     * iteration compares against this same wall sample, so a slow frame
+     * cannot grow this catch-up loop while it is executing. */
     if (now - due > 250) { due = now; ++stalls; }
     while (now >= due) {
         due += period;

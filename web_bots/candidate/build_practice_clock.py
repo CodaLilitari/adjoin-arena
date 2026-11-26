@@ -61,7 +61,7 @@ def build(out, candidate):
         for artifact in (wasm, js):
             shutil.copyfile(artifact, out/artifact.name)
         info = dict(engine=lane, base_wasm=expected, base_js=glue, source=digest(source), emcc=version,
-                    files={file.name:digest(file) for file in (wasm,js)})
+                    supported_rates=[1, 2, 4], files={file.name:digest(file) for file in (wasm,js)})
         (out/"practice-clock.json").write_text(json.dumps(info,indent=2)+"\n")
         print(json.dumps(info), flush=True)
 

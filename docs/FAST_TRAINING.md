@@ -3,20 +3,22 @@
 ## Private JKWeb practice
 
 The headless browser launcher can run an experimental fixed-step engine at
-1× or 2× on a loopback relay. Over a 60-game-second C3 full-Force saber
-window, each owner's clock took 60.00 wall seconds at 1× and 30.00–30.01
-at 2×. Each engine executed 1,800 policy updates and 9,000 physics updates
+1×, 2× or 4× on a loopback relay. Over a 60-game-second C3 full-Force saber
+window, the two owners took 60.00 wall seconds at 1×, 30.00–30.01 at 2×,
+and 14.99–15.00 at 4×. Each engine executed 1,800 policy updates and 9,000 physics updates
 over an exact 60-game-second counter interval. The measured step sizes were
-33.33 ms for the policy and 6.67 ms for physics at both speeds. Room startup,
+33.33 ms for the policy and 6.67 ms for physics at all three speeds. The 4×
+trial used a separately hashed timing build, the same C3 controller, and
+byte-identical JavaScript. Room startup,
 joining, and team assignment add wall time before a matched opening.
 [Clock counters and gameplay observations](../qa/jkweb-practice-clock.json)
 
-Red picked up a Repeater Gun within the first game second at both rates.
+Red picked up a Repeater Gun within the first game second at all three rates.
 Lily cleared her airlock by 24.0 game seconds and collected a Force Boost
-around 30.1 at fixed 1×. She stayed inside for all 60 game seconds at 2×.
+around 30.1 at fixed 1×. She stayed inside for all 60 game seconds at 2× and 4×.
 In the earlier ordinary-clock candidate game she also stayed inside at 1×.
 Each trial had the same physical starts and a fresh navigation store.
-The RNG and play before placement varied across games. Use 2× to collect
+The RNG and play before placement varied across games. Use 4× to collect
 practice, and evaluate behavior across repeated 1× games before promoting
 the learned policy.
 
@@ -29,7 +31,7 @@ python3 -B web_bots/candidate/build_practice_clock.py "$RUNS/clock-control"
 python3 -B -m web_bots.headless host --relay ws://127.0.0.1:8080/relay \
   --seats red --host-seat lily --room-name FastCTF --episode JK1CTF --map c3.jkl \
   --mode ff-sabers --data "$GAME_DATA" --chrome "$CHROME" --runtime "$RUNS/game" \
-  --engine-dir "$RUNS/clock-control" --practice-rate 2 --game-seconds 60
+  --engine-dir "$RUNS/clock-control" --practice-rate 4 --game-seconds 60
 ```
 
 The game-time budget starts when all requested seats have joined and supplied
@@ -37,7 +39,7 @@ fresh owner clocks. Completion records each seat's first and last clock,
 world epoch and observed wall duration in `headless.json`. An expired wall
 watchdog or a world change fails the game-time measurement. Existing
 `--seconds` measures wall time. Navigation learned with the practice clock
-is retained under `practice-1x` or `practice-2x` in the navigation store.
+is retained under `practice-1x`, `practice-2x` or `practice-4x` in the navigation store.
 
 To repeat the C3 candidate comparison, build the
 [candidate object and private opening](MAP_PLAY_COVERAGE.md#reproduce-the-matched-c3-opening),

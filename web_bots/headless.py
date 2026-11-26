@@ -420,8 +420,8 @@ def build_parser():
     host.add_argument("--map", help="JKL inside the episode. Defaults to m10.jkl in JK1MP or c1.jkl in JK1CTF.")
     host.add_argument("--mode", choices=ARENA_MODES, default="ff-guns", help="ff-guns hosts Jedi rank 8 (full Force).")
     host.add_argument("--private-duels", action="store_true", help="Allow ordinary JKWeb saber challenges in this hosted free-for-all.")
-    host.add_argument("--practice-rate", type=int, choices=(1, 2),
-                      help="Run a private fixed-step practice engine at 1× or 2× on a loopback relay.")
+    host.add_argument("--practice-rate", type=int, choices=(1, 2, 4),
+                      help="Run a private fixed-step practice engine at 1×, 2× or 4× on a loopback relay.")
     host.add_argument("--public-room", action="store_true",
                       help="Required to host on the public Jedi Knight Zone relay (listed, on its leaderboard).")
     return p
@@ -438,6 +438,8 @@ def validate(args, parser):
                     raise ValueError("--practice-rate requires a private loopback relay.")
                 try:
                     record = json.loads((args.engine_dir / "practice-clock.json").read_bytes())
+                    if args.practice_rate not in record.get("supported_rates", [1, 2]):
+                        raise ValueError("This private engine build does not support the requested practice rate.")
                     if any(hashlib.sha256((args.engine_dir/n).read_bytes()).hexdigest() != record["files"][n]
                            for n in ("openjkdf2.wasm", "openjkdf2.js")):
                         raise ValueError("Private practice engine files differ from the build receipt.")
