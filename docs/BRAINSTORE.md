@@ -1,5 +1,8 @@
 # BrainStore: persistent learning across matches
 
+The integration branch adds whole-match partitions, receipt-verified imports, exact-build cohorts and a script fallback for the learning loop. Use the [competitive learning guide](COMPETITIVE_LEARNING.md) for new training. The figures under “Live qualification” record Muse Code’s earlier experiments. Their shadow metrics used an earlier scorer and need independent evaluation before promotion.
+
+
 `bots/brain.py` gives each bot profile one local brain that survives
 matches and processes. It complements the existing learners; it does not
 replace them:

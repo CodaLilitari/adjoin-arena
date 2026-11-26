@@ -1,5 +1,6 @@
 """Persistent BrainStore: decisions, edge stats, edge model, promotion gates."""
 from __future__ import annotations
+import json
 
 import hashlib
 import os
@@ -23,6 +24,50 @@ from bots.brain import (BrainStore, EDGE_FEATURES, export_edge_native,
 
 
 class BrainStoreTests(unittest.TestCase):
+    def test_training_reads_new_evidence_after_100000_rows(self):
+        store = BrainStore(self.root, "red")
+        self.addCleanup(store.close)
+        store.db.execute("""
+            WITH RECURSIVE seq(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM seq WHERE i < 100000)
+            INSERT INTO decisions(ts,kind,map_sha,scope,policy_hash,features,teacher)
+            SELECT i,'pickup','map','ffa/guns','', '{"near":0}',0 FROM seq
+        """)
+        store.append_decision("pickup", {"near": 1}, teacher=1, map_sha="map", scope="ffa/guns")
+        rows = store.decisions("pickup")
+        self.assertEqual(len(rows), 100001)
+        self.assertEqual(rows[-1]["teacher"], 1)
+
+    def test_training_refuses_to_pool_rules_or_speed_implicitly(self):
+        store = BrainStore(self.root, "red")
+        self.addCleanup(store.close)
+        for scope, pace in (("ffa/guns", "1x"), ("ctf/guns", "max")):
+            for label in (0, 1):
+                store.append_decision("pickup", {"near": label}, teacher=label,
+                                      scope=scope, pace=pace, build="test")
+        with self.assertRaisesRegex(ValueError, "cohort"):
+            train_decision_from_store(store, "pickup", ["near"])
+        model = train_decision_from_store(store, "pickup", ["near"],
+                                          scope="ffa/guns", pace="1x", build="test")
+        self.assertEqual(model["train"]["rows"], 2)
+
+    def test_reimport_is_atomic_and_a_match_cannot_change_partitions(self):
+        store = BrainStore(self.root, "red")
+        self.addCleanup(store.close)
+        log = ("BOT_DECISION name=Red t=1.0 seq=1 kind=weapon choice=2 from=1\n"
+               "BOT_EDGE_ATTEMPT name=Red t=1 event=arrive from_key=aa to_key=bb "
+               "edge=0 dist_mm=1000 dz_mm=0 from_water=0 to_water=0 dest_item=1 "
+               "base_cost_milli=1000 degree_from=2 degree_to=2\n")
+        args = (store, log, "m", "ffa")
+        ingest_match_log(*args, match_id="first")
+        ingest_match_log(*args, match_id="first")
+        self.assertEqual(len(store.decisions("weapon")), 1)
+        self.assertEqual(store.edge_rows()[0]["attempts"], 1)
+        with self.assertRaisesRegex(ValueError, "metadata"):
+            ingest_match_log(*args, match_id="first", split="holdout")
+        with self.assertRaisesRegex(ValueError, "metadata"):
+            ingest_match_log(store, log.replace("Red", "Jan"), "m", "ffa",
+                             match_id="first", split="holdout")
+
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
@@ -125,6 +170,75 @@ class BrainStoreTests(unittest.TestCase):
         self.assertEqual(force["pace"], "2x")
         store.close()
 
+    def test_integer_candidate_requires_the_engine_dimensions(self):
+        from bots.brain import DUEL_FEATURES
+        malformed = "RED_NEURAL_V1 9 8\n" + "1\n" * 11
+        with self.assertRaises(ValueError):
+            predict_red_neural(malformed, {k: 1 for k in DUEL_FEATURES})
+
+    def test_experimental_controls_keep_a_separate_training_cohort(self):
+        from scripts.bot_development.train_matches import evidence_build
+        binary = "a" * 64
+        controls = dict(saber_tracking="both", light_loadout="competitive", force_controller="competitive")
+        self.assertEqual(evidence_build(binary, controls), binary)
+        self.assertNotEqual(evidence_build(binary, dict(controls, light_loadout="master")), binary)
+        self.assertNotEqual(evidence_build(binary, dict(controls, saber_tracking="dark")),
+                            evidence_build(binary, dict(controls, saber_tracking="light")))
+
+    def test_verified_native_receipt_groups_seats_and_checks_bytes(self):
+        from scripts.bot_development.train_matches import ingest_receipt
+        import hashlib
+        store = BrainStore(self.root, "red")
+        self.addCleanup(store.close)
+        directory = self.root / "match"
+        directory.mkdir()
+        logs = {}
+        for side in ("dark", "light", "server"):
+            raw = f"BOT_DECISION name={side} t=2.0 seq=1 kind=weapon choice=9\n".encode()
+            (directory / (side + ".log")).write_bytes(raw)
+            logs[side + ".log"] = hashlib.sha256(raw).hexdigest()
+        receipt = {"status": "live_join_and_loadout_verified", "log_sha256": logs,
+                   "sha256": {"jkl/m2.jkl": "b"*64}, "pace_experiment": {"speed": 1, "requested_game_seconds": 5,
+                   "roles": {s: {"first": {"game_ms": 0}} for s in ("dark", "light")}},
+                   "red_policy": {"build": {"binary_sha256": "a"*64}},
+                   "mode_transfer": {"mode": "ffa", "weapons": "guns", "force": "off"}}
+        (directory / "receipt.json").write_text(json.dumps(receipt))
+        imported = ingest_receipt(store, directory, split="holdout")
+        rows = store.decisions("weapon", split="holdout")
+        self.assertEqual(len(rows), 2)
+        self.assertEqual({r["match_id"] for r in rows}, {imported["match_id"]})
+        self.assertEqual(rows[0]["build"], "a"*64)
+        self.assertEqual(rows[0]["scope"], "ffa/guns/noforce")
+        with self.assertRaisesRegex(ValueError, "metadata"):
+            ingest_receipt(store, directory, split="practice")
+        (directory / "light.log").write_text("wrong")
+        with self.assertRaisesRegex(ValueError, "digest"):
+            ingest_receipt(store, directory, split="holdout")
+
+    def test_holdout_uses_only_the_recorded_game_window_but_keeps_the_original_log_identity(self):
+        store = BrainStore(self.root, "red")
+        self.addCleanup(store.close)
+        log = "".join(f"BOT_DECISION name=Red t={t} seq=1 kind=weapon choice={t}\n"
+                      for t in (1, 2, 3, 4))
+        ingest_match_log(store, log, "map", "ffa", match_id="shared", split="holdout", game_window=(2000, 4000))
+        self.assertEqual([r["outcome"]["choice"] for r in store.decisions("weapon")], [2, 3])
+        with self.assertRaisesRegex(ValueError, "metadata"):
+            ingest_match_log(store, log, "map", "ffa", match_id="shared", split="holdout")
+        with self.assertRaisesRegex(ValueError, "metadata"):
+            ingest_match_log(store, log, "map", "ffa")
+
+    def test_one_frag_cannot_reward_every_decision_in_the_window(self):
+        store = BrainStore(self.root, "red")
+        self.addCleanup(store.close)
+        log = ("BOT_RED_STATE name=Red t=1 life=1 hp=100 shields=30 kills=0 deaths=0 dead=0\n"
+               "BOT_DUEL name=Red t=2 seq=1 life=1 f=100,30,50,30,2,1,0,0,0 teacher=1 selected=1 applied=1 owner=supply model=teacher\n"
+               "BOT_DUEL name=Red t=3 seq=2 life=1 f=100,30,20,30,2,1,0,0,0 teacher=0 selected=0 applied=0 owner=fight model=teacher\n"
+               "BOT_RED_STATE name=Red t=4 life=1 hp=100 shields=30 kills=1 deaths=0 dead=0\n"
+               "BOT_RED_STATE name=Red t=5 life=2 hp=100 shields=30 kills=2 deaths=1 dead=0\n")
+        ingest_match_log(store, log, "map", "ffa")
+        rows = store.decisions("pickup_engage")
+        self.assertEqual([r["outcome"].get("kill", 0) for r in rows], [0, 1])
+
     def test_match_log_attributes_outcomes(self):
         store = BrainStore(self.root, "red")
         log = (
@@ -170,6 +284,22 @@ class BrainStoreTests(unittest.TestCase):
         self.assertEqual(outcome["kill"], 1)
         self.assertEqual(outcome["damage_taken"], 8.0)
         store.close()
+
+    def test_matched_edge_telemetry_counts_one_traversal_and_separates_builds(self):
+        store = BrainStore(self.root, "red")
+        self.addCleanup(store.close)
+        edge = ("BOT_EDGE_ATTEMPT name=Red t=3.0 event=arrive from_key=aa to_key=bb "
+                "edge=0 dist_mm=1500 dz_mm=-250 from_water=0 to_water=1 dest_item=1 "
+                "base_cost_milli=2500 degree_from=3 degree_to=2\n")
+        recall = ("BOT_NAV_LEARN name=Red t=3.0 event=arrive from=0 to=1 from_key=aa "
+                  "to_key=bb edge=0 before=2 after=0 saved=1\n")
+        for build in ("old", "new"):
+            log = edge + recall + "engine " + build
+            self.assertEqual(ingest_match_log(store, log, "m", "ffa", build=build)["edges"], 1)
+        for build in ("old", "new"):
+            e = store.edge_estimate("m", "ffa", "aa", "bb", 0, build=build)
+            self.assertEqual((e["attempts"], e["successes"]), (1, 1))
+        self.assertEqual({r["build"] for r in store.edge_rows()}, {"old", "new"})
 
     def test_ingest_edge_attempt_telemetry(self):
         store = BrainStore(self.root, "red")
@@ -234,6 +364,15 @@ class BrainStoreTests(unittest.TestCase):
                 store.append_decision("engage", {"distance": 5.0}, teacher=0,
                                       outcome={"death": 1}, map_sha=map_sha)
         good = train_decision_from_store(store, "engage", ["distance"])
+        self.assertFalse(qualify_decision_candidate(store, "engage", good)["ok"])
+        for map_sha in ("a" * 64, "b" * 64):
+            with store.match_log("log-" + map_sha, map_sha, map_sha, "", "unknown", "", "holdout", 5):
+                for _ in range(10):
+                    store.append_decision("engage", {"distance": 1.0}, teacher=1,
+                                          outcome={"kill": 1}, map_sha=map_sha)
+                    store.append_decision("engage", {"distance": 5.0}, teacher=0,
+                                          outcome={"death": 1}, map_sha=map_sha)
+        self.assertEqual(train_decision_from_store(store, "engage", ["distance"])["train"]["rows"], 80)
         verdict = qualify_decision_candidate(store, "engage", good, min_rows=10)
         self.assertTrue(verdict["ok"], verdict["reasons"])
         bad = dict(good)
@@ -243,6 +382,57 @@ class BrainStoreTests(unittest.TestCase):
         self.assertFalse(refused["ok"])
         self.assertTrue(any("balanced accuracy" in r for r in refused["reasons"]))
         store.close()
+
+    def test_same_weights_can_qualify_and_roll_back_on_two_independent_maps(self):
+        store = BrainStore(self.root, "red")
+        self.addCleanup(store.close)
+        weights = self.root / "duel"
+        weights.write_bytes(b"same weights")
+        sha = store.register_model(weights, "pickup_engage", "nf|map1")
+        store.register_model(weights, "pickup_engage", "nf|map2")
+        with self.assertRaisesRegex(ValueError, "scope"):
+            store.promote_model(sha, safety_ok=True, heldout_ok=True)
+        for scope in ("nf|map1", "nf|map2"):
+            store.promote_model(sha, safety_ok=True, heldout_ok=True, kind="pickup_engage", scope=scope)
+        store.rollback("pickup_engage", "nf|map2")
+        self.assertIsNone(store.active_model("pickup_engage", "nf|map2"))
+        self.assertEqual(store.active_model("pickup_engage", "nf|map1")["status"], "active")
+
+    def test_independent_coaches_preserve_models_and_can_return_to_script(self):
+        a = BrainStore(self.root, "red")
+        b = BrainStore(self.root, "red")
+        self.addCleanup(a.close)
+        self.addCleanup(b.close)
+        model = self.root / "model"
+        model.write_bytes(b"A")
+        first = a.register_model(model, "decision", "nf")
+        model.write_bytes(b"B")
+        second = b.register_model(model, "decision", "nf")
+        a.promote_model(first, safety_ok=True, heldout_ok=True)
+        b.promote_model(second, safety_ok=True, heldout_ok=True)
+        self.assertEqual(a.active_model("decision", "nf")["sha256"], second)
+        self.assertEqual(a.rollback("decision", "nf"), first)
+        self.assertIsNone(b.rollback("decision", "nf"))
+        self.assertIsNone(a.active_model("decision", "nf"))
+
+    def test_next_rollout_selects_exact_cell_and_restores_script_after_rollback(self):
+        from bots.brain import DUEL_FEATURES
+        from scripts.bot_development.train_matches import active_pickup
+        store = BrainStore(self.root, "red")
+        self.addCleanup(store.close)
+        model = self.root / "native.weights"
+        source = fit_decision_model([({name: n for name in DUEL_FEATURES}, int(n > 0))
+                                     for n in (-2, -1, 1, 2)], DUEL_FEATURES)
+        export_red_neural(source, model)
+        cell = ("ffa/guns/noforce", "1"*64, "2"*64)
+        sha = store.register_model(model, "pickup_engage", "|".join(cell))
+        self.assertIsNone(active_pickup(store, *cell))
+        store.promote_model(sha, safety_ok=True, heldout_ok=True)
+        self.assertEqual(active_pickup(store, *cell).read_bytes(), model.read_bytes())
+        self.assertIsNone(active_pickup(store, cell[0], "3"*64, cell[2]))
+        self.assertIsNone(active_pickup(store, "ctf/guns/force", cell[1], cell[2]))
+        store.rollback("pickup_engage", "|".join(cell))
+        self.assertIsNone(active_pickup(store, *cell))
 
     def test_promotion_requires_gates_and_rolls_back(self):
         store = BrainStore(self.root, "red")
@@ -344,6 +534,16 @@ class EdgeModelTests(unittest.TestCase):
             self.assertEqual(load_decision_model(path, digest)["weights"],
                              model["weights"])
         store.close()
+
+    def test_teacher_anchor_keeps_unrewarded_demonstrations_in_the_fit(self):
+        from bots.brain import fit_outcome_model
+        rows = [{"features": {"x": i}, "teacher": int(i > 0), "applied": int(i > 0),
+                 "outcome": {"kill": 1} if abs(i) == 1 else {}} for i in (-3, -2, -1, 1, 2, 3)]
+        model = fit_outcome_model(rows, ["x"], teacher_fraction=0.5)
+        self.assertEqual(model["train"]["teacher_rows"], 6)
+        self.assertEqual(model["train"]["rows"], 2)
+        self.assertLess(predict_decision(model, {"x": -2}), 0.5)
+        self.assertGreater(predict_decision(model, {"x": 2}), 0.5)
 
     def test_outcome_weighting_reverses_bad_teacher_region(self):
         self.assertEqual(reward_from_outcome({"kill": 1, "damage_taken": 50}), 2.0)

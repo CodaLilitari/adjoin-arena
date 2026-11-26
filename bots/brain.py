@@ -14,7 +14,9 @@ this module sends a game command.
 """
 from __future__ import annotations
 
+from bisect import bisect_left
 import argparse
+from contextlib import contextmanager, nullcontext
 import hashlib
 import json
 import math
@@ -23,6 +25,7 @@ import re
 import sqlite3
 import time
 from pathlib import Path
+from typing import NamedTuple
 
 SCHEMA = 1
 EDGE_FEATURES = ("distance", "dz", "abs_dz", "mode", "from_water", "to_water",
@@ -70,15 +73,23 @@ class BrainStore:
                 features TEXT NOT NULL, candidates TEXT, teacher INTEGER,
                 selected INTEGER, applied INTEGER, outcome TEXT
             );
+            CREATE TABLE IF NOT EXISTS matches (
+                id TEXT PRIMARY KEY, map_sha TEXT NOT NULL, scope TEXT NOT NULL,
+                pace TEXT NOT NULL, split TEXT NOT NULL CHECK (split IN ('practice','holdout'))
+            );
+            CREATE TABLE IF NOT EXISTS match_logs (
+                digest TEXT PRIMARY KEY, match_id TEXT NOT NULL, build TEXT NOT NULL,
+                attribution_window REAL NOT NULL, first_ms INTEGER, end_ms INTEGER
+            );
             CREATE INDEX IF NOT EXISTS decisions_kind ON decisions(kind);
             CREATE TABLE IF NOT EXISTS edge_stats (
                 map_sha TEXT NOT NULL, scope TEXT NOT NULL, pace TEXT NOT NULL DEFAULT 'unknown',
-                from_key TEXT NOT NULL, to_key TEXT NOT NULL, mode INTEGER NOT NULL,
+                build TEXT NOT NULL DEFAULT '', from_key TEXT NOT NULL, to_key TEXT NOT NULL, mode INTEGER NOT NULL,
                 attempts INTEGER NOT NULL, successes INTEGER NOT NULL,
                 failures INTEGER NOT NULL, time_sum REAL NOT NULL,
                 time_sq REAL NOT NULL, damage_sum REAL NOT NULL,
                 last_seen REAL NOT NULL, features TEXT,
-                PRIMARY KEY (map_sha, scope, pace, from_key, to_key, mode)
+                PRIMARY KEY (map_sha, scope, pace, build, from_key, to_key, mode)
             );
             CREATE TABLE IF NOT EXISTS coach_arms (
                 label TEXT NOT NULL, build TEXT NOT NULL, arm TEXT NOT NULL,
@@ -86,44 +97,86 @@ class BrainStore:
                 PRIMARY KEY (label, build, arm)
             );
         """)
+        self._active_match = None
         self._migrate_pace_columns()
         self.manifest_path = self.root / "manifest.json"
-        if self.manifest_path.is_file():
-            self.manifest = json.loads(self.manifest_path.read_text(encoding="utf-8"))
-            if self.manifest.get("profile") != profile:
-                raise ValueError("Brain root belongs to a different profile.")
-        else:
-            self.manifest = {"schema": SCHEMA, "profile": profile,
-                             "created_at": time.time(), "active": {},
-                             "history": [], "models": []}
-            self._save_manifest()
+        with self.db:
+            self.db.execute("BEGIN IMMEDIATE")
+            if self.manifest_path.is_file():
+                self.manifest = json.loads(self.manifest_path.read_text(encoding="utf-8"))
+                if self.manifest.get("profile") != profile:
+                    raise ValueError("Brain root belongs to a different profile.")
+            else:
+                self.manifest = {"schema": SCHEMA, "profile": profile,
+                                 "created_at": time.time(), "active": {},
+                                 "history": [], "models": []}
+                self._save_manifest()
 
     def _migrate_pace_columns(self) -> None:
         """Add pace provenance to stores created before it existed."""
-        cols = {row[1] for row in self.db.execute("PRAGMA table_info(decisions)")}
         with self.db:
+            self.db.execute("BEGIN IMMEDIATE")
+            cols = {row[1] for row in self.db.execute("PRAGMA table_info(decisions)")}
+            if "match_id" not in cols:
+                self.db.execute("ALTER TABLE decisions ADD COLUMN match_id TEXT")
+            if "curated" not in cols:
+                # Old individual rows have no verifiable practice/holdout origin.
+                self.db.execute("ALTER TABLE decisions ADD COLUMN curated INTEGER NOT NULL DEFAULT 0")
             if "pace" not in cols:
                 self.db.execute("ALTER TABLE decisions ADD COLUMN pace TEXT NOT NULL DEFAULT 'unknown'")
             if "build" not in cols:
                 self.db.execute("ALTER TABLE decisions ADD COLUMN build TEXT NOT NULL DEFAULT ''")
+            log_cols = {r[1] for r in self.db.execute("PRAGMA table_info(match_logs)")}
+            for name in ("first_ms", "end_ms"):
+                if name not in log_cols:
+                    self.db.execute(f"ALTER TABLE match_logs ADD COLUMN {name} INTEGER")
             edge_cols = {row[1] for row in self.db.execute("PRAGMA table_info(edge_stats)")}
-            if "pace" not in edge_cols:
+            if "build" not in edge_cols:
                 self.db.execute(
-                    "CREATE TABLE edge_stats_v2 ("
-                    "map_sha TEXT NOT NULL, scope TEXT NOT NULL, pace TEXT NOT NULL DEFAULT 'unknown', "
+                    "CREATE TABLE edge_stats_v3 (map_sha TEXT NOT NULL, scope TEXT NOT NULL, "
+                    "pace TEXT NOT NULL DEFAULT 'unknown', build TEXT NOT NULL DEFAULT '', "
                     "from_key TEXT NOT NULL, to_key TEXT NOT NULL, mode INTEGER NOT NULL, "
-                    "attempts INTEGER NOT NULL, successes INTEGER NOT NULL, "
-                    "failures INTEGER NOT NULL, time_sum REAL NOT NULL, "
-                    "time_sq REAL NOT NULL, damage_sum REAL NOT NULL, "
+                    "attempts INTEGER NOT NULL, successes INTEGER NOT NULL, failures INTEGER NOT NULL, "
+                    "time_sum REAL NOT NULL, time_sq REAL NOT NULL, damage_sum REAL NOT NULL, "
                     "last_seen REAL NOT NULL, features TEXT, "
-                    "PRIMARY KEY (map_sha, scope, pace, from_key, to_key, mode))")
-                self.db.execute(
-                    "INSERT INTO edge_stats_v2(map_sha,scope,from_key,to_key,mode,attempts,"
-                    "successes,failures,time_sum,time_sq,damage_sum,last_seen,features) "
-                    "SELECT map_sha,scope,from_key,to_key,mode,attempts,successes,"
-                    "failures,time_sum,time_sq,damage_sum,last_seen,features FROM edge_stats")
+                    "PRIMARY KEY(map_sha,scope,pace,build,from_key,to_key,mode))")
+                columns = ("map_sha,scope,from_key,to_key,mode,attempts,successes,failures,"
+                           "time_sum,time_sq,damage_sum,last_seen,features")
+                if "pace" in edge_cols:
+                    columns += ",pace"
+                self.db.execute(f"INSERT INTO edge_stats_v3 ({columns}) SELECT {columns} FROM edge_stats")
                 self.db.execute("DROP TABLE edge_stats")
-                self.db.execute("ALTER TABLE edge_stats_v2 RENAME TO edge_stats")
+                self.db.execute("ALTER TABLE edge_stats_v3 RENAME TO edge_stats")
+
+    @contextmanager
+    def match_log(self, digest, match_id, map_sha, scope, pace, build, split, window, game_window=None):
+        """Import a finished seat log once. Both seats of a match share a partition."""
+        if split not in ("practice", "holdout") or not match_id:
+            raise ValueError("Match ID and a practice or holdout partition are required.")
+        if self._active_match is not None:
+            raise RuntimeError("Nested match import")
+        with self.db:
+            self.db.execute("BEGIN IMMEDIATE")
+            metadata = (map_sha, scope, pace, split)
+            self.db.execute("INSERT OR IGNORE INTO matches VALUES(?,?,?,?,?)", (match_id, *metadata))
+            existing = self.db.execute("SELECT map_sha,scope,pace,split FROM matches WHERE id=?",
+                                       (match_id,)).fetchone()
+            if existing != metadata:
+                raise ValueError("Conflicting metadata for this match ID.")
+            source = (match_id, build, window, *(game_window or (None, None)))
+            previous = self.db.execute("SELECT match_id,build,attribution_window,first_ms,end_ms FROM match_logs WHERE digest=?",
+                                       (digest,)).fetchone()
+            if previous is not None:
+                if previous != source:
+                    raise ValueError("Conflicting metadata for an already imported log.")
+                yield False
+                return
+            self.db.execute("INSERT INTO match_logs(digest,match_id,build,attribution_window,first_ms,end_ms) VALUES(?,?,?,?,?,?)", (digest, *source))
+            self._active_match = match_id
+            try:
+                yield True
+            finally:
+                self._active_match = None
 
     # -- manifest ------------------------------------------------------
     def _save_manifest(self) -> None:
@@ -140,33 +193,51 @@ class BrainStore:
                         selected=None, applied=None, candidates=None,
                         outcome=None, map_sha: str = "", scope: str = "",
                         policy_hash: str = "", pace: str = "unknown",
-                        build: str = "") -> int:
+                        build: str = "", curated: bool = True) -> int:
+        """Append a single curated practice example, or a row of the active match.
+
+        Parsers handling evidence outside a partitioned match pass curated=False.
+        Such legacy rows remain readable, without entering a training partition.
+        """
         if not kind or not isinstance(features, dict):
             raise ValueError("A decision needs a kind and a features object.")
         for name, value in (("teacher", teacher), ("selected", selected),
                             ("applied", applied)):
             if value is not None and value not in (0, 1):
                 raise ValueError(f"Decision {name} must be 0, 1 or None.")
-        with self.db:
+        with (self.db if self._active_match is None else nullcontext()):
             cursor = self.db.execute(
                 "INSERT INTO decisions(ts,kind,map_sha,scope,policy_hash,pace,build,features,"
-                "candidates,teacher,selected,applied,outcome) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                "candidates,teacher,selected,applied,outcome,match_id,curated) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 (time.time(), kind, map_sha, scope, policy_hash, pace, build, _packed(features),
                  _packed(candidates) if candidates is not None else None,
                  teacher, selected, applied,
-                 _packed(outcome) if outcome is not None else None))
+                 _packed(outcome) if outcome is not None else None, self._active_match,
+                 int(curated and self._active_match is None)))
         return int(cursor.lastrowid)
 
-    def decisions(self, kind: str | None = None, limit: int = 100000) -> list[dict]:
-        query = ("SELECT kind,map_sha,scope,policy_hash,pace,build,features,candidates,"
-                 "teacher,selected,applied,outcome FROM decisions")
-        rows = self.db.execute(
-            query + (" WHERE kind=? ORDER BY id LIMIT ?" if kind else " ORDER BY id LIMIT ?"),
-            ((kind, limit) if kind else (limit,)))
+    def decisions(self, kind: str | None = None, limit: int | None = None, *,
+                  scope=None, pace=None, build=None, split=None) -> list[dict]:
+        """Chronological ledger. A bounded read returns the most recent matching rows."""
+        query = ("SELECT d.kind,d.map_sha,d.scope,d.policy_hash,d.pace,d.build,d.features,d.candidates,"
+                 "d.teacher,d.selected,d.applied,d.outcome,d.match_id FROM decisions d "
+                 "LEFT JOIN matches m ON m.id=d.match_id")
+        filters = {"d.kind": kind, "d.scope": scope, "d.pace": pace, "d.build": build,
+                   "COALESCE(m.split,CASE WHEN d.curated THEN 'practice' ELSE 'unassigned' END)": split}
+        selected = [(field, value) for field, value in filters.items() if value is not None]
+        if selected:
+            query += " WHERE " + " AND ".join(field + "=?" for field, _ in selected)
+        params = [value for _, value in selected]
+        if limit is None:
+            rows = self.db.execute(query + " ORDER BY d.id", params)
+        else:
+            if limit < 0:
+                raise ValueError("Decision limit must be non-negative.")
+            rows = reversed(self.db.execute(query + " ORDER BY d.id DESC LIMIT ?", [*params, limit]).fetchall())
         out = []
-        for kind_, map_sha, scope, policy, pace, build, features, candidates, teacher, selected, applied, outcome in rows:
+        for kind_, map_sha, scope, policy, pace, build, features, candidates, teacher, selected, applied, outcome, match_id in rows:
             out.append({"kind": kind_, "map_sha": map_sha, "scope": scope,
-                        "policy_hash": policy, "pace": pace, "build": build,
+                        "policy_hash": policy, "pace": pace, "build": build, "match_id": match_id,
                         "features": json.loads(features),
                         "candidates": json.loads(candidates) if candidates else None,
                         "teacher": teacher, "selected": selected, "applied": applied,
@@ -177,7 +248,7 @@ class BrainStore:
     def record_edge(self, map_sha: str, scope: str, from_key: str, to_key: str,
                     mode: int, success: bool, *, seconds: float | None = None,
                     damage: float = 0.0, features: dict | None = None,
-                    attempts: int = 1, pace: str = "unknown") -> None:
+                    attempts: int = 1, pace: str = "unknown", build: str = "") -> None:
         if type(mode) is not int or type(success) is not bool or attempts < 1:
             raise ValueError("Edge outcome needs an int mode, bool success, attempts >= 1.")
         seconds = 0.0 if seconds is None else _finite_number(seconds, "edge seconds")
@@ -185,26 +256,26 @@ class BrainStore:
         if seconds < 0 or damage < 0:
             raise ValueError("Edge seconds and damage cannot be negative.")
         wins = attempts if success else 0
-        with self.db:
+        with (self.db if self._active_match is None else nullcontext()):
             self.db.execute(
-                "INSERT INTO edge_stats VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?) "
-                "ON CONFLICT(map_sha,scope,pace,from_key,to_key,mode) DO UPDATE SET "
+                "INSERT INTO edge_stats VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) "
+                "ON CONFLICT(map_sha,scope,pace,build,from_key,to_key,mode) DO UPDATE SET "
                 "attempts=attempts+excluded.attempts, successes=successes+excluded.successes, "
                 "failures=failures+excluded.failures, time_sum=time_sum+excluded.time_sum, "
                 "time_sq=time_sq+excluded.time_sq, damage_sum=damage_sum+excluded.damage_sum, "
                 "last_seen=excluded.last_seen, "
                 "features=COALESCE(excluded.features, features)",
-                (map_sha, scope, pace, from_key, to_key, mode, attempts, wins,
+                (map_sha, scope, pace, build, from_key, to_key, mode, attempts, wins,
                  attempts - wins, seconds * attempts, seconds * seconds * attempts,
                  damage * attempts, time.time(),
                  _packed(features) if features is not None else None))
 
     def edge_estimate(self, map_sha: str, scope: str, from_key: str, to_key: str,
-                      mode: int, pace: str = "unknown") -> dict:
+                      mode: int, pace: str = "unknown", build: str = "") -> dict:
         row = self.db.execute(
             "SELECT attempts,successes,failures,time_sum,damage_sum FROM edge_stats "
-            "WHERE map_sha=? AND scope=? AND pace=? AND from_key=? AND to_key=? AND mode=?",
-            (map_sha, scope, pace, from_key, to_key, mode)).fetchone()
+            "WHERE map_sha=? AND scope=? AND pace=? AND build=? AND from_key=? AND to_key=? AND mode=?",
+            (map_sha, scope, pace, build, from_key, to_key, mode)).fetchone()
         if not row:
             return {"attempts": 0, "successes": 0, "failures": 0,
                     "probability": 0.5, "mean_seconds": None, "mean_damage": 0.0}
@@ -216,24 +287,24 @@ class BrainStore:
 
     def edge_rows(self) -> list[dict]:
         rows = self.db.execute(
-            "SELECT map_sha,scope,pace,from_key,to_key,mode,attempts,successes,"
-            "failures,features FROM edge_stats ORDER BY map_sha,scope,pace,from_key,to_key,mode")
-        return [{"map_sha": m, "scope": s, "pace": p, "from_key": f, "to_key": t, "mode": mode,
+            "SELECT map_sha,scope,pace,build,from_key,to_key,mode,attempts,successes,"
+            "failures,features FROM edge_stats ORDER BY map_sha,scope,pace,build,from_key,to_key,mode")
+        return [{"map_sha": m, "scope": s, "pace": p, "build": build, "from_key": f, "to_key": t, "mode": mode,
                  "attempts": a, "successes": ok, "failures": bad,
                  "features": json.loads(features) if features else None}
-                for m, s, p, f, t, mode, a, ok, bad, features in rows]
+                for m, s, p, build, f, t, mode, a, ok, bad, features in rows]
 
     def ingest_nav_log(self, text: str, map_sha: str, scope: str,
-                       pace: str = "unknown") -> int:
+                       pace: str = "unknown", build: str = "") -> int:
         count = 0
         for event, from_key, to_key, mode in _NAV_LEARN.findall(text):
             self.record_edge(map_sha, scope, from_key.lower(), to_key.lower(),
-                             int(mode), event == "arrive", pace=pace)
+                             int(mode), event == "arrive", pace=pace, build=build)
             count += 1
         return count
 
     def ingest_edge_log(self, text: str, map_sha: str, scope: str,
-                        pace: str = "unknown") -> int:
+                        pace: str = "unknown", build: str = "") -> int:
         """Import BOT_EDGE_ATTEMPT telemetry with trainable geometry features."""
         count = 0
         for (event, from_key, to_key, mode, dist_mm, dz_mm, from_water,
@@ -245,7 +316,7 @@ class BrainStore:
                         "base_cost": int(base_milli) / 1000.0,
                         "degree_from": int(degree_from), "degree_to": int(degree_to)}
             self.record_edge(map_sha, scope, from_key.lower(), to_key.lower(),
-                             int(mode), event == "arrive", features=features, pace=pace)
+                             int(mode), event == "arrive", features=features, pace=pace, build=build)
             count += 1
         return count
 
@@ -339,63 +410,99 @@ class BrainStore:
                 for arm, plays, total in self.db.execute(query + " ORDER BY arm", args)}
 
     # -- model registry ----------------------------------------------------
+    @contextmanager
+    def _registry_write(self):
+        # Serialize JSON read/modify/write across trainer and operator processes.
+        with self.db:
+            self.db.execute("BEGIN IMMEDIATE")
+            self.manifest = json.loads(self.manifest_path.read_text(encoding="utf-8"))
+            yield
+            self._save_manifest()
+
     def register_model(self, path: Path, kind: str, scope: str,
                        metrics: dict | None = None) -> str:
         raw = Path(path).read_bytes()
         digest = hashlib.sha256(raw).hexdigest()
-        target = self.root / "models" / f"{digest}.bin"
-        if not target.exists():
-            target.write_bytes(raw)
-        if not any(m["sha256"] == digest for m in self.manifest["models"]):
-            self.manifest["models"].append(
-                {"sha256": digest, "kind": kind, "scope": scope,
-                 "file": f"models/{digest}.bin", "metrics": metrics or {},
-                 "status": "candidate", "registered_at": time.time()})
-            self._save_manifest()
+        with self._registry_write():
+            existing = any((m["sha256"], m["kind"], m["scope"]) == (digest, kind, scope)
+                           for m in self.manifest["models"])
+            target = self.root / "models" / f"{digest}.bin"
+            if not target.is_file() or hashlib.sha256(target.read_bytes()).hexdigest() != digest:
+                temporary = target.with_suffix(".tmp")
+                temporary.write_bytes(raw)
+                temporary.replace(target)
+            if not existing:
+                self.manifest["models"].append(
+                    {"sha256": digest, "kind": kind, "scope": scope,
+                     "file": f"models/{digest}.bin", "metrics": metrics or {},
+                     "status": "candidate", "registered_at": time.time()})
         return digest
 
-    def _model(self, digest: str) -> dict:
-        for model in self.manifest["models"]:
-            if model["sha256"] == digest:
-                return model
-        raise ValueError(f"Unknown model: {digest}")
+    def _model(self, digest: str, kind=None, scope=None) -> dict:
+        matches = [m for m in self.manifest["models"] if m["sha256"] == digest and
+                   (kind is None or m["kind"] == kind) and (scope is None or m["scope"] == scope)]
+        if len(matches) > 1:
+            raise ValueError("Select the model's registered --kind and --scope.")
+        if not matches:
+            raise ValueError(f"Unknown model for this scope: {digest}")
+        return matches[0]
 
-    def promote_model(self, digest: str, *, safety_ok: bool, heldout_ok: bool) -> None:
+    def promote_model(self, digest: str, *, safety_ok: bool, heldout_ok: bool, kind=None, scope=None) -> None:
         if not (safety_ok and heldout_ok):
             raise ValueError("Promotion requires safety and held-out gates.")
-        model = self._model(digest)
-        key = f"{model['kind']}|{model['scope']}"
-        previous = self.manifest["active"].get(key)
-        if previous and previous != digest:
-            self._model(previous)["status"] = "superseded"
-        model["status"] = "active"
-        model["promoted_at"] = time.time()
-        self.manifest["active"][key] = digest
-        self.manifest["history"].append(
-            {"key": key, "sha256": digest, "action": "promote", "at": time.time()})
-        self._save_manifest()
+        with self._registry_write():
+            model = self._model(digest, kind, scope)
+            if hashlib.sha256((self.root / model["file"]).read_bytes()).hexdigest() != digest:
+                raise ValueError("Registered model bytes do not match their digest.")
+            key = f"{model['kind']}|{model['scope']}"
+            previous = self.manifest["active"].get(key)
+            if previous == digest:
+                return
+            if previous:
+                self._model(previous, model["kind"], model["scope"])["status"] = "superseded"
+            model["status"] = "active"
+            model["promoted_at"] = time.time()
+            self.manifest["active"][key] = digest
+            self.manifest["history"].append(
+                {"key": key, "sha256": digest, "action": "promote", "at": time.time()})
 
-    def rollback(self, kind: str, scope: str) -> str:
+    def rollback(self, kind: str, scope: str) -> str | None:
         key = f"{kind}|{scope}"
-        current = self.manifest["active"].get(key)
-        superseded = [m for m in self.manifest["models"]
-                      if m["kind"] == kind and m["scope"] == scope
-                      and m["status"] == "superseded"]
-        if not current or not superseded:
-            raise ValueError("No superseded model to roll back to.")
-        target = max(superseded, key=lambda m: m.get("promoted_at", 0))
-        self._model(current)["status"] = "superseded"
-        target["status"] = "active"
-        self.manifest["active"][key] = target["sha256"]
-        self.manifest["history"].append(
-            {"key": key, "sha256": target["sha256"], "action": "rollback",
-             "at": time.time()})
-        self._save_manifest()
-        return target["sha256"]
+        with self._registry_write():
+            current = self.manifest["active"].get(key)
+            if not current:
+                raise ValueError("No active model to roll back.")
+            stack = []
+            for event in self.manifest["history"]:
+                if event["key"] != key:
+                    continue
+                value = event["sha256"]
+                if event["action"] == "promote":
+                    if not stack or stack[-1] != value:
+                        stack.append(value)
+                elif event["action"] == "rollback":
+                    while stack and stack[-1] != value:
+                        stack.pop()
+            if not stack or stack.pop() != current:
+                raise ValueError("Registry history disagrees with the active model.")
+            previous = stack[-1] if stack else None
+            self._model(current, kind, scope)["status"] = "candidate"
+            if previous:
+                prior = self._model(previous, kind, scope)
+                if hashlib.sha256((self.root / prior["file"]).read_bytes()).hexdigest() != previous:
+                    raise ValueError("Rollback artifact digest mismatch.")
+                prior["status"] = "active"
+                self.manifest["active"][key] = previous
+            else:
+                del self.manifest["active"][key]
+            self.manifest["history"].append(
+                {"key": key, "sha256": previous, "action": "rollback", "at": time.time()})
+            return previous
 
     def active_model(self, kind: str, scope: str) -> dict | None:
+        self.manifest = json.loads(self.manifest_path.read_text(encoding="utf-8"))
         digest = self.manifest["active"].get(f"{kind}|{scope}")
-        return self._model(digest) if digest else None
+        return self._model(digest, kind, scope) if digest else None
 
 
 DUEL_FEATURES = ("health", "shields", "enemy_mm", "item_mm", "weapon", "ammo",
@@ -415,7 +522,7 @@ def ingest_duel_log(store: BrainStore, text: str, map_sha: str, scope: str,
             "pickup_engage", features, teacher=int(teacher),
             selected=int(selected), applied=int(applied), candidates=[0, 1],
             outcome={"owner": owner}, map_sha=map_sha, scope=scope,
-            policy_hash=model, pace=pace, build=build)
+            policy_hash=model, pace=pace, build=build, curated=False)
         count += 1
     return count
 
@@ -795,38 +902,40 @@ def export_red_neural(model: dict, path: Path) -> str:
     return hashlib.sha256(raw).hexdigest()
 
 
+def decode_red_native(raw: bytes):
+    from scripts.bot_development.analysis.red_tactical_policy import Model
+    if not raw:
+        raise ValueError("Empty native pickup weights.")
+    return Model.decode(raw)
+
+
 def predict_red_neural(text: str, features: dict) -> int:
-    """Integer mirror of native Red_Score >= 0 for parity checks."""
-    lines = text.splitlines()
-    if not lines or lines[0] != f"RED_NEURAL_V1 {len(DUEL_FEATURES)} {RED_HIDDEN}":
-        raise ValueError("Malformed RED_NEURAL_V1 header.")
-    rows = [tuple(map(int, row.split())) for row in lines[1:]]
-    if len(rows) != RED_HIDDEN + 3:
-        raise ValueError("Malformed RED_NEURAL_V1 dimensions.")
-    centers, scales, hidden, output = rows[0], rows[1], rows[2:-1], rows[-1]
-    values = _decision_vector(features, DUEL_FEATURES)
-    z = []
-    for value, center, scale in zip(values, centers, scales):
-        scaled = int((int(value) - center) * RED_Q / scale)
-        z.append(max(-2 * RED_Q, min(2 * RED_Q, scaled)))
-    score = output[0]
-    for (hidden_bias, *hidden_weights), out_weight in zip(hidden, output[1:]):
-        acc = hidden_bias + sum(w * v for w, v in zip(hidden_weights, z))
-        unit = max(0, min(32 * RED_Q, int(acc / RED_Q)))
-        score += out_weight * unit
-    return int(score >= 0)
+    """Run the strict integer model decoder and scorer used by the native match audit."""
+    model = decode_red_native(text.encode("ascii"))
+    return model.predict([int(v) for v in _decision_vector(features, DUEL_FEATURES)])
 
 
-def train_decision_from_store(store: BrainStore, kind: str, feature_names) -> dict:
+def _decision_sample(store, kind, split, scope, pace, build):
+    rows = store.decisions(kind, split=split, scope=scope, pace=pace, build=build)
+    cohorts = {(r["scope"], r["pace"], r["build"]) for r in rows}
+    if len(cohorts) > 1:
+        raise ValueError("Select a single training or evaluation cohort with scope, pace and build.")
+    cohort = next(iter(cohorts), (scope, pace, build))
+    return rows, dict(zip(("scope", "pace", "build"), cohort))
+
+
+def train_decision_from_store(store: BrainStore, kind: str, feature_names, *,
+                              scope=None, pace=None, build=None) -> dict:
     """Fit a distillation head from ledger rows of one decision kind."""
-    return fit_decision_model(store.decisions(kind), feature_names)
+    rows, cohort = _decision_sample(store, kind, "practice", scope, pace, build)
+    return fit_decision_model(rows, feature_names) | {"cohort": cohort, "decision_kind": kind}
 
 
 # Outcome training: move past imitation by weighting taken actions with
 # their observed advantage. Rewards are deliberately simple and auditable;
 # unrecognized outcome keys never contribute.
 REWARD_WEIGHTS = {
-    "kill": 3.0, "death": -3.0, "capture": 5.0, "pickup": 1.0,
+    "kill": 3.0, "death": -3.0, "capture": 5.0, "pickup": 1.0, "acquired_weapon": 1.0,
     "damage_dealt": 0.02, "damage_taken": -0.02,
     "route_success": 1.0, "route_failure": -1.0,
 }
@@ -849,7 +958,17 @@ def reward_from_outcome(outcome) -> float | None:
     return total if seen else None
 
 
+def _duel_owner_label(owner, applied):
+    # Historical test/export logs also spell the combat owner "fight".
+    expected = {"engage": 0, "fight": 0, "supply": 1}.get(owner)
+    return expected if expected is not None and expected == applied else None
+
+
 def _taken_label(row: dict):
+    outcome = row.get("outcome")
+    owner = outcome.get("owner") if isinstance(outcome, dict) else None
+    if row.get("kind") == "pickup_engage" and owner is not None:
+        return _duel_owner_label(owner, row.get("applied"))
     for field in ("applied", "selected", "teacher"):
         if row.get(field) is not None:
             return row[field]
@@ -857,7 +976,7 @@ def _taken_label(row: dict):
 
 
 def fit_outcome_model(rows, feature_names, *, temperature: float = 1.0,
-                      max_weight: float = 10.0, steps: int = 400,
+                      max_weight: float = 10.0, teacher_fraction: float = 0.0, steps: int = 400,
                       learning_rate: float = 0.2, l2: float = 1e-4) -> dict:
     """Advantage-weighted regression over ledger rows with outcomes.
 
@@ -873,8 +992,13 @@ def fit_outcome_model(rows, feature_names, *, temperature: float = 1.0,
     names = tuple(feature_names)
     if not names or len(set(names)) != len(names):
         raise ValueError("Decision feature names must be non-empty and unique.")
+    if not 0 <= teacher_fraction < 1:
+        raise ValueError("Teacher fraction must be in [0, 1).")
+    demonstrations = {0: [], 1: []}
     samples = []
     for row in rows:
+        if teacher_fraction and row.get("teacher") in (0, 1):
+            demonstrations[row["teacher"]].append(_decision_vector(row["features"], names))
         label = _taken_label(row)
         reward = reward_from_outcome(row.get("outcome"))
         if label is None or reward is None:
@@ -891,26 +1015,38 @@ def fit_outcome_model(rows, feature_names, *, temperature: float = 1.0,
         means[label] = sum(rewards) / len(rewards)
     x_rows = [vector for vector, _label, _reward in samples]
     y = [label for _vector, label, _reward in samples]
-    weights = [min(max_weight, max(0.05, math.exp((reward - means[label]) / temperature)))
-               for _vector, label, reward in samples]
+    weights = [math.exp(min(math.log(max_weight), max(math.log(0.05),
+                         (reward - means[label]) / temperature))) for _vector, label, reward in samples]
+    if teacher_fraction:
+        if not all(demonstrations.values()):
+            raise ValueError("The teacher anchor requires both demonstrated choices.")
+        # Give each demonstrated action half the teacher mass. A frequently
+        # logged pursuit must not train the rarer fight decision out of the bot.
+        mass = sum(weights) * teacher_fraction / (1 - teacher_fraction)
+        for label, vectors in demonstrations.items():
+            x_rows.extend(vectors)
+            y.extend([label] * len(vectors))
+            weights.extend([mass / (2 * len(vectors))] * len(vectors))
     model = _fit_logistic(x_rows, y, weights, steps=steps,
                            learning_rate=learning_rate, l2=l2)
     model["kind"] = "decision"
     model["features"] = list(names)
     model["train"] = {"rows": len(samples), "outcome_weighted": True,
-                      "temperature": temperature,
+                      "temperature": temperature, "teacher_fraction": teacher_fraction,
+                      "teacher_rows": sum(map(len, demonstrations.values())),
                       "reward_mean": sum(r for _v, _l, r in samples) / len(samples),
                       **model["train"]}
     return model
 
 
-def train_outcome_from_store(store: BrainStore, kind: str, feature_names,
-                             **kwargs) -> dict:
+def train_outcome_from_store(store: BrainStore, kind: str, feature_names, *,
+                             scope=None, pace=None, build=None, **kwargs) -> dict:
     """Fit an outcome-weighted head from ledger rows of one decision kind."""
-    return fit_outcome_model(store.decisions(kind), feature_names, **kwargs)
+    rows, cohort = _decision_sample(store, kind, "practice", scope, pace, build)
+    return fit_outcome_model(rows, feature_names, **kwargs) | {"cohort": cohort, "decision_kind": kind}
 
 
-def evaluate_decision_candidate(rows, model) -> dict:
+def evaluate_decision_candidate(rows, model, *, native_text=None) -> dict:
     """Shadow metrics for a decision candidate over labelled ledger rows.
 
     Reward comparisons use only rows whose taken action agrees with the
@@ -919,10 +1055,12 @@ def evaluate_decision_candidate(rows, model) -> dict:
     would have matched good outcomes, not a counterfactual guarantee.
     """
     _validate_decision_model(model)
+    native = decode_red_native(native_text.encode("ascii")) if native_text is not None else None
     labelled = correct = rewarded = agreed = 0
     per_class = {0: [0, 0], 1: [0, 0]}
     agreed_reward = disagreed_reward = 0.0
     agreed_rewarded = disagreed_rewarded = 0
+    rewarded_by_action = [0, 0]
     maps = set()
     for row in rows:
         label = _taken_label(row)
@@ -930,7 +1068,8 @@ def evaluate_decision_candidate(rows, model) -> dict:
             continue
         labelled += 1
         maps.add(row.get("map_sha", ""))
-        predicted = 1 if predict_decision(model, row["features"]) >= 0.5 else 0
+        predicted = (native.predict([int(v) for v in _decision_vector(row["features"], DUEL_FEATURES)]) if native
+                     else int(predict_decision(model, row["features"]) >= 0.5))
         per_class[label][1] += 1
         if predicted == label:
             correct += 1
@@ -939,6 +1078,7 @@ def evaluate_decision_candidate(rows, model) -> dict:
         reward = reward_from_outcome(row.get("outcome"))
         if reward is not None:
             rewarded += 1
+            rewarded_by_action[label] += 1
             if predicted == label:
                 agreed_reward += reward
                 agreed_rewarded += 1
@@ -951,6 +1091,8 @@ def evaluate_decision_candidate(rows, model) -> dict:
             "agreement": correct / labelled if labelled else 0.0,
             "balanced_accuracy": sum(recalls) / 2,
             "rewarded_rows": rewarded,
+            "rewarded_by_action": rewarded_by_action,
+            "agreed_rewarded_rows": agreed_rewarded, "disagreed_rewarded_rows": disagreed_rewarded,
             "agreed_rows": agreed,
             "agreed_reward_mean": agreed_reward / agreed_rewarded if agreed_rewarded else None,
             "disagreed_reward_mean": disagreed_reward / disagreed_rewarded if disagreed_rewarded else None}
@@ -961,18 +1103,39 @@ def qualify_decision_candidate(store: BrainStore, kind: str, model, *,
                                min_balanced_accuracy: float = 0.7,
                                min_rewarded: int = 10,
                                require_maps: int = 2,
-                               holdout_maps=None) -> dict:
+                               holdout_maps=None, scope=None, pace=None, build=None, native_text=None) -> dict:
     """Shadow-qualification gates for promoting a decision candidate.
 
     Passing means the offline evidence is strong enough to consider a
     live trial; promote_model still requires explicit safety and
     held-out confirmations from the operator.
     """
-    rows = store.decisions(kind)
+    cohort = model.get("cohort", {})
+    if model.get("decision_kind", kind) != kind:
+        raise ValueError("Candidate was trained for a different decision.")
+    for key, chosen in (("scope", scope), ("build", build)):
+        if chosen is not None and key in cohort and chosen != cohort[key]:
+            raise ValueError("Candidate and evaluation cohort differ in " + key)
+    rows, evaluated = _decision_sample(store, kind, "holdout",
+        scope if scope is not None else cohort.get("scope"),
+        pace if pace is not None else cohort.get("pace"),
+        build if build is not None else cohort.get("build"))
     if holdout_maps:
         wanted = set(holdout_maps)
         rows = [row for row in rows if row.get("map_sha", "") in wanted]
-    metrics = evaluate_decision_candidate(rows, model)
+    independent = []
+    excluded_learned = 0
+    for row in rows:
+        # A model's own actions cannot be its evaluation labels. Allow an
+        # explicitly labelled generic holdout whose provenance is independent
+        # of native Red telemetry, as well as the native teacher seat.
+        has_owner = isinstance(row["outcome"], dict) and "owner" in row["outcome"]
+        if row["policy_hash"] == "teacher" or (not row["policy_hash"] and not has_owner):
+            independent.append(row)
+        else:
+            excluded_learned += 1
+    metrics = evaluate_decision_candidate(independent, model, native_text=native_text)
+    metrics["excluded_policy_rows"] = excluded_learned
     reasons = []
     if metrics["rows"] < min_rows:
         reasons.append(f"only {metrics['rows']} labelled rows (< {min_rows})")
@@ -983,11 +1146,16 @@ def qualify_decision_candidate(store: BrainStore, kind: str, model, *,
             f"balanced accuracy {metrics['balanced_accuracy']:.3f} < {min_balanced_accuracy}")
     if metrics["rewarded_rows"] < min_rewarded:
         reasons.append(f"only {metrics['rewarded_rows']} rewarded rows (< {min_rewarded})")
+    elif kind == "pickup_engage" and min_rewarded and (
+            not all(metrics["rewarded_by_action"]) or not metrics["agreed_rewarded_rows"]
+            or not metrics["disagreed_rewarded_rows"]):
+        reasons.append("insufficient independent reward coverage for both executed actions and agreement groups")
     elif (metrics["agreed_reward_mean"] is not None
           and metrics["disagreed_reward_mean"] is not None
           and metrics["agreed_reward_mean"] < metrics["disagreed_reward_mean"]):
         reasons.append("candidate agrees with worse observed outcomes than it rejects")
-    return {"ok": not reasons, "reasons": reasons, "metrics": metrics}
+    return {"ok": not reasons, "reasons": reasons, "metrics": metrics, "cohort": evaluated,
+            "heldout_matches": len({r["match_id"] for r in independent if _taken_label(r) is not None})}
 
 
 _GEAR_PLAN = re.compile(
@@ -1015,21 +1183,21 @@ def ingest_decision_log(store: BrainStore, text: str, map_sha: str, scope: str,
                           "anchor": int(anchor), "direct": int(direct)},
             outcome={"choice_item": int(item), "guid": int(guid),
                      "signature": int(signature)},
-            map_sha=map_sha, scope=scope, pace=pace, build=build)
+            map_sha=map_sha, scope=scope, pace=pace, build=build, curated=False)
         counts["goal_plan"] += 1
     for current, chosen, dist, los, air, why in _SWITCH.findall(text):
         store.append_decision(
             "weapon_switch", {"from_weapon": int(current), "dist": float(dist),
                               "los": int(los), "air": int(air)},
             outcome={"choice_weapon": int(chosen), "why": why},
-            map_sha=map_sha, scope=scope, pace=pace, build=build)
+            map_sha=map_sha, scope=scope, pace=pace, build=build, curated=False)
         counts["weapon_switch"] += 1
     for bin_, level, mana, hold in _FORCE_INPUT.findall(text):
         store.append_decision(
             "force_cast", {"bin": int(bin_), "level": float(level),
                            "mana": float(mana), "hold": float(hold)},
             selected=1, outcome={"bin": int(bin_)},
-            map_sha=map_sha, scope=scope, pace=pace, build=build)
+            map_sha=map_sha, scope=scope, pace=pace, build=build, curated=False)
         counts["force_cast"] += 1
     return counts
 
@@ -1064,7 +1232,7 @@ def ingest_bot_decision_log(store: BrainStore, text: str, map_sha: str, scope: s
         if "why" in fields:
             outcome["why"] = fields["why"]
         store.append_decision(kind, features, outcome=outcome,
-                              map_sha=map_sha, scope=scope, pace=pace, build=build)
+                              map_sha=map_sha, scope=scope, pace=pace, build=build, curated=False)
         count += 1
     return count
 
@@ -1076,70 +1244,147 @@ _BOT_RED_STATE = re.compile(
 _DECISION_TIME = re.compile(r"BOT_(?:DECISION|DUEL) name=(\S+) t=([0-9.]+)")
 
 
-def _status_series(text: str) -> dict:
-    """Chronological BOT_STATUS/BOT_RED_STATE samples per bot.
+_LIFE = re.compile(r"\blife=(\d+)")
+_WEAPONS = re.compile(r"\bweapons=(0x[\da-fA-F]+)\b")
+_DEAD = re.compile(r"\bdead=([01])\b")
 
-    Red policy clients emit BOT_RED_STATE far more frequently than the
-    periodic BOT_STATUS summary; both map to (t, kills, deaths, health).
+
+class _OwnerState(NamedTuple):
+    when: float
+    kills: int
+    deaths: int
+    hp: float
+    life: str | None
+    weapons: int | None
+    dead: int | None
+
+
+def _decision_outcomes(lines, window):
+    """Give each observed score/health delta once to the latest action of its kind.
+
+    Timing is observational. A change sampled across a respawn is ambiguous and
+    left unassigned. Red's dense actor telemetry takes precedence over summaries.
     """
-    series: dict[str, list] = {}
-    for line in text.splitlines():
-        match = _BOT_RED_STATE.search(line) or _BOT_STATUS.search(line)
-        if not match:
+    samples, red_samples, choices = {}, {}, {}
+    for index, line in enumerate(lines):
+        status = _BOT_RED_STATE.search(line)
+        target = red_samples if status else samples
+        status = status or _BOT_STATUS.search(line)
+        if status:
+            name, when, health, kills, deaths = status.groups()
+            life = _LIFE.search(line)
+            weapons, dead = _WEAPONS.search(line), _DEAD.search(line)
+            target.setdefault(name, []).append(_OwnerState(
+                float(when), int(kills), int(deaths), float(health), life[1] if life else None,
+                int(weapons[1], 16) if weapons else None, int(dead[1]) if dead else None))
+        else:
+            head = _DECISION_TIME.search(line)
+            if not head:
+                continue
+            detail = _BOT_DECISION.search(line)
+            duel = _DUEL.search(line)
+            kind = detail[1] if detail else "pickup_engage" if duel else None
+            if kind:
+                life = _LIFE.search(line)
+                # Keep an override in chronological order as a barrier.
+                label = _duel_owner_label(duel[5], int(duel[4])) if duel else None
+                choices.setdefault((head[1], kind), []).append(
+                    (float(head[2]), index, life[1] if life else None, label))
+    samples.update(red_samples)
+    outcomes = {}
+    for (name, kind), actions in choices.items():
+        actions.sort()
+        times = [action[0] for action in actions]
+        points = sorted(samples.get(name, []), key=lambda p: p[0])
+        if not points:
             continue
-        name, t, health, kills, deaths = match.groups()
-        series.setdefault(name, []).append(
-            (float(t), int(kills), int(deaths), float(health)))
-    for points in series.values():
-        points.sort(key=lambda point: point[0])
-    return series
-
-
-def _outcome_at(series, name: str, when: float, window: float) -> dict:
-    """Kill/death/damage deltas for one bot in (when, when+window]."""
-    points = series.get(name) or []
-    base = None
-    future = None
-    for point in points:
-        if point[0] <= when:
-            base = point
-        if when < point[0] <= when + window:
-            future = point
-    if base is None or future is None:
-        return {}
-    outcome = {}
-    if future[1] > base[1]:
-        outcome["kill"] = future[1] - base[1]
-    if future[2] > base[2]:
-        outcome["death"] = future[2] - base[2]
-    drop = base[3] - future[3]
-    if drop > 0:
-        outcome["damage_taken"] = drop
-    return outcome
+        life_start = points[0][0]
+        for prev, curr in zip(points, points[1:]):
+            if curr.life != prev.life or curr.kills < prev.kills or curr.deaths < prev.deaths:
+                life_start = curr.when
+                continue
+            pos = bisect_left(times, curr.when) - 1
+            if pos < 0 or times[pos] < max(life_start, curr.when - window):
+                continue
+            _, index, action_life, label = actions[pos]
+            if curr.deaths > prev.deaths:
+                life_start = curr.when
+            if ((action_life is not None and curr.life is not None and action_life != curr.life)
+                    or kind == "pickup_engage" and label is None):
+                continue
+            gains = {"kill": curr.kills-prev.kills, "death": curr.deaths-prev.deaths,
+                     "damage_taken": prev.hp-curr.hp}
+            if (kind == "pickup_engage" and label == 1 and curr.life is not None and action_life == curr.life
+                    and curr.dead == prev.dead == 0 and curr.deaths == prev.deaths
+                    and prev.weapons is not None and curr.weapons is not None):
+                # Stock weapon inventory slots are 1..10. A gain establishes
+                # acquisition by this actor, not which map thing supplied it.
+                gains["acquired_weapon"] = (curr.weapons & ~prev.weapons & 0x7fe).bit_count()
+            for key, value in gains.items():
+                if value > 0:
+                    item = outcomes.setdefault(index, {})
+                    item[key] = item.get(key, 0) + value
+    return outcomes
 
 
 def ingest_match_log(store: BrainStore, text: str, map_sha: str, scope: str,
                      pace: str = "unknown", build: str = "",
-                     window: float = 5.0) -> dict:
-    """Ingest one match log with outcomes attributed from BOT_STATUS deltas.
+                     window: float = 5.0, *, match_id=None, split="practice", game_window=None) -> dict:
+    if not math.isfinite(window) or window <= 0:
+        raise ValueError("Attribution window must be positive and finite.")
+    digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
+    if split == "holdout" and not match_id:
+        raise ValueError("Use the same explicit match ID for both held-out seat logs.")
+    if game_window and (len(game_window) != 2 or any(type(t) is not int for t in game_window)
+                        or not 0 <= game_window[0] < game_window[1]):
+        raise ValueError("Invalid match game-clock window.")
+    with store.match_log(digest, match_id or digest, map_sha, scope, pace, build, split, window, game_window) as fresh:
+        if not fresh:
+            return {"duplicate": True}
+        if game_window:
+            kept = []
+            for line in text.splitlines():
+                if not line.startswith("BOT_"):
+                    continue
+                stamp = re.search(r"\bgame_ms=(\d+)", line)
+                seconds = re.search(r"\bt=(\d+(?:\.\d+)?)", line) if not stamp else None
+                when = int(stamp[1]) if stamp else round(1000 * float(seconds[1])) if seconds else None
+                if when is not None and game_window[0] <= when < game_window[1]:
+                    kept.append(line)
+            text = "\n".join(kept)
+        return _ingest_match_rows(store, text, map_sha, scope, pace, build, window, split)
 
-    Decisions (BOT_DECISION and BOT_DUEL) gain kill/death/damage_taken
-    outcomes from the same bot's status series inside the attribution
-    window - an approximation: kills are credited to every decision in
-    the window, which the outcome trainer's advantage baseline absorbs.
-    Edge telemetry in the same log is ingested too. Returns counts.
-    """
-    if window <= 0:
-        raise ValueError("Attribution window must be positive.")
-    series = _status_series(text)
+
+def _ingest_match_edges(store, lines, map_sha, scope, pace, build):
+    # The recall hook and geometry trace can describe the very same traversal.
+    # Keep the geometry sample, plus any recall-only events from older engines.
+    identity = re.compile(r"name=(\S+) t=([0-9.]+)")
+    def key(line, event):
+        actor = identity.search(line)
+        return ((actor[1], float(actor[2]), *event.groups()[:4]) if actor else None)
+    attempted = set()
+    for line in lines:
+        event = _EDGE_ATTEMPT.search(line)
+        if event:
+            attempted.add(key(line, event))
+    count = 0
+    for line in lines:
+        if "BOT_EDGE_ATTEMPT" in line:
+            count += store.ingest_edge_log(line, map_sha, scope, pace, build)
+        elif "BOT_NAV_LEARN" in line:
+            event = _NAV_LEARN.search(line)
+            if event and (key(line, event) is None or key(line, event) not in attempted):
+                count += store.ingest_nav_log(line, map_sha, scope, pace, build)
+    return count
+
+
+def _ingest_match_rows(store, text, map_sha, scope, pace, build, window, split) -> dict:
+    """Ingest a finished seat log with bounded, same-life outcome attribution."""
+    lines = text.splitlines()
+    outcomes = _decision_outcomes(lines, window)
     counts = {"bot_decision": 0, "pickup_engage": 0, "edges": 0, "attributed": 0}
-    # BOT_DECISION rows with attributed outcomes.
-    for line in text.splitlines():
-        head = _DECISION_TIME.search(line)
-        if not head:
-            continue
-        name, when = head.group(1), float(head.group(2))
-        outcome = _outcome_at(series, name, when, window)
+    for index, line in enumerate(lines):
+        outcome = outcomes.get(index, {})
         duel = _DUEL.search(line)
         if duel:
             values, teacher, selected, applied, owner, model = duel.groups()
@@ -1176,8 +1421,8 @@ def ingest_match_log(store: BrainStore, text: str, map_sha: str, scope: str,
                                   map_sha=map_sha, scope=scope, pace=pace, build=build)
             counts["bot_decision"] += 1
             counts["attributed"] += bool(outcome)
-    counts["edges"] = (store.ingest_edge_log(text, map_sha, scope, pace=pace)
-                       + store.ingest_nav_log(text, map_sha, scope, pace=pace))
+    if split == "practice":
+        counts["edges"] = _ingest_match_edges(store, lines, map_sha, scope, pace, build)
     counts.update(ingest_decision_log(store, text, map_sha, scope,
                                       pace=pace, build=build))
     return counts
@@ -1282,6 +1527,12 @@ def main(argv=None) -> int:
     ingest_file.add_argument("--map-sha", required=True)
     ingest_file.add_argument("--scope", required=True)
     ingest_file.add_argument("--pace", default="unknown")
+    batch = sub.add_parser("ingest-receipt")
+    batch.add_argument("directory", type=Path)
+    batch.add_argument("--split", choices=("practice", "holdout"), required=True)
+    rollback = sub.add_parser("rollback")
+    rollback.add_argument("--kind", required=True)
+    rollback.add_argument("--scope", required=True)
     ingest_match = sub.add_parser("ingest-match")
     ingest_match.add_argument("log", type=Path)
     ingest_match.add_argument("--map-sha", required=True)
@@ -1305,6 +1556,8 @@ def main(argv=None) -> int:
     ingest_decisions.add_argument("--scope", required=True)
     ingest_decisions.add_argument("--pace", default="unknown")
     ingest_decisions.add_argument("--build", default="")
+    ingest_decisions.add_argument("--match-id", help="Shared ID for both seats when importing a match")
+    ingest_decisions.add_argument("--split", choices=("practice", "holdout"), default="practice")
     train_decision = sub.add_parser("train-decision")
     train_decision.add_argument("--kind", required=True)
     train_decision.add_argument("--features", required=True,
@@ -1313,11 +1566,20 @@ def main(argv=None) -> int:
     train_decision.add_argument("--outcome-weighted", action="store_true",
                                 help="Weight by observed outcome advantage (AWR)")
     train_decision.add_argument("--temperature", type=float, default=1.0)
+    for cmd in (train_decision, cycle):
+        cmd.add_argument("--teacher-fraction", type=float, default=0.0, help="Fraction of fit weight reserved for class-balanced script examples (0 to less than 1).")
+    ingest_match.add_argument("--match-id", help="Shared ID for all seat logs of this match")
+    ingest_match.add_argument("--split", choices=("practice", "holdout"), default="practice")
+    cycle.add_argument("--match-id", help="Shared ID for all seat logs of this match")
     qualify = sub.add_parser("qualify-decision")
     qualify.add_argument("--kind", required=True)
     qualify.add_argument("--model", type=Path, required=True)
+    qualify.add_argument("--native", type=Path, help="Score the exact integer RED_NEURAL_V1 artifact.")
     qualify.add_argument("--min-rows", type=int, default=50)
     qualify.add_argument("--min-balanced-accuracy", type=float, default=0.7)
+    for command in (train_decision, qualify):
+        for field in ("scope", "pace", "build"):
+            command.add_argument("--" + field, help="Select the evidence " + field)
     import_coach = sub.add_parser("import-coach")
     import_coach.add_argument("memory", type=Path)
     export_coach = sub.add_parser("export-coach")
@@ -1326,6 +1588,8 @@ def main(argv=None) -> int:
     export_red.add_argument("model", type=Path, help="Decision model JSON over DUEL_FEATURES")
     export_red.add_argument("--out", type=Path, required=True)
     train = sub.add_parser("train-edge")
+    for name in ("scope", "pace", "build"):
+        train.add_argument("--" + name)
     train.add_argument("--out", type=Path, required=True)
     train.add_argument("--native-out", type=Path,
                        help="Also write ADJOIN_EDGE_V1 text for JK_BOT_EDGE_MODEL")
@@ -1335,6 +1599,8 @@ def main(argv=None) -> int:
     register.add_argument("--scope", required=True)
     promote = sub.add_parser("promote")
     promote.add_argument("sha256")
+    promote.add_argument("--kind")
+    promote.add_argument("--scope")
     promote.add_argument("--safety-ok", action="store_true")
     promote.add_argument("--heldout-ok", action="store_true")
     args = parser.parse_args(argv)
@@ -1343,7 +1609,7 @@ def main(argv=None) -> int:
         if args.action == "init":
             print(f"brain ready profile={args.profile} root={args.root}")
         elif args.action == "status":
-            print(json.dumps({"decisions": len(store.decisions()),
+            print(json.dumps({"decisions": store.db.execute("SELECT COUNT(*) FROM decisions").fetchone()[0],
                               "edges": len(store.edge_rows()),
                               "active": store.manifest["active"],
                               "models": len(store.manifest["models"])},
@@ -1356,45 +1622,45 @@ def main(argv=None) -> int:
                                         args.map_sha, args.scope, pace=args.pace))
         elif args.action == "ingest-nav-file":
             print(store.ingest_nav_file(args.nav, args.map_sha, args.scope, pace=args.pace))
+        elif args.action == "ingest-receipt":
+            from scripts.bot_development.train_matches import ingest_receipt
+            print(json.dumps(ingest_receipt(store, args.directory, split=args.split), sort_keys=True))
+        elif args.action == "rollback":
+            print(store.rollback(args.kind, args.scope) or "script")
         elif args.action == "ingest-match":
             print(ingest_match_log(
-                store, args.log.read_text(encoding="utf-8", errors="replace"),
+                store, args.log.read_bytes().decode("utf-8", errors="replace"),
                 args.map_sha, args.scope, pace=args.pace, build=args.build,
-                window=args.window))
+                window=args.window, match_id=args.match_id, split=args.split))
         elif args.action == "cycle":
-            text = args.log.read_text(encoding="utf-8", errors="replace")
+            text = args.log.read_bytes().decode("utf-8", errors="replace")
             counts = ingest_match_log(store, text, args.map_sha, args.scope,
-                                      pace=args.pace, build=args.build)
+                                      pace=args.pace, build=args.build, match_id=args.match_id)
             features = [n.strip() for n in args.features.split(",") if n.strip()]
             model = train_outcome_from_store(store, args.kind, features,
-                                             temperature=args.temperature)
+                                             temperature=args.temperature, teacher_fraction=args.teacher_fraction, scope=args.scope, pace=args.pace, build=args.build)
             digest = save_decision_model(model, args.out)
             verdict = qualify_decision_candidate(store, args.kind, model)
             print(json.dumps({"ingested": counts, "model_sha256": digest,
                               "qualify": verdict}, indent=2, sort_keys=True))
         elif args.action == "ingest-decisions":
-            text = args.log.read_text(encoding="utf-8", errors="replace")
-            print(ingest_decision_log(store, text, args.map_sha, args.scope,
-                                      pace=args.pace, build=args.build) |
-                  {"pickup_engage": ingest_duel_log(
-                      store, text, args.map_sha, args.scope,
-                      pace=args.pace, build=args.build),
-                   "bot_decision": ingest_bot_decision_log(
-                      store, text, args.map_sha, args.scope,
-                      pace=args.pace, build=args.build)})
+            text = args.log.read_bytes().decode("utf-8", errors="replace")
+            print(ingest_match_log(store, text, args.map_sha, args.scope, pace=args.pace,
+                                   build=args.build, match_id=args.match_id, split=args.split))
         elif args.action == "train-decision":
             features = [name.strip() for name in args.features.split(",") if name.strip()]
             if args.outcome_weighted:
                 model = train_outcome_from_store(store, args.kind, features,
-                                                 temperature=args.temperature)
+                                                 temperature=args.temperature, teacher_fraction=args.teacher_fraction, scope=args.scope, pace=args.pace, build=args.build)
             else:
-                model = train_decision_from_store(store, args.kind, features)
+                model = train_decision_from_store(store, args.kind, features, scope=args.scope, pace=args.pace, build=args.build)
             print(save_decision_model(model, args.out))
         elif args.action == "qualify-decision":
             model = load_decision_model(args.model)
             print(json.dumps(qualify_decision_candidate(
                 store, args.kind, model, min_rows=args.min_rows,
-                min_balanced_accuracy=args.min_balanced_accuracy),
+                min_balanced_accuracy=args.min_balanced_accuracy, scope=args.scope, pace=args.pace, build=args.build,
+                native_text=args.native.read_text(encoding="ascii") if args.native else None),
                 indent=2, sort_keys=True))
         elif args.action == "import-coach":
             print(store.import_coach_memory(
@@ -1408,8 +1674,12 @@ def main(argv=None) -> int:
         elif args.action == "export-red":
             print(export_red_neural(load_decision_model(args.model), args.out))
         elif args.action == "train-edge":
-            rows = [(row["features"], row["successes"], row["failures"])
-                    for row in store.edge_rows() if row["features"]]
+            edges = [row for row in store.edge_rows() if row["features"] and
+                     all(getattr(args, k) is None or getattr(args, k) == row[k]
+                         for k in ("scope", "pace", "build"))]
+            if len({(r["scope"], r["pace"], r["build"]) for r in edges}) > 1:
+                raise ValueError("Select a single edge cohort with --scope, --pace and --build.")
+            rows = [(row["features"], row["successes"], row["failures"]) for row in edges]
             model = fit_edge_model(rows)
             print(save_edge_model(model, args.out))
             if args.native_out:
@@ -1418,7 +1688,7 @@ def main(argv=None) -> int:
             print(store.register_model(args.model, args.kind, args.scope))
         elif args.action == "promote":
             store.promote_model(args.sha256, safety_ok=args.safety_ok,
-                                heldout_ok=args.heldout_ok)
+                                heldout_ok=args.heldout_ok, kind=args.kind, scope=args.scope)
             print(f"promoted {args.sha256}")
     finally:
         store.close()
