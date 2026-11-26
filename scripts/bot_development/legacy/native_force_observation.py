@@ -228,9 +228,11 @@ def observe(side, name, line, row, trace):
         raise Failure(side + "_join_rejected")
     if kind == "BOT_LOADOUT":
         rank=row.get("expected_rank",8)
-        if not re.fullmatch(f"rank={rank} side={side} style=competitive spent={3*rank} remaining=0", tail):
+        style = row.get("expected_style", "competitive")
+        unspent = 8 if style == "master" and rank == 8 else 0
+        if not re.fullmatch(f"rank={rank} side={side} style={style} spent={3*rank-unspent} remaining={unspent}", tail):
             raise Failure(side + "_incorrect_saved_plan")
-        row["loadout"] = {"rank": rank, "style": "competitive", "spent": 3*rank, "remaining": 0}
+        row["loadout"] = {"rank": rank, "style": style, "spent": 3*rank-unspent, "remaining": unspent}
     if kind == "BOT_JOINED":
         slot, net = int(fields["slot"]), int(fields["net"])
         if not 0 <= slot < 32 or not 0 < net <= 0xffffffff:
@@ -264,7 +266,8 @@ def observe(side, name, line, row, trace):
                           read_elapsed_s=round(time.monotonic()-START,3)))+"\n")
     row["samples"] += 1
     row["first_stars"] = row["first_stars"] or stars
-    row["matching_star_samples"] += stars == [4 if row.get("expected_rank",8) and b in EXPECTED[side] else 0 for b in range(21,35)]
+    expected = set(range(25, 30)) if row.get("expected_style") == "master" else EXPECTED[side]
+    row["matching_star_samples"] += stars == [4 if row.get("expected_rank",8) and b in expected else 0 for b in range(21,35)]
     row["immobile_samples"] += sample["immobile"] == 1
     prev = row["previous"]
     example = {k:sample[k] for k in ("t","health","shields","mana","immobile")}
@@ -343,7 +346,8 @@ def run(args, receipt, tmp):
             import native_red_match as red_tools
             bot, build = red_tools.resolve_client(repo, args.red_policy_build.resolve(), pace_build, digest,
                                                   transfer=bool(args.transfer_build), custom=bool(args.custom_build),
-                                                  platform_build=bool(args.platform_build), hint_build=bool(args.hint_build))
+                                                  platform_build=bool(args.platform_build), hint_build=bool(args.hint_build),
+                                                  competitive=bool(args.competitive_build))
             args.red_tools = red_tools
             receipt["kind"] = "adjoin-arena-stock-red-policy"
             receipt["red_policy"] = {"build":build, "elite":True, "model_side":args.model_side,
@@ -439,6 +443,10 @@ def run(args, receipt, tmp):
     if args.transfer_build:
         for owner in bots.values():
             owner["expected_rank"]=cfg["rank"]
+    if args.competitive_build:
+        receipt["competitive_controls"] = {"saber_tracking": args.saber_tracking, "light_loadout": args.light_loadout,
+                                          "force_controller": "competitive"}
+        bots["light"]["expected_style"] = args.light_loadout
     for side, pid in LABELS.items():
         if (profiles[pid]["force_side"],profiles[pid]["force_style"]) != (side,"competitive"):
             raise Failure(side+"_incorrect_profile")
@@ -485,9 +493,14 @@ def run(args, receipt, tmp):
             directory = tmp/side
             env = private_env(directory,bot)
             standard = bot_environment(bot,directory,tmp,index,"",False,behavior_file=tmp/"behavior.cfg",
-                                       team=(index+1 if cfg["teams"] else 0),force_side=side,force_style="competitive")
+                                       team=(index+1 if cfg["teams"] else 0),force_side=side,
+                                       force_style=bots[side].get("expected_style","competitive"))
             env.update({k:v for k,v in standard.items() if k.startswith("JK_BOT_")})
             env["JK_BOT_TRACE_FORCE"] = "1"
+            if args.competitive_build:
+                env["JK_BOT_SABER_TRACK"] = "1" if args.saber_tracking in ("both", side) else "0"
+                if side == "light" and args.light_loadout == "master":
+                    env["ADJOIN_LIGHT_LOADOUT_TRIAL"] = "1"
             if args.planner_quarantine:
                 env["JK_BOT_PLANNER_QUARANTINE"] = "1" if args.planner_quarantine == "on" else "0"
             if args.pace_build:
@@ -677,6 +690,11 @@ def main():
     parser.add_argument("--route-hint-sha256", help="Expected SHA-256 of the entire route file.")
     parser.add_argument("--route-hint-scope", help="The intended mode, weapons and Force preset, e.g. ffa/guns/force.")
     parser.add_argument("--mode", choices=("ffa","tdm","ctf"))
+    parser.add_argument("--competitive-build", type=Path, help="Pinned stock-mode research client with saber tracking.")
+    parser.add_argument("--saber-tracking", choices=("both", "neither", "dark", "light"), default="both",
+                        help="Enable the new saber steering for the selected owner(s).")
+    parser.add_argument("--light-loadout", choices=("competitive", "master"), default="competitive",
+                        help="Compare a legal Light rank-eight master allocation using the same Force controller.")
     parser.add_argument("--weapons", choices=("guns","sabers"))
     parser.add_argument("--force", choices=("on","off"))
     parser.add_argument("--episode-file", type=Path)
@@ -694,6 +712,14 @@ def main():
     parser.add_argument("--camera", choices=("follow", "rifle-overlook"),
                         help="Record the selected native camera (implies --record).")
     args = parser.parse_args()
+    if args.competitive_build:
+        if any((args.hint_build, args.custom_build, args.platform_build, args.transfer_build)):
+            parser.error("--competitive-build selects a single stock-mode client")
+        args.transfer_build = args.competitive_build
+    elif args.saber_tracking != "both" or args.light_loadout != "competitive":
+        parser.error("alternate saber controls and Light loadout require --competitive-build")
+    if args.light_loadout == "master" and args.force != "on":
+        parser.error("--light-loadout master requires a full Force match")
     hint = (args.route_hint, args.route_hint_sha256, args.route_hint_scope)
     if args.hint_build:
         if args.platform_build or args.custom_build or args.transfer_build or not all(hint):

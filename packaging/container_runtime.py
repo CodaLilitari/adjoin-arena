@@ -21,7 +21,7 @@ def ensure_config(data_root: Path) -> Path:
         "episode": "JK1MP",
         "map": "m2.jkl",
         "engine": "/app/bin/linux-x86_64/openjkdf2",
-        "bots_engine": "/app/bin/bots-linux-x86_64/jk-bot-client",
+        "bots_engine": "/app/bin/bots-linux-x86_64/jk-bot-competitive",
         "game_data": "/game-data",
         "web_client": "/opt/jk-web",
         "web_bind": "0.0.0.0",

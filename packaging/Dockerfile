@@ -20,7 +20,7 @@ RUN python -m pip install --no-cache-dir -r /tmp/requirements-lock.txt
 
 WORKDIR /app
 COPY . /app/
-RUN chmod 755 /app/bin/linux-x86_64/openjkdf2 /app/bin/bots-linux-x86_64/jk-bot-client \
+RUN chmod 755 /app/bin/linux-x86_64/openjkdf2 /app/bin/bots-linux-x86_64/jk-bot-client /app/bin/bots-linux-x86_64/jk-bot-competitive \
     && python -m web_gateway.fetch_client --destination /opt/jk-web
 COPY packaging/container_runtime.py /usr/local/bin/jk-container-runtime.py
 

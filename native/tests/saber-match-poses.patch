@@ -1,0 +1,23 @@
+--- a/src/AI/jkBot.c
++++ b/src/AI/jkBot.c
+@@ -1796,6 +1796,20 @@
+     Red_FinishDecision();
+     Red_State(self,dead);
+     Transfer_State(self);
++    /* Research observer on the normal owner tick, immediately before the
++       engine consumes input. The next live frame measures the displacement. */
++    if (red.trace && sithInventory_GetCurrentWeapon(self)==SITHBIN_LIGHTSABER) {
++        SithThing *foe=bot.targetSlot>=0 && bot.targetSlot<JKPLAYER_NUM_INFOS ?
++            jkPlayer_playerInfos[bot.targetSlot].pLocalPlayer : NULL;
++        fprintf(stderr,"BOT_SABER_POSE frame=%d life=%d game_ms=%u dead=%d xy=%.6f,%.6f z=%.6f pitch=%.3f foe=%d foe_z=%.6f foe_vz=%.4f fwd=%.5f slide=%.5f fire=%d,%d\n",
++            red.frame,red.life,(unsigned)sithTime_g_msecGameTime,dead,
++            (double)self->position.x,(double)self->position.y,(double)self->position.z,
++            (double)self->actorParams.headPYR.x,bot.targetSlot,
++            foe?(double)foe->position.z:0.0,foe?(double)foe->physicsParams.vel.z:0.0,
++            (double)bot.axes[INPUT_FUNC_FORWARD],(double)bot.axes[INPUT_FUNC_SLIDE],
++            bot.keys[INPUT_FUNC_FIRE1],bot.keys[INPUT_FUNC_FIRE2]);
++    }
++
+     Companion_Publish(self,dead);
+     bot.wasDead=dead;
+     for (int i=0;i<INPUT_FUNC_MAX;i++) bot.presses[i]=bot.keys[i] && !bot.previous[i];

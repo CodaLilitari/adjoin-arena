@@ -32,7 +32,7 @@ class ConfigurationTests(unittest.TestCase):
             config = json.loads(path.read_text())
             self.assertEqual(path, Path(directory) / "config/server.json")
             self.assertEqual(config["engine"], "/app/bin/linux-x86_64/openjkdf2")
-            self.assertEqual(config["bots_engine"], "/app/bin/bots-linux-x86_64/jk-bot-client")
+            self.assertEqual(config["bots_engine"], "/app/bin/bots-linux-x86_64/jk-bot-competitive")
             self.assertEqual(config["game_data"], "/game-data")
             self.assertEqual(config["web_client"], "/opt/jk-web")
             self.assertEqual(config["web_bind"], "0.0.0.0")

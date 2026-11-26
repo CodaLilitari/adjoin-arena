@@ -553,3 +553,26 @@ with earlier runs.
 
 [JHS route](../bots/routes/jhs-school-entry.route) · [Hint build receipt](red-hint-build.json) ·
 [Native waypoint controller](red_hint.inc) · [Opening evidence reader](../scripts/bot_development/analysis/audit_platform_openings.py)
+
+### Competitive native clients
+
+The ordinary launcher and newly configured supervisors select the packaged `bin/bots-linux-x86_64/jk-bot-competitive` for stock JK1MP and JK1CTF games. It uses the original engine clock. The paced research client contains the same compiled Red controller and stock JK control object. A saved `bots_engine` path selects that executable, and an explicit `--engine` takes precedence on the command line.
+
+```sh
+python3 -B -m bots.run --server-config "$SERVER_CONFIG" --profiles jan_ors,boba_fett \
+  --runtime "$BOT_RUNTIME" --no-taunts
+```
+
+To rebuild the packaged executable, use Ubuntu 24.04 amd64 system libraries. The recipe pins `libm.so.6` from the original Noble `libc6_2.39-0ubuntu8_amd64.deb` and links to the runtime libraries in the same directory. The package digest is `af36c7ac770770fe3d3c10e85d6bc538e76e57570ba7db7d397fb9f654783ef3`. An external Noble sysroot also works. The frozen Red export and generated globals are described above. The output includes the executable, its matching GNS library and the distributable relink bundle. [Ubuntu's Noble archive package](https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc6_2.39-0ubuntu8_amd64.deb)
+
+```sh
+python3 -B native/build_competitive_stock.py --red-export "$RED_EXPORT" \
+  --source "$ENGINE_SOURCE" --globals-header "$GLOBALS_HEADER" \
+  --target-libm "$NOBLE_LIBDIR/libm.so.6" --output "$STOCK_OUTPUT"
+```
+
+For an isolated paced training match, run `native/build_competitive.py` with the source, Red export, globals header and a fresh output directory. In the existing stock transfer observation command, select `--competitive-build "$PACED_OUTPUT"`. Each bot starts playing on join. `--saber-tracking dark` or `light` enables new saber steering only in that seat. The default enables both. `--light-loadout master` in a full-Force match selects the legal pure-Light Protection allocation while retaining the competitive controller. The normal Light preset spends four stars each on Jump, Speed, Seeing, Pull, Heal and Absorb. Stock maps without a matching pickup model retain Red's decision script and navigation.
+
+Each build accepts additional `--source` directories to locate the receipt-pinned engine inputs. The observer hashes both clients' loaded executables and game-networking library. To summarize a match window and read CTF captures from the host, run `python3 -B scripts/bot_development/competitive_results.py "$MATCH_DIR"`. Saber-fire samples with movement input measure the issued command. The optional test overlay records adjacent actual positions as well.
+
+[Original-clock build receipt](competitive-stock-build.json) · [Paced build receipt](competitive-build.json) · [Saber movement and aim](saber-combat.patch) · [Per-frame test observer](tests/saber-match-poses.patch)

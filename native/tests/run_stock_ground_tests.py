@@ -12,6 +12,7 @@ from pathlib import Path
 import re
 import shlex
 import subprocess
+import sys
 import tempfile
 
 HERE = Path(__file__).resolve().parent
@@ -33,6 +34,8 @@ def main() -> int:
     parser.add_argument("--build", type=Path, required=True,
                         help="Configured engine CMake build directory")
     parser.add_argument("--cc", default=os.environ.get("CC", "cc"))
+    parser.add_argument("--saber", action="store_true",
+                        help="Replay ten consecutive close-range fight inputs from the bot driver")
     args = parser.parse_args()
     source = args.source.resolve()
     flags_file = args.build.resolve() / "CMakeFiles/sith_engine.dir/flags.make"
@@ -54,7 +57,14 @@ def main() -> int:
                      "General/stdMath.c")]
         executable = work / "check"
         subprocess.run([*command, "-Wl,--gc-sections", "-lm", "-o", str(executable)], check=True)
-        subprocess.run([str(executable)], check=True)
+        if args.saber:
+            frames = work / "saber-frames.txt"
+            subprocess.run([sys.executable, str(HERE / "run_bot_driver_tests.py"), "--source", str(source),
+                            "--build", str(args.build.resolve()), "--cc", args.cc,
+                            "--saber-frames", str(frames)], check=True)
+            subprocess.run([str(executable), str(frames)], check=True)
+        else:
+            subprocess.run([str(executable)], check=True)
     return 0
 
 

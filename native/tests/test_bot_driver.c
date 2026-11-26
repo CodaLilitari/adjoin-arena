@@ -9,7 +9,17 @@
 #ifndef JKBOT_TEST_NEW_DEFAULTS
 #define JKBOT_TACTICS_BASELINE_LEGACY 1
 #endif
+#if __has_include("AI/red_transfer.inc")
+/* The frozen Red overlay ships Transfer_EdgePrior and its unused cost
+   parameter. Keep those warnings visible while exercising that exact source. */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic warning "-Wunused-function"
+#pragma GCC diagnostic warning "-Wunused-parameter"
+#endif
 #include "AI/jkBot.c"
+#if __has_include("AI/red_transfer.inc")
+#pragma GCC diagnostic pop
+#endif
 #ifdef NDEBUG
 #error Assertions must remain enabled for the driver regression tests
 #endif
@@ -17,6 +27,11 @@ uint32_t jkPlayer_maxPlayers;
 SithPlayer jkPlayer_playerInfos[JKPLAYER_NUM_INFOS];
 int32_t sithNet_MultiModeFlags;
 int32_t sithNet_tickrate=16;
+__typeof__(sithPlayer_g_pLocalPlayer) sithPlayer_g_pLocalPlayer;
+__typeof__(sithTime_g_msecGameTime) sithTime_g_msecGameTime;
+__typeof__(playerThingIdx) playerThingIdx;
+__typeof__(sithNet_teamScore) sithNet_teamScore;
+__typeof__(std_g_pHS) std_g_pHS;
 SithThing *sithPlayer_g_pLocalPlayerThing;
 flex_t sithTime_g_secGameTime;
 int sithControl_death_msgtimer; /* quick_respawn reads the stock death message timer */
@@ -28,6 +43,8 @@ static flex_t corridorCeiling=-0.05f;
 static SithSector *corridorSector;
 static SithSurface corridorFloor;
 static SithCollision corridorHit;
+static SithThing *saberBandTarget;
+static flex_t saberBandZ;
 static int fixtureMode;
 static SithCollision fixtureHit;
 #include "test_bot_c1_geometry.inc"
@@ -67,6 +84,15 @@ flex_t sithCollision_SearchForCollisions(SithSector *sector, SithThing *thing,
     }
     if (testCombatArena) {
         pendingHit=TestCombatCollision(sector,from,direction,distance,radius,&corridorHit);
+        if (saberBandTarget && thing && radius==0 && flags==0 && direction->y>0.01f) {
+            flex_t t=(saberBandTarget->position.y-from->y)/direction->y;
+            if (t>=0 && t<distance && (!pendingHit || t<corridorHit.distance) &&
+                fabsf(from->z+t*direction->z-saberBandZ)<0.003f) {
+                corridorHit=(SithCollision){.type=SITHCOLLISION_THING,.distance=t,
+                                             .pThingCollided=saberBandTarget};
+                pendingHit=1;
+            }
+        }
         if (thing && thing->type==SITH_THING_WEAPON && flags==0)
             TestBeamCollision(thing,from,direction,distance,radius,&corridorHit,&pendingHit);
         return distance;
@@ -139,9 +165,25 @@ static flex_t TestPitch(void) { return bot.axes[INPUT_FUNC_PITCH]!=0 ? bot.axes[
 #include "test_bot_equipment.inc"
 #include "test_bot_tactics.inc"
 #include "test_bot_tactic_fixes.inc"
+#ifdef JKBOT_HAS_SABER_TRACK
+#include "test_bot_saber_tracking.inc"
+#endif
 
-int main(void)
+int main(int argc,char **argv)
 {
+    if (argc==2) {
+#ifdef JKBOT_HAS_SABER_TRACK
+        FILE *frames=fopen(argv[1],"w");
+        if (!frames) { perror(argv[1]); return 1; }
+        test_bot_saber_tracking(frames);
+        return fclose(frames)!=0;
+#else
+        (void)argv;
+        fputs("Writing saber inputs requires native/saber-combat.patch\n",stderr);
+        return 1;
+#endif
+    }
+    assert(argc==1);
     SithSector sector={0};
     SithThing self={0}, peer={0};
     SithPlayer own={0};
@@ -275,5 +317,8 @@ int main(void)
     test_combat_supply_jump();
     test_bot_tactics();
     test_bot_tactic_fixes();
+#ifdef JKBOT_HAS_SABER_TRACK
+    test_bot_saber_tracking(NULL);
+#endif
     return 0;
 }

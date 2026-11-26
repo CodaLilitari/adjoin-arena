@@ -25,7 +25,7 @@ from typing import BinaryIO
 
 from manager import config as server_config
 from .companion import Hub
-from .settings import behavior_values, check_scope, write_behavior
+from .settings import behavior_values, check_scope, engine_path, write_behavior
 
 ROOT = Path(__file__).resolve().parents[1]
 PROFILE_FILE = Path(__file__).with_name("profiles.json")
@@ -494,7 +494,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--list-profiles", action="store_true")
     parser.add_argument("--server-config", type=Path)
     parser.add_argument("--profiles", help="Comma-separated stock profile ids; defaults to bots_profiles in the server config")
-    parser.add_argument("--engine", type=Path, default=ROOT / "bin/bots-linux-x86_64/jk-bot-client")
+    parser.add_argument("--engine", type=Path, help="Override the server-configured or packaged competitive client.")
     parser.add_argument("--connect", help="HOST:PORT, default 127.0.0.1:<native_port> from server config")
     parser.add_argument("--runtime", type=Path, default=ROOT / "runtime/bots")
     parser.add_argument("--seconds", type=float, default=0, help="Stop after this many seconds; 0 runs until interrupted")
@@ -518,7 +518,7 @@ def main(argv: list[str] | None = None) -> int:
             raise ValueError("Supply an existing --server-config JSON file for your running server.")
         config = server_config.validate(json.loads(args.server_config.read_text(encoding="utf-8")))
         selected = select_profiles(profiles, args.profiles or ",".join(config["bots_profiles"]))
-        code, _ = launch(config, selected, engine=args.engine,
+        code, _ = launch(config, selected, engine=args.engine or engine_path(config),
                          connect=args.connect or f"127.0.0.1:{config['native_port']}",
                          runtime=args.runtime, seconds=args.seconds,
                          taunts=config["bots_taunts"] and not args.no_taunts,

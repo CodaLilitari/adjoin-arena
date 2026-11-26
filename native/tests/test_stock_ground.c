@@ -30,6 +30,9 @@ __typeof__(sithTime_g_fps) sithTime_g_fps=50;
 int32_t Main_bMotsCompat;
 int jkPlayer_currentTickIdx;
 SithWorld *sithWorld_g_pCurrentWorld;
+__typeof__(sithPlayer_g_pLocalPlayer) sithPlayer_g_pLocalPlayer;
+__typeof__(sithTime_g_msecGameTime) sithTime_g_msecGameTime;
+__typeof__(playerThingIdx) playerThingIdx;
 __typeof__(sithNet_isMulti) sithNet_isMulti=1; /* bots only play multiplayer */
 __typeof__(sithNet_tickrate) sithNet_tickrate=16;
 __typeof__(jkPlayer_bJankyPhysics) jkPlayer_bJankyPhysics;
@@ -119,8 +122,41 @@ static void expect(const char *label,Run run,flex_t speed,flex_t heading)
     assert(run.runway>run.coast+0.2f && "the checked runway covers the coast with room to spare");
 }
 
-int main(void)
+/* Replay inputs captured by the fight dispatcher with both profiles starting
+   from rest. The rows are observation, not movement set directly on the actor. */
+static void test_saber_replay(FILE *frames)
 {
+    for (int tracked=0;tracked<=1;tracked++) {
+        stand(0,0); backlog=0;
+        rdVector3 origin=self.position;
+        for (int tick=0;tick<10;tick++) {
+            int profile,index,fire1,fire2,fast;
+            float slide,forward;
+            assert(fscanf(frames,"%d %d %f %f %d %d %d",&profile,&index,&slide,&forward,
+                          &fire1,&fire2,&fast)==7);
+            assert(profile==tracked && index==tick && (fire1 || fire2));
+            bot.axes[INPUT_FUNC_SLIDE]=slide; bot.axes[INPUT_FUNC_FORWARD]=forward;
+            bot.keys[INPUT_FUNC_FIRE1]=fire1; bot.keys[INPUT_FUNC_FIRE2]=fire2;
+            bot.keys[INPUT_FUNC_FAST]=fast;
+            step(.020f);
+        }
+        flex_t distance=Bot_Distance(self.position,origin);
+        assert(tracked ? distance>.015f : distance==0);
+        printf("PASS saber motion tracked=%d seconds=0.20 distance=%.8g speed=%.8g\n",
+               tracked,(double)distance,(double)Bot_Horizontal(self.physicsParams.vel));
+    }
+    char extra; assert(fscanf(frames," %c",&extra)==EOF);
+}
+
+int main(int argc,char **argv)
+{
+    if (argc==2) {
+        FILE *frames=fopen(argv[1],"r");
+        if (!frames) { perror(argv[1]); return 1; }
+        test_saber_replay(frames);
+        return fclose(frames)!=0;
+    }
+    assert(argc==1);
     const flex_t walk=2.0f/3.0f, angle=BOT_DIAGONAL_ANGLE;
     for (int rate=30;rate<=60;rate+=10) {
         flex_t dt=1.0f/rate;

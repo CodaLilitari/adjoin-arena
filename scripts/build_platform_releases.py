@@ -74,7 +74,11 @@ def read_payload(source: Path) -> tuple[str, dict[str, tuple[bytes, int]]]:
             if total > MAX_BYTES:
                 raise PlatformReleaseError("Input exceeds the uncompressed size limit.")
             files[relative] = (archive.read(member), stat.S_IMODE(mode))
-    missing = REQUIRED - files.keys()
+    # Historical verified updater ZIPs predate the competitive default.
+    competitive = "bin/bots-linux-x86_64/jk-bot-competitive"
+    new_native = competitive in files or competitive.encode() in files.get("packaging/container_runtime.py", (b"", 0))[0]
+    extra = {competitive} if new_native else set()
+    missing = (REQUIRED | extra) - files.keys()
     if missing:
         raise PlatformReleaseError("Required payload files are missing: " + ", ".join(sorted(missing)))
     if "platform-readme.md" in seen:
@@ -100,7 +104,7 @@ def read_payload(source: Path) -> tuple[str, dict[str, tuple[bytes, int]]]:
                             in sorted(files.items()) if name != "SHA256SUMS").encode("utf-8")
     if files["SHA256SUMS"][0] != expected_sums:
         raise PlatformReleaseError("Payload checksum file is stale or incomplete.")
-    for name in EXECUTABLES:
+    for name in EXECUTABLES | extra:
         if files[name][1] != 0o755:
             raise PlatformReleaseError(f"Executable permission missing from updater payload: {name}")
     return version, files

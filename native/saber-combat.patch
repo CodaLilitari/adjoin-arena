@@ -1,0 +1,117 @@
+diff --git a/src/AI/jkBot.c b/src/AI/jkBot.c
+--- a/src/AI/jkBot.c
++++ b/src/AI/jkBot.c
+@@ -392,4 +392,6 @@
+ }
+ 
++#define JKBOT_HAS_SABER_TRACK 1
++static int botSaberTrack=1;
+ #include "AI/jkBotCombat.inc"
+ 
+@@ -1251,5 +1253,12 @@
+     if ((bot.routeMode==BOT_ROUTE_SWIM && !swimFight) || bot.routeMode==BOT_ROUTE_WATER_ENTRY) bot.routeAim=1;
+     BotGunShot shot=Bot_ChooseGunShot(self,target,weapon);
+-    if (!shot.blast && !shot.beam) {
++    int trackSaber=weapon==SITHBIN_LIGHTSABER && botSaberTrack;
++    if (trackSaber && Bot_Horizontal(d)<0.001f && fabsf(shot.aim.z-self->position.z)>0.001f) {
++        /* Pitch toward an overhead or underneath opponent without picking an
++           arbitrary yaw when the horizontal displacement vanishes. */
++        shot.aim.x=self->position.x+0.002f*self->orient.lvec.x;
++        shot.aim.y=self->position.y+0.002f*self->orient.lvec.y;
++    }
++    if (!trackSaber && !shot.blast && !shot.beam) {
+         shot.aim.x+=sinf(bot.now*1.3f+(bot.random&255))*0.006f;
+         shot.aim.y+=cosf(bot.now*1.1f+(bot.random&255))*0.006f;
+@@ -1269,4 +1278,7 @@
+     }
+     flex_t h=Bot_Horizontal(d);
++    if (trackSaber && h<0.001f) {
++        d=self->orient.lvec; h=Bot_Horizontal(d);
++    }
+     if (h>0.001f) {
+         d.x/=h; d.y/=h; d.z=0;
+@@ -1274,7 +1286,22 @@
+         flex_t lateral=BT(COMBAT_STRAFE)*bot.strafeSide;
+         rdVector3 move={d.x*forward-d.y*lateral,d.y*forward+d.x*lateral,0};
+-        if (melee && distance<0.16f) move=(rdVector3){0,0,0};
+-        /* A fight is where speed matters most; the corridor check still decides. */
+-        bot.moveRun=bot.moveBoost=1;
++        if (trackSaber && distance<0.16f) {
++            /* Pressing into a touching player stalls. Walk around their
++               collision radius without boosting past the strike. Recheck the
++               opposite side at a ledge; Bot_Move still owns the safety veto. */
++            if (lateral) {
++                move=(rdVector3){-d.y*lateral,d.x*lateral,0};
++                rdVector3 blocked;
++                if (!Bot_SafeDirection(self,move,0,Bot_Horizontal(move),&blocked)) {
++                    move.x=-move.x; move.y=-move.y;
++                }
++            } else {
++                move=(rdVector3){-d.x*0.4f,-d.y*0.4f,0};
++            }
++            bot.moveRun=bot.moveBoost=0;
++        } else {
++            if (melee && distance<0.16f) move=(rdVector3){0,0,0};
++            bot.moveRun=bot.moveBoost=1;
++        }
+         Bot_Move(self,move,0);
+     }
+@@ -1605,4 +1632,6 @@
+     Bot_ConfigureTactics();
+     Companion_Configure();
++    const char *saberTrack=getenv("JK_BOT_SABER_TRACK");
++    botSaberTrack=!saberTrack || strcmp(saberTrack,"0")!=0;
+     bot.forceEnabled=1; bot.fistsPeace=0; /* fists as peace: taken out for now */
+     bot.competitiveForce=jkBotLoadout_Style(getenv("JK_BOT_FORCE_STYLE"))==JKBOT_STYLE_COMPETITIVE;
+diff --git a/src/AI/jkBotCombat.inc b/src/AI/jkBotCombat.inc
+--- a/src/AI/jkBotCombat.inc
++++ b/src/AI/jkBotCombat.inc
+@@ -223,7 +223,48 @@
+ }
+ 
++/* Check a visible mesh opponent at saber range with the stock world query.
++   Face colliders can have empty space at the thing origin; sphere colliders
++   have their hit volume centered on that origin regardless of skin. */
++static int Bot_SaberSeesBand(SithThing *self,SithThing *target,rdVector3 point,flex_t radius)
++{
++    rdVector3 dir=Bot_Sub(point,self->position);
++    flex_t len=Bot_Len(dir);
++    if (len<0.001f || !self->sector) return 0;
++    dir.x/=len; dir.y/=len; dir.z/=len;
++    sithCollision_SearchForCollisions(self->sector,self,&self->position,&dir,len+radius,0,0);
++    SithCollision *hit;
++    do { hit=sithCollision_PopStack(); } while (hit && (hit->type&SITHCOLLISION_ADJOINCROSS));
++    int visible=hit && (hit->type&SITHCOLLISION_THING) && hit->pThingCollided==target;
++    sithCollision_DecreaseStackLevel();
++    return visible;
++}
++
++static rdVector3 Bot_SaberAimPoint(SithThing *self,SithThing *target)
++{
++    rdVector3 aim=target->position;
++    flex_t radius=target->collideSize;
++    if (target->collide==SITH_COLLIDE_SPHERE_TREE) radius=target->treeSize;
++    if (!isfinite(radius) || radius<=0) return aim;
++    if ((target->collide==SITH_COLLIDE_FACE || target->collide==SITH_COLLIDE_SPHERE_TREE) &&
++        target->renderData.model3 && Bot_Distance(self->position,aim)<0.75f &&
++        !Bot_SaberSeesBand(self,target,aim,radius)) {
++        static const flex_t heights[]={-0.45f,0.45f,-0.85f,0.85f};
++        for (unsigned i=0;i<sizeof(heights)/sizeof(*heights);i++) {
++            rdVector3 point=aim; point.z+=radius*heights[i];
++            if (Bot_SaberSeesBand(self,target,point,radius)) { aim=point; break; }
++        }
++    }
++    /* Lead at most one body radius and at most 0.08 world units. Estimate
++       relative rise/fall over the next 80 ms, including our own jump. */
++    flex_t vz=target->physicsParams.vel.z-self->physicsParams.vel.z;
++    flex_t bound=Bot_Min(radius,0.08f);
++    if (isfinite(vz)) aim.z+=Bot_Clamp(vz*0.08f,-bound,bound);
++    return aim;
++}
++
+ static BotGunShot Bot_ChooseGunShot(SithThing *self,SithThing *target,int weapon)
+ {
+     BotGunShot primary=Bot_PlanGunShot(self,target,weapon);
++    if (weapon==SITHBIN_LIGHTSABER && botSaberTrack) primary.aim=Bot_SaberAimPoint(self,target);
+     if (!bot.elite || weapon!=SITHBIN_CONCUSSION_RIFLE) return primary;
+     SithThing *beam=Bot_ConcBeam();

@@ -1,0 +1,1633 @@
+{
+  "schema": 1,
+  "date": "2026-11-26",
+  "game": "Jedi Knight Dark Forces II",
+  "game_seconds": 80,
+  "pace": 1,
+  "scope": "Independent ordinary stock spawns in isolated loopback games. Each side begins playing on join. Spawn RNG was not assigned or observed. The schedule swaps the join order and experimental seat where applicable.",
+  "sources": {
+    "candidate": "77b26c6f5846588fdc80901cf6201080beb0147219be6e50ad5b139ce83f19fb",
+    "stock_clock": "31b6496ad0c282d83290a1ea24c9d2466b628292c87fc99c441b1a89dcbf53d7",
+    "red_transfer": "305606479cb89d790305aae378aad8130a40ff519e479e40ca0d78c014a23849",
+    "pose_observer": "90fbc4523ecce0e994cfd84cf101b1aa14ac55f0b23a96745c24f93e485d1045",
+    "pose_binary": "06fa4297543261e2c962d22fb8c4dbe7f4d7c6c619488a4e980ef807f233c406",
+    "authoritative_summary": "scripts/bot_development/competitive_results.py"
+  },
+  "maps": {
+    "c1.jkl": "349fb5beffba7c84fd573fe1184f3fbb569d4fcdad07d2d9b26fcb8afdb849e0",
+    "m_boss17.jkl": "5c0795709ff3f2da525d0ad9ce4a3e41b13445febc1b5f88f727c864b606349f",
+    "m2.jkl": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a"
+  },
+  "definitions": {
+    "kills": "Delta of the playing client's kill counter during its 80s measured window.",
+    "deaths": "Delta of the playing client's death counter in that window.",
+    "sampled_saber_fire": "BOT_RED_NAV samples while a saber attack button is down, nominal interval 0.2 game seconds.",
+    "sampled_saber_fire_with_move_input": "Sum of absolute forward and slide axes exceeds 0.01 on such samples.",
+    "saber_fire_frame_pairs": "Adjacent live frames in the same life, saber equipped, first frame has a held attack button, delta XY within 0.3 units.",
+    "saber_fire_frames_xy_over_0001": "XY delta on those pairs exceeds 0.001 native world units.",
+    "host_captures": "Dedicated host broadcast naming a completed Red or Gold flag capture, inside the 80s host window.",
+    "error": "Rejected attempt, excluded from all performance totals."
+  },
+  "runs": [
+    {
+      "stage": "baseline",
+      "run": "ctf-p1-both-boba",
+      "receipt_sha256": "e3ae787f96f8a5f56ce4ebee5b771d65e2d2165501a04d53b2b329e4ae679670",
+      "map": "c1.jkl",
+      "seat_order": [
+        "boba_fett",
+        "jan_ors"
+      ],
+      "candidate_saber_side": null,
+      "light_style": "competitive",
+      "model_side": null,
+      "host_captures": {
+        "red": 1,
+        "gold": 1
+      },
+      "dark": {
+        "kills": 3,
+        "deaths": 1,
+        "sectors": 42,
+        "weapon_gains": 6,
+        "sampled_saber_fire": 6,
+        "sampled_saber_fire_with_move_input": 6
+      },
+      "light": {
+        "kills": 1,
+        "deaths": 3,
+        "sectors": 40,
+        "weapon_gains": 5,
+        "sampled_saber_fire": 1,
+        "sampled_saber_fire_with_move_input": 1
+      }
+    },
+    {
+      "stage": "baseline",
+      "run": "ctf-p1-both-jan",
+      "receipt_sha256": "2b3e424317c0904bec072ea25bdf6bdb2eefdb88a90c99a22ca0c688ff5fd4a5",
+      "map": "c1.jkl",
+      "seat_order": [
+        "jan_ors",
+        "boba_fett"
+      ],
+      "candidate_saber_side": null,
+      "light_style": "competitive",
+      "model_side": null,
+      "host_captures": {
+        "red": 0,
+        "gold": 1
+      },
+      "dark": {
+        "kills": 1,
+        "deaths": 2,
+        "sectors": 43,
+        "weapon_gains": 11,
+        "sampled_saber_fire": 9,
+        "sampled_saber_fire_with_move_input": 4
+      },
+      "light": {
+        "kills": 2,
+        "deaths": 1,
+        "sectors": 36,
+        "weapon_gains": 3,
+        "sampled_saber_fire": 11,
+        "sampled_saber_fire_with_move_input": 11
+      }
+    },
+    {
+      "stage": "baseline",
+      "run": "ff-saber-p1-both-boba",
+      "receipt_sha256": "40080ea1abc4cdb79fd4963df96c3e0ced0b13c3e8dda909247adc654c416c2e",
+      "map": "m_boss17.jkl",
+      "seat_order": [
+        "boba_fett",
+        "jan_ors"
+      ],
+      "candidate_saber_side": null,
+      "light_style": "competitive",
+      "model_side": null,
+      "dark": {
+        "kills": 0,
+        "deaths": 2,
+        "sectors": 19,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 37,
+        "sampled_saber_fire_with_move_input": 6
+      },
+      "light": {
+        "kills": 2,
+        "deaths": 0,
+        "sectors": 20,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 49,
+        "sampled_saber_fire_with_move_input": 10
+      }
+    },
+    {
+      "stage": "baseline",
+      "run": "ff-saber-p1-both-jan",
+      "receipt_sha256": "3d9fb6e7ecd23311bea4f03faa53437aa4daa95bfa4ee1fbd638f5cab7919bcc",
+      "map": "m_boss17.jkl",
+      "seat_order": [
+        "jan_ors",
+        "boba_fett"
+      ],
+      "candidate_saber_side": null,
+      "light_style": "competitive",
+      "model_side": null,
+      "dark": {
+        "kills": 1,
+        "deaths": 1,
+        "sectors": 16,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 33,
+        "sampled_saber_fire_with_move_input": 1
+      },
+      "light": {
+        "kills": 1,
+        "deaths": 1,
+        "sectors": 16,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 37,
+        "sampled_saber_fire_with_move_input": 15
+      }
+    },
+    {
+      "stage": "baseline",
+      "run": "nf-guns-p1-both-boba",
+      "receipt_sha256": "36f18421c8cbb7b5c9e607211ee86ea825436387065ed7b0416ce28a40e1ccd1",
+      "map": "m2.jkl",
+      "seat_order": [
+        "boba_fett",
+        "jan_ors"
+      ],
+      "candidate_saber_side": null,
+      "light_style": "competitive",
+      "model_side": null,
+      "dark": {
+        "kills": 2,
+        "deaths": 0,
+        "sectors": 14,
+        "weapon_gains": 3,
+        "duel_labels": 454
+      },
+      "light": {
+        "kills": 0,
+        "deaths": 2,
+        "sectors": 22,
+        "weapon_gains": 6,
+        "duel_labels": 342
+      }
+    },
+    {
+      "stage": "baseline",
+      "run": "nf-guns-p1-both-jan",
+      "receipt_sha256": "c7309272559bc240586c02b4bda5db7b6507a47bf6b5c7bff45f9f71b24a0244",
+      "error": "native_pace_game_window_exceeded"
+    },
+    {
+      "stage": "baseline",
+      "run": "nf-sabers-p1-both-boba",
+      "receipt_sha256": "01d32127079a954f8e42a668295886abcc880591e73b11396da374e8570522a0",
+      "map": "m_boss17.jkl",
+      "seat_order": [
+        "boba_fett",
+        "jan_ors"
+      ],
+      "candidate_saber_side": null,
+      "light_style": "competitive",
+      "model_side": null,
+      "dark": {
+        "kills": 2,
+        "deaths": 2,
+        "sectors": 11,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 19,
+        "sampled_saber_fire_with_move_input": 6
+      },
+      "light": {
+        "kills": 2,
+        "deaths": 2,
+        "sectors": 9,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 16,
+        "sampled_saber_fire_with_move_input": 4
+      }
+    },
+    {
+      "stage": "baseline",
+      "run": "nf-sabers-p1-both-jan",
+      "receipt_sha256": "74820773a4f1415d879abe0961a189bc19b00279bb2870b32afc459ce6932c96",
+      "map": "m_boss17.jkl",
+      "seat_order": [
+        "jan_ors",
+        "boba_fett"
+      ],
+      "candidate_saber_side": null,
+      "light_style": "competitive",
+      "model_side": null,
+      "dark": {
+        "kills": 2,
+        "deaths": 3,
+        "sectors": 12,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 28,
+        "sampled_saber_fire_with_move_input": 14
+      },
+      "light": {
+        "kills": 3,
+        "deaths": 2,
+        "sectors": 12,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 27,
+        "sampled_saber_fire_with_move_input": 4
+      }
+    },
+    {
+      "stage": "baseline-nf-repeat",
+      "run": "nf-guns-p1-both-boba",
+      "receipt_sha256": "58c9c77720dae41a4d445c05fa8aa14fe8034bc945c7c0b027de3367adff31e0",
+      "map": "m2.jkl",
+      "seat_order": [
+        "boba_fett",
+        "jan_ors"
+      ],
+      "candidate_saber_side": null,
+      "light_style": "competitive",
+      "model_side": null,
+      "dark": {
+        "kills": 1,
+        "deaths": 0,
+        "sectors": 16,
+        "weapon_gains": 2,
+        "duel_labels": 278
+      },
+      "light": {
+        "kills": 0,
+        "deaths": 1,
+        "sectors": 31,
+        "weapon_gains": 3,
+        "duel_labels": 250,
+        "sampled_saber_fire": 3,
+        "sampled_saber_fire_with_move_input": 3
+      }
+    },
+    {
+      "stage": "baseline-nf-repeat",
+      "run": "nf-guns-p1-both-jan",
+      "receipt_sha256": "fe067bdd5b6ed054647b0891bc0940b09b6ed93f4244d1a68816fb46eab2e240",
+      "map": "m2.jkl",
+      "seat_order": [
+        "jan_ors",
+        "boba_fett"
+      ],
+      "candidate_saber_side": null,
+      "light_style": "competitive",
+      "model_side": null,
+      "dark": {
+        "kills": 0,
+        "deaths": 0,
+        "sectors": 14,
+        "weapon_gains": 2
+      },
+      "light": {
+        "kills": 0,
+        "deaths": 0,
+        "sectors": 11,
+        "weapon_gains": 0
+      }
+    },
+    {
+      "stage": "saber",
+      "run": "ff-saber-p1-dark-boba",
+      "receipt_sha256": "bad1a886480d79a3dcbd4dfed0a2a2c6bd5f0ba24c08e2a5fe313e898f5bfae3",
+      "map": "m_boss17.jkl",
+      "seat_order": [
+        "boba_fett",
+        "jan_ors"
+      ],
+      "candidate_saber_side": "dark",
+      "light_style": "competitive",
+      "model_side": null,
+      "dark": {
+        "kills": 2,
+        "deaths": 2,
+        "sectors": 14,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 68,
+        "sampled_saber_fire_with_move_input": 66
+      },
+      "light": {
+        "kills": 1,
+        "deaths": 2,
+        "sectors": 9,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 73,
+        "sampled_saber_fire_with_move_input": 42
+      }
+    },
+    {
+      "stage": "saber",
+      "run": "ff-saber-p1-dark-jan",
+      "receipt_sha256": "32828de3b577e4e7325b45bb958988f2986deb3da44cc9e835660c30510c5a47",
+      "map": "m_boss17.jkl",
+      "seat_order": [
+        "jan_ors",
+        "boba_fett"
+      ],
+      "candidate_saber_side": "dark",
+      "light_style": "competitive",
+      "model_side": null,
+      "dark": {
+        "kills": 0,
+        "deaths": 0,
+        "sectors": 1,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 11,
+        "sampled_saber_fire_with_move_input": 0
+      },
+      "light": {
+        "kills": 0,
+        "deaths": 0,
+        "sectors": 9,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 17,
+        "sampled_saber_fire_with_move_input": 0
+      }
+    },
+    {
+      "stage": "saber",
+      "run": "ff-saber-p1-light-boba",
+      "receipt_sha256": "d22b00a5ce0e568af5e2af880dc271f5a6f20caab01eac461c6ebb16e2a52024",
+      "map": "m_boss17.jkl",
+      "seat_order": [
+        "boba_fett",
+        "jan_ors"
+      ],
+      "candidate_saber_side": "light",
+      "light_style": "competitive",
+      "model_side": null,
+      "dark": {
+        "kills": 3,
+        "deaths": 1,
+        "sectors": 12,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 66,
+        "sampled_saber_fire_with_move_input": 14
+      },
+      "light": {
+        "kills": 1,
+        "deaths": 3,
+        "sectors": 17,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 70,
+        "sampled_saber_fire_with_move_input": 66
+      }
+    },
+    {
+      "stage": "saber",
+      "run": "ff-saber-p1-light-jan",
+      "receipt_sha256": "080bf438c9bd8a9dcfb2c3ad4b6ded220bc165786abcf6dbac1003748a6b957b",
+      "map": "m_boss17.jkl",
+      "seat_order": [
+        "jan_ors",
+        "boba_fett"
+      ],
+      "candidate_saber_side": "light",
+      "light_style": "competitive",
+      "model_side": null,
+      "dark": {
+        "kills": 1,
+        "deaths": 2,
+        "sectors": 13,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 10,
+        "sampled_saber_fire_with_move_input": 0
+      },
+      "light": {
+        "kills": 2,
+        "deaths": 1,
+        "sectors": 13,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 11,
+        "sampled_saber_fire_with_move_input": 5
+      }
+    },
+    {
+      "stage": "saber",
+      "run": "nf-sabers-p1-dark-boba",
+      "receipt_sha256": "69aa3097be73ae828855f6e483d7e81946ce10e9cba5272f6a1f712db5d89f09",
+      "map": "m_boss17.jkl",
+      "seat_order": [
+        "boba_fett",
+        "jan_ors"
+      ],
+      "candidate_saber_side": "dark",
+      "light_style": "competitive",
+      "model_side": null,
+      "dark": {
+        "kills": 0,
+        "deaths": 1,
+        "sectors": 10,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 7,
+        "sampled_saber_fire_with_move_input": 6
+      },
+      "light": {
+        "kills": 1,
+        "deaths": 0,
+        "sectors": 9,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 7,
+        "sampled_saber_fire_with_move_input": 0
+      }
+    },
+    {
+      "stage": "saber",
+      "run": "nf-sabers-p1-dark-jan",
+      "receipt_sha256": "9a4cab62435af88855e98e5418c21622a1944a80a6c9228f017503ed60f1ed75",
+      "map": "m_boss17.jkl",
+      "seat_order": [
+        "jan_ors",
+        "boba_fett"
+      ],
+      "candidate_saber_side": "dark",
+      "light_style": "competitive",
+      "model_side": null,
+      "dark": {
+        "kills": 0,
+        "deaths": 0,
+        "sectors": 2,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 12,
+        "sampled_saber_fire_with_move_input": 0
+      },
+      "light": {
+        "kills": 0,
+        "deaths": 0,
+        "sectors": 9,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 15,
+        "sampled_saber_fire_with_move_input": 0
+      }
+    },
+    {
+      "stage": "saber",
+      "run": "nf-sabers-p1-light-boba",
+      "receipt_sha256": "8f71bb18510eee2b20a0cc55e131dfe745a7474d29b37285b0d52c73721ddfaf",
+      "map": "m_boss17.jkl",
+      "seat_order": [
+        "boba_fett",
+        "jan_ors"
+      ],
+      "candidate_saber_side": "light",
+      "light_style": "competitive",
+      "model_side": null,
+      "dark": {
+        "kills": 0,
+        "deaths": 2,
+        "sectors": 7,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 55,
+        "sampled_saber_fire_with_move_input": 8
+      },
+      "light": {
+        "kills": 2,
+        "deaths": 0,
+        "sectors": 10,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 44,
+        "sampled_saber_fire_with_move_input": 26
+      }
+    },
+    {
+      "stage": "saber",
+      "run": "nf-sabers-p1-light-jan",
+      "receipt_sha256": "3cd96398f4a618532df926deec4ee3277e8e828bedf035cd0030cd0738354260",
+      "map": "m_boss17.jkl",
+      "seat_order": [
+        "jan_ors",
+        "boba_fett"
+      ],
+      "candidate_saber_side": "light",
+      "light_style": "competitive",
+      "model_side": null,
+      "dark": {
+        "kills": 2,
+        "deaths": 1,
+        "sectors": 13,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 22,
+        "sampled_saber_fire_with_move_input": 11
+      },
+      "light": {
+        "kills": 1,
+        "deaths": 2,
+        "sectors": 15,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 24,
+        "sampled_saber_fire_with_move_input": 16
+      }
+    },
+    {
+      "stage": "light",
+      "run": "ff-saber-p1-competitive-boba",
+      "receipt_sha256": "7eebc6f1a5a6a430571b1060fe242f7add89b0ce47a66f1e660a2aa18e1c27ee",
+      "map": "m_boss17.jkl",
+      "seat_order": [
+        "boba_fett",
+        "jan_ors"
+      ],
+      "candidate_saber_side": "both",
+      "light_style": "competitive",
+      "model_side": null,
+      "dark": {
+        "kills": 2,
+        "deaths": 2,
+        "sectors": 12,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 65,
+        "sampled_saber_fire_with_move_input": 32
+      },
+      "light": {
+        "kills": 2,
+        "deaths": 2,
+        "sectors": 19,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 67,
+        "sampled_saber_fire_with_move_input": 32
+      },
+      "light_inventory": {
+        "stars_21_to_34": [
+          4.0,
+          4.0,
+          4.0,
+          4.0,
+          4.0,
+          0.0,
+          0.0,
+          4.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "matched": 161,
+        "samples": 161,
+        "protection_active_samples": 0
+      }
+    },
+    {
+      "stage": "light",
+      "run": "ff-saber-p1-competitive-jan",
+      "receipt_sha256": "781d21fca6c029062958f900cd30ddb1ed3fdbdf37e6306bfe0965e514d14baf",
+      "map": "m_boss17.jkl",
+      "seat_order": [
+        "jan_ors",
+        "boba_fett"
+      ],
+      "candidate_saber_side": "both",
+      "light_style": "competitive",
+      "model_side": null,
+      "dark": {
+        "kills": 3,
+        "deaths": 1,
+        "sectors": 11,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 85,
+        "sampled_saber_fire_with_move_input": 84
+      },
+      "light": {
+        "kills": 1,
+        "deaths": 3,
+        "sectors": 16,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 115,
+        "sampled_saber_fire_with_move_input": 114
+      },
+      "light_inventory": {
+        "stars_21_to_34": [
+          4.0,
+          4.0,
+          4.0,
+          4.0,
+          4.0,
+          0.0,
+          0.0,
+          4.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "matched": 164,
+        "samples": 164,
+        "protection_active_samples": 0
+      }
+    },
+    {
+      "stage": "light",
+      "run": "ff-saber-p1-master-boba",
+      "receipt_sha256": "594f955804a88aa3d019b4b51a6b14238096709ee825106c55b4a743bcb5b1f1",
+      "map": "m_boss17.jkl",
+      "seat_order": [
+        "boba_fett",
+        "jan_ors"
+      ],
+      "candidate_saber_side": "both",
+      "light_style": "master",
+      "model_side": null,
+      "dark": {
+        "kills": 0,
+        "deaths": 0,
+        "sectors": 5,
+        "weapon_gains": 0
+      },
+      "light": {
+        "kills": 0,
+        "deaths": 0,
+        "sectors": 4,
+        "weapon_gains": 0
+      },
+      "light_inventory": {
+        "stars_21_to_34": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          4.0,
+          4.0,
+          4.0,
+          4.0,
+          4.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "matched": 160,
+        "samples": 160,
+        "protection_active_samples": 0
+      }
+    },
+    {
+      "stage": "light",
+      "run": "ff-saber-p1-master-jan",
+      "receipt_sha256": "9ab61432faa078f4e2174c5a48cdbcd7624f7e665b07a7b3fcb0e34f200ce0e6",
+      "map": "m_boss17.jkl",
+      "seat_order": [
+        "jan_ors",
+        "boba_fett"
+      ],
+      "candidate_saber_side": "both",
+      "light_style": "master",
+      "model_side": null,
+      "dark": {
+        "kills": 1,
+        "deaths": 0,
+        "sectors": 10,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 8,
+        "sampled_saber_fire_with_move_input": 8
+      },
+      "light": {
+        "kills": 0,
+        "deaths": 1,
+        "sectors": 7,
+        "weapon_gains": 0,
+        "sampled_saber_fire": 9,
+        "sampled_saber_fire_with_move_input": 7,
+        "protection_inputs": 1
+      },
+      "light_inventory": {
+        "stars_21_to_34": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          4.0,
+          4.0,
+          4.0,
+          4.0,
+          4.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "matched": 164,
+        "samples": 164,
+        "protection_active_samples": 71
+      }
+    },
+    {
+      "stage": "competitive-ctf",
+      "run": "ctf-p1-both-boba",
+      "receipt_sha256": "75bfcbeb14c02c803f60eaec15a808f366d81586871ee3b3969999971002f3ff",
+      "map": "c1.jkl",
+      "seat_order": [
+        "boba_fett",
+        "jan_ors"
+      ],
+      "candidate_saber_side": "both",
+      "light_style": "competitive",
+      "model_side": null,
+      "host_captures": {
+        "red": 2,
+        "gold": 0
+      },
+      "dark": {
+        "kills": 4,
+        "deaths": 1,
+        "sectors": 36,
+        "weapon_gains": 6
+      },
+      "light": {
+        "kills": 1,
+        "deaths": 4,
+        "sectors": 37,
+        "weapon_gains": 4
+      }
+    },
+    {
+      "stage": "competitive-ctf",
+      "run": "ctf-p1-both-jan",
+      "receipt_sha256": "cd6f029d1910e87376c98638f0e463265bfc467d58ac407b84a29021e463b75e",
+      "map": "c1.jkl",
+      "seat_order": [
+        "jan_ors",
+        "boba_fett"
+      ],
+      "candidate_saber_side": "both",
+      "light_style": "competitive",
+      "model_side": null,
+      "host_captures": {
+        "red": 0,
+        "gold": 1
+      },
+      "dark": {
+        "kills": 2,
+        "deaths": 1,
+        "sectors": 39,
+        "weapon_gains": 8
+      },
+      "light": {
+        "kills": 1,
+        "deaths": 2,
+        "sectors": 38,
+        "weapon_gains": 5
+      }
+    },
+    {
+      "stage": "nf-registry",
+      "run": "nf-guns-p1-dark-boba",
+      "receipt_sha256": "50de4180016df05ec860ded92923dc7f01eb49a28823cbcc07699a7384e7e971",
+      "error": "native_pace_outside_requested_band"
+    },
+    {
+      "stage": "nf-registry",
+      "run": "nf-guns-p1-dark-jan",
+      "receipt_sha256": "e938007253b997c03ce4a6fe632fccf77494589967b00177dbd1c3cd5654c18c",
+      "error": "native_pace_outside_requested_band"
+    },
+    {
+      "stage": "nf-registry",
+      "run": "nf-guns-p1-light-boba",
+      "receipt_sha256": "929d52be96f8a239e5531d5bd6bdd56a7a464fb4fea46d412cb0b7932673577a",
+      "error": "native_pace_game_window_exceeded"
+    },
+    {
+      "stage": "nf-registry",
+      "run": "nf-guns-p1-light-jan",
+      "receipt_sha256": "806fdaee6f1090d31aa7b2bc3c0bf7b6ed7e4f2cf83df56000f465f71626d88e",
+      "error": "native_pace_game_window_exceeded"
+    },
+    {
+      "stage": "pose",
+      "run": "ff-saber-p1-dark-boba",
+      "receipt_sha256": "19b09800d91a983d66c3e7358743a0d811d6de5151d19fecff38d35337e82c78",
+      "error": "native_pace_outside_requested_band"
+    },
+    {
+      "stage": "pose",
+      "run": "ff-saber-p1-dark-jan",
+      "receipt_sha256": "7acce1a81a4b0310cd246bb19f1543fe768399cfe1dd15a4611e0f12020cb171",
+      "error": "native_pace_outside_requested_band"
+    },
+    {
+      "stage": "pose",
+      "run": "ff-saber-p1-light-boba",
+      "receipt_sha256": "aa59ef179399fdd63e8494caeff6923ec5fce00c36934a115d41e2ac7c6dc192",
+      "error": "native_pace_game_window_exceeded"
+    },
+    {
+      "stage": "pose",
+      "run": "ff-saber-p1-light-jan",
+      "receipt_sha256": "f218dd554b9f079202acfdffc7cf6b593931d0fdc30429ad8a47a5705981c19a",
+      "error": "native_pace_game_window_exceeded"
+    },
+    {
+      "stage": "pose",
+      "run": "nf-sabers-p1-dark-boba",
+      "receipt_sha256": "1ba14a402958558e18cca8d01fab70c2b20843df832428d6dc7067631399bf34",
+      "error": "native_pace_game_window_exceeded"
+    },
+    {
+      "stage": "pose",
+      "run": "nf-sabers-p1-dark-jan",
+      "receipt_sha256": "ce5923a2bf00db330864ff402fb29b4366b8103b83973e006a18942b48ff5086",
+      "map": "m_boss17.jkl",
+      "seat_order": [
+        "jan_ors",
+        "boba_fett"
+      ],
+      "candidate_saber_side": "dark",
+      "light_style": "competitive",
+      "model_side": null,
+      "dark": {
+        "kills": 2,
+        "deaths": 1,
+        "sectors": 14,
+        "weapon_gains": 0,
+        "saber_fire_frame_pairs": 311,
+        "saber_fire_frames_xy_over_0.001_units": 304,
+        "sampled_saber_fire": 52,
+        "sampled_saber_fire_with_move_input": 51,
+        "rising_higher_foe_fire_frames": 12,
+        "rising_higher_foe_fire_frames_positive_pitch": 12
+      },
+      "light": {
+        "kills": 1,
+        "deaths": 2,
+        "sectors": 17,
+        "weapon_gains": 0,
+        "saber_fire_frame_pairs": 288,
+        "saber_fire_frames_xy_over_0.001_units": 116,
+        "sampled_saber_fire": 46,
+        "sampled_saber_fire_with_move_input": 12
+      }
+    },
+    {
+      "stage": "pose",
+      "run": "nf-sabers-p1-light-boba",
+      "receipt_sha256": "796115a2533b7c84bff6a11c49aaf04f64510f774ec0e20ca63c6b10934cf9a2",
+      "error": "native_pace_game_window_exceeded"
+    },
+    {
+      "stage": "pose",
+      "run": "nf-sabers-p1-light-jan",
+      "receipt_sha256": "964d30c8b3e1000015b6f2364e68e70d39c6054a3b71575338f52d5818562f21",
+      "error": "native_pace_game_window_exceeded"
+    }
+  ],
+  "stock_client": {
+    "noble_loader": {
+      "jk-bot-client": {
+        "dependencies": 101,
+        "binary_sha256": "3dfd4837571295a4cca2067ef0a9e7c100c1e88d5a7f6f97244d0a9f67a3904c",
+        "noble_loader_sha256": "1d7133d7b9f94465978b2ae8d21ca3751c8dfaaecaa2d462aeaf1ec50e5c3a90",
+        "all_paths_in_ubuntu24_sysroot": true,
+        "relocation_trace": "clean"
+      },
+      "libGameNetworkingSockets.so": {
+        "dependencies": 5,
+        "binary_sha256": "8246a869b1d72115ecc849309629aa1abbce0bf1a0f23cc70deaded98d82d8e9",
+        "noble_loader_sha256": "1d7133d7b9f94465978b2ae8d21ca3751c8dfaaecaa2d462aeaf1ec50e5c3a90",
+        "all_paths_in_ubuntu24_sysroot": true,
+        "relocation_trace": "clean"
+      }
+    },
+    "relink_verified": true
+  },
+  "muse_m10_pace_study": [
+    {
+      "rate": 1,
+      "index": 0,
+      "status": "live_join_and_loadout_verified",
+      "receipt_sha256": "db426f693d617d51111f58f174ce4f02f954b9c5c316163f41d3725c0dc28f6b",
+      "dark": {
+        "first_plan": {
+          "item": 34,
+          "t": 0.82
+        },
+        "first_weapon_gain": {
+          "bins": [
+            6
+          ],
+          "game_ms": 1836
+        }
+      },
+      "light": {
+        "first_plan": {
+          "item": 34,
+          "t": 1.6
+        },
+        "first_weapon_gain": {
+          "bins": [
+            5,
+            7
+          ],
+          "game_ms": 39678
+        }
+      }
+    },
+    {
+      "rate": 1,
+      "index": 1,
+      "status": "live_join_and_loadout_verified",
+      "receipt_sha256": "31f3b384909bd989dd5753b3a495102570f4b593715ea1c076cb13082437a80e",
+      "dark": {
+        "first_weapon_gain": {
+          "bins": [
+            8
+          ],
+          "game_ms": 748
+        },
+        "first_plan": {
+          "item": 34,
+          "t": 0.95
+        }
+      },
+      "light": {
+        "first_plan": {
+          "item": 22,
+          "t": 0.03
+        },
+        "first_weapon_gain": {
+          "bins": [
+            7
+          ],
+          "game_ms": 2142
+        }
+      }
+    },
+    {
+      "rate": 1,
+      "index": 2,
+      "status": "live_join_and_loadout_verified",
+      "receipt_sha256": "394b4f3de0baca8a10eae4a13e08fc202138c11359a03d00aa6f1e82dc150ddc",
+      "dark": {
+        "first_plan": {
+          "item": 33,
+          "t": 0.03
+        },
+        "first_weapon_gain": {
+          "bins": [
+            7
+          ],
+          "game_ms": 6460
+        }
+      },
+      "light": {
+        "first_plan": {
+          "item": 29,
+          "t": 0.03
+        },
+        "first_weapon_gain": {
+          "bins": [
+            9
+          ],
+          "game_ms": 1836
+        }
+      }
+    },
+    {
+      "rate": 1,
+      "index": 3,
+      "status": "live_join_and_loadout_verified",
+      "receipt_sha256": "4f67a16dcd1bdb2d056b88d81f065aa4b2520e18d58a7f7fa68ab7c1b6139b5e",
+      "dark": {
+        "first_weapon_gain": {
+          "bins": [
+            8
+          ],
+          "game_ms": 884
+        },
+        "first_plan": {
+          "item": 34,
+          "t": 1.05
+        }
+      },
+      "light": {
+        "first_plan": {
+          "item": 34,
+          "t": 0.03
+        },
+        "first_weapon_gain": {
+          "bins": [
+            3
+          ],
+          "game_ms": 1462
+        }
+      }
+    },
+    {
+      "rate": 1,
+      "index": 4,
+      "status": "live_join_and_loadout_verified",
+      "receipt_sha256": "b2cbc7e821307768bb03c931537b1af629b5dab7055cfe673e5b737b24a19871",
+      "dark": {
+        "first_plan": {
+          "item": 22,
+          "t": 0.03
+        },
+        "first_weapon_gain": {
+          "bins": [
+            7
+          ],
+          "game_ms": 2176
+        }
+      },
+      "light": {
+        "first_plan": {
+          "item": 34,
+          "t": 1.6
+        },
+        "first_weapon_gain": {
+          "bins": [
+            6
+          ],
+          "game_ms": 6426
+        }
+      }
+    },
+    {
+      "rate": 1,
+      "index": 5,
+      "status": "live_join_and_loadout_verified",
+      "receipt_sha256": "16312507b6643309ac58e7301ac0ab2bd6e67317395cf534f25694cfab820be1",
+      "dark": {
+        "first_weapon_gain": {
+          "bins": [
+            8
+          ],
+          "game_ms": 748
+        },
+        "first_plan": {
+          "item": 34,
+          "t": 0.95
+        }
+      },
+      "light": {
+        "first_plan": {
+          "item": 22,
+          "t": 0.92
+        },
+        "first_weapon_gain": {
+          "bins": [
+            7
+          ],
+          "game_ms": 3604
+        }
+      }
+    },
+    {
+      "rate": 2,
+      "index": 0,
+      "status": "live_join_and_loadout_verified",
+      "receipt_sha256": "3e267840bfdd981075da5a5af432b0bf01387f48b216f04d3209a8e9ca662e7a",
+      "dark": {
+        "first_weapon_gain": {
+          "bins": [
+            6
+          ],
+          "game_ms": 1734
+        },
+        "first_plan": {
+          "item": 35,
+          "t": 2.07
+        }
+      },
+      "light": {
+        "first_plan": {
+          "item": 33,
+          "t": 0.03
+        },
+        "first_weapon_gain": {
+          "bins": [
+            7
+          ],
+          "game_ms": 15742
+        }
+      }
+    },
+    {
+      "rate": 2,
+      "index": 1,
+      "status": "live_join_and_loadout_verified",
+      "receipt_sha256": "fd40d27f978c70fb3f1f1b5db220ebf066fd7abe3a256459bb5ee92717b0a86d",
+      "dark": {
+        "first_weapon_gain": {
+          "bins": [
+            8
+          ],
+          "game_ms": 748
+        },
+        "first_plan": {
+          "item": 34,
+          "t": 0.95
+        }
+      },
+      "light": {
+        "first_plan": {
+          "item": 10,
+          "t": 1.26
+        },
+        "first_weapon_gain": {
+          "bins": [
+            6
+          ],
+          "game_ms": 5134
+        }
+      }
+    },
+    {
+      "rate": 2,
+      "index": 2,
+      "status": "live_join_and_loadout_verified",
+      "receipt_sha256": "682719f2ba94952fdd98e66a4702bc6b3ec009ed234d05733feba2db437ac4b3",
+      "dark": {
+        "first_plan": {
+          "item": 22,
+          "t": 2.38
+        },
+        "first_weapon_gain": {
+          "bins": [
+            7
+          ],
+          "game_ms": 3128
+        }
+      },
+      "light": {
+        "first_plan": {
+          "item": 34,
+          "t": 2.38
+        },
+        "first_weapon_gain": {
+          "bins": [
+            7
+          ],
+          "game_ms": 10438
+        }
+      }
+    },
+    {
+      "rate": 2,
+      "index": 3,
+      "status": "live_join_and_loadout_verified",
+      "receipt_sha256": "933879621d5df2d23ad23493f2974f540607479f17a747a84854b31be69cc412",
+      "dark": {
+        "first_plan": {
+          "item": 14,
+          "t": 0.95
+        },
+        "first_weapon_gain": {
+          "bins": [
+            7
+          ],
+          "game_ms": 7752
+        }
+      },
+      "light": {
+        "first_plan": {
+          "item": 10,
+          "t": 1.26
+        },
+        "first_weapon_gain": {
+          "bins": [
+            6
+          ],
+          "game_ms": 5134
+        }
+      }
+    },
+    {
+      "rate": 2,
+      "index": 4,
+      "status": "live_join_and_loadout_verified",
+      "receipt_sha256": "cadbbe6287e330e73bcef8c1ef01e288a68e652f55a24f47d122877bafbfb95b",
+      "dark": {
+        "first_weapon_gain": {
+          "bins": [
+            6
+          ],
+          "game_ms": 1734
+        },
+        "first_plan": {
+          "item": 35,
+          "t": 2.07
+        }
+      },
+      "light": {
+        "first_plan": {
+          "item": 33,
+          "t": 0.03
+        },
+        "first_weapon_gain": {
+          "bins": [
+            5
+          ],
+          "game_ms": 30192
+        }
+      }
+    },
+    {
+      "rate": 2,
+      "index": 5,
+      "status": "live_join_and_loadout_verified",
+      "receipt_sha256": "08d854a85e07dc172252e3434f2d16081c1dce70fb163001118b22ad6403912d",
+      "dark": {
+        "first_plan": {
+          "item": 34,
+          "t": 1.6
+        },
+        "first_weapon_gain": {
+          "bins": [
+            8
+          ],
+          "game_ms": 3196
+        }
+      },
+      "light": {
+        "first_plan": {
+          "item": 34,
+          "t": 1.6
+        },
+        "first_weapon_gain": {
+          "bins": [
+            6
+          ],
+          "game_ms": 18700
+        }
+      }
+    },
+    {
+      "rate": 16,
+      "index": 0,
+      "status": "live_join_and_loadout_verified",
+      "receipt_sha256": "cc5d9a0fead86f6409e275d3376b50c449c92863fc33aad0b6d7578664bc489a",
+      "dark": {
+        "first_plan": {
+          "item": 34,
+          "t": 1.6
+        },
+        "first_weapon_gain": {
+          "bins": [
+            6
+          ],
+          "game_ms": 6698
+        }
+      },
+      "light": {
+        "first_plan": {
+          "item": 22,
+          "t": 1.6
+        },
+        "first_weapon_gain": {
+          "bins": [
+            7
+          ],
+          "game_ms": 19788
+        }
+      }
+    },
+    {
+      "rate": 16,
+      "index": 1,
+      "status": "live_join_and_loadout_verified",
+      "receipt_sha256": "5439c6e41be926a144f06f4629c6cb633e22dbdf77fab47b25165e86fbd02699",
+      "dark": {
+        "first_plan": {
+          "item": 22,
+          "t": 2.38
+        },
+        "first_weapon_gain": {
+          "bins": [
+            7
+          ],
+          "game_ms": 3400
+        }
+      },
+      "light": {
+        "first_plan": {
+          "item": 10,
+          "t": 1.29
+        },
+        "first_weapon_gain": {
+          "bins": [
+            6
+          ],
+          "game_ms": 5236
+        }
+      }
+    },
+    {
+      "rate": 16,
+      "index": 2,
+      "status": "live_join_and_loadout_verified",
+      "receipt_sha256": "10abdf61945ec0048d71c5b646b4dbf8d5b28c9034c3a09ed35685d14ad3ef98",
+      "dark": {
+        "first_plan": {
+          "item": 22,
+          "t": 0.03
+        },
+        "first_weapon_gain": {
+          "bins": [
+            7
+          ],
+          "game_ms": 1972
+        }
+      },
+      "light": {
+        "first_weapon_gain": {
+          "bins": [
+            8
+          ],
+          "game_ms": 952
+        },
+        "first_plan": {
+          "item": 43,
+          "t": 1.16
+        }
+      }
+    },
+    {
+      "rate": 16,
+      "index": 3,
+      "status": "live_join_and_loadout_verified",
+      "receipt_sha256": "1152bd5741f4df8cb70e7205fe09c3a667f9e29b11c0379a290478b30df1a5c7",
+      "dark": {
+        "first_plan": {
+          "item": 22,
+          "t": 0.03
+        },
+        "first_weapon_gain": {
+          "bins": [
+            7
+          ],
+          "game_ms": 2006
+        }
+      },
+      "light": {
+        "first_plan": {
+          "item": 11,
+          "t": 1.6
+        },
+        "first_weapon_gain": {
+          "bins": [
+            7
+          ],
+          "game_ms": 12648
+        }
+      }
+    },
+    {
+      "rate": 16,
+      "index": 4,
+      "status": "live_join_and_loadout_verified",
+      "receipt_sha256": "3ce02f9b06a3ab4cee3ab8898d72a2192131f48fa6aa512d6412d186532b7bcc",
+      "dark": {
+        "first_plan": {
+          "item": 33,
+          "t": 0.03
+        },
+        "first_weapon_gain": {
+          "bins": [
+            7
+          ],
+          "game_ms": 5338
+        }
+      },
+      "light": {
+        "first_weapon_gain": {
+          "bins": [
+            8
+          ],
+          "game_ms": 816
+        },
+        "first_plan": {
+          "item": 43,
+          "t": 1.05
+        }
+      }
+    },
+    {
+      "rate": 16,
+      "index": 5,
+      "status": "live_join_and_loadout_verified",
+      "receipt_sha256": "64db2c14ebeda6813493862af93b7fc3285ee951bc88375bd3ddb39bf7572483",
+      "dark": {
+        "first_plan": {
+          "item": 22,
+          "t": 0.03
+        },
+        "first_weapon_gain": {
+          "bins": [
+            7
+          ],
+          "game_ms": 1938
+        }
+      },
+      "light": {
+        "first_plan": {
+          "item": 34,
+          "t": 0.82
+        },
+        "first_weapon_gain": {
+          "bins": [
+            6
+          ],
+          "game_ms": 22950
+        }
+      }
+    },
+    {
+      "rate": 0,
+      "index": 0,
+      "status": "live_join_and_loadout_verified",
+      "receipt_sha256": "5e138559bd6db65f32f45edbd179ec60461deffca0061456689cea988f4959de",
+      "dark": {
+        "first_plan": {
+          "item": 14,
+          "t": 1.09
+        },
+        "first_weapon_gain": {
+          "bins": [
+            7
+          ],
+          "game_ms": 10880
+        }
+      },
+      "light": {
+        "first_plan": {
+          "item": 34,
+          "t": 0.03
+        },
+        "first_weapon_gain": {
+          "bins": [
+            3,
+            6
+          ],
+          "game_ms": 952
+        }
+      }
+    },
+    {
+      "rate": 0,
+      "index": 1,
+      "status": "live_join_and_loadout_verified",
+      "receipt_sha256": "92f1233436b5c8178852e50a11e31a216a9d72cc84be9cba4b25c6f62f214a82",
+      "dark": {
+        "first_plan": {
+          "item": 34,
+          "t": 1.6
+        },
+        "first_weapon_gain": {
+          "bins": [
+            6
+          ],
+          "game_ms": 6800
+        }
+      },
+      "light": {
+        "first_plan": {
+          "item": 29,
+          "t": 0.03
+        },
+        "first_weapon_gain": {
+          "bins": [
+            9
+          ],
+          "game_ms": 884
+        }
+      }
+    },
+    {
+      "rate": 0,
+      "index": 2,
+      "status": "live_join_and_loadout_verified",
+      "receipt_sha256": "e37eae8a7bffffe3a6245cef2e75ab08134cec4fe79c0e758911a5536e03d804",
+      "dark": {
+        "first_plan": {
+          "item": 33,
+          "t": 0.03
+        },
+        "first_weapon_gain": {
+          "bins": [
+            7
+          ],
+          "game_ms": 4828
+        }
+      },
+      "light": {
+        "first_plan": {
+          "item": 34,
+          "t": 0.03
+        },
+        "first_weapon_gain": {
+          "bins": [
+            7
+          ],
+          "game_ms": 9384
+        }
+      }
+    },
+    {
+      "rate": 0,
+      "index": 3,
+      "status": "live_join_and_loadout_verified",
+      "receipt_sha256": "71fd7a95172ff4b9dcf3d197798d67304a9693cc47010db9af412a75876d4d82",
+      "dark": {
+        "first_plan": {
+          "item": 22,
+          "t": 0.95
+        },
+        "first_weapon_gain": {
+          "bins": [
+            7
+          ],
+          "game_ms": 4386
+        }
+      },
+      "light": {
+        "first_plan": {
+          "item": 29,
+          "t": 0.03
+        },
+        "first_weapon_gain": {
+          "bins": [
+            9
+          ],
+          "game_ms": 884
+        }
+      }
+    },
+    {
+      "rate": 0,
+      "index": 4,
+      "status": "live_join_and_loadout_verified",
+      "receipt_sha256": "7f414c6a231c0a44f3a56a71ddd410bd920990855a674596813da44810819372",
+      "dark": {
+        "first_weapon_gain": {
+          "bins": [
+            8
+          ],
+          "game_ms": 816
+        },
+        "first_plan": {
+          "item": 34,
+          "t": 1.09
+        }
+      },
+      "light": {
+        "first_plan": {
+          "item": 33,
+          "t": 0.03
+        },
+        "first_weapon_gain": {
+          "bins": [
+            6
+          ],
+          "game_ms": 23154
+        }
+      }
+    },
+    {
+      "rate": 0,
+      "index": 5,
+      "status": "live_join_and_loadout_verified",
+      "receipt_sha256": "d3f54dc9e38d0bcab697595255237a39d5e8758361b5b346cf89d53b1e45ec7d",
+      "dark": {
+        "first_plan": {
+          "item": 34,
+          "t": 1.6
+        },
+        "first_weapon_gain": {
+          "bins": [
+            5
+          ],
+          "game_ms": 6698
+        }
+      },
+      "light": {
+        "first_plan": {
+          "item": 29,
+          "t": 0.03
+        },
+        "first_weapon_gain": {
+          "bins": [
+            9
+          ],
+          "game_ms": 952
+        }
+      }
+    }
+  ]
+}

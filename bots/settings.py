@@ -46,4 +46,4 @@ def write_behavior(path: Path, config: dict) -> None:
 
 
 def engine_path(config: dict) -> Path:
-    return Path(config["bots_engine"]) if config.get("bots_engine") else Path(__file__).resolve().parents[1] / "bin/bots-linux-x86_64/jk-bot-client"
+    return Path(config["bots_engine"]) if config.get("bots_engine") else Path(__file__).resolve().parents[1] / "bin/bots-linux-x86_64/jk-bot-competitive"

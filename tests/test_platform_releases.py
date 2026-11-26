@@ -147,10 +147,22 @@ class PlatformArchiveTests(unittest.TestCase):
         self.assertIn("checksum", result.stderr.lower())
 
     def test_incomplete_engine_payload_is_rejected(self):
+        """The historical base remains a required reproducer input."""
         del self.payload["bin/bots-linux-x86_64/jk-bot-client"]
         result = self.build(self.updater())
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("jk-bot-client", result.stderr)
+
+    def test_packaged_competitive_default_must_be_present_and_executable(self):
+        competitive = "bin/bots-linux-x86_64/jk-bot-competitive"
+        self.payload["packaging/container_runtime.py"] = competitive.encode()
+        missing = self.build(self.updater())
+        self.assertNotEqual(missing.returncode, 0)
+        self.assertIn(competitive, missing.stderr)
+        self.payload[competitive] = b"fixture competitive bot"
+        mode = self.build(self.updater())
+        self.assertNotEqual(mode.returncode, 0)
+        self.assertIn("permission", mode.stderr)
 
     def test_missing_executable_mode_requires_fixed_updater(self):
         self.executable.remove("start-server.sh")

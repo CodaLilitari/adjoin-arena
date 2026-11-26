@@ -1,0 +1,15 @@
+--- a/src/AI/jkBot.c
++++ b/src/AI/jkBot.c
+@@ -1607,6 +1607,12 @@
+     bot.forceEnabled=1; bot.fistsPeace=0; /* fists as peace: taken out for now */
+     bot.competitiveForce=jkBotLoadout_Style(getenv("JK_BOT_FORCE_STYLE"))==JKBOT_STYLE_COMPETITIVE;
+     bot.forceBin=bot.forceTarget=bot.forceEffectBin=bot.forceEffectTarget=-1;
++    /* A saved master character keeps its editor-derived inventory. During
++       the Light loadout experiment use the same controller in both arms. */
++    const char *lightTrial=getenv("ADJOIN_LIGHT_LOADOUT_TRIAL");
++    const char *loadoutSide=getenv("JK_BOT_FORCE_SIDE");
++    if (lightTrial && !strcmp(lightTrial,"1") && loadoutSide && !strcmp(loadoutSide,"light") &&
++        jkBotLoadout_Style(getenv("JK_BOT_FORCE_STYLE"))==JKBOT_STYLE_MASTER) bot.competitiveForce=1;
+     const char *elite=getenv("JK_BOT_ELITE");
+     bot.elite=elite && (!strcmp(elite,"1") || !strcmp(elite,"0")) ? *elite=='1' : bot.competitiveForce;
+     const char *trace=getenv("JK_BOT_TRACE_FORCE");

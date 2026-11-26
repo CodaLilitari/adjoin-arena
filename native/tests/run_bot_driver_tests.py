@@ -19,6 +19,8 @@ def main() -> int:
     parser.add_argument('--build', type=Path, required=True,
                         help='Configured engine CMake build directory')
     parser.add_argument('--cc', default='cc')
+    parser.add_argument('--saber-frames', type=Path,
+                        help='Run the focused saber regression and write its stock inputs for motion replay')
     args = parser.parse_args()
     source, build = args.source.resolve(), args.build.resolve()
     flags = build / 'CMakeFiles/sith_engine.dir/flags.make'
@@ -45,12 +47,15 @@ def main() -> int:
     command += ['-Wall', '-Wextra', '-Werror', '-UNDEBUG', '-ffunction-sections',
                 '-fdata-sections', str(Path(__file__).with_name('test_bot_driver.c')),
                 '-Wl,--gc-sections', '-lm']
+    if (source / 'src/AI/red_transfer.inc').is_file():
+        command.append('-lcrypto')
     with tempfile.TemporaryDirectory(prefix='jk-bot-regression-') as directory:
         output = Path(directory) / 'test_bot_driver'
         item = Path(directory) / 'sithItem.o'
         subprocess.run(item_compile + ['-o', str(item)], check=True)
         subprocess.run(command + [str(item), '-o', str(output)], check=True)
-        subprocess.run([str(output)], check=True)
+        run_args = [str(args.saber_frames.resolve())] if args.saber_frames else []
+        subprocess.run([str(output), *run_args], check=True)
     return 0
 
 

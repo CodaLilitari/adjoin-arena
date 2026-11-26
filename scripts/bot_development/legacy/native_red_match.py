@@ -9,7 +9,7 @@ RED_ARCHIVE = "ca63beaa5c3a283639950be045df0d5ffa5a2fb39cc259db479c3deee4a4a123"
 
 
 def resolve_client(repo, directory, pace_build, digest, *, transfer=False, custom=False, platform_build=False,
-                   hint_build=False):
+                   hint_build=False, competitive=False):
     manifest_name = "red-transfer-build.json" if transfer else "red-policy-build.json"
     if custom:
         if not transfer:
@@ -23,6 +23,10 @@ def resolve_client(repo, directory, pace_build, digest, *, transfer=False, custo
         if not platform_build:
             raise ValueError("route hints require the platform-aware client")
         manifest_name = "red-hint-build.json"
+    if competitive:
+        if not transfer or custom:
+            raise ValueError("competitive build requires the stock transfer path")
+        manifest_name = "competitive-build.json"
     manifest = repo / "native" / manifest_name
     build = json.loads(manifest.read_bytes())
     client = directory / "jk-bot-client"
@@ -34,6 +38,14 @@ def resolve_client(repo, directory, pace_build, digest, *, transfer=False, custo
         pins.update({"native/red-policy-build.json":"duel_receipt_sha256","native/red-transfer.patch":"transfer_patch_sha256",
                      "native/red_transfer.inc":"transfer_source_sha256","native/red_nav_recall.h":"nav_recall_sha256",
                      "native/build_red_transfer.py":"transfer_builder_sha256"})
+    if competitive:
+        pins.update({"native/red-transfer-build.json": "transfer_receipt_sha256",
+                     "native/build_competitive.py": "competitive_builder_sha256"})
+        overlays = ("saber-combat.patch", "competitive-light-profile.patch")
+        if (build["competitive_overlays"] != {name: digest(repo / "native" / name) for name in overlays}
+                or build["transfer_binary_sha256"] != json.loads(
+                    (repo / "native/red-transfer-build.json").read_bytes())["binary_sha256"]):
+            raise ValueError("native_competitive_base_or_overlay_mismatch")
     if custom:
         pins.update({"native/red-transfer-build.json": "transfer_receipt_sha256",
                      "native/red-custom.patch": "custom_patch_sha256",

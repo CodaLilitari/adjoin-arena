@@ -8,6 +8,8 @@ The original Jedi Knight and Mysteries of the Sith game content and executables 
 
 New Python supervisor and transport-adapter code, original DirectPlay gateway code, and original build/test scripts are provided under the MIT license below unless an individual file specifies otherwise. Engine patches are governed by the engine's existing license. Bundled third-party libraries retain their own licenses; see native notices and licenses/.
 
+The ordinary native competitive bot builds on Red's full tactics and the stock JK control path. Its [build receipt](native/competitive-stock-build.json) pins the two controller objects, executable, GNS library and [relink bundle](native/competitive-relink-linux-x86_64.tar.gz). The bundle contains the application objects, the libsmacker source and license, and a relink script. Extract it in an external directory on Linux amd64 and run `python3 relink.py` there after changing the library. The upstream engine and bundled libraries retain their existing [notices](licenses/native/LICENSE.md).
+
 The optional current JKWeb bot runtime uses a patched source build of Tristamus's
 OpenJKDF2 `web-mp` branch. Its provenance is in `web_bots/BUILD.json`, with the
 corresponding patch, application object files and libsmacker relink source in
