@@ -81,10 +81,96 @@ game, Lily left 393 and Red left 605 alive. No candidate owner appeared in
 393, 505 or 605 at a sampling point. Each candidate sought the enemy flag.
 Across all four rooms, no owner was sampled in the enemy flag's starting
 sector or reported carrying it home. Random spawns and one match per arm
-limit what the comparison can establish. The patch remains experimental.
-Repeat with matched starts beside a keyed door and inside the friendly
-airlock to measure an actual escape and progress toward the flag.
+limit what the comparison can establish.
 [Paired game measurements and build digests](../qa/c3-door-access-matches.json)
+
+### Matched C3 door results
+
+Four further games placed Lily inside her own red airlock (sector 505) and
+Red on the gold team beside the locked red door (sector 393). The private
+fixture waited for the stock scripts to assign both teams and issue their
+keys. It then placed both owners once with the same coordinates and facing.
+Each pair started within 0.03 wall seconds of each other. The owners'
+clocks ran at 0.998–1.001 game seconds per wall second. Times below are
+measured from each player's placement to the first observation beyond the
+chamber or starting sector, on the same life.
+
+| Full-Force game | Lily, friendly airlock | Red, locked-door approach | Red-key denials for Red during that life | Flag captures |
+| --- | --- | --- | ---: | ---: |
+| Guns, v0.6.1 | Still inside at 102.4 s | Still in 393 at 102.3 s | 127 | 0 |
+| Guns, candidate | Outside by 2.70 s | Left for sector 402 by 2.01 s | 0 | 0 |
+| Sabers, v0.6.1 | Still inside at 103.2 s | Still in 393 at 103.3 s | 3 | 0 |
+| Sabers, candidate | Still inside at 101.2 s | First seen outside in sector 403 by 1.60 s | 0 | 0 |
+
+In the candidate guns run, Lily visited 87 sectors and came within 1.378
+world units of the enemy flag's starting position. The last chamber and first
+outside samples bracket the outer opening; the narrow door sector fell
+between samples. Red found the friendly corridor in both candidate games.
+Neither owner was observed carrying the opposing flag in any of the four
+rooms. One preliminary saber room put both players on gold and the fixture
+withheld placement. Lily started the scored saber control with 99.35 health
+and the candidate with 100. Red switched weapons immediately after placement
+in the guns control. Each game used a fresh navigation store.
+[Matched starts, observed routes and run comparisons](../qa/c3-matched-door-play.json)
+
+### Reproduce the matched C3 opening
+
+Build the practice episode from your own stock `JK1CTF.GOB` in an external
+directory. The fixture changes the local team respawn script. The C3 level
+geometry and the door scripts keep their retail bytes. Start a private
+loopback relay as described in the [JKWeb operator guide](../web_bots/README.md).
+
+```sh
+mkdir -p "$RUNS/fixture"
+python -B -m scripts.bot_development.c3_matched_opening \
+  "$GAME_DATA/Episode/JK1CTF.GOB" "$RUNS/fixture/JK1CTF.GOB" > "$RUNS/fixture.json"
+```
+
+Use a fresh external directory for each run. Set `ENGINE` to the packaged
+`bin/bots-jkweb` directory for the control or the separately built candidate
+for the comparison. Run the observer and host together from the checkout.
+The observer reads both owners through the ordinary companion interface.
+
+```sh
+RULES=ff-guns
+ARM="$RUNS/control-$RULES"
+mkdir "$ARM"
+python -B -m scripts.bot_development.analysis.c3_record_owners "$ARM" --timeout 360 &
+OBSERVER_PID=$!
+ADJOIN_NAV_MEMORY="$ARM/navigation" python -B -m web_bots.headless host \
+  --relay ws://127.0.0.1:8080/relay --room-name C3Matched --max-players 4 \
+  --host-seat lily --seats red --mode "$RULES" --episode JK1CTF --map c3.jkl \
+  --episode-gob "$RUNS/fixture/JK1CTF.GOB" --engine-dir "$ENGINE" --data "$GAME_DATA" \
+  --runtime "$ARM/rooms" --chrome "$CHROME" --seconds 115 --join-timeout 90 \
+  --width 320 --height 180 --fps-cap 30 --raster-threads 1 --no-software-gl --no-taunts \
+  > "$ARM/launcher.log"
+wait "$OBSERVER_PID"
+python -B -m scripts.bot_development.analysis.c3_matched_doors "$ARM"
+```
+
+Repeat with the candidate engine and with `RULES=ff-sabers` for both engines.
+Record each engine's JS and WASM hashes and use the same fixture for all four
+rooms. The headless manifest and companion credentials stay in the private
+run directory.
+
+For the control, use `bin/bots-jkweb` from v0.6.1. To prepare the candidate
+in a separate directory, activate the release toolchain (Emscripten 6.0.12)
+and use a fresh external build root. The first build supplies the verified
+control. The second recompiles the same source with the keyed-door patch.
+
+```sh
+export JK_WEB_BUILD_ROOT="$RUNS/c3-engine" JK_WEB_OUTPUT_ROOT="$RUNS/control-package"
+./web_bots/build.sh
+patch_file="$(pwd)/web_bots/candidate/c3-door-access.patch"
+git -C "$JK_WEB_BUILD_ROOT/source" apply --check "$patch_file" &&
+  git -C "$JK_WEB_BUILD_ROOT/source" apply "$patch_file" &&
+  cmake --build "$JK_WEB_BUILD_ROOT/build" --parallel 2
+export ENGINE="$JK_WEB_BUILD_ROOT/build"
+sha256sum "$ENGINE/openjkdf2.js" "$ENGINE/openjkdf2.wasm"
+```
+
+Compare the hashes with the [played candidate](../qa/c3-door-access-matches.json)
+before comparing your measurements with this trial.
 
 Run the focused tests with `python -B -m unittest discover -s tests -p test_c3_door_access.py -v`.
 On Windows the full path-search test reads `C3_EPISODE` (the owned stock

@@ -1,0 +1,759 @@
+{
+  "schema": 1,
+  "fixture": {
+    "episode_sha256": "fa880206acec5190429e1cad9df77326c21e372fecb0053df50f6e2adb6cfb32",
+    "map_sha256": "b4d804591cebebbd59f05ad42a8e059178dc468e24172bd6bc5b7d6ba1c2f0a7",
+    "stock_episode_sha256": "da98fe3fc769168f1bb562cc1f6532560b12d8e920fd6c34586d69b424b5b1fc",
+    "changed_entry": "cog/ctf_respawn.cog",
+    "original_cog_sha256": "943e4b9230d27409f15788f8114d189d41c66d8e5761f408ed5785dc4f39e041",
+    "fixture_cog_sha256": "ec55f9131f4335e78a4a45a45edcb81b29c5d861d7a6a0e566c991b8adcb6d90"
+  },
+  "pairs": {
+    "ff-guns": {
+      "lily": {
+        "differing_start_fields": [],
+        "nearest_weapon_bins_control_candidate": [
+          6,
+          6
+        ],
+        "opponent_join_to_placement_control_candidate_wall_s": [
+          12.63,
+          15.01
+        ]
+      },
+      "red": {
+        "differing_start_fields": [],
+        "nearest_weapon_bins_control_candidate": [
+          2,
+          2
+        ],
+        "opponent_join_to_placement_control_candidate_wall_s": [
+          29.08,
+          31.59
+        ]
+      }
+    },
+    "ff-sabers": {
+      "lily": {
+        "differing_start_fields": [
+          "start_health"
+        ],
+        "nearest_weapon_bins_control_candidate": [
+          10,
+          10
+        ],
+        "opponent_join_to_placement_control_candidate_wall_s": [
+          11.61,
+          13.73
+        ]
+      },
+      "red": {
+        "differing_start_fields": [],
+        "nearest_weapon_bins_control_candidate": [
+          10,
+          10
+        ],
+        "opponent_join_to_placement_control_candidate_wall_s": [
+          28.34,
+          30.61
+        ]
+      }
+    }
+  },
+  "measures": {
+    "elapsed": "Game seconds from that owner's verified placement until the first qualifying sample.",
+    "first_life": "Stops at a dead observation, respawn marker, companion death count, or room deadline.",
+    "chamber_clear": "A living Lily observed outside 505, its two approach sectors 509/510, and door sectors 507/506.",
+    "door_passage": "Three consecutive distinct observed sectors: near side, doorway, far side. Thin sectors may be skipped.",
+    "flag": "Carrying requires the enemy flag inventory bin. A shared capture requires both owner consoles' announcement.",
+    "coverage": "One qualified room per engine and ruleset; weapon snapshots bracket the placement clock."
+  },
+  "arms": [
+    {
+      "mode": "ff-guns",
+      "requested_shared_wall_s": 115.0,
+      "placement_skew_wall_s": 0.03,
+      "owners": {
+        "lily": {
+          "start_game_s": 29.083002,
+          "start_sector": 505,
+          "start_position": [
+            -5.612,
+            -0.563,
+            2.37
+          ],
+          "start_look": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "start_health": 100.0,
+          "start_keys_83_84": [
+            1,
+            0
+          ],
+          "first_life_sampled_through_game_s": 102.434,
+          "first_life_distinct_sectors": 1,
+          "first_life_max_displacement_jku": 0.245,
+          "opening_sector_observations": [
+            [
+              505,
+              0.0
+            ]
+          ],
+          "first_sector_exit": null,
+          "chamber_clear_observed_by_game_s": null,
+          "witnessed_door_passages_game_s": {},
+          "closest_observed_enemy_flag_start_jku": 9.284,
+          "enemy_flag_sector_observed": false,
+          "carried_enemy_flag_observed_by_game_s": null,
+          "placement_relative_to_shared_play_wall_s": 12.12,
+          "weapon_observations_around_placement": [
+            {
+              "offset_game_s": -0.453,
+              "weapon": 6,
+              "deaths": 0
+            },
+            {
+              "offset_game_s": 0.214,
+              "weapon": 6,
+              "deaths": 0
+            }
+          ],
+          "join_wall_s": 2.27,
+          "placement_wall_s": 31.32,
+          "shared_owner_game_clock_s": [
+            17.698,
+            131.931
+          ],
+          "shared_owner_game_span_s": 114.233,
+          "shared_game_s_per_wall_s": 1.001,
+          "held_weapons_shared": [
+            6
+          ],
+          "candidate_bound_six": false,
+          "console_sha256": "4d67a5784e8666057def8da5c1424e2d83d601691ee1271837071a2af652e080",
+          "matched_first_life_key_denials": {},
+          "shared_native_objective_modes": {
+            "2": 10
+          },
+          "shared_observed_enemy_flag_in_inventory": false,
+          "shared_flag_returns_announced": {},
+          "shared_key_denials": {},
+          "shared_capture_announcements": {},
+          "placement_after_opponent_join_wall_s": 12.63
+        },
+        "red": {
+          "start_game_s": 12.648001,
+          "start_sector": 393,
+          "start_position": [
+            -2.046,
+            -1.758,
+            2.62
+          ],
+          "start_look": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "start_health": 100.0,
+          "start_keys_83_84": [
+            0,
+            1
+          ],
+          "first_life_sampled_through_game_s": 102.314,
+          "first_life_distinct_sectors": 1,
+          "first_life_max_displacement_jku": 0.248,
+          "opening_sector_observations": [
+            [
+              393,
+              0.0
+            ]
+          ],
+          "first_sector_exit": null,
+          "chamber_clear_observed_by_game_s": null,
+          "witnessed_door_passages_game_s": {},
+          "closest_observed_enemy_flag_start_jku": 4.783,
+          "enemy_flag_sector_observed": false,
+          "carried_enemy_flag_observed_by_game_s": null,
+          "placement_relative_to_shared_play_wall_s": 12.15,
+          "weapon_observations_around_placement": [
+            {
+              "offset_game_s": -0.0,
+              "weapon": 2,
+              "deaths": 0
+            },
+            {
+              "offset_game_s": 0.833,
+              "weapon": 6,
+              "deaths": 0
+            }
+          ],
+          "join_wall_s": 18.69,
+          "placement_wall_s": 31.35,
+          "shared_owner_game_clock_s": [
+            1.315,
+            115.481
+          ],
+          "shared_owner_game_span_s": 114.166,
+          "shared_game_s_per_wall_s": 1.0,
+          "held_weapons_shared": [
+            2,
+            6
+          ],
+          "candidate_bound_six": false,
+          "console_sha256": "100e32b775bc4886585dea60b2cf31a9bcfb866cb38941b8fd9047ada546180c",
+          "matched_first_life_key_denials": {
+            "red": 127
+          },
+          "shared_native_objective_modes": {
+            "2": 10
+          },
+          "shared_observed_enemy_flag_in_inventory": false,
+          "shared_flag_returns_announced": {},
+          "shared_key_denials": {
+            "red": 127
+          },
+          "shared_capture_announcements": {},
+          "placement_after_opponent_join_wall_s": 29.08
+        }
+      },
+      "shared_captures": {
+        "red": 0,
+        "gold": 0
+      },
+      "lane": "control",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c"
+    },
+    {
+      "mode": "ff-guns",
+      "requested_shared_wall_s": 115.0,
+      "placement_skew_wall_s": 0.03,
+      "owners": {
+        "lily": {
+          "start_game_s": 31.543001,
+          "start_sector": 505,
+          "start_position": [
+            -5.612,
+            -0.563,
+            2.37
+          ],
+          "start_look": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "start_health": 100.0,
+          "start_keys_83_84": [
+            1,
+            0
+          ],
+          "first_life_sampled_through_game_s": 99.835,
+          "first_life_distinct_sectors": 87,
+          "first_life_max_displacement_jku": 9.541,
+          "opening_sector_observations": [
+            [
+              505,
+              0.0
+            ],
+            [
+              113,
+              2.7
+            ],
+            [
+              112,
+              3.0
+            ],
+            [
+              113,
+              3.4
+            ],
+            [
+              114,
+              3.6
+            ],
+            [
+              113,
+              3.8
+            ]
+          ],
+          "first_sector_exit": {
+            "to_sector": 113,
+            "observed_by_game_s": 2.7
+          },
+          "chamber_clear_observed_by_game_s": 2.7,
+          "witnessed_door_passages_game_s": {},
+          "closest_observed_enemy_flag_start_jku": 1.378,
+          "enemy_flag_sector_observed": false,
+          "carried_enemy_flag_observed_by_game_s": null,
+          "placement_relative_to_shared_play_wall_s": 14.56,
+          "weapon_observations_around_placement": [
+            {
+              "offset_game_s": -0.533,
+              "weapon": 6,
+              "deaths": 0
+            },
+            {
+              "offset_game_s": 0.133,
+              "weapon": 6,
+              "deaths": 0
+            }
+          ],
+          "join_wall_s": 2.1,
+          "placement_wall_s": 33.66,
+          "shared_owner_game_clock_s": [
+            17.109,
+            132.078
+          ],
+          "shared_owner_game_span_s": 114.969,
+          "shared_game_s_per_wall_s": 1.001,
+          "held_weapons_shared": [
+            6
+          ],
+          "candidate_bound_six": true,
+          "console_sha256": "8baef7d5b69800f6b3b3af4f76633c6501b655eff53d334f4aaddcc1fa809aa4",
+          "matched_first_life_key_denials": {},
+          "shared_native_objective_modes": {
+            "2": 10,
+            "8": 3
+          },
+          "shared_observed_enemy_flag_in_inventory": false,
+          "shared_flag_returns_announced": {},
+          "shared_key_denials": {},
+          "shared_capture_announcements": {},
+          "placement_after_opponent_join_wall_s": 15.01
+        },
+        "red": {
+          "start_game_s": 15.044001,
+          "start_sector": 393,
+          "start_position": [
+            -2.046,
+            -1.758,
+            2.62
+          ],
+          "start_look": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "start_health": 100.0,
+          "start_keys_83_84": [
+            0,
+            1
+          ],
+          "first_life_sampled_through_game_s": 100.238,
+          "first_life_distinct_sectors": 40,
+          "first_life_max_displacement_jku": 7.758,
+          "opening_sector_observations": [
+            [
+              393,
+              0.0
+            ],
+            [
+              402,
+              2.007
+            ],
+            [
+              403,
+              2.107
+            ],
+            [
+              409,
+              2.207
+            ],
+            [
+              410,
+              2.307
+            ],
+            [
+              404,
+              2.407
+            ]
+          ],
+          "first_sector_exit": {
+            "to_sector": 402,
+            "observed_by_game_s": 2.007
+          },
+          "chamber_clear_observed_by_game_s": null,
+          "witnessed_door_passages_game_s": {},
+          "closest_observed_enemy_flag_start_jku": 4.865,
+          "enemy_flag_sector_observed": false,
+          "carried_enemy_flag_observed_by_game_s": null,
+          "placement_relative_to_shared_play_wall_s": 14.59,
+          "weapon_observations_around_placement": [
+            {
+              "offset_game_s": -0.5,
+              "weapon": 2,
+              "deaths": 0
+            },
+            {
+              "offset_game_s": 0.133,
+              "weapon": 2,
+              "deaths": 0
+            }
+          ],
+          "join_wall_s": 18.65,
+          "placement_wall_s": 33.69,
+          "shared_owner_game_clock_s": [
+            0.944,
+            115.542
+          ],
+          "shared_owner_game_span_s": 114.598,
+          "shared_game_s_per_wall_s": 0.998,
+          "held_weapons_shared": [
+            2,
+            6
+          ],
+          "candidate_bound_six": true,
+          "console_sha256": "025496dbf8368a623ce68a610e1490469c1bc92ed34def80e46119545d956e89",
+          "matched_first_life_key_denials": {},
+          "shared_native_objective_modes": {
+            "2": 10
+          },
+          "shared_observed_enemy_flag_in_inventory": false,
+          "shared_flag_returns_announced": {},
+          "shared_key_denials": {},
+          "shared_capture_announcements": {},
+          "placement_after_opponent_join_wall_s": 31.59
+        }
+      },
+      "shared_captures": {
+        "red": 0,
+        "gold": 0
+      },
+      "lane": "candidate",
+      "wasm_sha256": "f2df1a48fea2397cff23ae6cc160febb8e1dee53de7046ff6192e1661fdc1ad0"
+    },
+    {
+      "mode": "ff-sabers",
+      "requested_shared_wall_s": 115.0,
+      "placement_skew_wall_s": 0.0,
+      "owners": {
+        "lily": {
+          "start_game_s": 28.369001,
+          "start_sector": 505,
+          "start_position": [
+            -5.612,
+            -0.563,
+            2.37
+          ],
+          "start_look": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "start_health": 99.351219,
+          "start_keys_83_84": [
+            1,
+            0
+          ],
+          "first_life_sampled_through_game_s": 103.188,
+          "first_life_distinct_sectors": 1,
+          "first_life_max_displacement_jku": 0.245,
+          "opening_sector_observations": [
+            [
+              505,
+              0.0
+            ]
+          ],
+          "first_sector_exit": null,
+          "chamber_clear_observed_by_game_s": null,
+          "witnessed_door_passages_game_s": {},
+          "closest_observed_enemy_flag_start_jku": 9.284,
+          "enemy_flag_sector_observed": false,
+          "carried_enemy_flag_observed_by_game_s": null,
+          "placement_relative_to_shared_play_wall_s": 11.19,
+          "weapon_observations_around_placement": [
+            {
+              "offset_game_s": -0.453,
+              "weapon": 10,
+              "deaths": 0
+            },
+            {
+              "offset_game_s": 0.38,
+              "weapon": 10,
+              "deaths": 0
+            }
+          ],
+          "join_wall_s": 2.25,
+          "placement_wall_s": 30.59,
+          "shared_owner_game_clock_s": [
+            17.582,
+            132.083
+          ],
+          "shared_owner_game_span_s": 114.501,
+          "shared_game_s_per_wall_s": 1.001,
+          "held_weapons_shared": [
+            10
+          ],
+          "candidate_bound_six": false,
+          "console_sha256": "659ffd648d27fbfdb28c2292e2005a5b11295ecc2c4879430fe9d08d5e043c0f",
+          "matched_first_life_key_denials": {},
+          "shared_native_objective_modes": {
+            "2": 11
+          },
+          "shared_observed_enemy_flag_in_inventory": false,
+          "shared_flag_returns_announced": {},
+          "shared_key_denials": {},
+          "shared_capture_announcements": {},
+          "placement_after_opponent_join_wall_s": 11.61
+        },
+        "red": {
+          "start_game_s": 11.610001,
+          "start_sector": 393,
+          "start_position": [
+            -2.046,
+            -1.758,
+            2.62
+          ],
+          "start_look": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "start_health": 100.0,
+          "start_keys_83_84": [
+            0,
+            1
+          ],
+          "first_life_sampled_through_game_s": 103.327,
+          "first_life_distinct_sectors": 1,
+          "first_life_max_displacement_jku": 0.245,
+          "opening_sector_observations": [
+            [
+              393,
+              0.0
+            ]
+          ],
+          "first_sector_exit": null,
+          "chamber_clear_observed_by_game_s": null,
+          "witnessed_door_passages_game_s": {},
+          "closest_observed_enemy_flag_start_jku": 4.782,
+          "enemy_flag_sector_observed": false,
+          "carried_enemy_flag_observed_by_game_s": null,
+          "placement_relative_to_shared_play_wall_s": 11.19,
+          "weapon_observations_around_placement": [
+            {
+              "offset_game_s": -0.42,
+              "weapon": 10,
+              "deaths": 0
+            },
+            {
+              "offset_game_s": 0.247,
+              "weapon": 10,
+              "deaths": 0
+            }
+          ],
+          "join_wall_s": 18.98,
+          "placement_wall_s": 30.59,
+          "shared_owner_game_clock_s": [
+            1.157,
+            115.391
+          ],
+          "shared_owner_game_span_s": 114.234,
+          "shared_game_s_per_wall_s": 0.999,
+          "held_weapons_shared": [
+            2,
+            10
+          ],
+          "candidate_bound_six": false,
+          "console_sha256": "7fe332c1ce55a425ebf1aa9d1450dc0a90e9aed325277603372bd398356f0072",
+          "matched_first_life_key_denials": {
+            "red": 3
+          },
+          "shared_native_objective_modes": {
+            "2": 11
+          },
+          "shared_observed_enemy_flag_in_inventory": false,
+          "shared_flag_returns_announced": {},
+          "shared_key_denials": {
+            "red": 3
+          },
+          "shared_capture_announcements": {},
+          "placement_after_opponent_join_wall_s": 28.34
+        }
+      },
+      "shared_captures": {
+        "red": 0,
+        "gold": 0
+      },
+      "lane": "control",
+      "wasm_sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c"
+    },
+    {
+      "mode": "ff-sabers",
+      "requested_shared_wall_s": 115.0,
+      "placement_skew_wall_s": 0.03,
+      "owners": {
+        "lily": {
+          "start_game_s": 30.567001,
+          "start_sector": 505,
+          "start_position": [
+            -5.612,
+            -0.563,
+            2.37
+          ],
+          "start_look": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "start_health": 100.0,
+          "start_keys_83_84": [
+            1,
+            0
+          ],
+          "first_life_sampled_through_game_s": 101.248,
+          "first_life_distinct_sectors": 1,
+          "first_life_max_displacement_jku": 0.246,
+          "opening_sector_observations": [
+            [
+              505,
+              0.0
+            ]
+          ],
+          "first_sector_exit": null,
+          "chamber_clear_observed_by_game_s": null,
+          "witnessed_door_passages_game_s": {},
+          "closest_observed_enemy_flag_start_jku": 9.287,
+          "enemy_flag_sector_observed": false,
+          "carried_enemy_flag_observed_by_game_s": null,
+          "placement_relative_to_shared_play_wall_s": 13.3,
+          "weapon_observations_around_placement": [
+            {
+              "offset_game_s": -0.7,
+              "weapon": 10,
+              "deaths": 0
+            },
+            {
+              "offset_game_s": 0.133,
+              "weapon": 10,
+              "deaths": 0
+            }
+          ],
+          "join_wall_s": 2.32,
+          "placement_wall_s": 32.9,
+          "shared_owner_game_clock_s": [
+            17.5,
+            132.402
+          ],
+          "shared_owner_game_span_s": 114.902,
+          "shared_game_s_per_wall_s": 1.0,
+          "held_weapons_shared": [
+            10
+          ],
+          "candidate_bound_six": true,
+          "console_sha256": "4e093750edef59d14821b7a82612492c8d100a40216006c99fd602571208e7f4",
+          "matched_first_life_key_denials": {},
+          "shared_native_objective_modes": {
+            "2": 11
+          },
+          "shared_observed_enemy_flag_in_inventory": false,
+          "shared_flag_returns_announced": {},
+          "shared_key_denials": {},
+          "shared_capture_announcements": {},
+          "placement_after_opponent_join_wall_s": 13.73
+        },
+        "red": {
+          "start_game_s": 13.768001,
+          "start_sector": 393,
+          "start_position": [
+            -2.046,
+            -1.758,
+            2.62
+          ],
+          "start_look": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "start_health": 100.0,
+          "start_keys_83_84": [
+            0,
+            1
+          ],
+          "first_life_sampled_through_game_s": 101.012,
+          "first_life_distinct_sectors": 41,
+          "first_life_max_displacement_jku": 7.492,
+          "opening_sector_observations": [
+            [
+              393,
+              0.0
+            ],
+            [
+              403,
+              1.6
+            ],
+            [
+              409,
+              1.7
+            ],
+            [
+              410,
+              1.8
+            ],
+            [
+              404,
+              1.9
+            ],
+            [
+              407,
+              3.2
+            ]
+          ],
+          "first_sector_exit": {
+            "to_sector": 403,
+            "observed_by_game_s": 1.6
+          },
+          "chamber_clear_observed_by_game_s": null,
+          "witnessed_door_passages_game_s": {},
+          "closest_observed_enemy_flag_start_jku": 4.865,
+          "enemy_flag_sector_observed": false,
+          "carried_enemy_flag_observed_by_game_s": null,
+          "placement_relative_to_shared_play_wall_s": 13.33,
+          "weapon_observations_around_placement": [
+            {
+              "offset_game_s": -0.567,
+              "weapon": 10,
+              "deaths": 0
+            },
+            {
+              "offset_game_s": 0.1,
+              "weapon": 10,
+              "deaths": 0
+            }
+          ],
+          "join_wall_s": 19.17,
+          "placement_wall_s": 32.93,
+          "shared_owner_game_clock_s": [
+            0.968,
+            115.567
+          ],
+          "shared_owner_game_span_s": 114.599,
+          "shared_game_s_per_wall_s": 0.998,
+          "held_weapons_shared": [
+            2,
+            10
+          ],
+          "candidate_bound_six": true,
+          "console_sha256": "fe9ad4f954d9302d82554d39ec9fdbad499e0674cae2b31ef82d4bc22bbc0ddf",
+          "matched_first_life_key_denials": {},
+          "shared_native_objective_modes": {
+            "2": 10
+          },
+          "shared_observed_enemy_flag_in_inventory": false,
+          "shared_flag_returns_announced": {},
+          "shared_key_denials": {},
+          "shared_capture_announcements": {},
+          "placement_after_opponent_join_wall_s": 30.61
+        }
+      },
+      "shared_captures": {
+        "red": 0,
+        "gold": 0
+      },
+      "lane": "candidate",
+      "wasm_sha256": "f2df1a48fea2397cff23ae6cc160febb8e1dee53de7046ff6192e1661fdc1ad0"
+    }
+  ]
+}
