@@ -124,7 +124,19 @@ The 1-minute load average during 184654 was 3.8 to 4.6 on 8 cores, so the box wa
 Game time kept pace with wall time in every run. The engine does not slow game time down; it takes
 fewer, longer frames instead.
 Our bot and Jerec's COGs run in the same engine frame on the same thread: jkBot_Tick is called from
-sithControl.c:442 and the COG pulses run in that frame's update. Neither one starves the other. The
-difference is what a long frame does to each. Lily's aim is a view that has to turn (per-frame input).
-Jerec's shot angle is computed exactly when he fires, and his pulses are 0.01 to 0.1 s, so at 9 fps he
-loses little. Low fps therefore costs Lily more than him.
+sithControl.c:442 and the COG pulses run in that frame's update. Neither one starves the other.
+
+Lily already has the mouse-look aim fix from PR #3 (`turn_rate`, default `1800` deg/s in
+`AI/jkBotTactics.inc:100`, ported into JKWeb in PR #1 commit `6d0a6af` on `feature/pr4-headless-coach`),
+so she does NOT turn via slow keyboard turn keys (which cap at 200 deg/s yaw and 90 deg/s pitch).
+In `AI/jkBot.c:481-486`, `Bot_Aim` writes per-frame mouse-look deltas `bot.rawTurn`/`bot.rawPitch`
+clamped to `1800 * frameDt` degrees (~69 deg/frame at 26 fps, ~200 deg/frame at 9 fps), routed
+through `jkBot_GetRawAxis` (`AI/jkBot.c:1892-1897`) and `sithControl_GetAxis` (`Devices/sithControl.c:1187`)
+into `sithControl_PlayerLook` / `sithControl_TurnSpeed` (`Devices/sithControl.c:2016, 2148, 2378, 2492`).
+However, `jkBot_Tick` runs before `sithControl_HandlePlayer` applies that frame's turn, and
+`Bot_FireGunShot` (`AI/jkBotCombat.inc:310`) gates firing on the pre-turn `error < tolerance`
+(3.5-6 deg for guns, 0.8 deg for beams). That means any initial turn larger than the tolerance takes
+one frame to apply before she fires (~0.04 s at 26 fps vs ~0.12 s at 9 fps), and at 9 fps she gets
+roughly a third as many reaction/tracking updates per second against a strafing target. Jerec's
+`shoot:` COG (`p70w0.cog:511-527`) computes the projectile angle directly at fire time within his
+45-degree facing check, while his pulses run on 0.01-0.1 s timers.
