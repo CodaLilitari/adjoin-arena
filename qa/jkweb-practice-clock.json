@@ -1,0 +1,707 @@
+{
+  "schema": 1,
+  "map": "JK1CTF/c3.jkl",
+  "mode": "ff-sabers",
+  "fixture": {
+    "episode_sha256": "fa880206acec5190429e1cad9df77326c21e372fecb0053df50f6e2adb6cfb32",
+    "map_sha256": "b4d804591cebebbd59f05ad42a8e059178dc468e24172bd6bc5b7d6ba1c2f0a7",
+    "stock_episode_sha256": "da98fe3fc769168f1bb562cc1f6532560b12d8e920fd6c34586d69b424b5b1fc",
+    "changed_entry": "cog/ctf_respawn.cog",
+    "original_cog_sha256": "943e4b9230d27409f15788f8114d189d41c66d8e5761f408ed5785dc4f39e041",
+    "fixture_cog_sha256": "ec55f9131f4335e78a4a45a45edcb81b29c5d861d7a6a0e566c991b8adcb6d90"
+  },
+  "base_candidate_wasm": "f2df1a48fea2397cff23ae6cc160febb8e1dee53de7046ff6192e1661fdc1ad0",
+  "paced_wasm": "0595b6b1ba7364c65e32d135b66b350cc3d4d8493464d2f3b471c5d1a2af7df5",
+  "paced_js": "44ea14c975b126275882812d13e3d72bc4e3441f3d0ada013930e633dbf56636",
+  "practice_clock_source_sha256": "1590a34b84fafe0c0b77512b36194fb76d7da46d0a60ec82ac7b3019c23ab4bf",
+  "game_seconds_from_each_placement": 60,
+  "navigation": "fresh store per arm",
+  "counter_window": "Nearest exact 60-game-second native counter interval. Start offsets from placement are included for each owner.",
+  "match_window": "Elapsed wall time from first-life COG placement to each owner clock reaching placement + 60; clock interpolation bounds are retained.",
+  "design": "One two-owner game per pace using the same fixed-step candidate, plus the prior ordinary 1x candidate run as a reference. Team assignments are live, the simulation RNG and the join histories are uncontrolled.",
+  "arms": {
+    "ordinary": {
+      "input_sha256": "790cbf5833fa05c4cad7d38edd87d61cd93aec5cd4f8f8336bfdb0e2b77352b7",
+      "placement_skew_wall_s": 0.03,
+      "owners": {
+        "lily": {
+          "console_sha256": "4e093750edef59d14821b7a82612492c8d100a40216006c99fd602571208e7f4",
+          "playing_wall_s": 19.6,
+          "placement_wall_s": 32.9,
+          "placement_owner_game_s": 30.567001,
+          "closing_owner_game_s": 90.567,
+          "closing_wall_s": {
+            "estimated": 92.89,
+            "bounds": [
+              91.93,
+              92.93
+            ]
+          },
+          "actual_scoring_wall_s": 59.99,
+          "achieved_game_per_wall": 1.0002,
+          "start_health": 100.0,
+          "nearby_start_weapon": 10,
+          "deaths_at_nearest_sample": 0,
+          "first_life": {
+            "start_game_s": 30.567001,
+            "start_sector": 505,
+            "start_position": [
+              -5.612,
+              -0.563,
+              2.37
+            ],
+            "start_look": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "start_health": 100.0,
+            "start_keys_83_84": [
+              1,
+              0
+            ],
+            "first_life_sampled_through_game_s": 59.04,
+            "first_life_distinct_sectors": 1,
+            "first_life_max_displacement_jku": 0.246,
+            "opening_sector_observations": [
+              [
+                505,
+                0.0
+              ]
+            ],
+            "first_sector_exit": null,
+            "chamber_clear_observed_by_game_s": null,
+            "witnessed_door_passages_game_s": {},
+            "closest_observed_enemy_flag_start_jku": 9.288,
+            "enemy_flag_sector_observed": false,
+            "carried_enemy_flag_observed_by_game_s": null
+          },
+          "announced_captures": [],
+          "key_denials": {},
+          "first_observed_navigation_goal": null,
+          "first_stock_pickup_notice": null
+        },
+        "red": {
+          "console_sha256": "fe9ad4f954d9302d82554d39ec9fdbad499e0674cae2b31ef82d4bc22bbc0ddf",
+          "playing_wall_s": 19.6,
+          "placement_wall_s": 32.93,
+          "placement_owner_game_s": 13.768001,
+          "closing_owner_game_s": 73.768,
+          "closing_wall_s": {
+            "estimated": 92.918,
+            "bounds": [
+              92.47,
+              93.07
+            ]
+          },
+          "actual_scoring_wall_s": 59.988,
+          "achieved_game_per_wall": 1.0002,
+          "start_health": 100.0,
+          "nearby_start_weapon": 10,
+          "deaths_at_nearest_sample": 0,
+          "first_life": {
+            "start_game_s": 13.768001,
+            "start_sector": 393,
+            "start_position": [
+              -2.046,
+              -1.758,
+              2.62
+            ],
+            "start_look": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "start_health": 100.0,
+            "start_keys_83_84": [
+              0,
+              1
+            ],
+            "first_life_sampled_through_game_s": 59.552,
+            "first_life_distinct_sectors": 41,
+            "first_life_max_displacement_jku": 7.492,
+            "opening_sector_observations": [
+              [
+                393,
+                0.0
+              ],
+              [
+                403,
+                1.6
+              ],
+              [
+                409,
+                1.7
+              ],
+              [
+                410,
+                1.8
+              ],
+              [
+                404,
+                1.9
+              ],
+              [
+                407,
+                3.2
+              ]
+            ],
+            "first_sector_exit": {
+              "to_sector": 403,
+              "observed_by_game_s": 1.6
+            },
+            "chamber_clear_observed_by_game_s": null,
+            "witnessed_door_passages_game_s": {},
+            "closest_observed_enemy_flag_start_jku": 4.865,
+            "enemy_flag_sector_observed": false,
+            "carried_enemy_flag_observed_by_game_s": null
+          },
+          "announced_captures": [],
+          "key_denials": {},
+          "first_observed_navigation_goal": null,
+          "first_stock_pickup_notice": {
+            "game_s": {
+              "estimated": 0.0909,
+              "bounds": [
+                0.0,
+                1.0
+              ]
+            },
+            "item": "Repeater Gun",
+            "stock_cogs": [
+              "pow_drepeater.cog",
+              "pow_repeater.cog"
+            ]
+          }
+        }
+      }
+    },
+    "1x": {
+      "input_sha256": "20ab0c85f583d78b0522cecb8cb0c298c0537660673c3eba25c0f92ee2fdc572",
+      "placement_skew_wall_s": 0.09,
+      "owners": {
+        "lily": {
+          "console_sha256": "9306147f52fa53bff47ebe606fb2ba1a0b024b58d859ed06748e8d900c8719bc",
+          "playing_wall_s": 19.0,
+          "placement_wall_s": 35.16,
+          "placement_owner_game_s": 33.100002,
+          "closing_owner_game_s": 93.1,
+          "closing_wall_s": {
+            "estimated": 95.16,
+            "bounds": [
+              94.96,
+              95.26
+            ]
+          },
+          "actual_scoring_wall_s": 60.0,
+          "achieved_game_per_wall": 1.0,
+          "start_health": 100.0,
+          "nearby_start_weapon": 10,
+          "deaths_at_nearest_sample": 0,
+          "first_life": {
+            "start_game_s": 33.100002,
+            "start_sector": 505,
+            "start_position": [
+              -5.612,
+              -0.563,
+              2.37
+            ],
+            "start_look": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "start_health": 100.0,
+            "start_keys_83_84": [
+              1,
+              0
+            ],
+            "first_life_sampled_through_game_s": 59.8,
+            "first_life_distinct_sectors": 42,
+            "first_life_max_displacement_jku": 4.191,
+            "opening_sector_observations": [
+              [
+                505,
+                0.0
+              ],
+              [
+                506,
+                23.9
+              ],
+              [
+                113,
+                24.0
+              ],
+              [
+                114,
+                24.9
+              ],
+              [
+                113,
+                25.0
+              ],
+              [
+                114,
+                25.4
+              ]
+            ],
+            "first_sector_exit": {
+              "to_sector": 506,
+              "observed_by_game_s": 23.9
+            },
+            "chamber_clear_observed_by_game_s": 24.0,
+            "witnessed_door_passages_game_s": {},
+            "closest_observed_enemy_flag_start_jku": 6.107,
+            "enemy_flag_sector_observed": false,
+            "carried_enemy_flag_observed_by_game_s": null
+          },
+          "announced_captures": [],
+          "key_denials": {},
+          "first_observed_navigation_goal": {
+            "state": [
+              "autonomous",
+              555
+            ],
+            "observed_by_game_s": 0.033
+          },
+          "first_stock_pickup_notice": {
+            "game_s": {
+              "estimated": 30.11,
+              "bounds": [
+                30.1,
+                30.3
+              ]
+            },
+            "item": "Force Boost",
+            "stock_cogs": [
+              "pow_mana.cog"
+            ]
+          },
+          "native_counters": {
+            "rate": 1,
+            "in_window_cumulative_samples": 120,
+            "physics_step_range_us": [
+              6667,
+              6667
+            ],
+            "control_step_range_us": [
+              33333,
+              33333
+            ],
+            "fully_inside": {
+              "start_offset_game_s": 0.4,
+              "span_game_s": 59.5,
+              "measured_real_seconds": 59.5015,
+              "game_per_real_s": 1.0,
+              "outer_ticks": 1785,
+              "physics_updates": 8925,
+              "control_ticks": 1785,
+              "stalls": 0
+            },
+            "nearest_exact_60_game_seconds": {
+              "start_offset_game_s": -0.1,
+              "span_game_s": 60.0,
+              "measured_real_seconds": 60.0006,
+              "game_per_real_s": 1.0,
+              "outer_ticks": 1800,
+              "physics_updates": 9000,
+              "control_ticks": 1800,
+              "stalls": 0
+            }
+          }
+        },
+        "red": {
+          "console_sha256": "b9f877f8f03dc2ebd9009e18c4b558a5fe66162225ac1b385db3d4415ccb982e",
+          "playing_wall_s": 19.0,
+          "placement_wall_s": 35.25,
+          "placement_owner_game_s": 16.800001,
+          "closing_owner_game_s": 76.8,
+          "closing_wall_s": {
+            "estimated": 95.25,
+            "bounds": [
+              94.85,
+              95.35
+            ]
+          },
+          "actual_scoring_wall_s": 60.0,
+          "achieved_game_per_wall": 1.0,
+          "start_health": 100.0,
+          "nearby_start_weapon": 10,
+          "deaths_at_nearest_sample": 0,
+          "first_life": {
+            "start_game_s": 16.800001,
+            "start_sector": 393,
+            "start_position": [
+              -2.046,
+              -1.758,
+              2.62
+            ],
+            "start_look": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "start_health": 100.0,
+            "start_keys_83_84": [
+              0,
+              1
+            ],
+            "first_life_sampled_through_game_s": 59.6,
+            "first_life_distinct_sectors": 41,
+            "first_life_max_displacement_jku": 7.786,
+            "opening_sector_observations": [
+              [
+                393,
+                0.0
+              ],
+              [
+                402,
+                2.2
+              ],
+              [
+                403,
+                2.3
+              ],
+              [
+                409,
+                2.4
+              ],
+              [
+                410,
+                2.5
+              ],
+              [
+                404,
+                2.7
+              ]
+            ],
+            "first_sector_exit": {
+              "to_sector": 402,
+              "observed_by_game_s": 2.2
+            },
+            "chamber_clear_observed_by_game_s": null,
+            "witnessed_door_passages_game_s": {},
+            "closest_observed_enemy_flag_start_jku": 4.865,
+            "enemy_flag_sector_observed": false,
+            "carried_enemy_flag_observed_by_game_s": null
+          },
+          "announced_captures": [],
+          "key_denials": {},
+          "first_observed_navigation_goal": {
+            "state": [
+              "autonomous",
+              499
+            ],
+            "observed_by_game_s": 0.033
+          },
+          "first_stock_pickup_notice": {
+            "game_s": {
+              "estimated": 0.0505,
+              "bounds": [
+                0.0,
+                1.0
+              ]
+            },
+            "item": "Repeater Gun",
+            "stock_cogs": [
+              "pow_drepeater.cog",
+              "pow_repeater.cog"
+            ]
+          },
+          "native_counters": {
+            "rate": 1,
+            "in_window_cumulative_samples": 120,
+            "physics_step_range_us": [
+              6667,
+              6667
+            ],
+            "control_step_range_us": [
+              33333,
+              33333
+            ],
+            "fully_inside": {
+              "start_offset_game_s": 0.2,
+              "span_game_s": 59.5,
+              "measured_real_seconds": 59.501,
+              "game_per_real_s": 1.0,
+              "outer_ticks": 1785,
+              "physics_updates": 8925,
+              "control_ticks": 1785,
+              "stalls": 0
+            },
+            "nearest_exact_60_game_seconds": {
+              "start_offset_game_s": 0.2,
+              "span_game_s": 60.0,
+              "measured_real_seconds": 60.0009,
+              "game_per_real_s": 1.0,
+              "outer_ticks": 1800,
+              "physics_updates": 9000,
+              "control_ticks": 1800,
+              "stalls": 0
+            }
+          }
+        }
+      }
+    },
+    "2x": {
+      "input_sha256": "1d86dc6e17049421b3c3ffc6f37cf25d24861334d1203c078829d7ab458f3858",
+      "placement_skew_wall_s": 0.05,
+      "owners": {
+        "lily": {
+          "console_sha256": "1d55d981fdcf694c754a74822b1ddf2337a6916d1bbd7005efbd6cc52ce0553a",
+          "playing_wall_s": 13.5,
+          "placement_wall_s": 21.29,
+          "placement_owner_game_s": 38.5,
+          "closing_owner_game_s": 98.5,
+          "closing_wall_s": {
+            "estimated": 51.29,
+            "bounds": [
+              50.79,
+              51.29
+            ]
+          },
+          "actual_scoring_wall_s": 30.0,
+          "achieved_game_per_wall": 2.0,
+          "start_health": 100.0,
+          "nearby_start_weapon": 10,
+          "deaths_at_nearest_sample": 0,
+          "first_life": {
+            "start_game_s": 38.5,
+            "start_sector": 505,
+            "start_position": [
+              -5.612,
+              -0.563,
+              2.37
+            ],
+            "start_look": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "start_health": 100.0,
+            "start_keys_83_84": [
+              1,
+              0
+            ],
+            "first_life_sampled_through_game_s": 59.0,
+            "first_life_distinct_sectors": 1,
+            "first_life_max_displacement_jku": 0.243,
+            "opening_sector_observations": [
+              [
+                505,
+                0.0
+              ]
+            ],
+            "first_sector_exit": null,
+            "chamber_clear_observed_by_game_s": null,
+            "witnessed_door_passages_game_s": {},
+            "closest_observed_enemy_flag_start_jku": 9.287,
+            "enemy_flag_sector_observed": false,
+            "carried_enemy_flag_observed_by_game_s": null
+          },
+          "announced_captures": [],
+          "key_denials": {},
+          "first_observed_navigation_goal": {
+            "state": [
+              "autonomous",
+              89
+            ],
+            "observed_by_game_s": 0.0
+          },
+          "first_stock_pickup_notice": null,
+          "native_counters": {
+            "rate": 2,
+            "in_window_cumulative_samples": 121,
+            "physics_step_range_us": [
+              6667,
+              6667
+            ],
+            "control_step_range_us": [
+              33333,
+              33333
+            ],
+            "fully_inside": {
+              "start_offset_game_s": 0.0,
+              "span_game_s": 60.0,
+              "measured_real_seconds": 29.9998,
+              "game_per_real_s": 2.0,
+              "outer_ticks": 1800,
+              "physics_updates": 9000,
+              "control_ticks": 1800,
+              "stalls": 0
+            },
+            "nearest_exact_60_game_seconds": {
+              "start_offset_game_s": 0.0,
+              "span_game_s": 60.0,
+              "measured_real_seconds": 29.9998,
+              "game_per_real_s": 2.0,
+              "outer_ticks": 1800,
+              "physics_updates": 9000,
+              "control_ticks": 1800,
+              "stalls": 0
+            }
+          }
+        },
+        "red": {
+          "console_sha256": "076d75660e0bdbfe51de6ee282e6c8f0ad39ac429172c2154962e4a02575d52b",
+          "playing_wall_s": 13.5,
+          "placement_wall_s": 21.24,
+          "placement_owner_game_s": 16.800001,
+          "closing_owner_game_s": 76.8,
+          "closing_wall_s": {
+            "estimated": 51.245,
+            "bounds": [
+              51.11,
+              51.38
+            ]
+          },
+          "actual_scoring_wall_s": 30.005,
+          "achieved_game_per_wall": 1.9997,
+          "start_health": 100.0,
+          "nearby_start_weapon": 10,
+          "deaths_at_nearest_sample": 0,
+          "first_life": {
+            "start_game_s": 16.800001,
+            "start_sector": 393,
+            "start_position": [
+              -2.046,
+              -1.758,
+              2.62
+            ],
+            "start_look": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "start_health": 100.0,
+            "start_keys_83_84": [
+              0,
+              1
+            ],
+            "first_life_sampled_through_game_s": 21.8,
+            "first_life_distinct_sectors": 27,
+            "first_life_max_displacement_jku": 8.907,
+            "opening_sector_observations": [
+              [
+                393,
+                0.0
+              ],
+              [
+                400,
+                1.9
+              ],
+              [
+                403,
+                2.0
+              ],
+              [
+                409,
+                2.1
+              ],
+              [
+                410,
+                2.2
+              ],
+              [
+                404,
+                2.4
+              ]
+            ],
+            "first_sector_exit": {
+              "to_sector": 400,
+              "observed_by_game_s": 1.9
+            },
+            "chamber_clear_observed_by_game_s": null,
+            "witnessed_door_passages_game_s": {},
+            "closest_observed_enemy_flag_start_jku": 4.865,
+            "enemy_flag_sector_observed": false,
+            "carried_enemy_flag_observed_by_game_s": null
+          },
+          "announced_captures": [],
+          "key_denials": {},
+          "first_observed_navigation_goal": {
+            "state": [
+              "autonomous",
+              498
+            ],
+            "observed_by_game_s": 0.066
+          },
+          "first_stock_pickup_notice": {
+            "game_s": {
+              "estimated": 0.14,
+              "bounds": [
+                0.0,
+                1.0
+              ]
+            },
+            "item": "Repeater Gun",
+            "stock_cogs": [
+              "pow_drepeater.cog",
+              "pow_repeater.cog"
+            ]
+          },
+          "native_counters": {
+            "rate": 2,
+            "in_window_cumulative_samples": 120,
+            "physics_step_range_us": [
+              6667,
+              6667
+            ],
+            "control_step_range_us": [
+              33333,
+              33333
+            ],
+            "fully_inside": {
+              "start_offset_game_s": 0.2,
+              "span_game_s": 59.5,
+              "measured_real_seconds": 29.7345,
+              "game_per_real_s": 2.001,
+              "outer_ticks": 1785,
+              "physics_updates": 8925,
+              "control_ticks": 1785,
+              "stalls": 0
+            },
+            "nearest_exact_60_game_seconds": {
+              "start_offset_game_s": 0.2,
+              "span_game_s": 60.0,
+              "measured_real_seconds": 30.0004,
+              "game_per_real_s": 2.0,
+              "outer_ticks": 1800,
+              "physics_updates": 9000,
+              "control_ticks": 1800,
+              "stalls": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  "stock_c3_normal_cli_smoke": {
+    "cli_exit": 0,
+    "map": "c3.jkl",
+    "game_window": {
+      "owners": {
+        "lily": {
+          "end": 34.79999923706055,
+          "start": 22.600000381469727,
+          "world_epoch": 1
+        },
+        "red": {
+          "end": 12.800000190734863,
+          "start": 0.5659999847412109,
+          "world_epoch": 1
+        }
+      },
+      "requested_game_seconds": 12.0,
+      "wall_seconds": 6.149373299995204
+    },
+    "joined": {
+      "lily": true,
+      "red": true
+    },
+    "native_rate2": {
+      "lily": true,
+      "red": true
+    }
+  }
+}

@@ -37,6 +37,10 @@ python -m web_bots.headless host --relay ws://127.0.0.1:8080/relay \
   --chrome "/path/to/chrome"
 ```
 
+For private accelerated practice, the headless host supports a separately
+built engine with `--practice-rate 2` and an owner-clock budget such as
+`--game-seconds 60`. [Build instructions and measured speed](../docs/FAST_TRAINING.md#private-jkweb-practice)
+
 For Jedi's High School, use `--episode-gob "/path/to/jhs.gob" --map jhs.jkl`.
 The host and the joining browsers use the operator's local episode.
 `headless join` and `join_room join` can also mount the selected room's

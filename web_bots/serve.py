@@ -189,7 +189,8 @@ def child_relay(path):
 
 class Host:
     def __init__(self, data, engine, runtime, room, model, chat, mode="ff-guns", *, adaptive_lily=False, external=None,
-                 hosted=None, red_sabers=("lily",), taunts=True, private_duels=False, learn_navigation=True):
+                 hosted=None, red_sabers=("lily",), taunts=True, private_duels=False, learn_navigation=True,
+                 practice_rate=None):
         if mode not in ARENA_MODES:
             raise ValueError("Unknown arena mode. Choose one of " + ", ".join(ARENA_MODES) + ".")
         if external and hosted:
@@ -234,6 +235,10 @@ class Host:
         self.nav_memories = {}
         self.nav_errors = {}
         self.nav_root = memory_root() if learn_navigation else None
+        if practice_rate is not None and self.nav_root is not None:
+            if practice_rate not in (1, 2):
+                raise ValueError("Practice navigation needs a supported clock rate.")
+            self.nav_root = self.nav_root / f"practice-{practice_rate}x"
         self.nav_build = None
         if self.nav_root:
             try:

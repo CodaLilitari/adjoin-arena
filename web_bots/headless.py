@@ -28,7 +28,9 @@ import asyncio
 import contextlib
 from dataclasses import dataclass
 from functools import cached_property
+import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -38,6 +40,7 @@ import signal
 import subprocess
 import time
 from types import SimpleNamespace
+from urllib.parse import urlsplit
 
 from aiohttp import web
 from web_bots.join_room import ZONE_RELAY, episode_file, join_rules, list_games, relay_url, select_room
@@ -97,6 +100,19 @@ def find_hosted(games, room_name, max_players):
     return hits[0]["id"]
 
 
+def game_window_complete(window, seats, seconds):
+    """Measure each owner's clock from the first shared, fresh observation."""
+    for ident, seat in seats.items():
+        stamp = seat["game_time"]
+        if stamp is None or not math.isfinite(stamp):
+            raise ValueError(f"Missing native game time for {ident}.")
+        owner = window.setdefault(ident, dict(start=stamp, end=stamp, world_epoch=seat["world_epoch"]))
+        if owner["world_epoch"] != seat["world_epoch"] or stamp < owner["end"]:
+            raise ValueError(f"{ident}'s world or game clock changed during the measured window.")
+        owner["end"] = stamp
+    return bool(window) and all(owner["end"] - owner["start"] >= seconds for owner in window.values())
+
+
 class Launcher:
     def __init__(self, args):
         self.args, self.hosts, self.runners, self.seats = args, {}, {}, {}
@@ -107,6 +123,8 @@ class Launcher:
         self.xvfb = None
         self.started = time.monotonic()
         self.manifest = {"relay": args.relay, "display": args.display, "seats": {}, "started": time.time()}
+        if getattr(args, "practice_rate", None):
+            self.manifest["practice_rate"] = args.practice_rate
 
     def log(self, **fields):
         line = json.dumps(dict(t=round(time.monotonic() - self.started, 1), **fields), sort_keys=True)
@@ -163,6 +181,9 @@ class Launcher:
         token = host.tokens[ident]
         init_js = ("if(window===top && location.href===" + json.dumps(page_url) +
                    ") window.__JK_BOT_TOKEN=" + json.dumps(token) + ";")
+        if getattr(self.args, "practice_rate", None):
+            init_js += ("if(window===top && location.href===" + json.dumps(page_url) +
+                        ") window.adjoinPracticeRate=" + str(self.args.practice_rate) + ";")
         if self.args.fps_cap > 0:
             min_ms = 1000.0 / self.args.fps_cap
             init_js += (
@@ -192,8 +213,10 @@ class Launcher:
             bot = host.hub.bots[ident]
             state = bot.state or {}
             fresh = bot.state is not None and host.hub.clock() - bot.observed <= 3
+            world = bot.world
         seat = host.seats[ident]
-        return {"joined": bool(fresh), "stage": seat["stage"], "kills": state.get("kills"),
+        return {"joined": bool(fresh), "stage": seat["stage"], "world_epoch": world,
+                "game_time": state.get("game_time"), "kills": state.get("kills"),
                 "deaths": state.get("deaths"), "health": state.get("health"),
                 "renderer": (seat.get("graphics") or {}).get("renderer"),
                 "navigation_discarded": seat["nav_dropped"]}
@@ -209,9 +232,11 @@ class Launcher:
             await asyncio.sleep(0.5)
         return False
 
-    async def pump(self, until, *, browser=None, watch_seat=None, drop_grace=20.0):
+    async def pump(self, until, *, browser=None, watch_seat=None, drop_grace=20.0, game_seconds=None):
         next_status = 0
         dropped_since = None
+        window = {}
+        wall_start = None
         while time.monotonic() < until:
             for host in self.hosts.values():
                 host.hub.pump()
@@ -224,9 +249,20 @@ class Launcher:
                 if s.get("crashed") or s.get("closed"):
                     self.log(event="abort", reason="watch_seat_crashed", seat=watch_seat)
                     raise RuntimeError(f"Seat {watch_seat} crashed or closed.")
-            if time.monotonic() >= next_status:
-                next_status = time.monotonic() + 5
+            now = time.monotonic()
+            if game_seconds is not None or now >= next_status:
                 row = {ident: self.seat_status(ident) for ident in self.hosts}
+            if game_seconds is not None and all(s["joined"] for s in row.values()):
+                if not window:
+                    wall_start = now
+                if game_window_complete(window, row, game_seconds):
+                    result = dict(requested_game_seconds=game_seconds, wall_seconds=now-wall_start, owners=window)
+                    self.manifest["game_window"] = result
+                    self.save()
+                    self.log(event="game_window_complete", **result)
+                    return
+            if now >= next_status:
+                next_status = time.monotonic() + 5
                 self.status_log.write(json.dumps({"t": round(time.monotonic() - self.started, 1), "seats": row}) + "\n")
                 self.status_log.flush()
                 if watch_seat and watch_seat in row:
@@ -238,6 +274,9 @@ class Launcher:
                             self.log(event="abort", reason="watch_seat_dropped", seat=watch_seat)
                             raise RuntimeError(f"Seat {watch_seat} stopped reporting state for {drop_grace:.0f}s.")
             await asyncio.sleep(0.05)
+        if game_seconds is not None:
+            self.log(event="abort", reason="game_clock_timeout", owners=window)
+            raise RuntimeError("The requested game-clock window did not finish on all owners.")
 
     async def join_seats(self, browser, room_id, seats):
         games = await list_games(self.args.relay)
@@ -250,7 +289,7 @@ class Launcher:
             if rules is None:
                 rules = await join_rules(room, self.args.sabers_only)
             host = Host(self.args.data, self.args.engine_dir, self.run / ident, str(room_id), self.args.model_gob, self.args.companion_chat,
-                        rules[0], learn_navigation=rules[1],
+                        rules[0], learn_navigation=rules[1], practice_rate=getattr(self.args, "practice_rate", None),
                         adaptive_lily=self.args.adaptive_lily and ident == "lily", external=room,
                         red_sabers=self.args.red_sabers, taunts=not self.args.no_taunts)
             await self.add_host(ident, host, "join")
@@ -275,6 +314,7 @@ class Launcher:
                     archive = episode_file(a.data, a.episode, a.map, a.episode_gob)
                     hosted = HostedRoom(a.relay, a.host_seat, a.max_players, a.map, a.room_name, a.episode, archive)
                     host = Host(a.data, a.engine_dir, self.run / a.host_seat, a.room_name, a.model_gob, a.companion_chat, a.mode,
+                                practice_rate=a.practice_rate,
                                 adaptive_lily=a.adaptive_lily and a.host_seat == "lily", hosted=hosted,
                                 red_sabers=a.red_sabers, taunts=not a.no_taunts, private_duels=a.private_duels)
                     self.manifest["hosted"] = hosted.public()
@@ -297,10 +337,18 @@ class Launcher:
                 else:
                     room_id = a.room_id
                     self.manifest["room_id"] = room_id
-                await self.join_seats(browser, room_id, a.seat_list)
-                self.log(event="playing", seconds=a.seconds, manifest=str(self.run / "headless.json"))
+                joined = await self.join_seats(browser, room_id, a.seat_list)
+                game_seconds = getattr(a, "game_seconds", None)
+                if game_seconds is not None and not all(joined.values()):
+                    raise RuntimeError("The game-clock window requires all requested owners to join.")
+                watchdog = a.seconds
+                duration = dict(seconds=a.seconds)
+                if game_seconds is not None:
+                    watchdog = 30 + 2 * game_seconds / (a.practice_rate or 1)
+                    duration = dict(game_seconds=game_seconds, wall_timeout_seconds=watchdog)
+                self.log(event="playing", manifest=str(self.run / "headless.json"), **duration)
                 watch = (a.host_seat if a.command == "host" else None) if a.exit_on_drop else None
-                await self.pump(time.monotonic() + a.seconds, browser=browser, watch_seat=watch)
+                await self.pump(time.monotonic() + watchdog, browser=browser, watch_seat=watch, game_seconds=game_seconds)
                 for ident, seat in self.seats.items():
                     with contextlib.suppress(Exception):
                         await seat["page"].screenshot(path=str(self.run / (ident + "-final.png")), timeout=5000)
@@ -337,7 +385,11 @@ def build_parser():
         c.add_argument("--engine-dir", type=Path, default=HERE.parent / "bin/bots-jkweb")
         c.add_argument("--episode-gob", type=Path)
         c.add_argument("--adaptive-lily", action="store_true")
-        c.add_argument("--seconds", type=float, default=600)
+        duration = c.add_mutually_exclusive_group()
+        duration.add_argument("--seconds", type=float, default=600, help="Wall seconds after the join phase.")
+        if c is host:
+            duration.add_argument("--game-seconds", type=float,
+                                  help="Stop after every requested seat advances this many native game seconds.")
         c.add_argument("--join-timeout", type=float, default=180)
         c.add_argument("--display", choices=("headless", "xvfb"), default="headless")
         c.add_argument("--xvfb-display", type=int)
@@ -368,6 +420,8 @@ def build_parser():
     host.add_argument("--map", help="JKL inside the episode. Defaults to m10.jkl in JK1MP or c1.jkl in JK1CTF.")
     host.add_argument("--mode", choices=ARENA_MODES, default="ff-guns", help="ff-guns hosts Jedi rank 8 (full Force).")
     host.add_argument("--private-duels", action="store_true", help="Allow ordinary JKWeb saber challenges in this hosted free-for-all.")
+    host.add_argument("--practice-rate", type=int, choices=(1, 2),
+                      help="Run a private fixed-step practice engine at 1× or 2× on a loopback relay.")
     host.add_argument("--public-room", action="store_true",
                       help="Required to host on the public Jedi Knight Zone relay (listed, on its leaderboard).")
     return p
@@ -377,6 +431,18 @@ def validate(args, parser):
     try:
         relay_url(args.relay)
         if args.command == "host":
+            if args.game_seconds is not None and (not math.isfinite(args.game_seconds) or args.game_seconds <= 0):
+                raise ValueError("--game-seconds must be a positive finite duration")
+            if args.practice_rate:
+                if urlsplit(args.relay).hostname not in ("127.0.0.1", "::1") or args.public_room:
+                    raise ValueError("--practice-rate requires a private loopback relay.")
+                try:
+                    record = json.loads((args.engine_dir / "practice-clock.json").read_bytes())
+                    if any(hashlib.sha256((args.engine_dir/n).read_bytes()).hexdigest() != record["files"][n]
+                           for n in ("openjkdf2.wasm", "openjkdf2.js")):
+                        raise ValueError("Private practice engine files differ from the build receipt.")
+                except (OSError, KeyError, TypeError, json.JSONDecodeError) as exc:
+                    raise ValueError("--practice-rate needs a relinked --engine-dir with a practice-clock.json receipt.") from exc
             if args.relay == ZONE_RELAY and not args.public_room:
                 raise ValueError("Hosting on the public Jedi Knight Zone relay lists the room publicly and "
                                  "reports matches to its leaderboard. Add --public-room to confirm.")
