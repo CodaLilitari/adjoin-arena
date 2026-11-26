@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "trial": "Bespin Mining Station guard-on comparison",
+  "map": "JK1MP/m4.jkl",
+  "run_conditions": {
+    "mode": "NF guns, Jan Ors as sole owner client, private native dedicated server",
+    "clock": "1x native clock",
+    "trials_per_arm": 1,
+    "surface": 1835,
+    "start_distance_to_rim_units": 0.13,
+    "initial_shaftward_speed_units_per_second": 1.25,
+    "tangent_thrust_seconds": 0.45,
+    "sample_window_game_seconds": 1.1,
+    "finish_criterion": "brakes > 0, min_z > 1.84, attached to a surface, same life",
+    "cache": "fresh private navigation state for each arm"
+  },
+  "provenance": {
+    "map_sha256": "150eda1c2e6c7f316c8b76a0f2f060ce5d49dcc9ae24bb43e4fb42a5df20d89c",
+    "server_sha256": "16944b47e2ceecf3f09cc2820af26372e2af8642057c2b0a963e353ff090c745",
+    "rim_fixture_sha256": "e36ddd4d4fec2fb54d551954b5334ba5180e46fda96cbfe66580f9a637f896cd",
+    "maintained_harness_sha256": "da5c55364ae0ea15c2906c015c89b79aaae070375fce15697d7c54e4ead069e1",
+    "original_stock_clock": "original engine clock",
+    "compiler": "cc (Ubuntu 15.2.0-16ubuntu1) 15.2.0"
+  },
+  "arms": [
+    {
+      "name": "v0.6.1",
+      "source_bot_sha256": "f5777b0181e425fe3b896c43410408ef197540d259dc521efee997d43373a612",
+      "verified_clean_controller_object_sha256": "4addc7c24ace2adf38129fd49f9eb0f7dcfdc1a4d713e3a73a667b642fa6a18c",
+      "instrumented_bot_sha256": "8ca17e324de173e8a1090b00d76c361536607240d2bc66ec92862e65c8bd1855",
+      "owner_log_sha256": "fcb11f5252dff0d7c47f86cf734b811e1c3b14f5e59405f7d2e03b95a659bdd1",
+      "profile": "jan_ors",
+      "guard_enabled": true,
+      "passed_rim_criterion": false,
+      "start": {
+        "distance": -0.13,
+        "z": 1.8738,
+        "sector": 108,
+        "life": 1
+      },
+      "end": {
+        "min_z": 0.8624,
+        "deepest": 0.136,
+        "final_depth": 0.136,
+        "z": 0.8624,
+        "sector": 102,
+        "attach": 0,
+        "brakes": 10,
+        "hp": 100.0,
+        "start_life": 1,
+        "life": 1,
+        "samples": 34
+      }
+    },
+    {
+      "name": "landing-step",
+      "source_bot_sha256": "adf4e21ebb61e6674702c3752ca91d548d9e41118d0b2bbd5ac09c3a7a2c3fcc",
+      "verified_clean_controller_object_sha256": "7c00760e8a086f8d098a1dd2317a1d89dff8c3f8a20d1544c22f53dddfff11ed",
+      "instrumented_bot_sha256": "74fa7383a00ae059e69d4e0fbc3555519be1d35df1feb7c3ba26c40d4d782b85",
+      "owner_log_sha256": "aba29aae386d2e50ba376e4037842562af070119422430d3e27cfad7c4a42186",
+      "profile": "jan_ors",
+      "guard_enabled": true,
+      "passed_rim_criterion": true,
+      "start": {
+        "distance": -0.13,
+        "z": 1.8738,
+        "sector": 108,
+        "life": 1
+      },
+      "end": {
+        "min_z": 1.8725,
+        "deepest": 0.0059,
+        "final_depth": -0.01,
+        "z": 1.8731,
+        "sector": 155,
+        "attach": 1,
+        "brakes": 12,
+        "hp": 100.0,
+        "start_life": 1,
+        "life": 1,
+        "samples": 34
+      }
+    }
+  ],
+  "scope": "A controlled rim start and a single timed finish per arm. Open-play fall frequency, long-term survival and browser behavior require separate observations."
+}

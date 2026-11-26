@@ -11,6 +11,22 @@ On Bespin Mining Station, the competitive controller looks for a pickup reachabl
 
 The cases use an isolated native dedicated server, an owner client, the retail JKLs, stock mover COGs, collisions and game clock. The weapon trials assign the objective and place the player once at a valid boarding approach. Stock TAKEN is observed in the engine's item dispatcher. Standing on a floor in a separate landing sector establishes escape. The Nar case stages the approach after the stock switch has raised the deck. The rim case seeds one lateral velocity and asks for tangent movement. These measurements establish the specific maneuvers. Autonomous pickup frequency, long-run fall rate and browser physics need their own match samples.
 
+### Bespin rim with both guards enabled
+
+With the shipping v0.6.1 controller, Jan braked on 10 frames, fell 1.0114
+world units and was airborne in sector 102 after 1.1 game seconds. The
+native navigation candidate braked on 12 frames and finished grounded in
+sector 155, within 0.001 units of the starting height. Both started 0.13
+units inside the same rim with 1.25 units/s of outward velocity. Both
+were still alive at the cutoff. [Ordinary game clock](bespin-rim-guard-pair.json)
+
+At 2× the same two controllers produced the same fall and grounded outcomes
+with the same 34 measured rim samples in each run. Each client advanced
+74.086 game seconds in 37.043 wall seconds across the wider observation
+window. The private host and owners each used 34 ms simulation steps.
+This particular collision and braking test can run at 2× while retaining
+the observed 1× result. [Paced comparison](bespin-rim-guard-pair-paced-2x.json)
+
 An earlier trial accepted a weapon bin's available bit before Jan had reached the shelf. The retained weapon trials require the stock callback for the exact item, the same life on escape, and a static dismount. Owner-log digests, map hashes and event lines are in [the navigation receipt](stock-navigation.json).
 
 ## Reproduce

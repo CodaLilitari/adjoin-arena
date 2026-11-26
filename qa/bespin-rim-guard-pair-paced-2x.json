@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "trial": "Bespin Mining Station guard-on comparison",
+  "map": "JK1MP/m4.jkl",
+  "run_conditions": {
+    "mode": "NF guns, Jan Ors as sole owner client, private native dedicated server",
+    "clock": "paced at 2x, constant 34 ms simulation steps",
+    "trials_per_arm": 1,
+    "surface": 1835,
+    "start_distance_to_rim_units": 0.13,
+    "initial_shaftward_speed_units_per_second": 1.25,
+    "tangent_thrust_seconds": 0.45,
+    "sample_window_game_seconds": 1.1,
+    "finish_criterion": "brakes > 0, min_z > 1.84, attached to a surface, same life",
+    "cache": "fresh private navigation state for each arm"
+  },
+  "provenance": {
+    "map_sha256": "150eda1c2e6c7f316c8b76a0f2f060ce5d49dcc9ae24bb43e4fb42a5df20d89c",
+    "server_sha256": "7834297b91dc3987749c8fb1a22c8af501615778bde12bbaab7d458a38ca96d5",
+    "rim_fixture_sha256": "e36ddd4d4fec2fb54d551954b5334ba5180e46fda96cbfe66580f9a637f896cd",
+    "maintained_harness_sha256": "da5c55364ae0ea15c2906c015c89b79aaae070375fce15697d7c54e4ead069e1",
+    "original_stock_clock": "source binaries were built for the original game clock; the trial uses the paced host and client",
+    "compiler": "cc (Ubuntu 15.2.0-16ubuntu1) 15.2.0"
+  },
+  "arms": [
+    {
+      "name": "v0.6.1",
+      "source_bot_sha256": "f5777b0181e425fe3b896c43410408ef197540d259dc521efee997d43373a612",
+      "verified_clean_controller_object_sha256": "4addc7c24ace2adf38129fd49f9eb0f7dcfdc1a4d713e3a73a667b642fa6a18c",
+      "instrumented_bot_sha256": "32dbee90f88d419462225e61b17ae4eaf8deb923abeea700b3b1191064c32b0a",
+      "owner_log_sha256": "d93783e3642a17dbdaa1d606542d0dfc2e026f720704e39c45765d33e8effab2",
+      "profile": "jan_ors",
+      "guard_enabled": true,
+      "passed_rim_criterion": false,
+      "start": {
+        "distance": -0.13,
+        "z": 1.8738,
+        "sector": 108,
+        "life": 1
+      },
+      "end": {
+        "min_z": 0.8624,
+        "deepest": 0.136,
+        "final_depth": 0.136,
+        "z": 0.8624,
+        "sector": 102,
+        "attach": 0,
+        "brakes": 10,
+        "hp": 100.0,
+        "start_life": 1,
+        "life": 1,
+        "samples": 34
+      },
+      "measured_clock": {
+        "host": {
+          "rate_setting": 2,
+          "step_ms": 34,
+          "consistent_engine_steps": 2549,
+          "game_seconds": 86.666,
+          "wall_seconds": 43.333,
+          "realized_rate": 2.0
+        },
+        "jan": {
+          "rate_setting": 2,
+          "step_ms": 34,
+          "consistent_engine_steps": 2179,
+          "game_seconds": 74.086,
+          "wall_seconds": 37.043,
+          "realized_rate": 2.0
+        }
+      }
+    },
+    {
+      "name": "landing-step",
+      "source_bot_sha256": "adf4e21ebb61e6674702c3752ca91d548d9e41118d0b2bbd5ac09c3a7a2c3fcc",
+      "verified_clean_controller_object_sha256": "7c00760e8a086f8d098a1dd2317a1d89dff8c3f8a20d1544c22f53dddfff11ed",
+      "instrumented_bot_sha256": "106098a41688196a0155b07073c416dcf9f3fed758a1c69edb76a753f096187d",
+      "owner_log_sha256": "387358cb4076322a46f85919bc5df8ef25fe184dfb9adab8ad258c3f6a21162c",
+      "profile": "jan_ors",
+      "guard_enabled": true,
+      "passed_rim_criterion": true,
+      "start": {
+        "distance": -0.13,
+        "z": 1.8738,
+        "sector": 108,
+        "life": 1
+      },
+      "end": {
+        "min_z": 1.8725,
+        "deepest": 0.0059,
+        "final_depth": -0.0081,
+        "z": 1.8731,
+        "sector": 155,
+        "attach": 1,
+        "brakes": 12,
+        "hp": 100.0,
+        "start_life": 1,
+        "life": 1,
+        "samples": 34
+      },
+      "measured_clock": {
+        "host": {
+          "rate_setting": 2,
+          "step_ms": 34,
+          "consistent_engine_steps": 2544,
+          "game_seconds": 86.496,
+          "wall_seconds": 43.248,
+          "realized_rate": 2.0
+        },
+        "jan": {
+          "rate_setting": 2,
+          "step_ms": 34,
+          "consistent_engine_steps": 2179,
+          "game_seconds": 74.086,
+          "wall_seconds": 37.043,
+          "realized_rate": 2.0
+        }
+      }
+    }
+  ],
+  "scope": "A controlled rim start and a single timed finish per arm. Open-play fall frequency, long-term survival and browser behavior require separate observations."
+}
