@@ -50,9 +50,9 @@ static void TransferFixture(const char *dir)
     assert(transfer.failures==1 && bot.nextRecovery>bot.now);
     /* Let ordinary transient avoids expire before comparing Dijkstra paths. */
     bot.now+=10; bot.nextRecovery=0;
-    assert(Transfer_Cost(0,1,BOT_ROUTE_WALK)==2 && Transfer_Cost(1,0,BOT_ROUTE_WALK)==0);
+    assert(Transfer_Cost(0,1,BOT_ROUTE_WALK,1)==2 && Transfer_Cost(1,0,BOT_ROUTE_WALK,1)==0);
     Bot_SearchPaths(&self,0,distance,parent,0); assert(parent[3]==2 && distance[3]>2.79f && distance[3]<2.81f);
-    Transfer_Context(&self,1); assert(transfer.recall.loaded==1 && Transfer_Cost(0,1,BOT_ROUTE_WALK)==2);
+    Transfer_Context(&self,1); assert(transfer.recall.loaded==1 && Transfer_Cost(0,1,BOT_ROUTE_WALK,1)==2);
     Bot_SearchPaths(&self,0,distance,parent,0); assert(parent[3]==2);
     fixtureBytes="map B, same display name"; Transfer_Context(&self,1);
     assert(strcmp(mapA,transfer.map) && !transfer.recall.loaded);
@@ -70,11 +70,33 @@ static void TransferFixture(const char *dir)
     assert(transfer.recall.loaded==1);
     assert(Bot_SetRoute(0,1,parent)); bot.nextPlan=bot.now+10;
     self.position=bot.nodes[1].pos; Bot_Navigate(&self);
-    assert(transfer.arrivals==1 && Transfer_Cost(0,1,BOT_ROUTE_WALK)==0);
+    assert(transfer.arrivals==1 && Transfer_Cost(0,1,BOT_ROUTE_WALK,1)==0);
     bot.now+=4; /* Red briefly avoids the very waypoint just reached. */
     Bot_SearchPaths(&self,0,distance,parent,0); assert(parent[3]==1);
     NavEdgeRecord r={1,2,100,0,4};
     assert(NR_Level(r,100)==4 && NR_Level(r,100+NR_DECAY)==3 && !NR_Level(r,100+NR_AGE));
+    /* BrainStore edge prior: a frozen model that distrusts short edges must
+     * flip the planner to the 0-2-3 route, and removing it must restore the
+     * shipped choice. No prior is the default everywhere above. */
+    {
+        char modelPath[512],hex[65]; unsigned char hash[32];
+        const char *model="ADJOIN_EDGE_V1 10\n"
+            "0 0 0 0 0 0 0 0 0 0\n1 1 1 1 1 1 1 1 1 1\n"
+            "20 0 0 0 0 0 0 0 0 0\n-5\n";
+        assert(snprintf(modelPath,sizeof(modelPath),"%s/edge-model.txt",dir)>0);
+        FILE *mf=fopen(modelPath,"wb"); assert(mf);
+        assert(fwrite(model,1,strlen(model),mf)==strlen(model)); fclose(mf);
+        assert(SHA256((unsigned char*)model,strlen(model),hash));
+        for (int i=0;i<32;i++) snprintf(hex+2*i,3,"%02x",hash[i]);
+        setenv("ADJOIN_EDGE_MODEL",modelPath,1); setenv("ADJOIN_EDGE_MODEL_SHA256",hex,1);
+        Transfer_Context(&self,1); assert(transfer.edgeLoaded);
+        assert(Transfer_Cost(0,1,BOT_ROUTE_WALK,1)>1.9f && Transfer_Cost(0,1,BOT_ROUTE_WALK,1)<2.1f);
+        Bot_SearchPaths(&self,0,distance,parent,0); assert(parent[3]==2);
+        setenv("ADJOIN_EDGE_MODEL","",1); setenv("ADJOIN_EDGE_MODEL_SHA256","",1);
+        Transfer_Context(&self,1); assert(!transfer.edgeLoaded);
+        Bot_SearchPaths(&self,0,distance,parent,0); assert(parent[3]==1);
+        puts("PASS BrainStore edge prior flips Dijkstra route and removal restores it");
+    }
     puts("PASS native Dijkstra route 0-1-3 -> 0-2-3 after genuine routed stall callback; "
          "reopened map retains evidence, other bytes and TDM isolated, CTF/saber model protection, success/expiry recovery");
 }

@@ -1,0 +1,37 @@
+name: PR checks
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-python@v7.1.0
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '24'
+      - name: Python runtime dependencies
+        run: python -m pip install -r web_gateway/requirements-lock.txt numpy
+      - name: Release manifest and checksums
+        run: python scripts/build_release.py --check
+      - name: Bot, tactics, coach and packaging tests
+        run: >-
+          python -m unittest
+          tests.test_bots tests.test_bot_tactics tests.test_coach_seat
+          tests.test_web_bot_headless tests.test_lily_protocol
+          tests.test_platform_releases tests.test_spectator
+          tests.test_spectator_geometry tests.test_content_ctf -v
+      - name: Browser client bridge test
+        run: node --test --test-isolation=none tests/test_web_bot_client.js

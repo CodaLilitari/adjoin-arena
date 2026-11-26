@@ -2,8 +2,10 @@
 import http.client
 import json
 import math
+import os
 from pathlib import Path
 import re
+import socket
 import struct
 import tempfile
 import unittest
@@ -105,7 +107,8 @@ class RegistryTests(unittest.TestCase):
             lines = dict(line.split("=") for line in path.read_text().splitlines())
             self.assertEqual(lines, {"version": "1", "water_entry_cost": "12", "dive_min_value": "12",
                                      "dive_seconds": "6", "run": "0"})
-            self.assertEqual(path.stat().st_mode & 0o777, 0o600)
+            if os.name == "posix":  # Windows chmod cannot express 0o600.
+                self.assertEqual(path.stat().st_mode & 0o777, 0o600)
             self.assertEqual(tactics.main(["write", str(path), "--set", "run=7"]), 1)
             self.assertEqual(tactics.main(["write", str(path), "--set", "run"]), 1)
         self.assertEqual(tactics.parse_assignments(["run=0", "gun_far=3"]), {"run": 0.0, "gun_far": 3.0})
@@ -121,6 +124,8 @@ class RegistryTests(unittest.TestCase):
             self.assertEqual(env["JK_BOT_TACTICS_FILE"], str(base / "tactics.cfg"))
 
 
+@unittest.skipUnless(hasattr(socket, "AF_UNIX"),
+                       "companion hub tests need Unix sockets")
 class HubTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

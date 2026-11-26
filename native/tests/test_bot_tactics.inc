@@ -741,6 +741,40 @@ static void test_tactic_thermal(void)
     bot.world=sithWorld_g_pCurrentWorld=NULL; sithPlayer_g_pLocalPlayerThing=NULL;
 }
 
+/* BrainStore edge prior: no artifact keeps shipped routing; a frozen model
+ * that distrusts short edges flips Dijkstra to the longer first hop, and
+ * removing it restores the shipped route. Decision telemetry is counted. */
+static void test_tactic_brain_prior(void)
+{
+    SithThing self; SithPlayer own; PlainSelf(&self,&own);
+    bot.nNodes=4;
+    for (int i=0;i<4;i++) {
+        memset(&bot.nodes[i],0,sizeof(bot.nodes[i]));
+        bot.nodes[i].pos=(rdVector3){i*0.25f,i==2 ? 0.25f : 0,0};
+        bot.nodes[i].sector=&plainLand; bot.nodes[i].item=-1;
+    }
+    bot.nodes[0].edges[0]=(BotEdge){1,1,BOT_ROUTE_WALK};
+    bot.nodes[0].edges[1]=(BotEdge){2,1.4f,BOT_ROUTE_WALK}; bot.nodes[0].nEdges=2;
+    bot.nodes[1].edges[0]=(BotEdge){3,1,BOT_ROUTE_WALK}; bot.nodes[1].nEdges=1;
+    bot.nodes[2].edges[0]=(BotEdge){3,1.4f,BOT_ROUTE_WALK}; bot.nodes[2].nEdges=1;
+    flex_t distance[BOT_NODES]; int parent[BOT_NODES];
+    assert(!botBrain.edge.loaded);
+    Bot_PathDistances(&self,0,distance,parent); assert(parent[3]==1);
+    memset(&botBrain.edge,0,sizeof(botBrain.edge));
+    for (int i=0;i<JKBOT_BRAIN_EDGE_FEATURES;i++) botBrain.edge.scales[i]=1;
+    botBrain.edge.weights[0]=20; botBrain.edge.bias=-5; botBrain.edge.loaded=1;
+    Bot_PathDistances(&self,0,distance,parent); assert(parent[3]==2);
+    botBrain.edge.loaded=0;
+    Bot_PathDistances(&self,0,distance,parent); assert(parent[3]==1);
+    botBrain.trace=1; botBrain.lastGoal=-1;
+    unsigned before=botBrain.seq;
+    Bot_BrainGoal(&self,3,distance[3],0);
+    Bot_BrainGoal(&self,3,distance[3],0);
+    botBrain.trace=0;
+    assert(botBrain.seq==before+1);
+    puts("PASS BrainStore edge prior flips Dijkstra route and removal restores it");
+}
+
 static void test_bot_tactics(void)
 {
     /* Earlier groups leave peers that pointed into their own stack frames. */
@@ -756,4 +790,5 @@ static void test_bot_tactics(void)
     test_tactic_ordnance();
     test_tactic_thermal();
     test_tactic_confinement();
+    test_tactic_brain_prior();
 }

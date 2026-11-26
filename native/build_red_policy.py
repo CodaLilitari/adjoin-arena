@@ -13,7 +13,7 @@ from build_arena_pace import HOOKS, check, link_file, read, read_pinned_sources,
 
 NATIVE = Path(__file__).resolve().parent
 RED_COMMIT = "f453778a3cf670dea43c44315786ae4afc8ae440"
-RED_OVERLAY = "0e409e379d0e6f088d9ddf469aaac54dc301e0111ce0ce08c5823d210f1857aa"
+RED_OVERLAY = "d378a01a5530e936388b370749af021bab32d53d6352369e8db8d5e106382a8d"
 RED_BASE = "6950c859f9e82aca8285daac011e1b72cb2a57644f01d2a465987312100ac52d"
 RED_ARCHIVE = "ca63beaa5c3a283639950be045df0d5ffa5a2fb39cc259db479c3deee4a4a123"
 
@@ -28,7 +28,7 @@ def build(args):
     base, policy, model = release/"native/bot-client.patch", NATIVE/"red-policy.patch", NATIVE/"red_policy.inc"
     manifest, flags = read(release/"native/BOT_BUILD.json"), read(NATIVE/"planner-go-build.json")["compile_flags"]
     check((sha(overlay),sha(base),sha(archive))==(RED_OVERLAY,RED_BASE,RED_ARCHIVE),"Wrong Red branch export")
-    check(sha(args.globals_header)=="edec9732ccad1f32d9fe4740ca17fdb76a05459181b196c779dbe45519a00e78",
+    check(sha(args.globals_header)=="e700da5fb05eea91febcb0c6c9237573d29263125dfa9b195e3def0f0ea664e9",
           "Wrong generated globals.h")
     reference=release/"bin/bots-linux-x86_64/jk-bot-client"
     check(sha(reference)==manifest["files"]["bin/bots-linux-x86_64/jk-bot-client"]["sha256"],"Wrong base executable")

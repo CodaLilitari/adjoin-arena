@@ -1,0 +1,578 @@
+{
+  "ab_benchmark_pickup_outcome_model": {
+    "format": "RED_NEURAL_V1 exported from the BrainStore outcome model",
+    "matches": [
+      {
+        "learned_deaths": 1,
+        "learned_duels": 697,
+        "learned_kills": 2,
+        "learned_teacher_agreement": 465,
+        "model_side": "dark",
+        "teacher_deaths": 2,
+        "teacher_kills": 1
+      },
+      {
+        "learned_deaths": 1,
+        "learned_duels": 368,
+        "learned_kills": 1,
+        "learned_teacher_agreement": 291,
+        "model_side": "light",
+        "teacher_deaths": 1,
+        "teacher_kills": 1
+      }
+    ],
+    "note": "Two 60-second matches are far too few for a skill claim; this proves the learned artifact loads, drives live decisions differently from the teacher, and does not obviously harm play.",
+    "totals": {
+      "learned_deaths": 2,
+      "learned_kills": 3,
+      "teacher_deaths": 3,
+      "teacher_kills": 2
+    },
+    "weights_sha256": "2dd5da60c906a14f6c44a48e22efa7756def1a9e28fe201ea0a34d8202b22c55"
+  },
+  "ab_series": {
+    "matches": [
+      {
+        "learned_agree": 465,
+        "learned_deaths": 1,
+        "learned_duels": 697,
+        "learned_kills": 2,
+        "match": "s1-dark",
+        "model_side": "dark",
+        "teacher_deaths": 2,
+        "teacher_kills": 1
+      },
+      {
+        "learned_agree": 291,
+        "learned_deaths": 1,
+        "learned_duels": 368,
+        "learned_kills": 1,
+        "match": "s1-light",
+        "model_side": "light",
+        "teacher_deaths": 1,
+        "teacher_kills": 1
+      },
+      {
+        "learned_agree": 50,
+        "learned_deaths": 1,
+        "learned_duels": 55,
+        "learned_kills": 0,
+        "match": "s2-dark",
+        "model_side": "dark",
+        "teacher_deaths": 0,
+        "teacher_kills": 1
+      },
+      {
+        "learned_agree": 179,
+        "learned_deaths": 0,
+        "learned_duels": 281,
+        "learned_kills": 1,
+        "match": "s2-light",
+        "model_side": "light",
+        "teacher_deaths": 1,
+        "teacher_kills": 0
+      },
+      {
+        "learned_agree": 254,
+        "learned_deaths": 1,
+        "learned_duels": 590,
+        "learned_kills": 1,
+        "match": "s3-dark",
+        "model_side": "dark",
+        "teacher_deaths": 1,
+        "teacher_kills": 1
+      },
+      {
+        "learned_agree": 336,
+        "learned_deaths": 1,
+        "learned_duels": 395,
+        "learned_kills": 0,
+        "match": "s3-light",
+        "model_side": "light",
+        "teacher_deaths": 0,
+        "teacher_kills": 1
+      },
+      {
+        "learned_agree": 381,
+        "learned_deaths": 2,
+        "learned_duels": 609,
+        "learned_kills": 1,
+        "match": "s4-dark",
+        "model_side": "dark",
+        "teacher_deaths": 1,
+        "teacher_kills": 2
+      },
+      {
+        "learned_agree": 154,
+        "learned_deaths": 1,
+        "learned_duels": 450,
+        "learned_kills": 1,
+        "match": "s4-light",
+        "model_side": "light",
+        "teacher_deaths": 1,
+        "teacher_kills": 1
+      },
+      {
+        "learned_agree": 356,
+        "learned_deaths": 1,
+        "learned_duels": 447,
+        "learned_kills": 2,
+        "match": "s5-dark",
+        "model_side": "dark",
+        "teacher_deaths": 2,
+        "teacher_kills": 1
+      },
+      {
+        "learned_agree": 100,
+        "learned_deaths": 0,
+        "learned_duels": 206,
+        "learned_kills": 2,
+        "match": "s5-light",
+        "model_side": "light",
+        "teacher_deaths": 2,
+        "teacher_kills": 0
+      }
+    ],
+    "totals": {
+      "draws": 3,
+      "learned_agree": 2566,
+      "learned_deaths": 9,
+      "learned_duels": 4098,
+      "learned_kills": 11,
+      "learned_losses": 3,
+      "learned_wins": 4,
+      "teacher_deaths": 11,
+      "teacher_kills": 9
+    }
+  },
+  "brainstore_after_all_ingests": {
+    "decisions": 4892,
+    "edges": 305,
+    "models": 1
+  },
+  "edge_model": {
+    "artifact_sha256": "be7be0f4cc6832fdffc50424d9f76f4414a9a6c3b3e37cdcd1d13b04837dbb6c",
+    "live_loaded_by_both_bots": true,
+    "registered_in_live_store": true,
+    "train": {
+      "accuracy": 0.983739837398374,
+      "attempts": 123,
+      "balanced_accuracy": 0.75,
+      "rows": 104
+    }
+  },
+  "gen2_retrain": {
+    "native_weights_sha256": "ba19dd2bb0dceb46a61bcfa9c1201bba1e1b0603dac1dd4d6c693c0d36c6a220",
+    "outcome_qualify_m4_holdout": {
+      "metrics": {
+        "agreed_reward_mean": null,
+        "agreed_rows": 90,
+        "agreement": 0.8256880733944955,
+        "balanced_accuracy": 0.9095238095238095,
+        "disagreed_reward_mean": null,
+        "maps": 1,
+        "rewarded_rows": 0,
+        "rows": 109
+      },
+      "ok": false,
+      "reasons": [
+        "only 0 rewarded rows (< 10)"
+      ]
+    },
+    "outcome_sha256": "864eff97e4bbcf81fd755b13028c99fdb3482ebfa5753dac343cbf696a07d916",
+    "outcome_train": {
+      "accuracy": 0.8755474749844447,
+      "attempts": 11744,
+      "balanced_accuracy": 0.8752986561716202,
+      "outcome_weighted": true,
+      "reward_mean": -0.5829790167865707,
+      "rows": 3336,
+      "temperature": 1.0
+    },
+    "registered": "ba19dd2bb0dceb46a61bcfa9c1201bba1e1b0603dac1dd4d6c693c0d36c6a220",
+    "store_after": {
+      "decisions": 8623,
+      "edges": 305,
+      "models": 2
+    },
+    "store_before": {
+      "decisions": 8623,
+      "edges": 305
+    },
+    "teacher_qualify_m4_holdout": {
+      "metrics": {
+        "agreed_reward_mean": null,
+        "agreed_rows": 94,
+        "agreement": 0.8623853211009175,
+        "balanced_accuracy": 0.9285714285714286,
+        "disagreed_reward_mean": null,
+        "maps": 1,
+        "rewarded_rows": 0,
+        "rows": 109
+      },
+      "ok": false,
+      "reasons": [
+        "only 0 rewarded rows (< 10)"
+      ]
+    },
+    "teacher_sha256": "325b72e84aba394ad6d196617fedaacf7a968835e52229b7d8bfad7d383cba18",
+    "teacher_train": {
+      "accuracy": 0.9519506597819851,
+      "attempts": 6972,
+      "balanced_accuracy": 0.9184457241173476,
+      "rows": 6972
+    }
+  },
+  "kind": "brainstore-live-qualification",
+  "learning_cycle": {
+    "first_2x_ingest": {
+      "dark": {
+        "attributed": 378,
+        "bot_decision": 52,
+        "edges": 0,
+        "force_cast": 27,
+        "goal_plan": 24,
+        "pickup_engage": 527,
+        "weapon_switch": 4
+      },
+      "light": {
+        "attributed": 96,
+        "bot_decision": 45,
+        "edges": 0,
+        "force_cast": 21,
+        "goal_plan": 14,
+        "pickup_engage": 458,
+        "weapon_switch": 1
+      }
+    },
+    "outcome_model_sha256": "21fb88a4915ed558cc458e8c85d027648392f8d372f160047ae5c49eedeafa03",
+    "outcome_qualify_ok": true,
+    "outcome_train": {
+      "accuracy": 0.9890957655662588,
+      "attempts": 1576,
+      "balanced_accuracy": 0.9889439341700924,
+      "outcome_weighted": true,
+      "reward_mean": -1.1131481481481482,
+      "rows": 432,
+      "temperature": 1.0
+    },
+    "qualification_scope_note": "Cycle qualification used one map and require_maps=1; it is not cross-map promotion evidence.",
+    "teacher_model_sha256": "f9977a8d47b7daea0d57de780c32685438d7a5ce4f0b1fbf4cf254d635a69bb8",
+    "teacher_qualify_ok": true,
+    "teacher_train": {
+      "accuracy": 0.9675126903553299,
+      "attempts": 985,
+      "balanced_accuracy": 0.9624242329400228,
+      "rows": 985
+    }
+  },
+  "limitations": [
+    "Two stock maps and one rules scope; no broad cross-map promotion claim.",
+    "Outcome attribution credits every decision inside a five-second window.",
+    "Match scores are live completion evidence, not a controlled skill comparison.",
+    "Live edge leave-one-map-out balanced accuracy was 0.5 in both directions: the current global geometry model does not yet discriminate rare stalls across maps, although per-map residuals persist after attempts.",
+    "Pickup decisions transferred better in live holdout (0.857 from Canyon Oasis to m4; 0.985 in reverse), but that is not live skill improvement proof."
+  ],
+  "map": "m10.jkl",
+  "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+  "matches": [
+    {
+      "brain_edge_prior": false,
+      "elapsed_wall_seconds": 43.76,
+      "kind": "adjoin-arena-stock-red-policy",
+      "label": "red-policy-2x-no-prior",
+      "log_sha256": {
+        "dark.log": "7ddbb521c0330b6b9aef8e14d059dc7363878f333cd9311684c4bb620a536217",
+        "force-trace.jsonl": "bc3d4f5d9c13d7e99d204974fcedfac02e51f666ef94389e20d4bd3188789af7",
+        "light.log": "e6ac35c9c83e4026325a577bb5e2cbfae07258b855d39d103006798263a96465",
+        "server.log": "e922f3ce20dd28284bcee124d185b3ff06ce50ff98a3a4e00d3942cea5282032"
+      },
+      "logs": {
+        "dark": {
+          "BOT_BRAIN_MODEL": 0,
+          "BOT_DECISION": 52,
+          "BOT_DUEL": 527,
+          "BOT_EDGE_ATTEMPT": 0,
+          "BOT_RED_STATE": 356
+        },
+        "light": {
+          "BOT_BRAIN_MODEL": 0,
+          "BOT_DECISION": 45,
+          "BOT_DUEL": 458,
+          "BOT_EDGE_ATTEMPT": 0,
+          "BOT_RED_STATE": 356
+        }
+      },
+      "map": "m10.jkl",
+      "observed_rates": {
+        "dark": 1.999998058525464,
+        "host": 2.000003986743491,
+        "light": 2.0000052208101624
+      },
+      "pace": 2,
+      "requested_game_seconds": 60,
+      "scores": {
+        "dark": {
+          "deaths": 1,
+          "kills": 1
+        },
+        "light": {
+          "deaths": 1,
+          "kills": 1
+        }
+      },
+      "status": "live_join_and_loadout_verified"
+    },
+    {
+      "brain_edge_prior": false,
+      "elapsed_wall_seconds": 69.12,
+      "kind": "adjoin-arena-stock-red-policy",
+      "label": "red-policy-1x-no-prior",
+      "log_sha256": {
+        "dark.log": "0d2d52446cb4293dd4138b48b34f8175a3082a9f9f48cb020e4f78e8969b8ab5",
+        "force-trace.jsonl": "5a8a68daf244ec7b2c8baccc3ad8ab9f1b9ecc25f2d6f12ef16e4a6df6fc2c20",
+        "light.log": "e40b25306ea906dea75e1f69c08bd810b16a46a24de6d36fdcbe69bf1c095245",
+        "server.log": "6adc2bc12e6c3819b54310e875e92a9e56072847b6d1ada0ecb13c309bcf74df"
+      },
+      "logs": {
+        "dark": {
+          "BOT_BRAIN_MODEL": 0,
+          "BOT_DECISION": 59,
+          "BOT_DUEL": 147,
+          "BOT_EDGE_ATTEMPT": 0,
+          "BOT_RED_STATE": 348
+        },
+        "light": {
+          "BOT_BRAIN_MODEL": 0,
+          "BOT_DECISION": 49,
+          "BOT_DUEL": 432,
+          "BOT_EDGE_ATTEMPT": 0,
+          "BOT_RED_STATE": 339
+        }
+      },
+      "map": "m10.jkl",
+      "observed_rates": {
+        "dark": 1.0000008064995671,
+        "host": 0.9999981469456102,
+        "light": 0.99999763473314
+      },
+      "pace": 1,
+      "requested_game_seconds": 60,
+      "scores": {
+        "dark": {
+          "deaths": 0,
+          "kills": 1
+        },
+        "light": {
+          "deaths": 1,
+          "kills": 0
+        }
+      },
+      "status": "live_join_and_loadout_verified"
+    },
+    {
+      "brain_edge_prior": false,
+      "elapsed_wall_seconds": 36.68,
+      "kind": "adjoin-arena-mode-transfer",
+      "label": "transfer-2x-no-prior",
+      "log_sha256": {
+        "dark.log": "b37091e6896a2f364dd91385c89ac5961637dac6bb20898b95c3715b7650b2d8",
+        "force-trace.jsonl": "fed773365654499957c4506d85316b75c0613c028f81c5a275cc4b7fbfed9ac5",
+        "light.log": "ee35fea93e0d6e60f41093688b3e367e8cbcc0e8b793593ff64e75954041b92a",
+        "server.log": "eadf0eb4d4737eaed8315ccd966cc1c2a0e3eee1b2d238c2a213e35bdaa77987"
+      },
+      "logs": {
+        "dark": {
+          "BOT_BRAIN_MODEL": 0,
+          "BOT_DECISION": 57,
+          "BOT_DUEL": 503,
+          "BOT_EDGE_ATTEMPT": 87,
+          "BOT_RED_STATE": 358
+        },
+        "light": {
+          "BOT_BRAIN_MODEL": 0,
+          "BOT_DECISION": 32,
+          "BOT_DUEL": 229,
+          "BOT_EDGE_ATTEMPT": 34,
+          "BOT_RED_STATE": 328
+        }
+      },
+      "map": "m10.jkl",
+      "observed_rates": {
+        "dark": 1.9999990158311791,
+        "host": 2.000004433670885,
+        "light": 1.999996764477822
+      },
+      "pace": 2,
+      "requested_game_seconds": 60,
+      "scores": {
+        "dark": {
+          "deaths": 1,
+          "kills": 1
+        },
+        "light": {
+          "deaths": 1,
+          "kills": 1
+        }
+      },
+      "status": "live_join_and_loadout_verified"
+    },
+    {
+      "brain_edge_prior": true,
+      "elapsed_wall_seconds": 43.0,
+      "kind": "adjoin-arena-mode-transfer",
+      "label": "transfer-2x-brain-prior",
+      "log_sha256": {
+        "dark.log": "59ba7c37090ea1ce63b59d6e624d1213dcf1577fcb73709c23ef4cee5aa1d0c6",
+        "force-trace.jsonl": "6d22f77edfc222d8a9045e79325f8beb71cefe54adbf785caebea5764416cf2e",
+        "light.log": "40e483222330d695f21bf5568684bdaded5277a230c48be7111c7b7802486091",
+        "server.log": "d2f8f1665e5c9a760a62e38475184846416513520dd8bbdf2b23f4c05b60ddf0"
+      },
+      "logs": {
+        "dark": {
+          "BOT_BRAIN_MODEL": 1,
+          "BOT_DECISION": 60,
+          "BOT_DUEL": 863,
+          "BOT_EDGE_ATTEMPT": 82,
+          "BOT_RED_STATE": 356
+        },
+        "light": {
+          "BOT_BRAIN_MODEL": 1,
+          "BOT_DECISION": 70,
+          "BOT_DUEL": 671,
+          "BOT_EDGE_ATTEMPT": 63,
+          "BOT_RED_STATE": 347
+        }
+      },
+      "map": "m10.jkl",
+      "observed_rates": {
+        "dark": 2.0000053268597133,
+        "host": 1.9999890722143494,
+        "light": 2.0000021107837638
+      },
+      "pace": 2,
+      "requested_game_seconds": 60,
+      "scores": {
+        "dark": {
+          "deaths": 2,
+          "kills": 1
+        },
+        "light": {
+          "deaths": 1,
+          "kills": 2
+        }
+      },
+      "status": "live_join_and_loadout_verified"
+    },
+    {
+      "brain_edge_prior": true,
+      "elapsed_wall_seconds": 46.05,
+      "kind": "adjoin-arena-mode-transfer",
+      "label": "transfer-2x-brain-prior-unseen-m4",
+      "log_sha256": {
+        "dark.log": "319ef69bc52f238290397903198785fd8214d42d46967b274fd36a750564f2b8",
+        "force-trace.jsonl": "1594d78ee054f3a540d44f3c9de6162060a6c101a2a4bc064d1b8ccf1f8639bd",
+        "light.log": "04f36723fafdd8e110fb49b18c61872e5bbe0ab114c0177a1fcc3e759ad44b1b",
+        "server.log": "b7f57f53c99f8b7e639ca6c76ea48f23f5d28ce5abb0a6110af15e3b907fbf5a"
+      },
+      "logs": {
+        "dark": {
+          "BOT_BRAIN_MODEL": 1,
+          "BOT_DECISION": 63,
+          "BOT_DUEL": 72,
+          "BOT_EDGE_ATTEMPT": 75,
+          "BOT_RED_STATE": 356
+        },
+        "light": {
+          "BOT_BRAIN_MODEL": 1,
+          "BOT_DECISION": 46,
+          "BOT_DUEL": 37,
+          "BOT_EDGE_ATTEMPT": 69,
+          "BOT_RED_STATE": 383
+        }
+      },
+      "map": "m4.jkl",
+      "observed_rates": {
+        "dark": 1.9999975485449144,
+        "host": 1.9999970164350456,
+        "light": 2.00000118640297
+      },
+      "pace": 2,
+      "requested_game_seconds": 60,
+      "scores": {
+        "dark": {
+          "deaths": 0,
+          "kills": 1
+        },
+        "light": {
+          "deaths": 2,
+          "kills": 0
+        }
+      },
+      "status": "live_join_and_loadout_verified"
+    }
+  ],
+  "schema": 1,
+  "scope": "ffa/guns/force",
+  "status": "live_join_loadout_and_learning_cycle_verified",
+  "unseen_map_cycle": {
+    "decision_leave_one_map_out": {
+      "150eda1c2e6c7f316c8b76a0f2f060ce5d49dcc9ae24bb43e4fb42a5df20d89c": {
+        "attempts": 109,
+        "balanced_accuracy": 0.8571428571428572,
+        "train_maps": 1
+      },
+      "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc": {
+        "attempts": 3830,
+        "balanced_accuracy": 0.9849912739965097,
+        "train_maps": 1
+      }
+    },
+    "edge_leave_one_map_out": {
+      "150eda1c2e6c7f316c8b76a0f2f060ce5d49dcc9ae24bb43e4fb42a5df20d89c": {
+        "attempts": 151,
+        "balanced_accuracy": 0.5,
+        "skipped_no_features": 0,
+        "train_maps": 1
+      },
+      "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc": {
+        "attempts": 268,
+        "balanced_accuracy": 0.5,
+        "skipped_no_features": 0,
+        "train_maps": 1
+      }
+    },
+    "edge_outcomes_by_map": {
+      "150eda1c2e6c7f316c8b76a0f2f060ce5d49dcc9ae24bb43e4fb42a5df20d89c": {
+        "attempts": 151,
+        "failures": 14,
+        "successes": 137
+      },
+      "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc": {
+        "attempts": 268,
+        "failures": 4,
+        "successes": 264
+      }
+    },
+    "logs": {
+      "dark": {
+        "attributed": 16,
+        "bot_decision": 63,
+        "edges": 80,
+        "force_cast": 18,
+        "goal_plan": 16,
+        "pickup_engage": 72,
+        "weapon_switch": 0
+      },
+      "light": {
+        "attributed": 20,
+        "bot_decision": 46,
+        "edges": 71,
+        "force_cast": 16,
+        "goal_plan": 20,
+        "pickup_engage": 37,
+        "weapon_switch": 0
+      }
+    }
+  }
+}

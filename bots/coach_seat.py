@@ -41,7 +41,7 @@ import threading
 import time
 
 from . import tactics
-from .coach import Bandit, Coach, build_id, load_memory, save_memory
+from .coach import Bandit, Coach, build_id, load_brain_memory, load_memory, save_brain_memory, save_memory
 from .companion import MODES
 from .companion_cli import call, load_private
 
@@ -83,8 +83,9 @@ class ControlFile:
 class CoachSeat:
     def __init__(self, cred, coach: Coach, *, memory=None, label="default", build=None,
                  request=call, clock=time.monotonic, log=print, control: ControlFile | None = None,
-                 start="auto", controller="coach"):
+                 start="auto", controller="coach", save_record=None):
         self.cred, self.coach, self.memory, self.label, self.build = cred, coach, memory, label, build
+        self.save_record = save_record
         self.request, self.clock, self.out, self.control = request, clock, log, control
         self.mode = start            # auto | manual | hold | released
         self.lease = None
@@ -247,7 +248,10 @@ class CoachSeat:
             before = dict(self.coach.bandit.plays)
             preset = self.coach.step(observed["state"], now)
             if self.coach.bandit.plays != before:
-                save_memory(self.memory, self.label, self.coach.bandit.export(), self.build)
+                if self.save_record is not None:
+                    self.save_record(self.label, self.coach.bandit.export(), self.build)
+                else:
+                    save_memory(self.memory, self.label, self.coach.bandit.export(), self.build)
                 self.say("graded", bandit=self.coach.bandit.export())
             if preset:
                 self.send("tactics", {"preset": preset, "reset": True}, "coach preset " + preset, coach_preset=preset)
@@ -314,6 +318,10 @@ def main(argv=None) -> int:
     p.add_argument("--presets", default="default,arsenal,hunter,standoff,dry")
     p.add_argument("--dwell-seconds", type=float, default=90.0)
     p.add_argument("--memory", type=Path)
+    p.add_argument("--brain-root", type=Path,
+                   help="BrainStore root to persist coach stats (instead of --memory).")
+    p.add_argument("--brain-profile", default="coach",
+                   help="BrainStore profile that owns the coach record.")
     p.add_argument("--label", default="default")
     p.add_argument("--engine", type=Path, help="Engine file the bot runs (hashed into the memory record).")
     p.add_argument("--build-id")
@@ -323,6 +331,8 @@ def main(argv=None) -> int:
     p.add_argument("--interactive", action="store_true", help="Read operator commands from the terminal.")
     p.add_argument("--control", type=Path, help="Control directory (commands.txt in, status.json/log.jsonl out).")
     args = p.parse_args(argv)
+    if args.memory is not None and args.brain_root is not None:
+        p.error("choose either --memory or --brain-root, not both")
     if args.run and not args.seat:
         p.error("--run needs --seat")
     def stop(signum, frame):  # SIGTERM releases the lease (run()'s finally) instead of holding it 30 s
@@ -334,10 +344,24 @@ def main(argv=None) -> int:
         if unknown:
             raise ValueError("Unknown presets: " + ", ".join(unknown))
         build = args.build_id or build_id(args.engine)
-        coach = Coach(Bandit(arms, record=load_memory(args.memory, args.label, build)), args.dwell_seconds)
+        store = save_record = None
+        if args.brain_root is not None:
+            from .brain import BrainStore
+            store = BrainStore(args.brain_root, args.brain_profile)
+            record = load_brain_memory(store, args.label, build)
+            save_record = lambda label, snapshot, saved_build: save_brain_memory(
+                store, label, snapshot, saved_build)
+        else:
+            record = load_memory(args.memory, args.label, build)
+        coach = Coach(Bandit(arms, record=record), args.dwell_seconds)
         seat = CoachSeat(load_private(resolve_credentials(args)), coach, memory=args.memory, label=args.label,
-                         build=build, control=ControlFile(args.control) if args.control else None, start=args.start)
-        run(seat, seconds=args.seconds, poll=args.poll, inputs=stdin_lines() if args.interactive else None)
+                         build=build, control=ControlFile(args.control) if args.control else None, start=args.start,
+                         save_record=save_record)
+        try:
+            run(seat, seconds=args.seconds, poll=args.poll, inputs=stdin_lines() if args.interactive else None)
+        finally:
+            if store is not None:
+                store.close()
         return 0
     except KeyboardInterrupt:
         return 0

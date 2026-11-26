@@ -64,7 +64,7 @@ def build(args):
     check(sha(archive) == manifest["files"]["native/bot-relink-linux-x86_64.tar.gz"]["sha256"], "Wrong relink archive")
     base_patch = repo / "native/bot-client.patch"
     check(sha(base_patch) == manifest["files"]["native/bot-client.patch"]["sha256"], "Wrong upstream bot patch")
-    check(sha(args.globals_header) == "edec9732ccad1f32d9fe4740ca17fdb76a05459181b196c779dbe45519a00e78",
+    check(sha(args.globals_header) == "e700da5fb05eea91febcb0c6c9237573d29263125dfa9b195e3def0f0ea664e9",
           "Unexpected generated globals.h")
     with tempfile.TemporaryDirectory(prefix="adjoin-planner-") as tmp:
         work = Path(tmp)

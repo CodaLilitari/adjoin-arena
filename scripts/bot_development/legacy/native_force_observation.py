@@ -492,6 +492,14 @@ def run(args, receipt, tmp):
                 env["JK_BOT_PLANNER_QUARANTINE"] = "1" if args.planner_quarantine == "on" else "0"
             if args.pace_build:
                 env.update(ADJOIN_PACE_ROLE=side, ADJOIN_PACE_RATE=str(args.pace_rate))
+            if args.brain_trace:
+                env["JK_BOT_TRACE_DECISIONS"] = "1"
+            if args.brain_edge_model:
+                brain_sha = digest(args.brain_edge_model.resolve())
+                env.update(JK_BOT_EDGE_MODEL=str(args.brain_edge_model.resolve()),
+                           JK_BOT_EDGE_MODEL_SHA256=brain_sha,
+                           ADJOIN_EDGE_MODEL=str(args.brain_edge_model.resolve()),
+                           ADJOIN_EDGE_MODEL_SHA256=brain_sha)
             if args.red_policy_build:
                 env["ADJOIN_RED_TRACE"] = "1"
                 env["JK_BOT_ELITE"] = "1"
@@ -651,6 +659,10 @@ def main():
                         help="Set both players and host to the selected game speed; --duration means game seconds.")
     parser.add_argument("--red-policy-build", type=Path, metavar="DIRECTORY",
                         help="Play an ungated stock match with the pinned native Red decision client.")
+    parser.add_argument("--brain-trace", action="store_true",
+                        help="Emit BOT_DECISION goal/weapon/Force lines for BrainStore ingestion.")
+    parser.add_argument("--brain-edge-model", type=Path, metavar="FILE",
+                        help="Frozen ADJOIN_EDGE_V1 artifact; its SHA-256 is passed to both bots.")
     parser.add_argument("--transfer-build", type=Path, metavar="DIRECTORY",
                         help="Use the pinned map- and mode-aware research client for an ungated match.")
     parser.add_argument("--custom-build", type=Path, metavar="DIRECTORY",

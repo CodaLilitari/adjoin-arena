@@ -13,8 +13,8 @@
              if (e->drop==BOT_ROUTE_FORCEJUMP && !forceJump) continue;
              if (e->drop==BOT_ROUTE_RUNJUMP && !Bot_RunJumpUsable(self,v,e->to)) continue;
              if ((e->drop==BOT_ROUTE_FORCEJUMP || e->drop==BOT_ROUTE_JUMP) && Bot_JumpFailed(v,e->to)) continue;
--            flex_t d=distance[v]+e->cost;
-+            flex_t d=distance[v]+e->cost+Transfer_Cost(v,e->to,e->drop);
+-            flex_t d=distance[v]+e->cost+Bot_BrainEdgePrior(v,e->to,e->drop,e->cost);
++            flex_t d=distance[v]+e->cost+Bot_BrainEdgePrior(v,e->to,e->drop,e->cost)+Transfer_Cost(v,e->to,e->drop,e->cost);
              if (e->drop==BOT_ROUTE_GATE) {
                  flex_t gate=Bot_GateCost(v,e->to);
                  if (gate<0) continue;

@@ -144,6 +144,16 @@ def load_memory(path: Path | None, label: str, build: str | None = None) -> dict
     return arms
 
 
+def load_brain_memory(store, label: str, build: str | None = None) -> dict:
+    """Load one label/build record from a BrainStore-like coach store."""
+    return store.coach_arms(label, build or UNRECORDED)
+
+
+def save_brain_memory(store, label: str, record: dict, build: str | None = None) -> None:
+    """Persist one bandit snapshot in BrainStore without mixing builds."""
+    store.import_coach_memory({label: {"build": build or UNRECORDED, "arms": record}})
+
+
 def save_memory(path: Path | None, label: str, record: dict, build: str | None = None) -> None:
     if path is None:
         return
@@ -161,7 +171,8 @@ def save_memory(path: Path | None, label: str, record: dict, build: str | None =
 
 
 def session(cred, coach: Coach, *, memory=None, label="default", seconds=0.0, poll=5.0,
-            clock=time.monotonic, sleep=time.sleep, request=call, log=print, build=None) -> None:
+            clock=time.monotonic, sleep=time.sleep, request=call, log=print, build=None,
+            save_record=None) -> None:
     """Coach until interrupted or `seconds` pass, then release the bot.
 
     The hub drops a controller's lease whenever the bot dies or the map
@@ -192,7 +203,10 @@ def session(cred, coach: Coach, *, memory=None, label="default", seconds=0.0, po
                     before = dict(coach.bandit.plays)
                     preset = coach.step(observed["state"], now)
                     if coach.bandit.plays != before:
-                        save_memory(memory, label, coach.bandit.export(), build)
+                        if save_record is not None:
+                            save_record(label, coach.bandit.export(), build)
+                        else:
+                            save_memory(memory, label, coach.bandit.export(), build)
                     if preset:
                         key = secrets.token_hex(12)
                         request(cred, "tactics", dict(lease, request_id=key, preset=preset))
@@ -218,27 +232,46 @@ def main(argv=None) -> int:
                         help="Comma-separated presets to choose among.")
     parser.add_argument("--dwell-seconds", type=float, default=90.0, help="Shortest spell on one preset.")
     parser.add_argument("--memory", type=Path, help="JSON file that keeps results between sessions.")
+    parser.add_argument("--brain-root", type=Path,
+                        help="BrainStore root to persist coach stats (instead of --memory).")
+    parser.add_argument("--brain-profile", default="coach",
+                        help="BrainStore profile that owns the coach record.")
     parser.add_argument("--label", default="default", help="Which record in the memory file to use.")
     parser.add_argument("--seconds", type=float, default=0.0, help="Stop after this long; 0 runs until interrupted.")
     parser.add_argument("--engine", type=Path,
                         help="Engine file the bot runs; its hash is stored with the memory so builds are not mixed.")
     parser.add_argument("--build-id", help="Explicit build identity instead of --engine.")
     args = parser.parse_args(argv)
+    if args.memory is not None and args.brain_root is not None:
+        parser.error("choose either --memory or --brain-root, not both")
+    store = None
     try:
         arms = [name for name in args.presets.split(",") if name]
         unknown = [name for name in arms if name not in tactics.PRESETS]
         if unknown:
             raise ValueError("Unknown presets: " + ", ".join(unknown))
         build = args.build_id or build_id(args.engine)
-        coach = Coach(Bandit(arms, record=load_memory(args.memory, args.label, build)), args.dwell_seconds)
+        save_record = None
+        if args.brain_root is not None:
+            from .brain import BrainStore
+            store = BrainStore(args.brain_root, args.brain_profile)
+            record = load_brain_memory(store, args.label, build)
+            save_record = lambda label, snapshot, saved_build: save_brain_memory(
+                store, label, snapshot, saved_build)
+        else:
+            record = load_memory(args.memory, args.label, build)
+        coach = Coach(Bandit(arms, record=record), args.dwell_seconds)
         session(load_private(args.credentials), coach, memory=args.memory, label=args.label, seconds=args.seconds,
-                build=build)
+                build=build, save_record=save_record)
         return 0
     except KeyboardInterrupt:
         return 0
     except (OSError, ValueError, KeyError, TypeError, http.client.HTTPException) as error:
         print(f"Coach: {error}", file=sys.stderr)
         return 1
+    finally:
+        if store is not None:
+            store.close()
 
 
 if __name__ == "__main__":

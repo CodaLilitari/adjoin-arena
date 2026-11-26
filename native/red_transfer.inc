@@ -10,7 +10,80 @@ static struct {
     uint64_t keys[BOT_NODES]; int bucket[256],next[NR_LIMIT];
     NavRecall recall;
     long wall;
+    /* Optional BrainStore global edge prior (ADJOIN_EDGE_MODEL[_SHA256]). */
+    int edgeLoaded;
+    float edgeCenter[10],edgeScale[10],edgeWeight[10],edgeBias;
+    char edgeDigest[65];
 } transfer;
+
+/* Load a frozen ADJOIN_EDGE_V1 artifact exported by bots.brain. Both the
+ * path and its expected SHA-256 must be supplied; any defect leaves the
+ * prior disabled and planning exactly as before. */
+static int Transfer_LoadEdgeModel(void)
+{
+    transfer.edgeLoaded=0; transfer.edgeDigest[0]=0;
+    const char *path=getenv("ADJOIN_EDGE_MODEL"),*expected=getenv("ADJOIN_EDGE_MODEL_SHA256");
+    if (!path || !expected || strlen(expected)!=64) return 0;
+    FILE *file=fopen(path,"rb");
+    if (!file) return 0;
+    char bytes[8193];
+    size_t n=fread(bytes,1,sizeof(bytes),file);
+    int ok=n>0 && n<sizeof(bytes) && !ferror(file) && feof(file) && !memchr(bytes,0,n);
+    fclose(file);
+    if (!ok) return 0;
+    unsigned char hash[32]; unsigned size=0;
+    EVP_MD_CTX *ctx=EVP_MD_CTX_new();
+    ok=ctx && EVP_DigestInit_ex(ctx,EVP_sha256(),NULL) && EVP_DigestUpdate(ctx,bytes,n) &&
+        EVP_DigestFinal_ex(ctx,hash,&size) && size==32;
+    if (ctx) EVP_MD_CTX_free(ctx);
+    if (!ok) return 0;
+    for (int i=0;i<32;++i) snprintf(transfer.edgeDigest+2*i,3,"%02x",hash[i]);
+    if (strcmp(transfer.edgeDigest,expected)) { transfer.edgeDigest[0]=0; return 0; }
+    bytes[n]=0;
+    const char *header="ADJOIN_EDGE_V1";
+    size_t hlen=strlen(header);
+    if (strncmp(bytes,header,hlen) || !isspace((unsigned char)bytes[hlen])) return 0;
+    char *cursor=bytes+hlen,*end=NULL;
+    long count=strtol(cursor,&end,10);
+    if (end==cursor || count!=10) return 0;
+    cursor=end;
+    float *fields[3]={transfer.edgeCenter,transfer.edgeScale,transfer.edgeWeight};
+    for (int group=0;group<3;++group) for (int i=0;i<10;++i) {
+        double value=strtod(cursor,&end);
+        if (end==cursor || !isfinite(value) || (group==1 && value<=0)) return 0;
+        fields[group][i]=(float)value; cursor=end;
+    }
+    double bias=strtod(cursor,&end);
+    if (end==cursor || !isfinite(bias)) return 0;
+    cursor=end;
+    while (isspace((unsigned char)*cursor)) ++cursor;
+    if (*cursor) return 0;
+    transfer.edgeBias=(float)bias;
+    transfer.edgeLoaded=1;
+    if (transfer.trace) {
+        fprintf(stderr,"BOT_EDGE_MODEL name=%s sha256=%s status=loaded\n",bot.name,transfer.edgeDigest);
+        fflush(stderr);
+    }
+    return 1;
+}
+
+/* Predicted-failure surcharge in graph cost units, capped so a prior can
+ * reorder legal routes but never create or forbid one. */
+static flex_t Transfer_EdgePrior(int from,int to,int mode,flex_t baseCost)
+{
+    if (!transfer.edgeLoaded) return 0;
+    const BotNode *a=&bot.nodes[from],*b=&bot.nodes[to];
+    flex_t dz=b->pos.z-a->pos.z;
+    flex_t x[10]={Bot_Distance(a->pos,b->pos),dz,fabsf(dz),(flex_t)mode,
+        (a->sector && (a->sector->flags&SITH_SECTOR_UNDERWATER)) ? 1.0f : 0.0f,
+        (b->sector && (b->sector->flags&SITH_SECTOR_UNDERWATER)) ? 1.0f : 0.0f,
+        b->item>=0 ? 1.0f : 0.0f,baseCost,(flex_t)a->nEdges,(flex_t)b->nEdges};
+    flex_t score=transfer.edgeBias;
+    for (int i=0;i<10;++i) score+=transfer.edgeWeight[i]*(x[i]-transfer.edgeCenter[i])/transfer.edgeScale[i];
+    if (score>30.0f) score=30.0f; else if (score<-30.0f) score=-30.0f;
+    flex_t success=1.0f/(1.0f+expf(-score));
+    return (1.0f-success)*4.0f;
+}
 
 static const char *Transfer_Mode(int ctf,int flags)
 {
@@ -91,6 +164,7 @@ static void Transfer_Context(SithThing *self,int newWorld)
     transfer.initialized=1; transfer.flags=flags; transfer.rank=rank;
     strcpy(transfer.scope,scope); transfer.nextState=0;
     transfer.trace=getenv("ADJOIN_RED_TRACE") && !strcmp(getenv("ADJOIN_RED_TRACE"),"1");
+    (void)Transfer_LoadEdgeModel();
     transfer.applies=Transfer_Match(scope,transfer.map,getenv("ADJOIN_RED_MODEL_SCOPE"),getenv("ADJOIN_RED_MODEL_MAP_SHA256"));
     char file[1024]={0}; const char *dir=getenv("ADJOIN_NAV_CACHE");
     if (dir && *dir=='/' && transfer.map[0] && strcmp(mode,"unsupported")) {
@@ -108,10 +182,19 @@ static void Transfer_Context(SithThing *self,int newWorld)
 
 /* Only existing legal directed edges reach this function. The returned
  * nonnegative surcharge does not create a traversal or relax a constraint. */
-static flex_t Transfer_Cost(int from,int to,int mode)
+static flex_t Transfer_Cost(int from,int to,int mode,flex_t baseCost)
 {
-    if (!transfer.initialized || !transfer.recall.count || from<0 || to<0 ||
+    if (!transfer.initialized || from<0 || to<0 ||
         from>=transfer.navCount || to>=transfer.navCount) return 0;
+    /* Regenerated tactics trees add the Brain prior inside Bot_SearchPaths
+     * (JK_BOT_BRAIN_PLANNER_PRIOR); frozen trees keep it here instead -
+     * never both, or the same prior would be charged twice. */
+#ifdef JK_BOT_BRAIN_PLANNER_PRIOR
+    flex_t extra=0;
+#else
+    flex_t extra=Transfer_EdgePrior(from,to,mode,baseCost);
+#endif
+    if (!transfer.recall.count) return extra;
     uint64_t a=transfer.keys[from],b=transfer.keys[to];
     unsigned k=Transfer_Bucket(a,b,mode);
     for (int it=transfer.bucket[k];it;it=transfer.next[it-1]) {
@@ -123,10 +206,10 @@ static flex_t Transfer_Cost(int from,int to,int mode)
                 fprintf(stderr,"BOT_NAV_COST name=%s t=%.3f from=%d to=%d edge=%d base=graph extra=%d\n",
                     bot.name,(double)bot.now,from,to,mode,level*2);
             }
-            return (flex_t)(level*2);
+            return extra+(flex_t)(level*2);
         }
     }
-    return 0;
+    return extra;
 }
 
 static void Transfer_Observe(int node,int failed)
@@ -136,10 +219,24 @@ static void Transfer_Observe(int node,int failed)
     int from=bot.routePos>0 ? bot.route[bot.routePos-1] : transfer.routeStart;
     if (from<0 || node<0 || from==node || from>=transfer.navCount || node>=transfer.navCount) return;
     const BotNode *n=&bot.nodes[from];
-    int mode=-1;
-    for (int i=0;i<n->nEdges;++i) if (n->edges[i].to==node) { mode=n->edges[i].drop; break; }
+    int mode=-1; flex_t baseCost=0;
+    for (int i=0;i<n->nEdges;++i) if (n->edges[i].to==node) { mode=n->edges[i].drop; baseCost=n->edges[i].cost; break; }
     if (mode<0) return;
     uint64_t a=transfer.keys[from],b=transfer.keys[node];
+    /* BrainStore training telemetry: geometry features for the global edge
+     * model, emitted for arrivals as well as stalls. Log-only; planning and
+     * recall behavior are unchanged. */
+    if (transfer.trace) {
+        const BotNode *to=&bot.nodes[node];
+        fprintf(stderr,"BOT_EDGE_ATTEMPT name=%s t=%.3f event=%s from_key=%" PRIx64 " to_key=%" PRIx64 " edge=%d dist_mm=%lld dz_mm=%lld from_water=%d to_water=%d dest_item=%d base_cost_milli=%lld degree_from=%d degree_to=%d\n",
+            bot.name,(double)bot.now,failed ? "stall" : "arrive",a,b,mode,
+            (long long)llround(Bot_Distance(n->pos,to->pos)*1000.0),
+            (long long)llround(((double)to->pos.z-(double)n->pos.z)*1000.0),
+            !!(n->sector && (n->sector->flags&SITH_SECTOR_UNDERWATER)),
+            !!(to->sector && (to->sector->flags&SITH_SECTOR_UNDERWATER)),
+            to->item>=0,(long long)llround((double)baseCost*1000.0),n->nEdges,to->nEdges);
+        fflush(stderr);
+    }
     if (!failed) ++transfer.arrivals; else ++transfer.failures;
     int before;
     int now=NR_Observe(&transfer.recall,a,b,mode,failed,transfer.wall,&before);

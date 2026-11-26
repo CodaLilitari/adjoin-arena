@@ -8,7 +8,7 @@
   "base_binary_sha256": "d04f5106a3a0a3f123162e82a364bc98ec495ae8bd2fe89fb0f1b2461fc44fe3",
   "base_patch_sha256": "12fc518bdf29bd7322c4d69935f9be499ea3f829f25538bd1f66de0dc2ff4af6",
   "relink_archive_sha256": "a9d6ac49ff89d662c8ef4d56973994d572701a27ff6ba944c069df0c21ff3d21",
-  "generated_globals_sha256": "edec9732ccad1f32d9fe4740ca17fdb76a05459181b196c779dbe45519a00e78",
+  "generated_globals_sha256": "e700da5fb05eea91febcb0c6c9237573d29263125dfa9b195e3def0f0ea664e9",
   "patched_sources": {
     "src/AI/jkBot.c": "4abbf6138d830276faa7b7c4b41f38e5cea85861501adbf3ee59288c1ef8e4d1",
     "src/AI/jkBotBehavior.inc": "706434c453a7d6bacf5cb47fcd8f0f403d4e0a0509dff1e2d184be1ace46f627",
