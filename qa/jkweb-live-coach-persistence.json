@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "date": "2026-11-26",
+  "map": "JK1MP/m10.jkl",
+  "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+  "wasm_sha256": "b22d351f0d5cf7462da35020ae85ba367626a911375981a3cae6a1a34c832fe6",
+  "build_id": "sha256:b22d351f0d5cf7462da35020ae85ba367626a911375981a3cae6a1a34c832fe6",
+  "store_label": "JKWeb/JK1MP/m10.jkl@87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc/nf-sabers/rank0/1v1/1x",
+  "brain_profile": "red-bot",
+  "mode": "nf-sabers",
+  "transport": "private loopback WSRelay, two independent headless Chrome engines",
+  "speed": 1,
+  "host": "lily",
+  "coached_seat": "red",
+  "candidate_presets": [
+    "default",
+    "hunter"
+  ],
+  "configured_dwell_s": 8,
+  "coach": "Wren UCB1 preset coach with Muse BrainStore",
+  "startup_mode": "auto",
+  "first_native_ack": "coach preset default",
+  "grade_elapsed_seconds": 8.07,
+  "first_process_closing_score": {
+    "kills": 1,
+    "deaths": 0
+  },
+  "graded_bandit": {
+    "default": {
+      "plays": 1,
+      "total": 4.0
+    },
+    "hunter": {
+      "plays": 0,
+      "total": 0.0
+    }
+  },
+  "graded_rows_read_from_sqlite_after_process_exit": {
+    "default": {
+      "plays": 1,
+      "total": 4.0
+    }
+  },
+  "new_process_loaded_bandit": {
+    "default": {
+      "plays": 1,
+      "total": 4.0
+    },
+    "hunter": {
+      "plays": 0,
+      "total": 0.0
+    }
+  },
+  "new_process_native_ack": "coach preset hunter",
+  "manual": {
+    "dropped_window": "hunter",
+    "native_ack": "set combat_strafe=0.74",
+    "observed_in_game_seconds": 9.0,
+    "bandit_unchanged": true
+  },
+  "manual_commands_rate_limited": 1,
+  "resumed_auto_native_ack": "coach preset hunter",
+  "lease_released_by_both_processes": true,
+  "interpretation": "One acknowledged, scored window verifies durable online updates and manual operator control in a game. Reward is clipped kills minus deaths per minute. This sample does not estimate long-run win rate."
+}

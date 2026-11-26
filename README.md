@@ -8,6 +8,12 @@ Adjoin Arena runs competitive Jedi Knight bots headlessly on stock game physics 
 
 The source and the three original PR branches are available on [GitHub](https://github.com/CodaLilitari/adjoin-arena) and [GitLab](https://gitlab.com/codalilitari/adjoin-arena).
 
+## Competitive bots in this integration branch
+
+The native and JKWeb bots keep moving through close saber swings when the floor permits, and aim at the target's collision geometry and relative vertical motion. The live comparison covers full-Force sabers, no-Force sabers, no-Force guns, and stock CTF. Two independent browser builds produced identical JS, WASM and relink packages. [JKWeb matches](qa/jkweb-competitive-rebuild.json) The mobile rank-eight Light build remains available. [Native trials](docs/COMPETITIVE_NATIVE_TRIALS.md) · [Saber tests](qa/saber-tracking.md)
+
+Red provides a playable script from the first input and a fallback for unfamiliar levels. Muse Code's persistent learner can accumulate practice matches and fit a challenger between batches. Wren's live coach seat supports human takeover and Lilivane's health, shield and weapon policy. [Practice, challenges and rollback](docs/COMPETITIVE_LEARNING.md)
+
 ## What has the bot learned?
 
 Six matches supplied 4,948 examples from Red. In four fresh scripted matches the first model agreed with Red on 95.71% of decisions. In four corresponding games with the model driving one player, the learned players totaled four kills and six deaths. The scripted players in the control games totaled seven kills and six deaths. On Bespin, a map absent from training, the native engine recorded the model changing Boba’s movement from pickup pursuit to combat. [Model, training corpus and results by player](docs/RED_PICKUP_MODEL.md)

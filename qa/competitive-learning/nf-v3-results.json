@@ -1,0 +1,779 @@
+{
+  "schema": 1,
+  "date": "2026-11-26",
+  "task": "Stock NF guns, ordinary pickup pursuit versus engage, played at 1x on a Red transfer engine",
+  "generation": 3,
+  "client_sha256": "d48abd9b8d7e01facacfe8cc47ed27d1a6768b8122a6c9bbcefed17a8dc8196d",
+  "weights_sha256": "aea2da99abad7b19a093238b5ee8988fb956c3ea98f962efb1b67eb1b6943ce9",
+  "training_model_sha256": "1a62a853644d88c6cd802c689d2dd64b14427fc1b040e5e391eaa55a5cdb170a",
+  "practice_matches": [
+    {
+      "trial": "nf-guns-p1-both-boba",
+      "block": "baseline",
+      "id": "c0ef0ddaefe1daf11ff9ca99b103dfaca69b06c889be55ea08b99f6cdfd1f922"
+    },
+    {
+      "trial": "nf-guns-p1-both-boba",
+      "block": "baseline-nf-repeat",
+      "id": "0a2a24cba61251b892d9bf06178d7b26075b79d282721755bfd5d9372272af0a"
+    },
+    {
+      "trial": "nf-guns-p1-both-jan",
+      "block": "baseline-nf-repeat",
+      "id": "65086f11620100730ab6122adc613ad0c339290c22ed4834bc9918b356d26adb"
+    },
+    {
+      "trial": "nf-oasis-p1-both-boba",
+      "block": "learner-practice",
+      "id": "45b98d457e0d19e52e66d4514f8ac8522583013471cd3ff9872b3ddc5d2f0fb6"
+    },
+    {
+      "trial": "nf-oasis-p1-both-jan",
+      "block": "learner-practice",
+      "id": "8bcb7751b347bab1c97f5378e7cad8aa92e828447e6b2ec6ada81fa1758edab5"
+    }
+  ],
+  "practice_rows": {
+    "rows": 2446,
+    "teacher_0": 385,
+    "rewarded_0": 7,
+    "rewarded_1": 52
+  },
+  "policy_fit": {
+    "accuracy": 0.9532565292106214,
+    "attempts": 280,
+    "balanced_accuracy": 0.9468774939965663,
+    "outcome_weighted": true,
+    "reward_mean": 0.034915254237288126,
+    "rows": 59,
+    "teacher_fraction": 0.5,
+    "teacher_rows": 2446,
+    "temperature": 1.0
+  },
+  "evaluation_match_ids": [
+    "76e2e3c2dc7c52e14efcc2ebf7f60cd6deb7b4cc74d5a8df69deee6ab48aec18",
+    "6a0107b03f6c5002a9b059c215942d0fc03242217a0a06409a4e007ecead86a9",
+    "fec617957b3f87a94272f34e2848595d975a6ea4da5e277485ad3bc935e1c216",
+    "2cdd0da655b0197501e2698bb57b02b05fdbcc080c0f05064b15b9dd8439fb3c",
+    "bd8a56f3ee40d1c4426a9c4e0140080c6b4c5e5a1bc08aaa0ff098c04c44a5a6",
+    "ce7c401bfa53a325cc6c8917bfedf69cedc6c242bb2ec64ff78634c7ab4b5378",
+    "ce48efa8f8d00332b6ca151aadca794caf9293592aa3795326e281a17c87cdbd",
+    "e51fc7da28293bc4ad4cbaf7a9b4623a71d7a0b773bba272fe56978d6d126577"
+  ],
+  "independent_shadow": {
+    "ok": false,
+    "reasons": [
+      "only 1 map(s) represented (< 2)"
+    ],
+    "metrics": {
+      "rows": 1499,
+      "maps": 1,
+      "agreement": 0.9286190793862575,
+      "balanced_accuracy": 0.7999625131204079,
+      "rewarded_rows": 25,
+      "rewarded_by_action": [
+        2,
+        23
+      ],
+      "agreed_rewarded_rows": 20,
+      "disagreed_rewarded_rows": 5,
+      "agreed_rows": 1392,
+      "agreed_reward_mean": 0.36400000000000005,
+      "disagreed_reward_mean": -0.9880000000000001,
+      "excluded_policy_rows": 1862
+    },
+    "cohort": {
+      "scope": "ffa/guns/noforce",
+      "pace": "1x",
+      "build": "d48abd9b8d7e01facacfe8cc47ed27d1a6768b8122a6c9bbcefed17a8dc8196d"
+    },
+    "heldout_matches": 4
+  },
+  "head_to_head": [
+    {
+      "map": "m10.jkl",
+      "played": 4,
+      "challenger_kills": 6,
+      "red_kills": 6,
+      "wins": 1,
+      "losses": 2,
+      "ties": 1,
+      "missing_cells": [],
+      "movement_missing": [],
+      "delivered_actions": {
+        "engage": 273,
+        "pickup": 1402
+      }
+    },
+    {
+      "map": "m2.jkl",
+      "played": 4,
+      "challenger_kills": 1,
+      "red_kills": 0,
+      "wins": 1,
+      "losses": 0,
+      "ties": 3,
+      "missing_cells": [],
+      "movement_missing": [
+        "dark/boba_fett-first",
+        "dark/jan_ors-first"
+      ],
+      "delivered_actions": {
+        "engage": 0,
+        "pickup": 169
+      }
+    }
+  ],
+  "promotion": {
+    "passed": false,
+    "reasons": [
+      "only 1 map(s) represented (< 2)",
+      "Missing game or consumed-decision and physical-motion evidence in a crossover cell.",
+      "Each map needs both pickup and fight inputs actually consumed."
+    ]
+  },
+  "notes": [
+    "Each accepted match is 80 game seconds after both players join, with normal spawn RNG.",
+    "Scores are per-match deltas over the same requested duration in each owner clock. Rejected trials contribute no score.",
+    "Shadow accuracy and rewards use only eligible actions by the script on the opposite seat. The eight games across two maps are the independent performance units.",
+    "Candidate and script share the gun and route code. A frag in a game with no eligible decision is not evidence of a model improvement."
+  ],
+  "audit": {
+    "weights_sha256": "aea2da99abad7b19a093238b5ee8988fb956c3ea98f962efb1b67eb1b6943ce9",
+    "game_seconds": 80,
+    "matches": [
+      {
+        "run": "match-0000",
+        "receipt_sha256": "8c1f0cddb34665252a0de8deab6f4051eda924dd65900fc268799f48574d71a7",
+        "status": "live_join_and_loadout_verified",
+        "map": "m2.jkl",
+        "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a",
+        "seat": "dark",
+        "first": "boba_fett",
+        "candidate": {
+          "kills": 0,
+          "deaths": 0,
+          "sectors": 13,
+          "weapon_gains": 2,
+          "stars": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "red": {
+          "kills": 0,
+          "deaths": 0,
+          "sectors": 20,
+          "weapon_gains": 2,
+          "stars": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "decisions": {
+          "engage": 0,
+          "pickup": 0
+        },
+        "delivered_nonzero_axis": {
+          "engage": 0,
+          "pickup": 0
+        },
+        "eligible_encounters": 0,
+        "same_life_positions_changed": 7,
+        "block": "nf-v3-crossover-m2"
+      },
+      {
+        "run": "match-0001",
+        "receipt_sha256": "3fd43d32f29dfa01ecb8b7c92c00d0f524b09ab0bd33190fc03d63636c972e17",
+        "status": "live_join_and_loadout_verified",
+        "map": "m2.jkl",
+        "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a",
+        "seat": "dark",
+        "first": "jan_ors",
+        "candidate": {
+          "kills": 0,
+          "deaths": 0,
+          "sectors": 28,
+          "weapon_gains": 2,
+          "stars": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "red": {
+          "kills": 0,
+          "deaths": 0,
+          "sectors": 13,
+          "weapon_gains": 2,
+          "stars": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "decisions": {
+          "engage": 0,
+          "pickup": 0
+        },
+        "delivered_nonzero_axis": {
+          "engage": 0,
+          "pickup": 0
+        },
+        "eligible_encounters": 0,
+        "same_life_positions_changed": 7,
+        "block": "nf-v3-crossover-m2"
+      },
+      {
+        "run": "match-0002",
+        "receipt_sha256": "f488fc86e558e541edaf0e97888829ee3318d16c029cc7923765a56b1115f6ae",
+        "status": "failed",
+        "failure": "native_pace_game_window_exceeded",
+        "block": "nf-v3-crossover-m2"
+      },
+      {
+        "run": "match-0002-retry1",
+        "receipt_sha256": "65d7d9cef584894ba575e7a5333482a1996b38aae55ca1bc77d5974453f788c4",
+        "status": "failed",
+        "failure": "native_pace_outside_requested_band",
+        "block": "nf-v3-crossover-m2"
+      },
+      {
+        "run": "match-0003",
+        "receipt_sha256": "7bc94283b13cc05539c04ec809e76658c87637aa43d189caecdc3dce5babfa70",
+        "status": "failed",
+        "failure": "native_pace_outside_requested_band",
+        "block": "nf-v3-crossover-m2"
+      },
+      {
+        "run": "match-0003-retry1",
+        "receipt_sha256": "96e5d3efe9fe712e134c97bc8797089a5654a3b6d90c08db8d225705c7aa63bc",
+        "status": "live_join_and_loadout_verified",
+        "map": "m2.jkl",
+        "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a",
+        "seat": "light",
+        "first": "jan_ors",
+        "candidate": {
+          "kills": 0,
+          "deaths": 0,
+          "sectors": 25,
+          "weapon_gains": 1,
+          "duel_labels": 13,
+          "model_label_1": 13,
+          "stars": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "red": {
+          "kills": 0,
+          "deaths": 0,
+          "sectors": 11,
+          "weapon_gains": 2,
+          "stars": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "decisions": {
+          "engage": 0,
+          "pickup": 13
+        },
+        "delivered_nonzero_axis": {
+          "engage": 0,
+          "pickup": 13
+        },
+        "eligible_encounters": 1,
+        "same_life_positions_changed": 7,
+        "block": "nf-v3-crossover-m2"
+      },
+      {
+        "run": "match-0000",
+        "receipt_sha256": "6415970daa4d24d27794b057b5aa80717abc8be3796e1046489b060baa68bcfa",
+        "status": "live_join_and_loadout_verified",
+        "map": "m10.jkl",
+        "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+        "seat": "dark",
+        "first": "boba_fett",
+        "candidate": {
+          "kills": 1,
+          "deaths": 1,
+          "sectors": 17,
+          "duel_labels": 325,
+          "model_label_1": 297,
+          "weapon_gains": 5,
+          "model_label_0": 28,
+          "stars": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "red": {
+          "kills": 1,
+          "deaths": 1,
+          "sectors": 25,
+          "duel_labels": 417,
+          "weapon_gains": 6,
+          "stars": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "decisions": {
+          "engage": 28,
+          "pickup": 297
+        },
+        "delivered_nonzero_axis": {
+          "engage": 28,
+          "pickup": 293
+        },
+        "eligible_encounters": 13,
+        "same_life_positions_changed": 6,
+        "block": "nf-v3-crossover-m10"
+      },
+      {
+        "run": "match-0001",
+        "receipt_sha256": "8b332ebb5675a772009b6ffedc5b22e14724a1b2a29ef9b73d77aef8e1408c9a",
+        "status": "failed",
+        "failure": "native_pace_game_window_exceeded",
+        "block": "nf-v3-crossover-m10"
+      },
+      {
+        "run": "match-0001-retry1",
+        "receipt_sha256": "a276a3fc3fba57e717082c5ee3fb73255b475b4dd1d0128cf58f4c112d7f2e1b",
+        "status": "live_join_and_loadout_verified",
+        "map": "m10.jkl",
+        "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+        "seat": "dark",
+        "first": "jan_ors",
+        "candidate": {
+          "kills": 1,
+          "deaths": 2,
+          "sectors": 16,
+          "weapon_gains": 4,
+          "duel_labels": 477,
+          "model_label_1": 310,
+          "model_label_0": 167,
+          "stars": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "red": {
+          "kills": 2,
+          "deaths": 1,
+          "sectors": 17,
+          "weapon_gains": 5,
+          "duel_labels": 413,
+          "stars": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "decisions": {
+          "engage": 167,
+          "pickup": 310
+        },
+        "delivered_nonzero_axis": {
+          "engage": 167,
+          "pickup": 302
+        },
+        "eligible_encounters": 7,
+        "same_life_positions_changed": 4,
+        "block": "nf-v3-crossover-m10"
+      },
+      {
+        "run": "match-0002",
+        "receipt_sha256": "b1c36ceaeb3fb087838986e34d7ad725126b1c8118e3bd7e42e8705d9a73bb17",
+        "status": "live_join_and_loadout_verified",
+        "map": "m10.jkl",
+        "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+        "seat": "light",
+        "first": "boba_fett",
+        "candidate": {
+          "kills": 1,
+          "deaths": 3,
+          "sectors": 24,
+          "duel_labels": 338,
+          "model_label_1": 259,
+          "weapon_gains": 8,
+          "model_label_0": 79,
+          "stars": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "red": {
+          "kills": 3,
+          "deaths": 1,
+          "sectors": 21,
+          "duel_labels": 388,
+          "weapon_gains": 5,
+          "stars": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "decisions": {
+          "engage": 79,
+          "pickup": 259
+        },
+        "delivered_nonzero_axis": {
+          "engage": 78,
+          "pickup": 258
+        },
+        "eligible_encounters": 12,
+        "same_life_positions_changed": 3,
+        "block": "nf-v3-crossover-m10"
+      },
+      {
+        "run": "match-0003",
+        "receipt_sha256": "7f70b677d80bd0dc3a4f746e33b3d64cfc9ad323ec9ed2d99d9273f683d36989",
+        "status": "live_join_and_loadout_verified",
+        "map": "m10.jkl",
+        "map_sha256": "87bb3e919ee1f3749595f1ee37965bc083dbb866148775fd64280b0170926ecc",
+        "seat": "light",
+        "first": "jan_ors",
+        "candidate": {
+          "kills": 3,
+          "deaths": 0,
+          "sectors": 23,
+          "duel_labels": 553,
+          "model_label_1": 553,
+          "weapon_gains": 4,
+          "stars": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "red": {
+          "kills": 0,
+          "deaths": 3,
+          "sectors": 20,
+          "weapon_gains": 6,
+          "duel_labels": 362,
+          "stars": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "decisions": {
+          "engage": 0,
+          "pickup": 553
+        },
+        "delivered_nonzero_axis": {
+          "engage": 0,
+          "pickup": 549
+        },
+        "eligible_encounters": 16,
+        "same_life_positions_changed": 7,
+        "block": "nf-v3-crossover-m10"
+      },
+      {
+        "run": "match-0000",
+        "receipt_sha256": "81295af25d91ea1ca78663660a5764b2132fc45946f8350c7151fdc85c2bcb06",
+        "status": "live_join_and_loadout_verified",
+        "map": "m2.jkl",
+        "map_sha256": "938f8a892bcdc90a7f54f25aed4fd58baba750293c5d01ac2dec68ef170eef9a",
+        "seat": "light",
+        "first": "boba_fett",
+        "candidate": {
+          "kills": 1,
+          "deaths": 0,
+          "sectors": 10,
+          "duel_labels": 156,
+          "model_label_1": 156,
+          "weapon_gains": 2,
+          "stars": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "red": {
+          "kills": 0,
+          "deaths": 1,
+          "sectors": 3,
+          "weapon_gains": 0,
+          "stars": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "decisions": {
+          "engage": 0,
+          "pickup": 156
+        },
+        "delivered_nonzero_axis": {
+          "engage": 0,
+          "pickup": 156
+        },
+        "eligible_encounters": 7,
+        "same_life_positions_changed": 5,
+        "block": "nf-v3-recovery-m2-2"
+      }
+    ],
+    "coverage": {
+      "m10.jkl": {
+        "cells": {
+          "dark/boba_fett-first": {
+            "verified_games": 1,
+            "games_with_consumed_choice_and_observed_motion": 1
+          },
+          "dark/jan_ors-first": {
+            "verified_games": 1,
+            "games_with_consumed_choice_and_observed_motion": 1
+          },
+          "light/boba_fett-first": {
+            "verified_games": 1,
+            "games_with_consumed_choice_and_observed_motion": 1
+          },
+          "light/jan_ors-first": {
+            "verified_games": 1,
+            "games_with_consumed_choice_and_observed_motion": 1
+          }
+        },
+        "missing_cells": [],
+        "missing_movement_cells": [],
+        "delivered_actions": {
+          "engage": 273,
+          "pickup": 1402
+        }
+      },
+      "m2.jkl": {
+        "cells": {
+          "dark/boba_fett-first": {
+            "verified_games": 1,
+            "games_with_consumed_choice_and_observed_motion": 0
+          },
+          "dark/jan_ors-first": {
+            "verified_games": 1,
+            "games_with_consumed_choice_and_observed_motion": 0
+          },
+          "light/boba_fett-first": {
+            "verified_games": 1,
+            "games_with_consumed_choice_and_observed_motion": 1
+          },
+          "light/jan_ors-first": {
+            "verified_games": 1,
+            "games_with_consumed_choice_and_observed_motion": 1
+          }
+        },
+        "missing_cells": [],
+        "missing_movement_cells": [
+          "dark/boba_fett-first",
+          "dark/jan_ors-first"
+        ],
+        "delivered_actions": {
+          "engage": 0,
+          "pickup": 169
+        }
+      }
+    }
+  },
+  "next_practice_batch": {
+    "mode": "native transfer, NF guns, 1x regular practice",
+    "map": "m10.jkl",
+    "duration_game_seconds": 50,
+    "status": "live_join_and_loadout_verified",
+    "active_at_start": "teacher",
+    "inference_for_new_weights": "candidate, pending its own independent games",
+    "prior_practice_rows": 2446,
+    "after_practice_rows": 2829,
+    "new_decisions": 383,
+    "match_id": "91ccd315e835e1f138cdc4c67da3b1e49a5de6dc4460a50bb859b88044b11c74",
+    "receipt_sha256": "a524110905e975fa94f6e5a03f2f55b679572a170304118bfeb798ea880c5390",
+    "weights_sha256": "9d0fe02a6e8aa3cea43f6bb50c262ff12a3bc35976fcc65ecaec4770ebd78adb",
+    "model_sha256": "d39d5bf1be189d1f69f220aa2f8ce43241148676bac298ebc1b851094a239207",
+    "weighted_examples": 70
+  }
+}

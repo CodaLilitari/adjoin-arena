@@ -38,6 +38,7 @@ def summarize(directory):
         if role == "host":
             if transfer["mode"] == "ctf":
                 captures = {"red": 0, "gold": 0}
+                returns = {"red": 0, "gold": 0}
                 clock = None
                 for line in lines:
                     if line.startswith("ARENA_PACE "):
@@ -45,7 +46,11 @@ def summarize(directory):
                     match = re.fullmatch(r"(Red|Gold) Team Captured The Flag!", line.strip(), re.I)
                     if match and clock is not None and start <= clock < end:
                         captures[match[1].lower()] += 1
+                    match = re.fullmatch(r"(?:The )?(Red|Gold) Flag has been returned!", line.strip(), re.I)
+                    if match and clock is not None and start <= clock < end:
+                        returns[match[1].lower()] += 1
                 row["host_captures"] = captures
+                row["host_flag_returns"] = returns
             continue
         counts = Counter()
         sites = set()

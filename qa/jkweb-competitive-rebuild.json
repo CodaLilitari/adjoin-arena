@@ -1,0 +1,432 @@
+{
+  "schema": 1,
+  "date": "2026-11-26",
+  "transport": "Pinned WSRelay on loopback. Two independent headless Chrome contexts, each running the same WASM with locally installed game data.",
+  "engine_sha256": "b22d351f0d5cf7462da35020ae85ba367626a911375981a3cae6a1a34c832fe6",
+  "js_sha256": "38164521db8d3ab5451fb95dd3973069f5e1a98d721663a926f082b85e11e9f0",
+  "build_manifest_sha256": "a3958964f98136260c1ffa1f55a40b0a805c2d94ddda1c4498ca9c2637f2345a",
+  "independent_clean_source_checkouts": 2,
+  "byte_identical_across_checkouts": [
+    "web_bots/BUILD.json",
+    "bin/bots-jkweb/openjkdf2.js",
+    "bin/bots-jkweb/openjkdf2.wasm",
+    "web_bots/engine-relink.tar.gz"
+  ],
+  "independent_relink": {
+    "objects": 224,
+    "recompiled": [
+      "smacker.c",
+      "smk_bitstream.c",
+      "smk_hufftree.c"
+    ],
+    "byte_identical": [
+      "openjkdf2.js",
+      "openjkdf2.wasm"
+    ]
+  },
+  "ctf_regression_before_fix": {
+    "engine_sha256": "33a9bf4dbcc76f61436508b03e468852772182a785351bc10c4a97a5c337d103",
+    "map": "c1.jkl",
+    "room_capacity": 6,
+    "gold_requesting_joiner_initial_sector": 86,
+    "gold_requesting_joiner_team_after_75s": 0,
+    "host_observed_team": 1
+  },
+  "sessions": [
+    {
+      "episode": "jhs",
+      "map": "jhs.jkl",
+      "room_capacity": 6,
+      "mode": "ff-sabers",
+      "seats": {
+        "lily": {
+          "sample_count": 37,
+          "slots_observed": [
+            0
+          ],
+          "rendered_models": [
+            "dlil.3do"
+          ],
+          "camera_renderer_flags": [
+            7
+          ],
+          "render_backend": "ANGLE / NVIDIA / Direct3D11",
+          "saber_material_color_from_character": "red",
+          "observed_clock_s": [
+            25.45,
+            59.64
+          ],
+          "weapons_equipped": [
+            10
+          ],
+          "firing_input_by_weapon": {},
+          "maximum_scoreboard_kills_deaths": [
+            0,
+            0
+          ]
+        },
+        "red": {
+          "sample_count": 37,
+          "slots_observed": [
+            1
+          ],
+          "rendered_models": [
+            "redmando.3do"
+          ],
+          "camera_renderer_flags": [
+            5
+          ],
+          "render_backend": "ANGLE / NVIDIA / Direct3D11",
+          "saber_material_color_from_character": "green",
+          "observed_clock_s": [
+            4.55,
+            38.22
+          ],
+          "weapons_equipped": [
+            10
+          ],
+          "firing_input_by_weapon": {},
+          "maximum_scoreboard_kills_deaths": [
+            0,
+            0
+          ]
+        }
+      },
+      "coach_on_red": {
+        "native_applied": [
+          "Lilivane preset default"
+        ],
+        "observed_lease_release": false,
+        "rate_limited": 0
+      },
+      "episode_sha256": "a62c94789c521af2746cc8378301a4940a59a24f6fb44dd4c443caacc0211b04",
+      "roster_sha256": "5006ae2cd2228683cf941e7660e8a462693631ffd5cbf5d217f2f62651a04b2d"
+    },
+    {
+      "episode": "JK1MP",
+      "map": "m10.jkl",
+      "room_capacity": 6,
+      "mode": "nf-sabers",
+      "seats": {
+        "lily": {
+          "sample_count": 41,
+          "slots_observed": [
+            0
+          ],
+          "rendered_models": [
+            "ky.3do"
+          ],
+          "camera_renderer_flags": [
+            5,
+            7
+          ],
+          "render_backend": "ANGLE / NVIDIA / Direct3D11",
+          "saber_material_color_from_character": "red",
+          "observed_clock_s": [
+            8.71,
+            45.88
+          ],
+          "weapons_equipped": [
+            2,
+            10
+          ],
+          "firing_input_by_weapon": {
+            "10": 5
+          },
+          "maximum_scoreboard_kills_deaths": [
+            1,
+            2
+          ]
+        },
+        "red": {
+          "sample_count": 41,
+          "slots_observed": [
+            1
+          ],
+          "rendered_models": [
+            "kyh4.3do"
+          ],
+          "camera_renderer_flags": [
+            5
+          ],
+          "render_backend": "ANGLE / NVIDIA / Direct3D11",
+          "saber_material_color_from_character": "green",
+          "observed_clock_s": [
+            1.51,
+            38.41
+          ],
+          "weapons_equipped": [
+            2,
+            10
+          ],
+          "firing_input_by_weapon": {
+            "10": 7
+          },
+          "maximum_scoreboard_kills_deaths": [
+            2,
+            1
+          ]
+        }
+      },
+      "coach_on_red": {
+        "native_applied": [
+          "Lilivane preset default",
+          "Lilivane preset default"
+        ],
+        "observed_lease_release": true,
+        "rate_limited": 0
+      }
+    },
+    {
+      "episode": "JK1MP",
+      "map": "m10.jkl",
+      "room_capacity": 6,
+      "mode": "nf-guns",
+      "seats": {
+        "lily": {
+          "sample_count": 60,
+          "slots_observed": [
+            0
+          ],
+          "rendered_models": [
+            "ky.3do"
+          ],
+          "camera_renderer_flags": [
+            7
+          ],
+          "render_backend": "ANGLE / NVIDIA / Direct3D11",
+          "saber_material_color_from_character": "red",
+          "observed_clock_s": [
+            9.33,
+            63.76
+          ],
+          "weapons_equipped": [
+            5,
+            6
+          ],
+          "firing_input_by_weapon": {
+            "6": 2,
+            "5": 1
+          },
+          "maximum_scoreboard_kills_deaths": [
+            0,
+            0
+          ]
+        },
+        "red": {
+          "sample_count": 60,
+          "slots_observed": [
+            1
+          ],
+          "rendered_models": [
+            "kyh4.3do"
+          ],
+          "camera_renderer_flags": [
+            5
+          ],
+          "render_backend": "ANGLE / NVIDIA / Direct3D11",
+          "saber_material_color_from_character": "green",
+          "observed_clock_s": [
+            2.25,
+            56.09
+          ],
+          "weapons_equipped": [
+            2,
+            5,
+            6,
+            7
+          ],
+          "firing_input_by_weapon": {
+            "7": 1
+          },
+          "maximum_scoreboard_kills_deaths": [
+            0,
+            0
+          ]
+        }
+      },
+      "coach_on_red": {
+        "native_applied": [
+          "Lilivane preset arsenal",
+          "Lilivane preset default"
+        ],
+        "observed_lease_release": true,
+        "rate_limited": 0
+      },
+      "lily_planner": {
+        "policy_sha256": "f3ead63853771e2cee4855abf1ce272dd23d14309d09b1b96c2d321321c20343",
+        "outcomes": {
+          "arrived": 31,
+          "failed_invalid_route": 1,
+          "interrupted_invalid_route": 1,
+          "interrupted_self_defense": 8,
+          "interrupted_survival": 7,
+          "motor_goal_reached": 2,
+          "transport_stale": 7
+        },
+        "native_pickups": [
+          {
+            "life_epoch": 1,
+            "action_seq": 39,
+            "node": 18,
+            "item_bin": 60,
+            "terminal": "completed / collected"
+          },
+          {
+            "life_epoch": 1,
+            "action_seq": 40,
+            "node": 17,
+            "item_bin": 60,
+            "terminal": "completed / collected"
+          }
+        ]
+      }
+    },
+    {
+      "episode": "JK1CTF",
+      "map": "c1.jkl",
+      "room_capacity": 6,
+      "mode": "nf-guns",
+      "seats": {
+        "lily": {
+          "sample_count": 62,
+          "slots_observed": [
+            0
+          ],
+          "rendered_models": [
+            "kyx0.3do"
+          ],
+          "camera_renderer_flags": [
+            7
+          ],
+          "render_backend": "ANGLE / NVIDIA / Direct3D11",
+          "saber_material_color_from_character": "red",
+          "observed_clock_s": [
+            13.62,
+            69.71
+          ],
+          "weapons_equipped": [
+            3,
+            10
+          ],
+          "firing_input_by_weapon": {
+            "3": 2,
+            "10": 2
+          },
+          "maximum_scoreboard_kills_deaths": [
+            3,
+            0
+          ],
+          "requested_team": 1,
+          "teams_observed": [
+            0,
+            1
+          ],
+          "stock_capture_announcements": {
+            "Red": 2
+          }
+        },
+        "red": {
+          "sample_count": 62,
+          "slots_observed": [
+            1
+          ],
+          "rendered_models": [
+            "ky.3do",
+            "kyu0.3do"
+          ],
+          "camera_renderer_flags": [
+            5
+          ],
+          "render_backend": "ANGLE / NVIDIA / Direct3D11",
+          "saber_material_color_from_character": "green",
+          "observed_clock_s": [
+            2.22,
+            58.07
+          ],
+          "weapons_equipped": [
+            2,
+            3,
+            6,
+            10
+          ],
+          "firing_input_by_weapon": {
+            "2": 2,
+            "3": 1,
+            "10": 2
+          },
+          "maximum_scoreboard_kills_deaths": [
+            0,
+            3
+          ],
+          "requested_team": 2,
+          "teams_observed": [
+            0,
+            2
+          ],
+          "stock_capture_announcements": {
+            "Red": 2
+          }
+        }
+      },
+      "coach_on_red": {
+        "native_applied": [
+          "Lilivane preset arsenal",
+          "Lilivane preset arsenal",
+          "Lilivane preset arsenal",
+          "Lilivane preset arsenal",
+          "Lilivane preset default"
+        ],
+        "observed_lease_release": true,
+        "rate_limited": 1
+      }
+    }
+  ],
+  "interpretation": "Camera flags 7 identify the local actor in third person with renderer acceleration. Flags 5 identify an accelerated alternate view. Firing input is a button press. Kills/deaths and the stock CTF announcements are independent gameplay observations. The two browser views of one capture describe one event. Short sessions establish working paths; they do not estimate competitive win rates.",
+  "additional_item_targeted_probe": {
+    "mode": "nf-guns",
+    "map": "m10.jkl",
+    "local_collector": "lily",
+    "native_pickups": [
+      {
+        "life_epoch": 5,
+        "action_seq": 2,
+        "node": 33,
+        "item_bin": 12,
+        "terminal": "completed / collected"
+      },
+      {
+        "life_epoch": 9,
+        "action_seq": 8,
+        "node": 29,
+        "item_bin": 8,
+        "terminal": "completed / collected"
+      }
+    ]
+  },
+  "independent_verifier": {
+    "script": "scripts/bot_development/verify/web_candidate.py",
+    "applied_patches": 7,
+    "source_hashes_verified": 38,
+    "direct_relink_identical": true,
+    "recompiled_libsmacker_objects_identical": true,
+    "second_relink_identical": true
+  },
+  "durable_pickup_retest": {
+    "map": "m10.jkl",
+    "mode": "nf-guns",
+    "native_collections": [
+      {
+        "life_epoch": 1,
+        "action_seq": 1,
+        "node": 22,
+        "item_bin": 15,
+        "terminal": "completed / collected"
+      }
+    ],
+    "trace_and_sqlite_outcomes_verified": 1,
+    "native_outcome": "collected",
+    "route_learning_status": "arrived",
+    "route_physical_success": true
+  }
+}

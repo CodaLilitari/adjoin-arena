@@ -15,6 +15,8 @@ python -m bots.coach_seat --run /path/to/headless.json --seat red \
 
 Lilivane chooses a defensive distance when hurt, seeks an arsenal with a weak gun in gun games, and returns to the default tactics after recovery. The 12-game-second dwell begins when the engine acknowledges the change. Manual `preset`, `set` and `strategy` commands take the seat. Enter `lilivane` for her observation policy, `auto` for Wren's learning coach, or `release` to give control back to the bot. Wren's coach can persist its preset rewards with `--brain-root`, an engine digest and a label specific to the map, rules, and pace. Lilivane's authored policy updates its choice from current observations.
 
+In a private 1× Canyon Oasis NF saber match, Red earned one scored window for the default preset (+4). A new coach process read that result and tried the unplayed hunter preset. A manual strafe adjustment was acknowledged, grading paused during nine game seconds of manual control, and the automatic coach regained the seat. Two coaches grading the same profile concurrently also retain both updates in the regression suite. [Browser restart and handback](../qa/jkweb-live-coach-persistence.json) · [Two-coach test](../tests/test_coach_shared_memory.py)
+
 ## Training
 
 Wren's browser coach and native pickup network have separate playing paths. Browser learning can retain preset rewards between sessions. The exported pickup weights drive the native gun-mode controller.
@@ -36,6 +38,23 @@ python -m bots.brain --root "$BRAIN" qualify-decision --kind pickup_engage \
 The teacher fraction reserves half the fitting weight for Red's demonstrated choices, balanced between fighting and continuing. The remainder learns from attributable outcomes. The importer attributes a score or health change once per choice type and life. A same-life gain in the local player's weapon mask can reward a supply decision. Ammo refills, shield-only pickups and flag events do not supply pickup rewards. Stationary, Force and navigation overrides end the previous attribution window. Shadow scores use independently controlled teacher actions. Incoming receipts preserve each actor's measured game-clock interval and hash its complete log. Older rows without a known match partition remain available for inspection; re-import their verified matches to use them in a fresh training cohort. Rare actions and matches with no eligible decision are important when interpreting a high overall agreement. Reserve whole games before fitting. Use fresh evaluation games after changing a candidate in response to a score.
 
 For continuing practice, pass `--brain-root "$BRAIN" --fit-next` to the native batch runner. Each practice batch adds verified games to the store and writes the next candidate alongside its summary. `--active-side alternate --swap-join-order` pins the selected BrainStore incumbent at the start of the next batch and crosses both controlled sides with both joining orders over four runs. The same arguments work with a specific challenger using `--model-side alternate --policy-weights candidate.weights` in place of `--active-side alternate`. See `python scripts/bot_development/train_matches.py --help` and the [engine and game-data setup](../native/README.md). Separate output roots preserve old logs and candidates. Use `--jobs 1` for real-time evaluation on a shared machine.
+
+## November 26 pickup/fight challenger
+
+The final candidate combined all 2,446 Red demonstrations from five verified practice games with 59 decisions that had attributable gameplay outcomes. The trainer gave the script and outcome data equal total weight. Training and scoring used the same stock Red transfer executable. The ordinary native client and JKWeb client have separate build identities.
+
+The eight accepted 80-game-second NF guns matches crossed both seats and both joining orders on each map. Twelve attempts were recorded in total. Four missed their 1× clock checks and were excluded. One missing M2 combination was rerun on its own after the other games finished. The native checker verified the loaded weight digest, replayed each eligible model prediction and inspected the engine's movement readback.
+
+| Map | Challenger vs Red frags | Challenger wins / losses / draws | Native fight / pickup movement inputs |
+|---|---:|---:|---:|
+| Canyon Oasis (`m10.jkl`) | 6–6 | 1 / 2 / 1 | 273 / 1,402 |
+| `m2.jkl` | 1–0 | 1 / 0 / 3 | 0 / 169 |
+
+Red stays the default. The candidate scored seven frags to six and split the eight games 2–2 with four draws. It handled both decisions on Canyon Oasis. On M2 it delivered no fight inputs, and two seat/order combinations produced no executed pickup/fight decision with observed movement. The independent teacher shadow had 1,499 eligible choices from Canyon Oasis and 80.0% balanced agreement. M2 supplied no eligible teacher actions for that score. A positive aggregate frag margin does not resolve that missing comparison. The next useful M2 experiment is a reproducible opening where either pursuing or turning to fight is viable, followed by fresh ordinary-spawn matches.
+
+[Scored matches and admission decisions](../qa/competitive-learning/nf-v3-results.json) · [Native weights](../qa/competitive-learning/nf-challenger-v3.weights) · [Training coefficients and cohort](../qa/competitive-learning/nf-challenger-v3.json)
+
+An additional 50-game-second practice match exercised the ordinary batch runner with `--active-side dark --fit-next`. The store had no promoted weights for that cell, so Red played. Its 383 new choices increased the persistent practice set from 2,446 to 2,829. The runner wrote a different native policy for the next trial, while leaving the active controller on Red. The earlier challenger and its scored games remain reproducible.
 
 ## Promotion and rollback
 

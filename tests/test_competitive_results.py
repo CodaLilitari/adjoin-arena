@@ -23,7 +23,8 @@ class CompetitiveWindowTest(unittest.TestCase):
             for owner in owners:
                 (root / (owner + ".log")).write_text(text)
             (root / "server.log").write_text("ARENA_PACE game_ms=90\nGold Team Captured The Flag!\n"
-                                             "ARENA_PACE game_ms=130\nRed Team Captured The Flag!\n")
+                                             "ARENA_PACE game_ms=130\nRed Team Captured The Flag!\n"
+                                             "Gold Flag has been returned!\nThe Red Flag has been returned!\n")
             receipts = {name + ".log": hashlib.sha256((root / (name + ".log")).read_bytes()).hexdigest()
                         for name in (*owners, "server")}
             row = {"status": "live_join_and_loadout_verified", "log_sha256": receipts,
@@ -36,6 +37,7 @@ class CompetitiveWindowTest(unittest.TestCase):
             (root / "receipt.json").write_text(json.dumps(row))
             observed = summarize(root)
             self.assertEqual(observed["host_captures"], {"red": 1, "gold": 0})
+            self.assertEqual(observed["host_flag_returns"], {"red": 1, "gold": 1})
             self.assertEqual(observed["owners"]["dark"]["kills"], 0)
             self.assertEqual(observed["owners"]["dark"]["saber_fire_frame_pairs"], 1)
             self.assertEqual(observed["owners"]["dark"]["saber_fire_frames_xy_over_0.001_units"], 1)

@@ -9,6 +9,8 @@ The November 26 native block tested the new saber controller against Red's prior
 
 Each row crosses two playing seats with two join orders. Jan and Boba start playing immediately. Each host and its two real native clients use a private loopback network. The receipts pin the loaded executable and network library. The score and fire samples use 80 game seconds after both clients join. Ordinary spawn RNG varied between games. Repeated frames within a fight describe that encounter and cannot be counted as independent matches.
 
+A separate 18-second smoke used the ordinary launcher with its default settings and a stock-clock dedicated host. Jan and Boba both joined and applied movement. Both running processes loaded the packaged competitive executable, verified from their executable images. This checks the path players get when they omit `--engine`.
+
 An additional instrumented No Force match measured the player's actual XY position every engine frame. Boba, using the new controller, moved over 0.001 world units on 304 of 311 consecutive 34 ms intervals following saber-fire input. Jan, playing Red's control, moved on 116 of 288. Boba pitched upward on all 12 fire frames where the targeted opponent was both higher and rising. Some fire intervals still had zero movement. Seven other instrumented attempts missed the clock qualification during concurrent runs. The eight uninstrumented saber matches above all passed it.
 
 ### Light Side on Battleground Jedi
@@ -36,7 +38,7 @@ python3 -B -m scripts.bot_development.nf_crossover \
   "$MATCH_ONE" "$MATCH_TWO" "$MATCH_THREE" "$MATCH_FOUR"
 ```
 
-In full-Force CTF on stock `c1.jkl`, the host announced two Red captures with Boba joining first, and one Gold capture with Jan joining first. Red's earlier transfer build scored one Red and two Gold captures across its corresponding games. All four games completed the 1× check. The count uses the host's flag-capture announcements. Team point totals also credit other plays. These duels establish live play through the objective cycle; a full-team CTF skill rating requires more opponents and longer matches.
+In full-Force CTF on stock `c1.jkl`, the host announced two Red captures with Boba joining first, and one Gold capture with Jan joining first. It announced one Gold flag return in each game. Red's earlier transfer build scored one Red and two Gold captures across its corresponding games, with two Red and two Gold flag returns. All four games completed the 1× check. These counts use stock host broadcasts inside the measured window. A return announcement identifies the flag color but leaves the cause and actor unknown. Team point totals also credit other plays. A full-team CTF skill rating requires more opponents and longer matches.
 
 The earlier Muse pace experiment supplied six fresh 120-second Canyon Oasis games each at 1×, 2×, 16× and uncapped. All 24 verified. Within 1× alone, Boba's first observed weapon gain occurred 0.748–6.460 seconds after his own spawn and Jan's occurred 1.462–39.678 seconds after hers. The first gear choice varied at every tested rate. For Jan the first weapon gain ranged from 5.134–30.192 seconds at 2× and 0.816–22.950 seconds at 16×. Unassigned spawn RNG prevents a paired timing claim across these runs. Use acceleration for practice and qualify changes at 1×.
 

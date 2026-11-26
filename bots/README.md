@@ -14,8 +14,7 @@ and loaded their rank-eight competitive builds in each session. Both showed acti
 [m2.jkl](../qa/bots-competitive-force-native-m2.json). On
 [m_boss17.jkl](../qa/bots-competitive-force-native-m_boss17.json), the traces
 showed active Seeing on both clients, Grip on the dark client, and Absorb and
-Healing on the light client. These runs leave complete map traversal, current
-JKWeb interoperability, CTF matches, and performance against humans unmeasured. Read the
+Healing on the light client. Later work verified two playing JKWeb clients and stock CTF captures. See the [integration guide](../docs/COMPETITIVE_LEARNING.md) and [four-ruleset trials](../docs/COMPETITIVE_NATIVE_TRIALS.md). Full traversal and performance against human opponents remain open. Read the
 [current behavior and evidence report](../docs/BOTS_BEHAVIOR.md) for the exact
 build, checks, and outstanding limits. The earlier rank-zero reconstruction and
 its mixed-client results remain in the

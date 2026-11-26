@@ -45,6 +45,10 @@
         "red": 1,
         "gold": 1
       },
+      "host_flag_returns": {
+        "red": 1,
+        "gold": 0
+      },
       "dark": {
         "kills": 3,
         "deaths": 1,
@@ -77,6 +81,10 @@
       "host_captures": {
         "red": 0,
         "gold": 1
+      },
+      "host_flag_returns": {
+        "red": 1,
+        "gold": 2
       },
       "dark": {
         "kills": 1,
@@ -743,6 +751,10 @@
         "red": 2,
         "gold": 0
       },
+      "host_flag_returns": {
+        "red": 0,
+        "gold": 1
+      },
       "dark": {
         "kills": 4,
         "deaths": 1,
@@ -769,6 +781,10 @@
       "light_style": "competitive",
       "model_side": null,
       "host_captures": {
+        "red": 0,
+        "gold": 1
+      },
+      "host_flag_returns": {
         "red": 0,
         "gold": 1
       },
@@ -904,7 +920,39 @@
         "relocation_trace": "clean"
       }
     },
-    "relink_verified": true
+    "relink_verified": true,
+    "normal_launch": {
+      "loaded_images": [
+        {
+          "engine": "jk-bot-competitive",
+          "sha256": "3dfd4837571295a4cca2067ef0a9e7c100c1e88d5a7f6f97244d0a9f67a3904c"
+        },
+        {
+          "engine": "jk-bot-competitive",
+          "sha256": "3dfd4837571295a4cca2067ef0a9e7c100c1e88d5a7f6f97244d0a9f67a3904c"
+        }
+      ],
+      "explicit_engine_override": false,
+      "launcher_returncode": 0,
+      "bot_sha256": "3dfd4837571295a4cca2067ef0a9e7c100c1e88d5a7f6f97244d0a9f67a3904c",
+      "server_sha256": "16944b47e2ceecf3f09cc2820af26372e2af8642057c2b0a963e353ff090c745",
+      "network": "isolated loopback",
+      "seat_logs": {
+        "boba_fett": {
+          "joined": true,
+          "played": true,
+          "clock_hook": false,
+          "sha256": "a86fdf3a9b747e19353ec0d8ab85f1eea98c41fd002ef9c5c4ecfe063ddad913"
+        },
+        "jan_ors": {
+          "joined": true,
+          "played": true,
+          "clock_hook": false,
+          "sha256": "7fd0685133a2b9d7a0f17bc5abe94878c535b494590296d17e10877e5ddb54b0"
+        }
+      }
+    },
+    "normal_launch_setup": "The first Xvfb attempt could not bind the inherited WSLg X socket. The successful normal-launch smoke used a private mount namespace with a fresh /tmp and an isolated Xvfb display."
   },
   "muse_m10_pace_study": [
     {
