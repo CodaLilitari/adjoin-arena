@@ -1,6 +1,6 @@
 # Changes
 
-## 0.6.0 — Competitive play and persistent learning
+## 0.6.1 — Competitive play and persistent learning
 
 - Jan and Boba play on join, keep moving through supported saber swings and track opponents at different heights. Red's pickup-versus-fight script provides a baseline for training local challengers.
 - Both players showed physical play in all 68 stock and original JHS map/rules combinations across native and JKWeb trials. Both selected flag objectives in all 12 CTF combinations, and six combinations produced a confirmed capture. [Map results](docs/MAP_PLAY_COVERAGE.md)

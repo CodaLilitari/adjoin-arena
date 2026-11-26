@@ -37,13 +37,13 @@ class BotConfigurationTests(unittest.TestCase):
         cases += [{"bots_profiles": value} for value in ([], "boba_fett", ["unknown"], ["yun", "yun"], list(PROFILE_IDS[:5]))]
         cases += [{"bots_enabled": True, **value} for value in
                   ({"max_players": 2}, {"game": "mots"}, {"password": "private"},
-                   {"episode": "custom"}, {"mod_dir": "/tmp/mod"}, {"game_flags": 4096},
+                   {"episode": "JK1MPDEM"}, {"mod_dir": "/tmp/mod"}, {"game_flags": 4096},
                    {"teams": True}, {"episode": "JK1CTF"})]
         for value in cases:
             with self.subTest(value=value), self.assertRaises(conf.ConfigError):
                 conf.validate(value)
         for value in ({"rank": 8}, {"teams": True, "game_flags": 256},
-                      {"episode": "JK1CTF", "teams": True}):
+                      {"episode": "JK1CTF", "teams": True}, {"episode": "jhs", "map": "jhs.jkl"}):
             self.assertTrue(conf.validate({"bots_enabled": True, **value})["bots_enabled"])
 
     def test_behavior_file_replacement_has_complete_schema(self):
@@ -56,7 +56,8 @@ class BotConfigurationTests(unittest.TestCase):
             self.assertEqual(path.read_bytes(), old)
             write_behavior(path, {"bots_sabers_only": True, "bots_fists_peace": False, "bots_force_enabled": False})
             self.assertEqual(path.read_text(), "version=1\nsabers_only=1\nfists_peace=0\nforce_enabled=0\n")
-            self.assertEqual(path.stat().st_mode & 0o777, 0o600)
+            if os.name == "posix":
+                self.assertEqual(path.stat().st_mode & 0o777, 0o600)
             self.assertFalse(path.with_name("behavior.cfg.tmp").exists())
 
     def test_enabled_bot_capacity_reserves_conservative_launcher_headroom(self):

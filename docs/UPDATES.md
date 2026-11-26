@@ -120,9 +120,9 @@ generated files as release assets:
 - `JK_Cross_Server_<VERSION>.zip.sha256`
 
 Use GitLab project `89451115` (`codalilitari/adjoin-arena`) for both assets.
-For example, the Generic Package Registry asset paths for 0.6.0 are
-`/api/v4/projects/89451115/packages/generic/adjoin-arena/0.6.0/JK_Cross_Server_0.6.0.zip`
-and the same path with `.sha256` appended. On the `v0.6.0` release,
+For example, the Generic Package Registry asset paths for 0.6.1 are
+`/api/v4/projects/89451115/packages/generic/adjoin-arena/0.6.1/JK_Cross_Server_0.6.1.zip`
+and the same path with `.sha256` appended. On the `v0.6.1` release,
 give each asset link its exact filename as its display name and
 `/<filename>` as its direct asset path. The updater accepts anonymous HTTPS
 downloads and redirects within this project's approved GitLab paths.

@@ -14,7 +14,7 @@
     },
     "CHANGELOG.md": {
       "mode": 420,
-      "sha256": "c2710f86e9eab8ad9271e272ef61b23cecd0e7979166d50f95c42c8571f5feaa"
+      "sha256": "9f6cecaef467ac271269cf0b0eef9d7985a02861815d85b15c14eba12c1de563"
     },
     "LICENSE": {
       "mode": 420,
@@ -30,7 +30,7 @@
     },
     "README.md": {
       "mode": 420,
-      "sha256": "76e00454075f7cbfa19288e2503bb3845d0313b822da6b4ef8be602f0944c077"
+      "sha256": "5523e691295ded2a1bd5a646d33594f48633cd07360cfdf6cbec20b85a8242ed"
     },
     "Start-Server.command": {
       "mode": 493,
@@ -42,7 +42,7 @@
     },
     "VERSION": {
       "mode": 420,
-      "sha256": "97a5d6e540a6120d09c39ddb667e0e8e2bac7fcc2ffef813b82e08fd60365bce"
+      "sha256": "87b241b275c591694846560e9879f50c9da3150f854efdabd782c539772f3033"
     },
     "app.py": {
       "mode": 420,
@@ -422,7 +422,7 @@
     },
     "docs/PLATFORMS.md": {
       "mode": 420,
-      "sha256": "e74f0b6e113da0453cd0b705c7d0622bb4aa4e9bf25b309beee12ff20041c077"
+      "sha256": "b82235ce92f4b79b049724372da44c7305746b4677d9249ede348aa75fcd6a27"
     },
     "docs/QUALIFICATION.md": {
       "mode": 420,
@@ -462,7 +462,7 @@
     },
     "docs/UPDATES.md": {
       "mode": 420,
-      "sha256": "65d27bd1adec6c8ec82d3c7615141475d9af2cfed8017891e2641efa947fa410"
+      "sha256": "efce0db1fb133a922c3720842907e2ab8619c35e321ce1b4cf1683942e552c05"
     },
     "docs/images/jkweb-stock-host-scoreboard.png": {
       "mode": 420,
@@ -1434,7 +1434,7 @@
     },
     "packaging/compose.yaml": {
       "mode": 420,
-      "sha256": "761fa6e32ceb19bfe8435bd5ac804d04ff7723daa4008e03027d475e52a4747f"
+      "sha256": "ffc834a6c20024a8e4268d66fa3173d0885e3e1ec5da65ff1300599da20a2ade"
     },
     "packaging/container_runtime.py": {
       "mode": 420,
@@ -3130,7 +3130,7 @@
     },
     "tests/test_bot_manager.py": {
       "mode": 420,
-      "sha256": "5f6e35e1b95ec3298b0e63a8e2055325415d7e1c8cd165a3ad95274fbd585812"
+      "sha256": "d1b3e667f99aee92ef004531793354af5603099fcb165facbd3711cc0787bc8f"
     },
     "tests/test_bot_maps.py": {
       "mode": 420,
@@ -3610,5 +3610,5 @@
     }
   },
   "schema": 1,
-  "version": "0.6.0"
+  "version": "0.6.1"
 }
