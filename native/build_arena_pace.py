@@ -81,7 +81,7 @@ def build(args):
     check(not out.exists(), "Use a fresh output directory")
     out.parent.mkdir(parents=True, exist_ok=True)
     source = NATIVE / "arena_pace.c"
-    receipt = dict(schema=1, step_ms=34, rates=[1, 2], pace_source_sha256=sha(source),
+    receipt = dict(schema=1, step_ms=34, rates=[0, 1, 2, 4, 8, 16, 32], pace_source_sha256=sha(source),
                    builder_sha256=sha(Path(__file__)), hooks=HOOKS, toolchain={})
     for name in ("cc", "c++", "ld", "objcopy"):
         receipt["toolchain"][name] = subprocess.check_output([name, "--version"],text=True).splitlines()[0]

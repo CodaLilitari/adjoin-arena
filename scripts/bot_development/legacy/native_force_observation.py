@@ -554,7 +554,9 @@ def run(args, receipt, tmp):
             if args.pace_build:
                 cutoff_ns = time.monotonic_ns()
                 done = pace.poll(cutoff_ns)
-                if not done and cutoff - start_match > 12 + 2 * args.duration / args.pace_rate:
+                # Uncapped (rate 0) has no scheduled speed; allow the 1x budget.
+                watchdog = 12 + 2 * args.duration / (args.pace_rate or 1)
+                if not done and cutoff - start_match > watchdog:
                     raise Failure("native_pace_game_window_watchdog")
                 if done:
                     pace.finish(cutoff_ns)
@@ -633,7 +635,7 @@ def main():
     for key in ("repo","data","output"):
         parser.add_argument("--"+key,type=Path,required=True)
     parser.add_argument("--map", default="m2.jkl")
-    parser.add_argument("--duration",type=int,default=75,choices=range(1,121),metavar="1..120")
+    parser.add_argument("--duration",type=int,default=75,choices=range(1,3601),metavar="1..3600")
     parser.add_argument("--arena-baseline", action="store_true",
                         help="Require a private loopback-only network namespace and hash the tested inputs.")
     parser.add_argument("--record", action="store_true",
@@ -655,8 +657,8 @@ def main():
                         help="Run the research client in the matched control or shared-GO condition.")
     parser.add_argument("--pace-build", type=Path, metavar="DIRECTORY",
                         help="Use a verified native pace-build directory containing the paired host and planner client.")
-    parser.add_argument("--pace-rate", type=int, choices=(1, 2),
-                        help="Set both players and host to the selected game speed; --duration means game seconds.")
+    parser.add_argument("--pace-rate", type=int, choices=(0, 1, 2, 4, 8, 16, 32),
+                        help="Set both players and host to the selected game speed (0=uncapped); --duration means game seconds.")
     parser.add_argument("--red-policy-build", type=Path, metavar="DIRECTORY",
                         help="Play an ungated stock match with the pinned native Red decision client.")
     parser.add_argument("--brain-trace", action="store_true",

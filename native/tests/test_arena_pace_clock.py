@@ -51,7 +51,7 @@ def main():
                             "--redefine-sym", "Linux_TimeUs=arena_clock_us", "clock.o"], cwd=work, check=True)
             subprocess.run(["cc", "-std=c11", "-O2", "-Wall", "-Werror", "driver.c", NATIVE/"arena_pace.c",
                             "clock.o", "-o", "clock"], cwd=work, check=True)
-            for rate in (1, 2):
+            for rate in (0, 1, 2, 4, 8, 16, 32):
                 role = "dark" if kind == "bot" else "host"
                 env = dict(os.environ, ADJOIN_PACE_ROLE=role, ADJOIN_PACE_RATE=str(rate))
                 result = subprocess.run([work/"clock"], env=env, text=True, capture_output=True, timeout=10, check=True)
@@ -59,13 +59,21 @@ def main():
                 first, last = samples[0], samples[-1]
                 assert [int(s["frame"]) for s in samples] == [1, 5, 10, 15]
                 assert all(s["role"] == role and int(s["applied_ms"]) == 34 for s in samples)
+                assert all(int(s["rate"]) == rate for s in samples)
                 ratio = ((int(last["game_ms"])-int(first["game_ms"]))*1e6 /
                          (int(last["mono_ns"])-int(first["mono_ns"])))
                 print(f"{kind} {rate}x game/wall={ratio:.4f}")
-                assert abs(ratio/rate - 1) < 0.12
-            bad = subprocess.run([work / "clock"], env=dict(os.environ, ADJOIN_PACE_RATE="3", ADJOIN_PACE_ROLE=role),
-                                 capture_output=True, timeout=5)
-            assert bad.returncode == 64
+                if rate == 0:
+                    # Uncapped: no schedule to meet, but it must not sleep.
+                    assert ratio > 4
+                else:
+                    # Millisecond periods at 16x/32x leave little room for
+                    # sleep jitter over 14 steps; widen the band there.
+                    assert abs(ratio/rate - 1) < (0.12 if rate <= 8 else 0.35)
+            for bad_rate in ("3", "64"):
+                bad = subprocess.run([work / "clock"], env=dict(os.environ, ADJOIN_PACE_RATE=bad_rate, ADJOIN_PACE_ROLE=role),
+                                     capture_output=True, timeout=5)
+                assert bad.returncode == 64
 
 
 if __name__ == "__main__":

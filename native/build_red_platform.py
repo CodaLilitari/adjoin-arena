@@ -10,7 +10,7 @@ import sys
 import tempfile
 
 NATIVE = Path(__file__).resolve().parent
-CUSTOM_RECEIPT = "9b7218b9d0f7ec8018b88a1a8fd1eacd135e255fa4f033b984eed813a10cf4e1"
+CUSTOM_RECEIPT = "5b00fbc8b05b5293680a7765d3d5b492491025ef0d6a0815eed3991d58cbdc73"
 BUILD_INPUTS = ("build_red_custom.py", "build_red_policy.py", "build_arena_pace.py",
                 "build_planner_go.py", "arena_pace.c", "red_policy.inc", "red-policy.patch",
                 "red_transfer.inc", "red-transfer.patch", "red_nav_recall.h",

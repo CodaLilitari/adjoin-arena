@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 import hashlib
+import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from bots import coach as coach_module
 from bots.brain import (BrainStore, EDGE_FEATURES, export_edge_native,
@@ -414,6 +416,27 @@ class EdgeModelTests(unittest.TestCase):
             fit_edge_model([({"distance": float("nan")}, 1, 1)])
         with self.assertRaises(ValueError):
             fit_edge_model([({"unknown_feature": 1.0}, 1, 1)])
+
+    def test_torch_backend_matches_numpy(self):
+        try:
+            import torch  # noqa: F401
+        except ImportError:
+            self.skipTest("torch not installed")
+        with mock.patch.dict(os.environ, {"BRAIN_FIT_BACKEND": "numpy"}):
+            expected = fit_edge_model(self.rows())
+        with mock.patch.dict(os.environ, {"BRAIN_FIT_BACKEND": "torch:cpu"}):
+            actual = fit_edge_model(self.rows())
+        for key in ("centers", "scales", "weights"):
+            for want, got in zip(expected[key], actual[key]):
+                self.assertAlmostEqual(want, got, delta=1e-9)
+        self.assertAlmostEqual(expected["bias"], actual["bias"], delta=1e-9)
+        self.assertAlmostEqual(expected["train"]["balanced_accuracy"],
+                               actual["train"]["balanced_accuracy"], delta=1e-9)
+
+    def test_unknown_fit_backend_rejected(self):
+        with mock.patch.dict(os.environ, {"BRAIN_FIT_BACKEND": "bogus"}):
+            with self.assertRaises(ValueError):
+                fit_edge_model(self.rows())
 
 
 if __name__ == "__main__":

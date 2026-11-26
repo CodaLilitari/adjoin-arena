@@ -277,18 +277,27 @@ python3 -B native/tests/test_arena_pace_clock.py
 
 The launcher selects `host/openjkdf2` and two copies of `bot/jk-bot-client`
 from that output, with the matching `libGameNetworkingSockets.so` for each
-image. Set `ADJOIN_PACE_RATE=1` or `2` on every engine process and pass
-`ADJOIN_PACE_ROLE=host`, `dark`, or `light` for its assigned seat. Keep the
-host and both clients on the same rate.
+image. Set `ADJOIN_PACE_RATE` to `0`, `1`, `2`, `4`, `8`, `16`, or `32` on
+every engine process and pass `ADJOIN_PACE_ROLE=host`, `dark`, or `light`
+for its assigned seat. Keep the host and both clients on the same rate.
+Rate `0` is uncapped: steps still advance the virtual clock by 34 ms, but
+no wall-clock sleep is taken.
 
-Each outer gameplay step advances the stock engine clock by exactly 34 ms.
-Both the integer millisecond timer used by COGs and microsecond input used
-for fractional physics time derive from the same virtual step. The stock
-physics accumulator, control sampling, COGs and multiplayer update order
-execute normally. At 1× a step is scheduled every 34 real ms and at 2×
-every 17 real ms. Each process has its own deadline. After a substantial
-stall the scheduler restarts from current wall time and preserves every
-simulated step. This intentionally preserves tick size under CPU pressure.
+Each outer gameplay step advances the stock engine clock by exactly 34 ms
+at every rate. Both the integer millisecond timer used by COGs and
+microsecond input used for fractional physics time derive from the same
+virtual step. The stock physics accumulator, control sampling, COGs and
+multiplayer update order execute normally. At rate R a step is scheduled
+every 34/R real ms (34 ms at 1×, 17 ms at 2×, about 2.1 ms at 16×). Each
+process has its own deadline. After a substantial stall the scheduler
+restarts from current wall time and preserves every simulated step. This
+intentionally preserves tick size under CPU pressure, so a rate the CPU
+cannot sustain shows up as a lower achieved rate, never as skipped steps.
+On the reference machine (i9-12900K under WSL) one engine step costs about
+2.1 ms, so 16× is the highest sustainable scheduled rate and uncapped
+matches achieve roughly 19×; 32× is accepted but fails pace verification
+there. See [fast training](../docs/FAST_TRAINING.md) for measurements and
+the parallel match runner.
 
 The networking library, OS delivery, observer, leases and launcher continue
 using wall time. The dedicated engine can still need a graphics context

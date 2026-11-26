@@ -21,7 +21,7 @@ def resolve_build(repo, directory, hashes, digest):
                  "native/bot-relink-linux-x86_64.tar.gz": meta["bot"]["archive_sha256"]}
     library = "libGameNetworkingSockets.so"
     if (digest(manifest) != digest(directory / "pace-build.json")
-            or meta["schema"] != 1 or meta["step_ms"] != 34 or meta["rates"] != [1, 2]
+            or meta["schema"] != 1 or meta["step_ms"] != 34 or meta["rates"] != [0, 1, 2, 4, 8, 16, 32]
             or any(digest(repo / name) != value for name, value in resources.items())
             or resources["native/relink-linux-x86_64.tar.gz"] != published["native/relink-linux-x86_64.tar.gz"]["sha256"]
             or resources["native/bot-relink-linux-x86_64.tar.gz"] != bots["native/bot-relink-linux-x86_64.tar.gz"]["sha256"]
@@ -42,6 +42,15 @@ def resolve_build(repo, directory, hashes, digest):
     hashes.update(resources)
     hashes["native/pace-build.json"] = digest(manifest)
     return host, bot, meta
+
+
+def _sample_gap_ns(rate):
+    """Wall gap that counts as a stall between 5-frame (170 game-ms) samples.
+
+    Rate 0 is uncapped: there is no scheduled period, so any gap beyond the
+    1x sample period already means the engine stopped advancing freely.
+    """
+    return 1.45 * 170e6 / rate if rate else 1.45 * 170e6
 
 
 class NativePace:
@@ -79,7 +88,7 @@ class NativePace:
         self.trace.write(json.dumps(row, separators=(",", ":")) + "\n")
         if self.ungated:
             last_wall = self.recent_wall_ns.get(role)
-            if last_wall is None or row["mono_ns"] - last_wall > 1.45 * 170e6 / row["rate"]:
+            if last_wall is None or row["mono_ns"] - last_wall > _sample_gap_ns(row["rate"]):
                 self.settled_since_ns[role] = row["mono_ns"]
             self.recent_wall_ns[role] = row["mono_ns"]
         if self.start is None or row["mono_ns"] < self.start:
@@ -102,9 +111,12 @@ class NativePace:
             self.roster_ns = self.experiment["roster_observed_monotonic_ns"] = now_ns
         if self.ungated:
             # Only the stopwatch waits. All native actions and ownership markers are logged from join.
+            # Freshness is judged against the harness wall clock, but samples
+            # arrive in pipe batches; never demand fresher than 150 ms.
+            fresh_ns = max(_sample_gap_ns(self.experiment["speed"]), 150e6)
             settled = len(self.recent_wall_ns) == len(ROLES) and all(
                 self.recent_wall_ns[r] - max(self.roster_ns, self.settled_since_ns[r]) >= 1_000_000_000
-                and now_ns - self.recent_wall_ns[r] < 1.45 * 170e6 / self.experiment["speed"] for r in ROLES)
+                and now_ns - self.recent_wall_ns[r] < fresh_ns for r in ROLES)
         else:
             settled = self.acks >= 2 and self.released == {"dark", "light"}
         if self.start is None and settled:
@@ -125,7 +137,18 @@ class NativePace:
             result[role] = dict(pid=first["pid"], first=first, last=last, final_sample=final,
                                 measured_game_s=elapsed, measured_wall_s=wall, observed_rate=rate,
                                 observed_game_tail_s=tail)
-        if any(not (0.9 * speed <= entry["observed_rate"] <= 1.1 * speed) for entry in result.values()):
+        if speed and any(not (0.9 * speed <= entry["observed_rate"] <= 1.1 * speed)
+                         for entry in result.values()):
             raise ValueError("native_pace_outside_requested_band")
-        if any(not (0 <= entry["observed_game_tail_s"] <= .65) for entry in result.values()):
-            raise ValueError("native_pace_game_window_exceeded")
+        # The window may overrun by one 5-frame sample (0.17 game-s) plus one
+        # harness poll cycle (~50 ms wall) expressed in game time; the old
+        # flat 0.65 s stays the floor so 1x/2x evidence keeps its meaning.
+        # Uncapped roles run on independent clocks, so the fastest role also
+        # overruns by the inter-role rate skew accumulated over the window.
+        rates = [entry["observed_rate"] for entry in result.values()]
+        skew = (max(rates) / min(rates) - 1) * target if not speed else 0.0
+        for entry in result.values():
+            effective = speed or entry["observed_rate"]
+            allowance = max(.65, .17 + .05 * effective) + skew
+            if not (0 <= entry["observed_game_tail_s"] <= allowance):
+                raise ValueError("native_pace_game_window_exceeded")

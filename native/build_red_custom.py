@@ -12,7 +12,7 @@ from build_arena_pace import HOOKS, check, link_file, read, read_pinned_sources,
 from build_red_policy import RED_ARCHIVE, RED_BASE, RED_OVERLAY
 
 NATIVE=Path(__file__).resolve().parent
-TRANSFER_SHA="6be9ca776c133f494c5ca98a29dcec497babc5acdf723711a8a55b14fe900509"
+TRANSFER_SHA="305606479cb89d790305aae378aad8130a40ff519e479e40ca0d78c014a23849"
 
 
 def build(args):

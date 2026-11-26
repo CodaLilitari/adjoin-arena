@@ -77,7 +77,7 @@ def build(args):
             base_binary_sha256=sha(reference),binary_sha256=sha(binary),gns_sha256=sha(gns),
             policy_patch_sha256=sha(policy),policy_source_sha256=sha(model),builder_sha256=sha(Path(__file__)),
             pace_source_sha256=sha(NATIVE/"arena_pace.c"),pace_receipt_sha256=sha(NATIVE/"pace-build.json"),
-            plan_gate=False,step_ms=34,rates=[1,2],generated_globals_sha256=sha(args.globals_header),
+            plan_gate=False,step_ms=34,rates=pace["rates"],generated_globals_sha256=sha(args.globals_header),
             flags=flags,rebuilt_objects=rebuilt,dependencies=dict(sorted(dependencies.items())),
             toolchain={tool:subprocess.check_output([tool,"--version"],text=True).splitlines()[0]
                        for tool in ("cc","c++","ld","objcopy")})

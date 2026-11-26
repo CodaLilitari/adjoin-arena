@@ -6,18 +6,23 @@
   "base_patch_sha256": "6950c859f9e82aca8285daac011e1b72cb2a57644f01d2a465987312100ac52d",
   "archive_sha256": "ca63beaa5c3a283639950be045df0d5ffa5a2fb39cc259db479c3deee4a4a123",
   "base_binary_sha256": "862e566209dae8fab218243a47455b5a5616bf98fb8d1f09fa65969f9c8519aa",
-  "binary_sha256": "016fe4a433b3f0bc8a8acc2d42f90b286e5864981e05132a8d069038c3c025ba",
+  "binary_sha256": "d48abd9b8d7e01facacfe8cc47ed27d1a6768b8122a6c9bbcefed17a8dc8196d",
   "gns_sha256": "8246a869b1d72115ecc849309629aa1abbce0bf1a0f23cc70deaded98d82d8e9",
   "policy_patch_sha256": "fc145360f65c45ee2d937db7dcacc11c7daa23f631bb32f2d93a1aebaee9b73a",
   "policy_source_sha256": "b6a4277bed85ac1ad3aeb54b4d1ebdcdfb5013c14f34d7d69d4c6a8da407b098",
-  "builder_sha256": "728c4919c63eea44a7d6cefc1d07f7f4f0136b94e0879e9fe6f223ae47e9a0e0",
-  "pace_source_sha256": "7d1b50ab4f78b6ae6f61e748691b823d8ca8f3eec3efe6440872addbeedfb993",
-  "pace_receipt_sha256": "378ae9a077c737959ccb48da50a861cc67fda34a1275b5e2b95355618e823db4",
+  "builder_sha256": "8dbb03ca4aa88f3e857ab7a10b0c8b776f73447a0911114aa44b90986b328fad",
+  "pace_source_sha256": "5f1cfdbfd62b7997108dcedfc16a143d0172bd9c7e1ef8ff9237dca5804e8e85",
+  "pace_receipt_sha256": "f3d99fe514d1ceb29d327d82a8d0517b9151ae4ef672e68649413b3139b14a1c",
   "plan_gate": false,
   "step_ms": 34,
   "rates": [
+    0,
     1,
-    2
+    2,
+    4,
+    8,
+    16,
+    32
   ],
   "generated_globals_sha256": "e700da5fb05eea91febcb0c6c9237573d29263125dfa9b195e3def0f0ea664e9",
   "flags": [
@@ -47,7 +52,7 @@
   ],
   "rebuilt_objects": {
     "AI/jkBot": "ef765b050b376df0f9e7d7c2bf561daa53020b7e9b998a44bb9cdec2d808f3d2",
-    "Devices/sithControl": "eba49cc1611cd01f7abb174cd0b7a8c565b6eb0fbe4faccb573b37497f9b4080"
+    "Devices/sithControl": "5e66f96e086f38da20b8d608ea87e832dc1404d3bd6dca2fbd2f1cbf7c4774a7"
   },
   "dependencies": {
     "src/AI/jkBot.c": "f81a9a9c963c2c3f807ec32bd5da80df0b99e02ac1e6996fe0188e8d23a68529",
@@ -142,11 +147,11 @@
     "ld": "GNU ld (GNU Binutils for Ubuntu) 2.46",
     "objcopy": "GNU objcopy (GNU Binutils for Ubuntu) 2.46"
   },
-  "duel_receipt_sha256": "8549f43264c60399de71f49384cd3eb3b1fdb9c6686f910306aa9646121f6440",
-  "duel_binary_sha256": "86cb6b30327c81ab2e4de256bf7074a7d06d72f47af277dba648201559f120d4",
+  "duel_receipt_sha256": "061b08770deb871fc40e08f89bbf3651064eb6cd700674188875127848e65c87",
+  "duel_binary_sha256": "7931de5742e905f9dca1290e0919604351f4024a35216daba72b470d89f1c983",
   "composed_patch_sha256": "455af7ee2984b7cf084cc0a3d4210fea533776a54e02b37f6f77eb361ddbd7ee",
   "transfer_patch_sha256": "ce40410a941f56a234d55d0b14ff071b964b34012e92cf4bdaf050257068c85d",
   "transfer_source_sha256": "2a64ac45c535c48a2d970f4c2e1e1139e53e5d543fbfa2d4c4793ff8741b90ee",
   "nav_recall_sha256": "fa4cfd06343249e059991926ece8edcbb87b1d6eac7410f94a2b6bbc01f509bf",
-  "transfer_builder_sha256": "3584af942c1b951044ca11aff0602ea3fd27afe0dea5090d16ee3d5d13dd988f"
+  "transfer_builder_sha256": "c460dab95661c673d9d889e4b8751ec9efb7775a00e10c607a2cba8670205b91"
 }

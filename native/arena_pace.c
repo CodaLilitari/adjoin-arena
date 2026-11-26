@@ -12,7 +12,11 @@
 #include <unistd.h>
 
 enum { STEP_MS = 34 };
+/* Rate 0 is the uncapped lane: the virtual clock still advances exactly
+ * STEP_MS per outer step, but no wall-clock sleep is taken, so the match
+ * runs as fast as simulation and loopback transport allow. */
 static unsigned rate;
+static int configured;
 static const char *role;
 static uint64_t virtual_us, deadline_ns, frames;
 /* jkMain's original outer cap is superseded by the pacer below. */
@@ -35,16 +39,23 @@ static uint64_t monotonic_ns(void)
 
 static void configure(void)
 {
-    if (rate) return;
+    if (configured) return;
     const char *r = getenv("ADJOIN_PACE_RATE");
     role = getenv("ADJOIN_PACE_ROLE");
-    if (!r || (strcmp(r, "1") && strcmp(r, "2")) || !role ||
+    static const char *const accepted[] = {"0", "1", "2", "4", "8", "16", "32"};
+    int valid = 0;
+    if (r) {
+        for (size_t i = 0; i < sizeof(accepted) / sizeof(accepted[0]); ++i)
+            if (!strcmp(r, accepted[i])) { valid = 1; break; }
+    }
+    if (!valid || !role ||
         (strcmp(role, "host") && strcmp(role, "dark") && strcmp(role, "light"))) {
-        fputs("ARENA_PACE requires ADJOIN_PACE_RATE=1|2 and ADJOIN_PACE_ROLE=host|dark|light\n", stderr);
+        fputs("ARENA_PACE requires ADJOIN_PACE_RATE=0|1|2|4|8|16|32 (0=uncapped) and ADJOIN_PACE_ROLE=host|dark|light\n", stderr);
         exit(64);
     }
-    rate = (unsigned)(r[0] - '0');
+    rate = (unsigned)strtoul(r, NULL, 10);
     virtual_us = monotonic_ns() / 1000;
+    configured = 1;
 }
 
 uint32_t arena_clock_ms(void)
@@ -69,20 +80,22 @@ void arena_window_delay(uint32_t requested_ms)
 void arena_advance(void)
 {
     configure();
-    const uint64_t period_ns = (uint64_t)STEP_MS * 1000000 / rate;
-    uint64_t now = monotonic_ns();
-    if (!deadline_ns || now > deadline_ns + period_ns * 2)
-        deadline_ns = now; /* resume after loading or a stall, without skipping frames */
-    deadline_ns += period_ns;
-    struct timespec until = {
-        (time_t)(deadline_ns / UINT64_C(1000000000)),
-        (long)(deadline_ns % UINT64_C(1000000000))
-    };
-    int err;
-    do {
-        err = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &until, NULL);
-    } while (err == EINTR);
-    if (err) { errno = err; perror("ARENA_PACE sleep"); exit(70); }
+    if (rate) {
+        const uint64_t period_ns = (uint64_t)STEP_MS * 1000000 / rate;
+        uint64_t now = monotonic_ns();
+        if (!deadline_ns || now > deadline_ns + period_ns * 2)
+            deadline_ns = now; /* resume after loading or a stall, without skipping frames */
+        deadline_ns += period_ns;
+        struct timespec until = {
+            (time_t)(deadline_ns / UINT64_C(1000000000)),
+            (long)(deadline_ns % UINT64_C(1000000000))
+        };
+        int err;
+        do {
+            err = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &until, NULL);
+        } while (err == EINTR);
+        if (err) { errno = err; perror("ARENA_PACE sleep"); exit(70); }
+    }
     virtual_us += STEP_MS * 1000;
     sithTime_Advance();
     ++frames;

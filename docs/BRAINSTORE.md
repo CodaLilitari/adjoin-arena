@@ -90,12 +90,18 @@ already has two distinct fast paths:
   byte-identical traces at 1x and uncapped, with a 16.19x median speedup on
   that one case; that result does not by itself qualify networked matches.
 - **Paced native multiplayer.** The optional arena pace images keep each
-  outer simulation step at exactly 34 game ms, scheduling it every 34 real
-  ms at 1x or 17 real ms at 2x in the host and both clients. This is the
+  outer simulation step at exactly 34 game ms, scheduling it every
+  34/rate real ms in the host and both clients. Rates 1, 2, 4, 8, 16, and
+  32 are scheduled; rate 0 is uncapped (no sleep, lane label `max`). On
+  the reference machine 16x is the highest sustainable scheduled rate and
+  uncapped achieves roughly 19x; `scripts/bot_development/train_matches.py`
+  runs these matches in parallel at about 46x the old single-match 2x
+  throughput (see [FAST_TRAINING.md](FAST_TRAINING.md)). This is the
   present full-match self-play lane. Networking, companion leases, and the
   launcher still use wall time, the three processes have independent
   deadlines, and the qualified evidence is opening-focused rather than a
-  deterministic full-match replay guarantee.
+  deterministic full-match replay guarantee. Lane labels follow the rate:
+  `1x`, `2x`, `4x`, `8x`, `16x`, `32x`, or `max`.
 - **Ordinary-speed qualification.** Promotions still need 1x native matches
   and, where the claim covers it, the browser build. The WASM/headless path
   has an FPS cap for rendering cost, not the native virtual-clock hooks.

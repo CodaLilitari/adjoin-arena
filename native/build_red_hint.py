@@ -11,7 +11,7 @@ import tempfile
 from build_red_platform import BUILD_INPUTS, digest
 
 NATIVE=Path(__file__).resolve().parent
-PLATFORM_RECEIPT="d0e9c69aa32543fec11b19f89caf557ea7dbb6e0bc9e6c991023d81a0618e45f"
+PLATFORM_RECEIPT="d93a646d00265c987aa5adbe743f705db175983b1e4b37e6c175d06f778e4194"
 
 
 def build(args):

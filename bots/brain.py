@@ -18,6 +18,7 @@ import argparse
 import hashlib
 import json
 import math
+import os
 import re
 import sqlite3
 import time
@@ -511,8 +512,57 @@ def fit_edge_model(rows, *, steps: int = 400, learning_rate: float = 0.2,
     return fitted
 
 
+def _fit_logistic_torch(x_rows, labels, weights, *, steps, learning_rate, l2, device):
+    """Torch twin of the NumPy fit below: same standardization, zero init,
+    full-batch steps and clipping, in float64 so artifacts agree closely.
+
+    Selected with BRAIN_FIT_BACKEND=torch[:cpu|cuda]. Worthwhile only once
+    ledgers reach ~1e6 rows; the NumPy path stays the default.
+    """
+    import torch
+    if device is None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+    x = torch.tensor(x_rows, dtype=torch.float64, device=device)
+    y = torch.tensor(labels, dtype=torch.float64, device=device)
+    w = torch.tensor(weights, dtype=torch.float64, device=device)
+    total = w.sum()
+    centers = (x * w.unsqueeze(1)).sum(0) / total
+    scales = torch.sqrt(((x - centers) ** 2 * w.unsqueeze(1)).sum(0) / total)
+    scales = torch.where(scales > 1e-9, scales, torch.ones_like(scales))
+    z = (x - centers) / scales
+    coef = torch.zeros(z.shape[1], dtype=torch.float64, device=device)
+    bias = torch.zeros((), dtype=torch.float64, device=device)
+    for _ in range(steps):
+        p = torch.sigmoid(torch.clamp(z @ coef + bias, -30, 30))
+        err = w * (p - y)
+        coef -= learning_rate * ((z.T @ err) / total + l2 * coef)
+        bias -= learning_rate * (err.sum() / total)
+    p = torch.sigmoid(torch.clamp(z @ coef + bias, -30, 30))
+    pred = (p >= 0.5).to(torch.float64)
+    accuracy = float(((pred == y).to(torch.float64) * w).sum() / total)
+    recalls = []
+    for label in (0.0, 1.0):
+        mask = y == label
+        recalls.append(float(((pred[mask] == y[mask]).to(torch.float64) * w[mask]).sum() / w[mask].sum())
+                       if bool(mask.any()) else 0.0)
+    return {"schema": 1, "features": [],
+            "centers": [float(v) for v in centers.cpu()],
+            "scales": [float(v) for v in scales.cpu()],
+            "weights": [float(v) for v in coef.cpu()], "bias": float(bias.cpu()),
+            "train": {"attempts": int(total.cpu()), "accuracy": accuracy,
+                      "balanced_accuracy": sum(recalls) / 2}}
+
+
 def _fit_logistic(x_rows, labels, weights, *, steps, learning_rate, l2):
     """Shared deterministic weighted logistic fit (convex, zero init)."""
+    backend = os.environ.get("BRAIN_FIT_BACKEND", "numpy")
+    if backend.startswith("torch"):
+        device = backend.partition(":")[2] or None
+        return _fit_logistic_torch(x_rows, labels, weights, steps=steps,
+                                    learning_rate=learning_rate, l2=l2,
+                                    device=device)
+    if backend != "numpy":
+        raise ValueError(f"Unknown BRAIN_FIT_BACKEND {backend!r} (numpy|torch[:cpu|cuda]).")
     import numpy as np
     x = np.asarray(x_rows, dtype=float)
     y = np.asarray(labels, dtype=float)

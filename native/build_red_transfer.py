@@ -17,7 +17,7 @@ def build(args):
     out=args.output.resolve()
     check(not out.exists() and not any((p/".git").exists() for p in [out,*out.parents]),"Fresh external output required")
     base=NATIVE/"red-policy-build.json"
-    check(sha(base)=="8549f43264c60399de71f49384cd3eb3b1fdb9c6686f910306aa9646121f6440","Wrong frozen duel build")
+    check(sha(base)=="061b08770deb871fc40e08f89bbf3651064eb6cd700674188875127848e65c87","Wrong frozen duel build")
     pins=read(base)
     for filename,field in (("red-policy.patch","policy_patch_sha256"),("red_policy.inc","policy_source_sha256"),
                            ("build_red_policy.py","builder_sha256")):
