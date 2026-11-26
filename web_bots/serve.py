@@ -50,7 +50,7 @@ ROSTER_MODELS = {
     "lilivane": ("lvane.3do", "kyfemale.snd"),
     "biddy": ("biddybl.3do", "biddybl.snd"),
     "t800": ("t800hy4.3do", "ky.snd"),
-    "red": ("redmandot.3do", "kyfemale.snd"),
+    "red": ("redmando.3do", "kyfemale.snd"),
     "crownbraid": ("redmandoh.3do", "kyfemale.snd"),
 }
 SABER_COLORS = ("red", "green")
@@ -181,8 +181,9 @@ class Host:
             raise ValueError("Room must be 1..31 ASCII letters, digits, underscores or hyphens.")
         self.room, self.engine, self.runtime = room, Path(engine), Path(runtime)
         self.assets = [("/jk1/"+name, game_file(data,name)) for name in ASSETS]
-        if external and external.episode_file:
-            self.assets.append(("/jk1/episode/"+external.episode_file.name, external.episode_file))
+        room_spec = external or hosted
+        if room_spec and room_spec.episode_file:
+            self.assets.append(("/jk1/episode/"+room_spec.episode_file.name, room_spec.episode_file))
         self.model = model is not None
         self.gob_models = frozenset()
         self.red_sabers = frozenset(red_sabers)
@@ -278,9 +279,16 @@ class Host:
     async def page(self, request):
         if request.match_info["ident"] not in self.seats:
             raise web.HTTPNotFound()
-        return web.FileResponse(HERE/"index.html",headers={"Content-Security-Policy":
-            "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'unsafe-inline'; "
-            "worker-src 'self' blob:; connect-src 'self' ws://127.0.0.1:"+str(self.port)+(" "+self.outside_relay+" "+self.outside_feed if self.outside_relay else "")+"; frame-ancestors 'none'; base-uri 'none'"})
+        connections = ["'self'", f"ws://127.0.0.1:{self.port}"]
+        if self.outside_relay:
+            feed = self.outside_feed
+            # The host streams over WebSocket; the observer can fetch feed data over HTTP.
+            connections.extend((self.outside_relay, feed,
+                                ("https" if feed.startswith("wss:") else "http") + feed[feed.index(":"):]))
+        policy = ("default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'unsafe-inline'; "
+                  "worker-src 'self' blob:; connect-src " + " ".join(connections) +
+                  "; frame-ancestors 'none'; base-uri 'none'")
+        return web.FileResponse(HERE/"index.html", headers={"Content-Security-Policy": policy})
 
     @property
     def outside_relay(self):
@@ -347,7 +355,8 @@ class Host:
             "mod":self.model,"env":{"JK_BOT_WEB_ROLE":"external" if self.external else role,"JK_BOT_WEB_ROOM":self.room,"JK_BOT_WEB_MODE":self.mode,
                 **({"JK_BOT_LILY":"1"} if self.hub.bots[ident].adaptive_lily else {}),
                 **({"JK_BOT_WEB_EPISODE":self.external.episode,"JK_BOT_WEB_MAP":self.external.level} if self.external else {}),
-                **({"JK_BOT_WEB_MAX_PLAYERS":str(self.hosted.max_players),"JK_BOT_WEB_MAP":self.hosted.level} if self.hosted else {}),
+                **({"JK_BOT_WEB_MAX_PLAYERS":str(self.hosted.max_players),"JK_BOT_WEB_EPISODE":self.hosted.episode,
+                    "JK_BOT_WEB_MAP":self.hosted.level} if self.hosted else {}),
                 "JK_BOT_WEB_NAME":name,"JK_BOT_WEB_MODEL":model,"JK_BOT_WEB_SOUND":sound,
                 "JK_BOT_WEB_SABER_COLOR":"red" if ident in self.red_sabers else "green",
                 **({"JK_BOT_WEB_MOD":"1"} if self.model else {}),

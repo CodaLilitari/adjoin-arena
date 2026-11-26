@@ -53,6 +53,14 @@ class Validation(unittest.TestCase):
         self.assertEqual(args.raster_threads, 1)
         self.assertTrue(args.exit_on_drop)
 
+    def test_host_selects_stock_ctf_and_custom_episodes(self):
+        for flags, expected in ((["--episode", "JK1CTF"], ("JK1CTF", "c1.jkl")),
+                                (["--episode-gob", "/maps/JHS.gob", "--map", "jhs.jkl"], ("JHS", "jhs.jkl"))):
+            args = self.parse("host", "--relay", LOCAL, *self.common(), *flags)
+            self.assertEqual((args.episode, args.map), expected)
+        with self.assertRaises(SystemExit):
+            self.parse("host", "--relay", LOCAL, *self.common(), "--episode", "../oops")
+
     def test_local_host_and_bad_values(self):
         self.assertEqual(self.parse("host", "--relay", LOCAL, *self.common()).seat_list, ["red", "lilivane"])
         for extra in (["--max-players", "1"], ["--max-players", "17"], ["--map", "../x.jkl"],
@@ -92,6 +100,11 @@ class HostedSeat(unittest.TestCase):
         self.addCleanup(host.close)
         self.assertEqual(tuple(host.seats), ("lily",))
         self.assertEqual(host.outside_relay, LOCAL)
+        import asyncio
+        from types import SimpleNamespace
+        page = asyncio.run(host.page(SimpleNamespace(match_info={"ident": "lily"})))
+        self.assertIn(" ws://127.0.0.1:18080/feed/ http://127.0.0.1:18080/feed/;",
+                      page.headers["Content-Security-Policy"])
         # The page's CSP must allow the spectator feed beside the relay, or the
         # host's keyframes never leave the page (the black-screen bug).
         self.assertEqual(host.outside_feed, "ws://127.0.0.1:18080/feed/")

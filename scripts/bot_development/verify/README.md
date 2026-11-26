@@ -7,11 +7,11 @@ containing the base commit pinned in `web_bots/BUILD.json`.
 
 ```bash
 python scripts/bot_development/verify/web_candidate.py \
-  --repo /path/to/jk-cross-server --engine /path/to/OpenJKDF2 \
+  --repo /path/to/adjoin-arena --engine /path/to/OpenJKDF2 \
   --source-only --receipt /path/to/new-source-check.json
 ```
 
-This verifies all packaged file sizes and hashes, exports the exact base with
+This verifies all packaged file sizes and hashes, exports the affected files from the pinned base with
 `git archive`, checks and applies the packaged patches in their recorded order, and compares every changed
 source hash. It retains a temporary staging directory and prints its location.
 `--work-dir` chooses the parent directory. No retail game data is needed.
@@ -21,7 +21,7 @@ manifest in your shell and omit `--source-only`:
 
 ```bash
 python scripts/bot_development/verify/web_candidate.py \
-  --repo /path/to/jk-cross-server --engine /path/to/OpenJKDF2 \
+  --repo /path/to/adjoin-arena --engine /path/to/OpenJKDF2 \
   --compiler /path/to/emsdk/upstream/emscripten/em++ \
   --receipt /path/to/new-relink-check.json
 ```

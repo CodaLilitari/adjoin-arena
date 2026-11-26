@@ -83,6 +83,21 @@ def unsupported(game, allow_mod=False):
     return ""
 
 
+def episode_file(data, episode, level, supplied=None):
+    stem = episode[:-4] if episode.lower().endswith(".gob") else episode
+    archive = supplied or game_file(data, "episode/" + stem + ".gob")
+    if not archive.is_file() or archive.name.casefold() != (stem + ".gob").casefold():
+        raise ValueError("The locally supplied GOB must match the selected episode name.")
+    required = ("jkl/" + level).casefold()
+    if not any(row["name"].casefold() == required and row["size"] > 0 for row in archive_index(archive)):
+        raise ValueError("The local episode does not contain the advertised JKL.")
+    if stem.casefold() == "jk1mp":
+        if not archive.samefile(game_file(data, "episode/JK1MP.gob")):
+            raise ValueError("Use the installed JK1MP for this stock episode.")
+        return None
+    return archive
+
+
 def select_room(games, args):
     if not 0 < args.room_id < 10**9:
         raise ValueError("A positive, exact lobby room ID is required (maximum nine digits).")
@@ -94,17 +109,7 @@ def select_room(games, args):
     if reason:
         raise ValueError("Selected room is unavailable: "+reason)
     episode = game["episode"]
-    stem = episode[:-4] if episode.lower().endswith(".gob") else episode
-    archive = args.episode_gob or game_file(args.data, "episode/"+stem+".gob")
-    if not archive.is_file() or archive.name.casefold() != (stem+".gob").casefold():
-        raise ValueError("The locally supplied GOB must match the selected episode name.")
-    required = ("jkl/"+game["map"]).casefold()
-    if not any(row["name"].casefold() == required and row["size"] > 0 for row in archive_index(archive)):
-        raise ValueError("The local episode does not contain the advertised JKL.")
-    if stem.casefold() == "jk1mp":
-        if not archive.samefile(game_file(args.data, "episode/JK1MP.gob")):
-            raise ValueError("Use the installed JK1MP for this stock episode.")
-        archive = None
+    archive = episode_file(args.data, episode, game["map"], args.episode_gob)
     return SelectedRoom(args.relay, args.room_id, episode, game["map"], args.seat, archive)
 
 

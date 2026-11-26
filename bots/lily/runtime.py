@@ -340,6 +340,7 @@ class Supervisor:
                 if k in old.get("ammo", {}) and v > old["ammo"][k]:
                     gain["ammo_" + k] = v - old["ammo"][k]
         outcome = dict(status=status, physical_success=physical,
+                     native_outcome=progress.get("outcome") if progress else None,
                      duration_seconds=max(0., time.monotonic() - u["started"]),
                      applied_ms=progress.get("applied_ms") if progress else None,
                      damage=damage, item_gain=gain)

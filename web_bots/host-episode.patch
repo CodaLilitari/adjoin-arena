@@ -1,0 +1,61 @@
+diff --git a/src/Gui/jkGUIMultiplayer.c b/src/Gui/jkGUIMultiplayer.c
+--- a/src/Gui/jkGUIMultiplayer.c
++++ b/src/Gui/jkGUIMultiplayer.c
+@@ -109,7 +109,7 @@
+         {"model","JK_BOT_WEB_MODEL"},{"sound","JK_BOT_WEB_SOUND"},{"thirdPerson","JK_BOT_WEB_THIRD_PERSON"},
+         {"side","JK_BOT_FORCE_SIDE"},{"style","JK_BOT_FORCE_STYLE"},{"elite","JK_BOT_ELITE"},
+         {"mode","JK_BOT_WEB_MODE"},{"saberColor","JK_BOT_WEB_SABER_COLOR"},
+-        {"episode","JK_BOT_WEB_EPISODE"},{"map","JK_BOT_WEB_MAP"},
++        {"episode","JK_BOT_WEB_EPISODE"},{"map","JK_BOT_WEB_MAP"},{"maxPlayers","JK_BOT_WEB_MAX_PLAYERS"},
+         {"trace","JK_BOT_TRACE_FORCE"},{"lily","JK_BOT_LILY"}
+     };
+     char value[96];
+@@ -262,25 +262,27 @@
+         if (!jkGuiMultiplayer_WebCharacter(name,model,sound,rank)) {
+             fprintf(stderr,"BOT_JOIN_REJECTED cannot prepare host's ordinary MPC\n"); return -1;
+         }
+-        /* PR4 (Wren): a headless host may open more seats (2..16) and pick
+-           another stock JK1MP level. Defaults keep the four-seat arena. */
+-        const char *seatsEnv=getenv("JK_BOT_WEB_MAX_PLAYERS"), *hostMap=getenv("JK_BOT_WEB_MAP");
++        const char *seatsEnv=getenv("JK_BOT_WEB_MAX_PLAYERS");
++        const char *hostEpisode=episode && *episode ? episode : "JK1MP";
++        const char *hostMap=map && *map ? map : "m10.jkl";
+         int seats=4;
+         if (seatsEnv) {
+             if (strspn(seatsEnv,"0123456789")!=strlen(seatsEnv) || strlen(seatsEnv)<1 || strlen(seatsEnv)>2) return -1;
+             seats=atoi(seatsEnv);
+             if (seats<2 || seats>16) return -1;
+         }
+-        if (!hostMap || !*hostMap) hostMap="m10.jkl";
+-        if (!jkGuiMultiplayer_WebName(hostMap,15,".jkl")) return -1;
++        if (!jkGuiMultiplayer_WebName(hostEpisode,31,NULL) || !jkGuiMultiplayer_WebName(hostMap,31,".jkl")) return -1;
++        int flags=MULTIMODEFLAG_SINGLE_LEVEL;
++        if (!__strcmpi(hostEpisode,"JK1CTF")) flags |= MULTIMODEFLAG_TEAMS;
+         sithNet_scorelimit=sithNet_multiplayer_timelimit=0;
+-        sithMulti_multiModeFlags=MULTIMODEFLAG_SINGLE_LEVEL;
+-        if (sithMulti_CreatePlayer(wide,u"","JK1MP",(char*)hostMap,seats,0,
+-              MULTIMODEFLAG_SINGLE_LEVEL,TICKRATE_DEFAULT,rank) || !jkBotWebHosted()) {
++        sithMulti_multiModeFlags=flags;
++        if (sithMulti_CreatePlayer(wide,u"",hostEpisode,hostMap,seats,0,
++              flags,TICKRATE_DEFAULT,rank) || !jkBotWebHosted()) {
+             fprintf(stderr,"BOT_JOIN_REJECTED relay did not create the requested room\n"); return -1;
+         }
+-        printf("BOT_WEB_HOST netcode=%d episode=JK1MP map=%s seats=%d mode=%s rank=%d\n",STDCOMM_WSRELAY_NETCODE,hostMap,seats,mode,rank);
+-        return jkMain_loadFile2("JK1MP",(char*)hostMap) ? 1:-1;
++        printf("BOT_WEB_HOST netcode=%d episode=%s map=%s seats=%d mode=%s rank=%d\n",
++               STDCOMM_WSRELAY_NETCODE,hostEpisode,hostMap,seats,mode,rank);
++        return jkMain_loadFile2((char*)hostEpisode,(char*)hostMap) ? 1:-1;
+     }
+     jkMultiEntry entry=jkGuiMultiplayer_aEntries[i];
+     if (entry.field_E0!=10 || (entry.sessionFlags&SESSIONFLAG_PASSWORD) ||
+@@ -317,6 +319,10 @@
+         !sithPlayer_g_pLocalPlayer->playerNetId) return;
+     if (webBotWorld!=sithWorld_g_pCurrentWorld) {
+         webBotWorld=sithWorld_g_pCurrentWorld;
++        /* Pick opposite mark-sector entrances for successive player slots.
++           Stock CTF scripts own team assignment and the subsequent teleport. */
++        if (sithNet_MultiModeFlags & MULTIMODEFLAG_TEAMS)
++            setenv("JK_BOT_TEAM", playerThingIdx%2 ? "2" : "1", 1);
+         jkBot_OnJoined();
+         printf("BOT_JOINED slot=%d net=%u map=%s model=%s\n",playerThingIdx,
+             (unsigned)sithPlayer_g_pLocalPlayer->playerNetId,webBotWorld->map_jkl_fname,jkPlayer_model);

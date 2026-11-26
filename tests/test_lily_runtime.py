@@ -584,7 +584,7 @@ class LocalCompanionTest(unittest.TestCase):
         from bots.lily import protocol
         from bots.lily.policies import adaptive
 
-        def run(tmp, tag, nodes, learn):
+        def run(tmp, tag, nodes, terminal=None):
             directory = tmp / tag
             directory.mkdir()
             hub = companion.Hub(directory, ["lily"], 0, experimental_ids=["lily"])
@@ -628,15 +628,24 @@ class LocalCompanionTest(unittest.TestCase):
                 self.assertEqual(kind, protocol.COMMIT)
                 _, sample, revision, offer, node = protocol.COMMIT_HEADER.unpack_from(packet, companion.HEADER.size)
                 self.assertEqual((sample, offer), (73, 12))
-                if learn:
+                if terminal:
                     feed(companion.ACK, seq, struct.pack("<BBH", 0, kind, 0))
                     feed(protocol.SENSE, 4, sense(74, 0))
-                    progress = protocol.ACTION.pack(seq, revision, sample, 1, 6, 5, 0, 410, node)
+                    phase, reason, outcome = {"invalid_route": (6, 5, 0), "arrived": (4, 0, 1),
+                                              "collected": (4, 0, 3)}[terminal]
+                    progress = protocol.ACTION.pack(seq, revision, sample, 1, phase, reason, outcome, 410, node)
                     feed(protocol.PROGRESS, 5, progress)
                     supervisor.step(call(credential, "observation"))
                     feed(protocol.PROGRESS, 6, progress)
                     supervisor.step(call(credential, "observation"))
-                    self.assertEqual([row["physical_success"] for row in log if row["event"] == "outcome"], [False])
+                    event, = [row for row in log if row["event"] == "outcome"]
+                    stored = json.loads(db.db.execute("SELECT outcome FROM attempts WHERE episode=?",
+                                                      (event["episode_id"],)).fetchone()[0])
+                    for row in (event, stored):
+                        self.assertEqual(row["physical_success"], terminal != "invalid_route")
+                        self.assertEqual(row["native_outcome"], protocol.OUTCOMES[outcome])
+                        if terminal in ("arrived", "collected"):
+                            self.assertEqual(row["status"], "arrived")
                 return node
             finally:
                 supervisor.close()
@@ -644,5 +653,8 @@ class LocalCompanionTest(unittest.TestCase):
                 sock.close()
                 hub.close()
         with tempfile.TemporaryDirectory() as tmp:
-            self.assertEqual(run(Path(tmp), "first", (10, 20), True), 20)
-            self.assertEqual(run(Path(tmp), "second", (123, 234), False), 123)
+            self.assertEqual(run(Path(tmp), "first", (10, 20), "invalid_route"), 20)
+            self.assertEqual(run(Path(tmp), "second", (123, 234)), 123)
+        for terminal in ("arrived", "collected"):
+            with self.subTest(terminal=terminal), tempfile.TemporaryDirectory() as tmp:
+                run(Path(tmp), terminal, (10, 20), terminal)

@@ -139,8 +139,9 @@ def load_memory(path: Path | None, label: str, build: str | None = None) -> dict
         return {}
     stored = json.loads(path.read_text(encoding="utf-8"))
     recorded, arms = _entry(stored, label)
-    if build is not None and recorded is not None and recorded != build:
-        return {}
+    if build is not None and recorded != build:
+        archived, arms = _entry(stored, f"{label}@{build}")
+        return arms if archived == build else {}
     return arms
 
 
@@ -163,7 +164,7 @@ def save_memory(path: Path | None, label: str, record: dict, build: str | None =
     build = build or UNRECORDED
     recorded, arms = _entry(stored, label)
     if recorded is not None and recorded != build and arms:
-        stored.setdefault(f"{label}@{recorded}", {"build": recorded, "arms": arms})
+        stored[f"{label}@{recorded}"] = {"build": recorded, "arms": arms}
     stored[label] = {"build": build, "arms": record}
     temporary = path.with_name(path.name + ".tmp")
     temporary.write_text(json.dumps(stored, indent=2, sort_keys=True) + "\n", encoding="utf-8")

@@ -1,0 +1,97 @@
+--- a/src/AI/jkBot.h
++++ b/src/AI/jkBot.h
+@@ -23,6 +23,7 @@
+ /* Observe existing ordinary gameplay events; never alter the event. */
+ void jkBotCompanion_SetTransport(int (*emit)(const uint8_t *,size_t));
+ int jkBotCompanion_Receive(const uint8_t *data,size_t size);
++void jkBot_ObserveItemTaken(SithThing *player, const SithThing *item);
+ void jkBot_ObserveItemTouch(SithThing *player, const SithThing *item);
+ void jkBot_ObserveChat(int destination,int slot,uint32_t sender,const char *text);
+ void jkBot_ObserveDamage(SithThing *victim, SithThing *source, flex_t damage);
+--- a/src/AI/jkBotLily.inc
++++ b/src/AI/jkBotLily.inc
+@@ -11,6 +11,7 @@
+ typedef struct LilyAction {
+     uint32_t seq,revision,sample;
+     int owner,node,count,index;
++    int pickupIndex; uint32_t pickupGuid, pickupSignature;
+     double expiry,applied,stepMs;
+     LilyStep steps[5];
+ } LilyAction;
+@@ -152,6 +153,16 @@
+     SithThing *thing=Bot_NavThing(item);
+     return thing && thing->type==SITH_THING_ITEM && !(thing->flags&(SITH_TF_DISABLED|SITH_TF_DESTROYED));
+ }
++/* Acknowledged by stock SetItemTaken on the collecting player's client.
++   Check the routed item's identity before destruction or slot reuse. */
++void jkBot_ObserveItemTaken(SithThing *player, const SithThing *item)
++{
++    if (!Lily_Routing() || !player || player != sithPlayer_g_pLocalPlayerThing ||
++        bot.world != sithWorld_g_pCurrentWorld || !item || lily.active.pickupIndex < 0 ||
++        item != Bot_NavThing(lily.active.pickupIndex) ||
++        item->guid != lily.active.pickupGuid || item->signature != lily.active.pickupSignature) return;
++    Lily_Finish(&lily.active, LILY_COMPLETED, 0, LILY_COLLECTED);
++}
+ static int Lily_ShouldDefend(void)
+ {
+     return lily.selfDefense && bot.targetSlot>=0 && bot.hurtUntil>bot.now;
+@@ -164,13 +175,14 @@
+     if (self->sector!=bot.nodes[node].sector) { Lily_Finish(&lily.active,LILY_FAILED,LILY_INVALID_ROUTE,0); return 1; }
+     /* PR4 (Wren): reaching an item node is not collecting the item. If the
+        pickup is still present, hold for a short grace while the stock touch
+-       logic runs; Lily_Drive settles it as COLLECTED or NOT_COLLECTED. */
+-    int item=bot.nodes[node].item;
+-    if (item>=0 && Lily_ItemPresent(item)) {
++       logic runs; only the stock local TAKEN acknowledgement credits the route. */
++    int item=lily.active.pickupIndex;
++    if (item>=0) {
++        if (!Lily_ItemPresent(item)) { Lily_Finish(&lily.active,LILY_FAILED,LILY_NOT_COLLECTED,0); return 1; }
+         if (!lily.collectUntil) lily.collectUntil=bot.now+LILY_COLLECT_GRACE;
+         return 1;
+     }
+-    Lily_Finish(&lily.active,LILY_COMPLETED,0,item>=0 ? LILY_COLLECTED : LILY_ARRIVED);
++    Lily_Finish(&lily.active,LILY_COMPLETED,0,LILY_ARRIVED);
+     return 1;
+ }
+ static int Lily_FireAllowed(SithThing *self,int weapon)
+@@ -251,6 +263,19 @@
+         if (Lily_Routing() && !Lily_RouteStart(self,lily.active.node)) {
+             Lily_Finish(&lily.active,LILY_INTERRUPTED,LILY_INVALID_ROUTE,0); return 0;
+         }
++        lily.active.pickupIndex = -1;
++        if (Lily_Routing()) {
++            int index = bot.nodes[lily.active.node].item;
++            if (index >= 0) {
++                if (!Lily_ItemPresent(index)) {
++                    Lily_Finish(&lily.active,LILY_FAILED,LILY_NOT_COLLECTED,0); return 0;
++                }
++                const SithThing *pickup = Bot_NavThing(index);
++                lily.active.pickupIndex = index;
++                lily.active.pickupGuid = pickup->guid;
++                lily.active.pickupSignature = pickup->signature;
++            }
++        }
+         /* The old strategy timer must never clear a newly owned route. Its
+            plan-reset helper owns the legacy goal and is not a handover API. */
+         companion.policy=(CompanionPolicy){0};
+@@ -264,8 +289,8 @@
+         Lily_Finish(&lily.active,LILY_INTERRUPTED,LILY_SURVIVAL,0); return 0;
+     }
+     if (lily.collectUntil>0) {
+-        int item=bot.nodes[lily.active.node].item;
+-        if (item<0 || !Lily_ItemPresent(item)) { Lily_Finish(&lily.active,LILY_COMPLETED,0,LILY_COLLECTED); return 0; }
++        int item=lily.active.pickupIndex;
++        if (item<0 || !Lily_ItemPresent(item)) { Lily_Finish(&lily.active,LILY_FAILED,LILY_NOT_COLLECTED,0); return 0; }
+         if (bot.now>=lily.collectUntil) { Lily_Finish(&lily.active,LILY_FAILED,LILY_NOT_COLLECTED,0); return 0; }
+         /* Step onto the pickup with ordinary movement input. */
+         Bot_Move(self,Bot_Sub(Bot_NavThing(item)->position,self->position),0);
+--- a/src/World/sithItem.c
++++ b/src/World/sithItem.c
+@@ -100,6 +100,7 @@
+ 
+     if ( pSrcThing == sithPlayer_g_pLocalPlayerThing )
+     {
++        jkBot_ObserveItemTaken(pSrcThing, pItem);
+         sithCog_ThingSendMessage(pItem, pSrcThing, SITH_MESSAGE_TAKEN);
+     }
+ 

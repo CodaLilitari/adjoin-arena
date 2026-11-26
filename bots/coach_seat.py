@@ -18,7 +18,8 @@ Commands:
     strategy MODE [ttl=S] [weapon=N] [resource=BIN] [range=R] [risk=R]
                                    send an expiring strategy (autonomous|pressure|resource|recover)
     say TEXT                       public chat, only if the run allows companion chat
-    auto                           hand the seat back to the coach
+    auto                           hand the seat to the learning coach
+    lilivane                       hand the seat to Lilivane's observation policy
     hold                           stop coaching but keep the lease and current tactics
     release                        give the lease back; the bot plays on its own
     quit                           release and exit
@@ -41,6 +42,7 @@ import threading
 import time
 
 from . import tactics
+from .lilivane_policy import Policy as LilivanePolicy
 from .coach import Bandit, Coach, build_id, load_brain_memory, load_memory, save_brain_memory, save_memory
 from .companion import MODES
 from .companion_cli import call, load_private
@@ -83,11 +85,13 @@ class ControlFile:
 class CoachSeat:
     def __init__(self, cred, coach: Coach, *, memory=None, label="default", build=None,
                  request=call, clock=time.monotonic, log=print, control: ControlFile | None = None,
-                 start="auto", controller="coach", save_record=None):
+                 start="auto", controller="coach", save_record=None, weapons="guns"):
         self.cred, self.coach, self.memory, self.label, self.build = cred, coach, memory, label, build
         self.save_record = save_record
         self.request, self.clock, self.out, self.control = request, clock, log, control
-        self.mode = start            # auto | manual | hold | released
+        self.mode = start
+        self.lilivane = LilivanePolicy(weapons=weapons)
+        self.controller_epoch = 0
         self.lease = None
         self.queued = []
         self.pending = None          # (kind, label, request_id, coach_preset or None)
@@ -108,13 +112,13 @@ class CoachSeat:
     def send(self, route, body, label, coach_preset=None):
         key = secrets.token_hex(12)
         result = self.request(self.cred, route, dict(self.lease, request_id=key, **body))
-        self.pending = (route, label, key, coach_preset)
+        self.pending = (route, label, key, coach_preset, self.mode, self.controller_epoch)
         self.say("sent", route=route, what=label, status=result.get("status") if isinstance(result, dict) else None)
 
     def summary(self):
         state = (self.last.get("state") or {}) if self.last else {}
         return {"mode": self.mode, "leased": self.lease is not None, "coach_preset": self.coach.current,
-                "manual": self.manual, "pending": self.pending[1] if self.pending else None,
+                "lilivane_preset": self.lilivane.current, "manual": self.manual, "pending": self.pending[1] if self.pending else None,
                 "native_active": self.last.get("native_active"), "build": self.build, "label": self.label,
                 "bandit": self.coach.bandit.export(),
                 "state": {k: state.get(k) for k in ("kills", "deaths", "health", "shields", "mana", "weapon",
@@ -136,8 +140,10 @@ class CoachSeat:
                 self.out(json.dumps(self.summary(), indent=2, sort_keys=True))
             elif op == "quit":
                 return False
-            elif op == "auto":
-                self.mode, self.manual = "auto", None
+            elif op in ("auto", "lilivane"):
+                self.controller_epoch += 1
+                self.lilivane.reset()
+                self.mode, self.manual = op, None
                 self.coach.current = None   # the coach picks and applies its next preset
                 self.say("handback")
             elif op == "hold":
@@ -175,6 +181,7 @@ class CoachSeat:
 
     def takeover(self, action, keep_mode=False):
         if not keep_mode:
+            self.controller_epoch += 1
             if self.mode == "auto" and self.coach.current is not None:
                 self.say("takeover", dropped_window_of=self.coach.current)
             self.mode = "manual"
@@ -217,6 +224,7 @@ class CoachSeat:
             return
         if self.lease is None or any(self.lease[key] != fence[key] for key in FENCE):
             self.lease = self.pending = None
+            self.lilivane.reset()
             if observed["native_active"]:
                 ticket = self.request(self.cred, "attach", dict(fence, controller=self.controller))
                 self.lease = dict(fence, lease_id=ticket["lease_id"])
@@ -227,16 +235,20 @@ class CoachSeat:
         if not self.lease:
             return
         now = self.clock()
+        game_time = observed["state"].get("game_time", now)
         if self.pending:
-            route, label, key, coach_preset = self.pending
+            route, label, key, coach_preset, owner, epoch = self.pending
             result = self.request(self.cred, "commands/" + key)
             status = result.get("status")
             if status != "pending":
                 self.pending = None
                 self.say("result", what=label, status=status, reason=result.get("reason"))
                 if status == "applied":
-                    if coach_preset and self.mode == "auto":
-                        self.coach.begin(coach_preset, observed["state"], now)
+                    if coach_preset and owner == self.mode and epoch == self.controller_epoch:
+                        if owner == "lilivane":
+                            self.lilivane.applied(game_time, coach_preset)
+                        elif owner == "auto":
+                            self.coach.begin(coach_preset, observed["state"], now)
                     elif not coach_preset:
                         self.manual = label
             return
@@ -244,7 +256,11 @@ class CoachSeat:
             route, body, label = self.queued.pop(0)
             self.send(route, body, label)
             return
-        if self.mode == "auto":
+        if self.mode == "lilivane":
+            preset = self.lilivane.choose(game_time, observed["state"])
+            if preset:
+                self.send("tactics", {"preset": preset, "reset": True}, "Lilivane preset " + preset, preset)
+        elif self.mode == "auto":
             before = dict(self.coach.bandit.plays)
             preset = self.coach.step(observed["state"], now)
             if self.coach.bandit.plays != before:
@@ -327,7 +343,8 @@ def main(argv=None) -> int:
     p.add_argument("--build-id")
     p.add_argument("--seconds", type=float, default=0.0)
     p.add_argument("--poll", type=float, default=1.0)
-    p.add_argument("--start", choices=("auto", "manual", "hold"), default="auto")
+    p.add_argument("--start", choices=("auto", "lilivane", "manual", "hold"), default="auto")
+    p.add_argument("--weapons", choices=("guns", "sabers"), default="guns", help="Match weapon rules for Lilivane.")
     p.add_argument("--interactive", action="store_true", help="Read operator commands from the terminal.")
     p.add_argument("--control", type=Path, help="Control directory (commands.txt in, status.json/log.jsonl out).")
     args = p.parse_args(argv)
@@ -356,7 +373,7 @@ def main(argv=None) -> int:
         coach = Coach(Bandit(arms, record=record), args.dwell_seconds)
         seat = CoachSeat(load_private(resolve_credentials(args)), coach, memory=args.memory, label=args.label,
                          build=build, control=ControlFile(args.control) if args.control else None, start=args.start,
-                         save_record=save_record)
+                         save_record=save_record, weapons=args.weapons)
         try:
             run(seat, seconds=args.seconds, poll=args.poll, inputs=stdin_lines() if args.interactive else None)
         finally:

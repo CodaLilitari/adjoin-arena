@@ -35,6 +35,10 @@ class RosterTest(unittest.TestCase):
         # A custom voice missing from the GOB falls back to the stock one.
         self.assertEqual(seat_character("lily", frozenset({"dlil.3do"}))[1:3], ("dlil.3do", "ky.snd"))
 
+    def test_red_uses_released_red_visor_when_both_models_are_present(self):
+        files = frozenset({"redmandot.3do", "redmando.3do"})
+        self.assertEqual(seat_character("red", files)[1], "redmando.3do")
+
     def test_red_sabers_and_model_gob_flags(self):
         args = build_parser().parse_args(["join", "--room-id", "5", "--seats", "t800", "--data", "d", "--runtime", "r",
                                           "--red-sabers", "lily,t800", "--model-gob", "x.gob"])

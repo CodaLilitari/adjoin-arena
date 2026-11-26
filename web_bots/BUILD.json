@@ -11,7 +11,11 @@
   "patches": [
     "web_bots/engine.patch",
     "web_bots/external-room.patch",
-    "web_bots/bot-tactics-web.patch"
+    "web_bots/bot-tactics-web.patch",
+    "web_bots/pickup-owner.patch",
+    "web_bots/saber-combat.patch",
+    "web_bots/host-episode.patch",
+    "web_bots/ctf-spawn-slots.patch"
   ],
   "verify_recompiled_libsmacker": true,
   "relink": "web_bots/engine-relink.tar.gz",
@@ -19,19 +23,33 @@
     " f5e92d76973a7a53f517579bc95d61483bf108c0 lib/libpng (f5e92d7)",
     " 5a82f71ed1dfc0bec044d9702463dbdf84ea3b71 lib/zlib (5a82f71)"
   ],
+  "relink_check": {
+    "objects": 224,
+    "recompiled": [
+      "smacker.c",
+      "smk_bitstream.c",
+      "smk_hufftree.c"
+    ],
+    "byte_identical": [
+      "openjkdf2.js",
+      "openjkdf2.wasm"
+    ]
+  },
   "changed_sources": {
-    "src/AI/jkBot.c": "58f136a7696f7b6dfda5954579a183be24b4e13ea3d15390d782c113a07ced4a",
-    "src/AI/jkBot.h": "49d0478d709b532ef10fd0bc6721d0474a3df45c674f45d244f0c5c907c00bf4",
+    "src/AI/jkBot.c": "dba2e920e41ce7e360db2514a0e3d4b2cb2e166640b6d98cb4a9671118fffe26",
+    "src/AI/jkBot.h": "ca79130f28aa28014d5a4e49a8db188a829cccd3acf79f966407b14b985cd2cc",
     "src/AI/jkBotBehavior.h": "59ff972747fb3aa9514fae11c003e803da8b40f1e42b68801db969414a2416df",
     "src/AI/jkBotBehavior.inc": "734075a19f4b2b14be525f941a5586494cdf49a9b4b3f3aeeaab8ac05ca9ab26",
-    "src/AI/jkBotCombat.inc": "d5eff92602f5b6de4d8b9abd542ccbb45e29cc3bc03a9301a65bd6c22fef70aa",
+    "src/AI/jkBotBrain.inc": "46fa1ba396f5f7952cf44faa2d697afbeb24cfe7102a84886b572ef042414ea9",
+    "src/AI/jkBotBrainModel.h": "bcdde813d1c7c4dafce0ead106b269d30fe767cc3ea5cdd3ccc56772769281ec",
+    "src/AI/jkBotCombat.inc": "72e6a0361e81c4ac3ff54513d608c8b3391b80f0e9c73ac5d9df29d177da4e29",
     "src/AI/jkBotCompanion.inc": "f121202ecbb1b23aaa3eff6241ab938a302fd0da20bdb44c744a3a3b5872a235",
-    "src/AI/jkBotForce.inc": "5d70519e80e93826ef30b06d3db5ca2bfb841828ece780f8d10fc5ff357cf37c",
+    "src/AI/jkBotForce.inc": "c2d27a2edfd9c9779a4bec5068d6d961c809be84dfb3657085d3be9ae1d2739d",
     "src/AI/jkBotHearing.inc": "7fe0d477b9f43a9317f0405de3eade5796c193ea1753dc4d9c80e1558120ba6f",
-    "src/AI/jkBotLily.inc": "6fa32bf5d6ccb26bce203979ccfd2b77fe7dfe8aa4f3f222408b78673fca1109",
+    "src/AI/jkBotLily.inc": "85c859c37dec81ea43e316227c657069a61c1275938a74a028d2290929dc842d",
     "src/AI/jkBotLoadout.h": "aab6d025bb9ec2c431beb2d6bd559992b664e9ce075fcaa9c1103ae9ed5dcdc1",
     "src/AI/jkBotNavigate.inc": "a3228547f696322e97ce9607012df5b4bde423c807a6771398bd1ef7d1774c84",
-    "src/AI/jkBotNavigation.inc": "a4f1ca6c32a491acd98249d6cc197751c87da3bacb78136fae9342d6b0b1a0d5",
+    "src/AI/jkBotNavigation.inc": "cbf1602bc718330ef997eac5e49a087ccb8c4c5c5904d24fd909237f4c6e3c46",
     "src/AI/jkBotOrdnance.inc": "aa3ae8c206afbcc5dd453ceb7fa26cad96e1beb065c48a3efd6dd63e6891da66",
     "src/AI/jkBotPersona.c": "618f31f58e45a13d89b5dc0493233d446d5eaeada681bd0de758a155a50d578d",
     "src/AI/jkBotPersona.h": "e193097d937ed22400fe84d86a1e9e7f18884cc2be876fb1540627bee96e0bfb",
@@ -44,27 +62,20 @@
     "src/Devices/sithSoundMixer.c": "6ee484cbb9a40fd99ea67e4eefe264ca52427d15d6e87e80d552778e0cd29d6e",
     "src/Devices/sithSoundMixer.h": "41d8d29cc9a77d5cd1e55ec2219f31900a43af3fed8999f9d4808846a288b43d",
     "src/Dss/jkDSS.c": "4247d3b91168bd08b6d7c5900acbd3a933194568dc37877b4a2ec4990bb135c1",
-    "src/Dss/sithMulti.c": "fb1199f4aee2dbd6c46a5f8849b177052fa759fb61e356ae5f741a5594b2db75",
-    "src/Gui/jkGUIMultiplayer.c": "bef93eca86f99c7c8056b0624fb78f67ebc0aa806096e7c5da72fe6ba3d8db30",
+    "src/Dss/sithMulti.c": "9a5b731da79bbc217ae8560ae49645a15ce64415899abbcd818c345181382e77",
+    "src/Dss/sithMulti.h": "61845e2093f7728db70c1a106ee95e94c918f5181d9e30ecddfeb3bc53f4f184",
+    "src/Gui/jkGUIMultiplayer.c": "23faf25c170c9b6917d60482377cd017d49b1b35ebcc9433996b4f6bc9ecc610",
     "src/Gui/jkGUIMultiplayer.h": "504d0390e4d6f4fa31f42230ce273fa3125d24d42053feec9d85cc601a0d4287",
     "src/Main/Main.c": "5bcfdaa2a985f542310b675929dda6f00b0b7bbe9c783bb0fada6ad2677ac4f7",
-    "src/Platform/Networking/WSRelay/stdComm_WSRelay.c": "dfc0ef12f837f8918bb1949798b4a7c867ea05fe7c3d5e8f9c80802c6e963bb0",
+    "src/Platform/Networking/WSRelay/stdComm_WSRelay.c": "cc17bbed6354c237bd4e884bacf92f64a4c939bbbeb7fd6aa32af42b99f53178",
     "src/Platform/Networking/WSRelay/stdComm_WSRelay.h": "7afad29e84933482f6a1867628129ccdc23393e7fe92b5e7628fadd49ff2c12b",
     "src/Win95/stdSound.c": "556fe283fdf24b7c28608b8a39db7fa8c27927eece1092328e654158b1519c0a",
-    "src/World/sithItem.c": "b3b4119b5e59ff794984ebb5f3bb57aa5cdb9d20878c7ce49aa2e7db09148b7b",
+    "src/World/sithItem.c": "f1eb6ba9d8b8b57097084701ab0a962abfd79a6c126f2f4e6607435da1fc28a2",
     "src/World/sithSoundClass.c": "fd8d86375f1409a59837beddc34d1e67c4b6330f0e7dae3447e3ec6746607aa0",
     "src/World/sithThing.c": "0b966cc2fbbdb765a4c806a4555beba09acf0fd3cf7d703849af996e3d129bcb",
     "src/World/sithWeapon.c": "fb2b4244a3ddb023a059d5c21838abcadfa4f52807cdb868d45bcda7ab22fb48"
   },
   "files": {
-    "bin/bots-jkweb/openjkdf2.js": {
-      "sha256": "4492ea09a4a165e4740f0e144c2c332cb5db6d4a7f792f7b089e4ce1880dc4d9",
-      "bytes": 573194
-    },
-    "bin/bots-jkweb/openjkdf2.wasm": {
-      "sha256": "44b999f50bd299b4fd3677cbf20691a28ab1f5c90681864ef7e41b4d6866e701",
-      "bytes": 4059527
-    },
     "web_bots/engine.patch": {
       "sha256": "76804bec9637d46940fc7098a6f6a9ef512d746303018b7238667dbdecf3f088",
       "bytes": 330425
@@ -74,15 +85,36 @@
       "bytes": 9609
     },
     "web_bots/bot-tactics-web.patch": {
-      "sha256": "f73290c9d1187b1fe183b6583a5d02330c157c69d8c632ab5a5b74da1a796f22",
-      "bytes": 343072
+      "sha256": "020eab7ad8bb9e9b7f8f1023eae41bdb3f5b9e861d37ddb8da8a94c8d987ab9f",
+      "bytes": 357779
+    },
+    "web_bots/pickup-owner.patch": {
+      "sha256": "2c61a388838d6ff56fac9c2c483745294f51e3d25000aa6128c82fe9ac26b383",
+      "bytes": 4828
+    },
+    "web_bots/saber-combat.patch": {
+      "sha256": "7dc46986084f4b399299efaf0e0a75e526a9a074e463c65fc9733fd4c099e72b",
+      "bytes": 5903
+    },
+    "web_bots/host-episode.patch": {
+      "sha256": "6c4364c9afda17f2e58cdfff1cd6f1c72ad210769770e082460fdf0bfc9ea689",
+      "bytes": 3835
+    },
+    "web_bots/ctf-spawn-slots.patch": {
+      "sha256": "7c6a6c7eaa0e250b8fefd982580340586d9f8a874655b91ca25e931300ede589",
+      "bytes": 4009
+    },
+    "bin/bots-jkweb/openjkdf2.js": {
+      "sha256": "38164521db8d3ab5451fb95dd3973069f5e1a98d721663a926f082b85e11e9f0",
+      "bytes": 573194
+    },
+    "bin/bots-jkweb/openjkdf2.wasm": {
+      "sha256": "b22d351f0d5cf7462da35020ae85ba367626a911375981a3cae6a1a34c832fe6",
+      "bytes": 4069567
     },
     "web_bots/engine-relink.tar.gz": {
-      "sha256": "50bc410ea8378bf087a505cd98c9da17bb711b18b3d8b5ebfdcb4458203bf864",
-      "bytes": 294852
+      "sha256": "b03ddeadfd94d0d078059713d0560bef3ac9051e349859cb66e3715606597111",
+      "bytes": 1690624
     }
-  },
-  "spectator_feed": "upstream web-mp feed (stdComm_WSRelay feedKeyBegin, sithMulti_FeedKeyframe): keyframe on feed open, new level, every 60 s, and on 'key'",
-  "relink_note": "engine-relink.tar.gz still holds the 7a6f95c-based relink inputs; regenerate with web_bots/package_engine.py before a release",
-  "modded_rooms": "Bots launched with --model-gob set JK_BOT_WEB_MOD=1; stdComm_WSRelay_BotBaseGame then admits a room whose lobby tail names a mod, and mods.js (wsrelay_GetHostMod) confirms the bot already runs the host's mod."
+  }
 }

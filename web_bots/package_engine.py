@@ -8,6 +8,9 @@ import io
 import json
 import shlex
 import shutil
+import subprocess
+import sys
+import tempfile
 import tarfile
 
 from engine_patches import BASE, PATCHES, run_git, staged_source
@@ -19,8 +22,26 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def package(source, build, base_repo=None):
-    base_repo = base_repo or source
+def package(source, build, base_repo=None, output_root=ROOT):
+    # Verify the isolated bundle before replacing a distributable or its receipt.
+    with tempfile.TemporaryDirectory(prefix="adjoin-web-package-") as tmp:
+        stage = Path(tmp)
+        _prepare(source, build, base_repo or source, stage)
+        for name in ("bin/bots-jkweb/openjkdf2.js", "bin/bots-jkweb/openjkdf2.wasm",
+                     "web_bots/engine-relink.tar.gz", "web_bots/BUILD.json"):
+            target = output_root / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with tempfile.NamedTemporaryFile(dir=target.parent, delete=False) as stream:
+                replacement = Path(stream.name)
+            try:
+                shutil.copyfile(stage / name, replacement)
+                replacement.chmod(0o644)
+                replacement.replace(target)
+            finally:
+                replacement.unlink(missing_ok=True)
+
+
+def _prepare(source, build, base_repo, stage):
     changed = staged_source(source, base_repo)
     patches = [ROOT / "web_bots" / name for name in PATCHES]
     # In a normal checkout also rule out unrelated tracked modifications.
@@ -42,7 +63,7 @@ def package(source, build, base_repo=None):
         directory = source / name
         if (directory / ".git").exists() and run_git(directory, "rev-parse", "HEAD").decode().strip() != commit:
             raise ValueError("Wrong dependency checkout: " + name)
-    out = ROOT / "bin/bots-jkweb"
+    out = stage / "bin/bots-jkweb"
     out.mkdir(parents=True, exist_ok=True)
     for name in ("openjkdf2.js", "openjkdf2.wasm"):
         shutil.copy2(build / name, out / name)
@@ -55,9 +76,11 @@ def package(source, build, base_repo=None):
             expanded.append(arg)
     members = {}
     relink = ["em++"]
+    object_files = []
+    prefix_flags = ("-ffile-prefix-map=", "-fmacro-prefix-map=")
     for arg in expanded:
         path = Path(arg)
-        if arg.startswith("-L"):
+        if arg.startswith(("-L", *prefix_flags)):
             continue
         if path.is_absolute():
             if path.parent == source / "packaging/wasm":
@@ -65,11 +88,20 @@ def package(source, build, base_repo=None):
                 members[arg] = path
             else:
                 raise ValueError("Unexpected absolute linker input: " + arg)
-        elif arg.endswith((".o", ".a")):
-            if not (build / arg).is_file():
+        elif path.suffix in (".o", ".obj", ".a"):
+            if ".." in path.parts or not (build / arg).is_file():
                 raise ValueError("Missing linker input: " + arg)
             members[arg] = build / arg
+            if path.suffix in (".o", ".obj"):
+                object_files.append(arg)
         relink.append(arg)
+    smacker_objects = {}
+    for name in ("smacker", "smk_bitstream", "smk_hufftree"):
+        paths = [path for path in object_files
+                 if Path(path).parent.name == "libsmacker" and Path(path).stem == name + ".c"]
+        if len(paths) != 1:
+            raise ValueError("Expected one linked libsmacker object for " + name)
+        smacker_objects[name + ".c"] = paths[0]
     for file in (source / "src/external/libsmacker").iterdir():
         if file.is_file():
             members["libsmacker/" + file.name] = file
@@ -81,12 +113,13 @@ def package(source, build, base_repo=None):
         if " = " in row:
             key, value = row.split(" = ", 1)
             compiler_flags[key] = shlex.split(value)
-    compile_args = compiler_flags["C_DEFINES"] + compiler_flags["C_FLAGS"] + ["-Ilibsmacker"]
+    compile_args = compiler_flags["C_DEFINES"] + [
+        flag for flag in compiler_flags["C_FLAGS"] if not flag.startswith(prefix_flags)] + ["-Ilibsmacker"]
     # Bundled assertions contain the compiler's __FILE__ string. Re-create that
     # logical filename when the source is unpacked under a different directory.
     logical_source = str(source / "src/external/libsmacker")
     for flag in compiler_flags["C_FLAGS"]:
-        if flag.startswith(("-ffile-prefix-map=", "-fmacro-prefix-map=")):
+        if flag.startswith(prefix_flags):
             old, new = flag.split("=", 1)[1].split("=", 1)
             if logical_source.startswith(old):
                 logical_source = new + logical_source[len(old):]
@@ -97,15 +130,16 @@ from pathlib import Path
 import json, subprocess
 root = Path(__file__).resolve().parent
 config = json.loads((root / "link.json").read_text())
-for name in ("smacker", "smk_bitstream", "smk_hufftree"):
-    subprocess.run(["emcc", *config["compile_args"], "-c", "libsmacker/"+name+".c",
-        "-o", "CMakeFiles/sith_engine.dir/src/external/libsmacker/"+name+".c.o"], cwd=root, check=True)
+for source, linked_object in config["smacker_objects"].items():
+    subprocess.run(["emcc", *config["compile_args"], "-c", "libsmacker/" + source,
+                    "-o", linked_object], cwd=root, check=True)
 subprocess.run(config["link"], cwd=root, check=True)
 print(root / "openjkdf2.wasm")
 '''
-    archive = ROOT / "web_bots/engine-relink.tar.gz"
+    archive = stage / "web_bots/engine-relink.tar.gz"
+    archive.parent.mkdir(parents=True, exist_ok=True)
     generated = {"relink.py": script.encode(), "link.json": json.dumps(
-        {"link": relink, "compile_args": compile_args}, indent=2).encode()}
+        {"link": relink, "compile_args": compile_args, "smacker_objects": smacker_objects}, indent=2).encode()}
     # Host ownership, tool time and temporary absolute paths must not affect archive bytes.
     with archive.open("wb") as output, gzip.GzipFile(filename="", mode="wb", fileobj=output, mtime=0) as gz:
         with tarfile.open(fileobj=gz, mode="w", format=tarfile.USTAR_FORMAT) as tar:
@@ -115,7 +149,16 @@ print(root / "openjkdf2.wasm")
                 entry.size = len(data)
                 entry.mode = 0o755 if name == "relink.py" else 0o644
                 tar.addfile(entry, io.BytesIO(data))
-    files = [out / "openjkdf2.js", out / "openjkdf2.wasm", *patches, archive]
+    check = stage / "verify"
+    with tarfile.open(archive) as tar:
+        tar.extractall(check, filter="data")
+    subprocess.run([sys.executable, "-B", "relink.py"], cwd=check, check=True)
+    for name in ("openjkdf2.js", "openjkdf2.wasm"):
+        if sha(check / name) != sha(out / name):
+            raise ValueError("Recompiled libsmacker + relink differ from the source build: " + name)
+    files = {p.relative_to(ROOT).as_posix(): p for p in patches}
+    for path in (out / "openjkdf2.js", out / "openjkdf2.wasm", archive):
+        files[path.relative_to(stage).as_posix()] = path
     manifest = {
         "repository": "https://github.com/tristamus/OpenJKDF2",
         "branch": "web-mp", "base_commit": BASE, "emscripten": SDK,
@@ -125,10 +168,12 @@ print(root / "openjkdf2.wasm")
         "patches": ["web_bots/" + name for name in PATCHES],
         "verify_recompiled_libsmacker": True, "relink": "web_bots/engine-relink.tar.gz",
         "source_pins": [f" {commit} {name} ({commit[:7]})" for name, commit in sorted(pins.items())],
+        "relink_check": {"objects": len(object_files), "recompiled": list(smacker_objects),
+                         "byte_identical": ["openjkdf2.js", "openjkdf2.wasm"]},
         "changed_sources": changed,
-        "files": {p.relative_to(ROOT).as_posix(): {"sha256": sha(p), "bytes": p.stat().st_size} for p in files},
+        "files": {name: {"sha256": sha(p), "bytes": p.stat().st_size} for name, p in files.items()},
     }
-    (ROOT / "web_bots/BUILD.json").write_text(json.dumps(manifest, indent=2) + "\n")
+    (stage / "web_bots/BUILD.json").write_text(json.dumps(manifest, indent=2) + "\n")
     print(json.dumps(manifest["files"], indent=2))
 
 
@@ -137,5 +182,7 @@ if __name__ == "__main__":
     parser.add_argument("source", type=Path)
     parser.add_argument("build", type=Path)
     parser.add_argument("--base-repo", type=Path, help="Pinned Git reference for a separately verified exported source tree")
+    parser.add_argument("--output-root", type=Path, default=ROOT, help="Publish verified JS/WASM and relink receipt here")
     args = parser.parse_args()
-    package(args.source.resolve(), args.build.resolve(), args.base_repo.resolve() if args.base_repo else None)
+    package(args.source.resolve(), args.build.resolve(), args.base_repo.resolve() if args.base_repo else None,
+            args.output_root.resolve())

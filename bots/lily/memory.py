@@ -163,7 +163,7 @@ class ExperienceStore:
 
     def recover(self, run_id):
         """Only the new, exclusive controller calls this after acquiring a lease."""
-        lost = {"status": "owner_lost", "physical_success": None, "duration_seconds": None,
+        lost = {"status": "owner_lost", "physical_success": None, "native_outcome": None, "duration_seconds": None,
                 "applied_ms": None, "damage": None, "item_gain": {}}
         with self.db:
             rows = self.db.execute("SELECT episode FROM attempts WHERE instr(episode,?)=1 AND outcome IS NULL",

@@ -1,0 +1,101 @@
+diff --git a/src/Dss/sithMulti.c b/src/Dss/sithMulti.c
+--- a/src/Dss/sithMulti.c
++++ b/src/Dss/sithMulti.c
+@@ -1198,6 +1198,17 @@
+     sithNet_dword_8C4BA8 = 0;
+ }
+ 
++/* Player records contain both room seats and authored spawn points. Limit new
++   seats without dropping off-limits starts from stock CTF's respawn mask. */
++uint32_t sithMulti_JoinSlotLimit(void)
++{
++    if (idx_13b4_related <= 0) return 0;
++    uint32_t limit=(uint32_t)idx_13b4_related;
++    if (limit>jkPlayer_maxPlayers) limit=jkPlayer_maxPlayers;
++    if (limit>JKPLAYER_NUM_INFOS) limit=JKPLAYER_NUM_INFOS;
++    return limit;
++}
++
+ int sithMulti_ProcessJoinRequest(SithMessage *pMsg)
+ {
+     int v1; // esi
+@@ -1288,13 +1299,14 @@
+                 return 1;
+             }
+         }
+-        for (v5 = 0; v5 < jkPlayer_maxPlayers; v5++)
++        uint32_t joinLimit=sithMulti_JoinSlotLimit();
++        for (v5 = 0; v5 < joinLimit; v5++)
+         {
+             v6 = &jkPlayer_playerInfos[v5];
+             if ( (v6->flags & 2) != 0 && !v6->playerNetId )
+                 break;
+         }
+-        if ( v5 == jkPlayer_maxPlayers )
++        if ( v5 == joinLimit )
+         {
+             sithMulti_verbosePrintf("Too many players\n");
+             NETMSG_START;
+diff --git a/src/Dss/sithMulti.h b/src/Dss/sithMulti.h
+--- a/src/Dss/sithMulti.h
++++ b/src/Dss/sithMulti.h
+@@ -159,6 +159,7 @@
+ int sithMulti_ProcessSyncPlayers(SithMessage *pMsg);
+ void sithMulti_ProcessPlayerLost(int idPlayer);
+ void sithMulti_InitTick(uint32_t tickrate);
++uint32_t sithMulti_JoinSlotLimit(void);
+ int sithMulti_ProcessJoinRequest(SithMessage *pMsg);
+ void sithMulti_Update(int msecDeltaTime);
+ uint32_t sithMulti_GetPlayerIndexByID(int playerID);
+diff --git a/src/Platform/Networking/WSRelay/stdComm_WSRelay.c b/src/Platform/Networking/WSRelay/stdComm_WSRelay.c
+--- a/src/Platform/Networking/WSRelay/stdComm_WSRelay.c
++++ b/src/Platform/Networking/WSRelay/stdComm_WSRelay.c
+@@ -3257,7 +3257,8 @@
+ static int wsrelay_RealConnectedPlayers()
+ {
+     int amt = 0;
+-    for (int i = 0; i < jkPlayer_maxPlayers; i++)
++    const int slotLimit = sithMulti_JoinSlotLimit();
++    for (int i = 0; i < slotLimit; i++)
+     {
+         if (!i && jkGuiNetHost_bIsDedicated) continue;
+ 
+@@ -3287,11 +3288,12 @@
+ // two players joining for the last slot both did, for one of them.
+ static int wsrelay_HasFreeSlot()
+ {
++    const int slotLimit = sithMulti_JoinSlotLimit();
+     // Players welcomed earlier who now have their slot aren't waiting for one.
+     for (int i = 0; i < wsrelay_numWelcomed; )
+     {
+         int bSeated = 0;
+-        for (int j = 0; j < jkPlayer_maxPlayers; j++)
++        for (int j = 0; j < slotLimit; j++)
+         {
+             if ((jkPlayer_playerInfos[j].flags & 2) && jkPlayer_playerInfos[j].playerNetId == (uint32_t)wsrelay_aWelcomed[i])
+             {
+@@ -3307,7 +3309,7 @@
+ 
+     // The slots sithMulti gives joiners.
+     int numFree = 0;
+-    for (int j = 0; j < jkPlayer_maxPlayers; j++)
++    for (int j = 0; j < slotLimit; j++)
+     {
+         if ((jkPlayer_playerInfos[j].flags & 2) && !jkPlayer_playerInfos[j].playerNetId)
+             numFree++;
+@@ -3334,15 +3336,6 @@
+     jkMultiEntry entry = wsrelay_storedEntry;
+     entry.numPlayers = wsrelay_RealConnectedPlayers();
+     entry.maxPlayers = wsrelay_storedEntry.maxPlayers;
+-
+-    // Hack? Holds joins to the session's limit. Added: only ever lower it.
+-    // The level's player starts, with their shared copies
+-    // (sithThing_AddSharedStarts), are the most it can take
+-    // (sithPlayer_PlacePlayers), and slots past them can still be marked as
+-    // having a start from a bigger level earlier, with no player thing behind
+-    // them.
+-    if (wsrelay_storedEntry.maxPlayers > 0 && jkPlayer_maxPlayers > (uint32_t)wsrelay_storedEntry.maxPlayers)
+-        jkPlayer_maxPlayers = wsrelay_storedEntry.maxPlayers;
+ 
+     // Added: with no slot left, a player count at the limit, which the
+     // joiner takes as full before loading anything (stdComm_Open). Whoever

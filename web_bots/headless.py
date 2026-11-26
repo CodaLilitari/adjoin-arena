@@ -39,7 +39,7 @@ import time
 from types import SimpleNamespace
 
 from aiohttp import web
-from web_bots.join_room import ZONE_RELAY, list_games, relay_url, select_room
+from web_bots.join_room import ZONE_RELAY, episode_file, list_games, relay_url, select_room
 from web_bots.serve import ARENA_MODES, HERE, ROOM_PLAYERS, Host
 
 MAX_BOTS = 11
@@ -56,10 +56,12 @@ class HostedRoom:
     max_players: int
     level: str
     room: str
+    episode: str = "JK1MP"
+    episode_file: Path | None = None
 
     def public(self):
         return {"relay": self.relay, "seat": self.seat, "max_players": self.max_players,
-                "episode": "JK1MP", "map": self.level, "room": self.room, "netcode": 2}
+                "episode": self.episode, "map": self.level, "room": self.room, "netcode": 2}
 
 
 def parse_seats(text, *, host_seat=None, max_players=None):
@@ -261,7 +263,8 @@ class Launcher:
             browser = await self.open_browser(pw)
             try:
                 if a.command == "host":
-                    hosted = HostedRoom(a.relay, a.host_seat, a.max_players, a.map, a.room_name)
+                    archive = episode_file(a.data, a.episode, a.map, a.episode_gob)
+                    hosted = HostedRoom(a.relay, a.host_seat, a.max_players, a.map, a.room_name, a.episode, archive)
                     host = Host(a.data, a.engine_dir, self.run / a.host_seat, a.room_name, a.model_gob, False, a.mode,
                                 adaptive_lily=a.adaptive_lily and a.host_seat == "lily", hosted=hosted,
                                 red_sabers=a.red_sabers)
@@ -350,7 +353,8 @@ def build_parser():
     host.add_argument("--room-name", default="Canyon_" + secrets.token_hex(3))
     host.add_argument("--host-seat", default="lily", choices=tuple(ROOM_PLAYERS))
     host.add_argument("--max-players", type=int, default=12)
-    host.add_argument("--map", default="m10.jkl", help="Stock JK1MP level; m10.jkl is Canyon Oasis.")
+    host.add_argument("--episode", help="Host JK1MP, JK1CTF, or the basename of a locally owned episode GOB.")
+    host.add_argument("--map", help="JKL inside the episode. Defaults to m10.jkl in JK1MP or c1.jkl in JK1CTF.")
     host.add_argument("--mode", choices=ARENA_MODES, default="ff-guns", help="ff-guns hosts Jedi rank 8 (full Force).")
     host.add_argument("--public-room", action="store_true",
                       help="Required to host on the public Jedi Knight Zone relay (listed, on its leaderboard).")
@@ -368,8 +372,12 @@ def validate(args, parser):
                 raise ValueError("--max-players must be 2..16.")
             if not re.fullmatch(r"[A-Za-z0-9_-]{1,31}", args.room_name):
                 raise ValueError("--room-name: 1..31 letters, digits, _ or -.")
-            if not re.fullmatch(r"[A-Za-z0-9_-]{1,11}\.jkl", args.map):
-                raise ValueError("--map must be a stock JK1MP level file such as m10.jkl.")
+            args.episode = args.episode or (args.episode_gob.stem if args.episode_gob else "JK1MP")
+            if not re.fullmatch(r"[A-Za-z0-9_-]{1,31}", args.episode):
+                raise ValueError("--episode must be a GOB basename, such as JK1CTF.")
+            args.map = args.map or {"jk1mp": "m10.jkl", "jk1ctf": "c1.jkl"}.get(args.episode.casefold())
+            if not args.map or not re.fullmatch(r"[A-Za-z0-9_-]{1,26}\.jkl", args.map):
+                raise ValueError("--map must identify a JKL inside the selected episode.")
             args.seat_list = parse_seats(args.seats, host_seat=args.host_seat, max_players=args.max_players)
         else:
             args.seat_list = parse_seats(args.seats)

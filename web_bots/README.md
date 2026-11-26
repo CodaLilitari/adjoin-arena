@@ -19,9 +19,35 @@ Open the printed `page` URL in the browser. Use **Open engine credential** to se
 
 Choose `lily`, `red`, `lilivane`, `biddy`, `t800`, or `crownbraid` for the six identities from the JHS recording. The room launcher also offers `boba`, `jan`, and `yun`. For an unmodified host, these identities use stock appearances. For example, `--seat red` appears as `Bot_Red` with the stock Mandalorian model. The bot joins the selected room as a player, using the rank advertised by the host. Add `--sabers-only` to restrict its weapon choices. For a room using a custom map, supply its matching installed episode or add `--episode-gob "/path/to/episode.gob"`. The launcher checks the GOB name and the advertised JKL. The browser uses this project's WebAssembly controller. The pickup-versus-fight weights and the mapped JHS entrance described in the native arena studies run in the native client.
 
-This path supports open, full-game JKDF2 rooms on the Zone's WSRelay netcode 2. The room list explains exclusions such as a full session, password or required host mod. MotS, demo, and Imperial Network Protocol sessions use different game or connection paths. The player reads their own game assets locally. For testing on your own relay, append `--relay ws://127.0.0.1:PORT/relay` to both commands. [JediKnight.Zone game rooms](https://jediknight.zone/) · [Upstream lobby protocol and deployment](https://github.com/tristamus/jkdf2mp-bb-server/blob/main/cloudflare/README.md)
+This path supports open, full-game JKDF2 rooms on the Zone's WSRelay netcode 2. The room list explains exclusions such as a full session, password or required host mod. MotS, demo, and Imperial Network Protocol sessions use different game or connection paths. The player reads their own game assets locally. For testing on your own relay, append `--relay ws://127.0.0.1:PORT/relay` to both commands. [JediKnight.Zone game rooms](https://jediknight.zone/) Â· [Upstream lobby protocol and deployment](https://github.com/tristamus/jkdf2mp-bb-server/blob/main/cloudflare/README.md)
 
-We checked public room discovery against JediKnight.Zone. We tested joining and moving on a local copy of its relay with the unmodified deployed browser client hosting Nar Shaddaa Loading Terminal. The host and bot appeared together on the stock scoreboard. The public lobby had no advertised games at the time of the discovery check. [Host’s Player Scores screen](../docs/images/jkweb-stock-host-scoreboard.png) · [Match evidence](../qa/adjoin-arena-jkzone-join.json)
+We checked public room discovery against JediKnight.Zone. We tested joining and moving on a local copy of its relay with the unmodified deployed browser client hosting Nar Shaddaa Loading Terminal. The host and bot appeared together on the stock scoreboard. The public lobby had no advertised games at the time of the discovery check. [Hostâ€™s Player Scores screen](../docs/images/jkweb-stock-host-scoreboard.png) Â· [Match evidence](../qa/adjoin-arena-jkzone-join.json)
+
+## Host a headless game
+
+For a headless match on a loopback relay, the host can select a stock episode
+and level. This example opens the first stock CTF map with no Force and guns.
+The bots request alternating team entrances by player slot. The map's stock
+scripts assign teams and handle flags and scoring.
+
+```sh
+python -m web_bots.headless host --relay ws://127.0.0.1:8080/relay \
+  --episode JK1CTF --map c1.jkl --mode nf-guns --host-seat lily --seats red \
+  --room-name CtfPractice --data "/path/to/installed/JK" --runtime "/path/to/private/runs" \
+  --chrome "/path/to/chrome"
+```
+
+For Jedi's High School, use `--episode-gob "/path/to/jhs.gob" --map jhs.jkl`.
+The host and the joining browsers use the operator's local episode.
+`--mode ff-sabers` or `--mode nf-sabers` sets the bots' weapon rules.
+The separate `--model-gob` option supplies roster artwork.
+
+Two-seat loopback trials exercised the original JHS episode with the 16-bit
+roster, both no-Force deathmatch formats on Canyon Oasis, and C1 with bots
+on opposing stock teams. Both C1 browsers reported the same two red-team
+captures. The receipt includes per-seat models, camera flags, weapon inputs,
+coach acknowledgments and native item-collection events.
+[Browser gameplay and rebuild receipt](../qa/jkweb-competitive-rebuild.json)
 
 ## Private four-bot arena
 
@@ -156,14 +182,15 @@ replays from live browser observations.
 ## Build and relink
 
 The engine pin is `tristamus/OpenJKDF2` `web-mp` commit
-`7a6f95c9a3399e59acbf019dc6b25f9981d29dff` (netcode 2). Activate Emscripten
+`6f6d376063954f86b8d01561aad03c26fec2e4ed` (netcode 2). Activate Emscripten
 **6.0.12**, then run `bash web_bots/build.sh`. The script checks out the exact
-pin, applies [the bot controller](engine.patch) followed by [the selected-room changes](external-room.patch), and uses the upstream WASM toolchain.
+pin, applies the [ordered source overlays](engine_patches.py) and compiles the engine using the upstream WASM toolchain.
 [BUILD.json](BUILD.json) records changed-source and artifact hashes. Original
 game assets are not included.
 
 `engine-relink.tar.gz` contains the application object files, exact link arguments
-and libsmacker source/license. With the same compiler active, extract it to a
+and libsmacker source/license. Packaging recompiles libsmacker and verifies both
+JS and WASM byte-for-byte in an empty directory. With the same compiler active, extract it to a
 fresh directory, modify its libsmacker sources if desired, and run
 `python relink.py`. The upstream engine and third-party licenses still apply.
 

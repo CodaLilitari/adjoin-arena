@@ -81,6 +81,12 @@ class CoachMemory(unittest.TestCase):
         self.assertEqual(stored["oasis"]["build"], "sha256:bbbb")
         self.assertEqual(stored["oasis@sha256:aaaa"]["arms"]["hunter"]["plays"], 3)
 
+    def test_return_to_earlier_build_restores_latest_snapshot(self):
+        for build, plays in (("A", 1), ("B", 8), ("A", 3), ("C", 9)):
+            C.save_memory(self.path, "arena", {"hunter": {"plays": plays}}, build)
+        self.assertEqual(C.load_memory(self.path, "arena", "A")["hunter"]["plays"], 3)
+        self.assertEqual(C.load_memory(self.path, "arena", "B")["hunter"]["plays"], 8)
+
     def test_pr3_format_is_read_as_unrecorded(self):
         self.path.write_text(json.dumps({"oasis": {"hunter": {"plays": 2, "total": 1.0}}}))
         self.assertEqual(C.load_memory(self.path, "oasis")["hunter"]["plays"], 2)
@@ -105,6 +111,37 @@ class Seat(unittest.TestCase):
     def ticks(self, seat, n, dt=1.0):
         for _ in range(n):
             seat.tick(); self.clock["t"] += dt
+
+    def test_lilivane_ack_dwell_and_manual_handback(self):
+        seat = self.make(statuses=["rejected"], start="lilivane")
+        original = self.hub.request
+        state = {"weapon": 1, "shields": 40, "health": 100}
+        def observe(cred, route, body=None):
+            reply = original(cred, route, body)
+            if route == "observation":
+                reply["state"].update(state)
+            return reply
+        seat.request = observe
+        self.ticks(seat, 4)
+        self.assertEqual([v["preset"] for _, v in self.hub.sent], ["arsenal", "arsenal"])
+        state["health"] = 10
+        self.ticks(seat, 5)
+        self.assertEqual(len(self.hub.sent), 2)
+        self.clock["t"] += 12
+        self.ticks(seat, 2)
+        self.assertEqual(self.hub.sent[-1][1]["preset"], "standoff")
+        seat.command("preset hunter")
+        self.ticks(seat, 2)
+        self.assertEqual(seat.mode, "manual")
+        seat.command("lilivane")
+        self.ticks(seat, 2)
+        self.assertEqual(self.hub.sent[-1][1]["preset"], "standoff")
+        self.assertEqual(sum(seat.coach.bandit.plays.values()), 0)
+
+    def test_lilivane_does_not_seek_guns_in_saber_match(self):
+        from bots.lilivane_policy import Policy
+        policy = Policy(weapons="sabers")
+        self.assertEqual(policy.choose(1, {"health": 100, "weapon": 1, "shields": 30}), "default")
 
     def test_auto_applies_coach_preset_with_reset(self):
         seat = self.make()

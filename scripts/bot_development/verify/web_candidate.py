@@ -41,7 +41,14 @@ def verify(root, engine, work_dir=None, source_only=False, compiler=None):
     stage = Path(tempfile.mkdtemp(prefix="jk-web-verify-", dir=work_dir))
     source = stage / "source"
     source.mkdir()
-    archive = subprocess.check_output(["git", "archive", manifest["base_commit"]], cwd=engine)
+    names = sorted(manifest["changed_sources"])
+    for name in names:
+        child(source, name)
+    tracked = subprocess.check_output(["git", "--no-optional-locks", "ls-tree", "-r", "--name-only",
+                                       manifest["base_commit"], "--", *names], cwd=engine, timeout=30,
+                                      text=True).splitlines()
+    archive = subprocess.check_output(["git", "--no-optional-locks", "archive", manifest["base_commit"],
+                                       "--", *tracked], cwd=engine, timeout=30)
     with tarfile.open(fileobj=io.BytesIO(archive)) as stream:
         stream.extractall(source, filter="data")
     patch_paths = manifest.get("patches", [manifest["patch"]])
@@ -75,18 +82,23 @@ def verify(root, engine, work_dir=None, source_only=False, compiler=None):
         check_outputs()
         recompiled = bool(manifest.get("verify_recompiled_libsmacker"))
         if recompiled:
-            directory = relink / "CMakeFiles/sith_engine.dir/src/external/libsmacker"
-            objects = {name: sha((directory / (name + ".c.o")).read_bytes())
-                       for name in ("smacker", "smk_bitstream", "smk_hufftree")}
+            objects = {}
+            for name in ("smacker.c", "smk_bitstream.c", "smk_hufftree.c"):
+                matches = [path for arg in config["link"] if (path := Path(arg)).parent.name == "libsmacker"
+                           and path.stem == name and path.suffix in (".o", ".obj")]
+                if len(matches) != 1:
+                    raise ValueError("Expected one linked libsmacker object for " + name)
+                path = child(relink, matches[0])
+                objects[path] = sha(path.read_bytes())
             env = os.environ.copy()
             if compiler:
                 env["PATH"] = str(compiler.resolve().parent) + os.pathsep + env["PATH"]
             with (stage / "recompile.log").open("w") as log:
                 subprocess.run([sys.executable, "relink.py"], cwd=relink, env=env, stdout=log,
                                stderr=subprocess.STDOUT, check=True)
-            for name, expected in objects.items():
-                if sha((directory / (name + ".c.o")).read_bytes()) != expected:
-                    raise ValueError("Recompiled libsmacker object differs: " + name)
+            for path, expected in objects.items():
+                if sha(path.read_bytes()) != expected:
+                    raise ValueError("Recompiled libsmacker object differs: " + path.name)
             check_outputs()
         relink_result = {"js_byte_identical": True, "wasm_byte_identical": True,
                          "recompiled_libsmacker": recompiled}

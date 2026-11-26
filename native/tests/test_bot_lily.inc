@@ -127,16 +127,34 @@ static void testPickupCredit(void)
     bot.now=lily.collectUntil+0.01f; tick();
     assert(lilyProgress(400,&phase,&reason,&outcome) && phase==LILY_FAILED && reason==LILY_NOT_COLLECTED);
     assert(!lily.active.seq && lily.collectUntil==0);
-    /* 2. The stock touch removes it during the grace: completed as collected. */
+    /* 2. Another player takes this pickup during our grace period. */
     self.position=bot.nodes[0].pos; bot.goal=-1; bot.routeCount=bot.routePos=0;
     for (int i=0;i<3;i++) bot.nodes[i].avoidUntil=0;
     commitTo(401,2);
     self.position=bot.nodes[1].pos; tick();
     self.position=bot.nodes[2].pos; tick();
     assert(lily.active.seq==401 && lily.collectUntil>0);
+    SithThing otherPlayer={0};
+    jkBot_ObserveItemTaken(&otherPlayer,&lilyPickup);
+    assert(lily.active.seq==401);
     lilyPickup.flags|=SITH_TF_DISABLED; tick();
-    assert(lilyProgress(401,&phase,&reason,&outcome) && phase==LILY_COMPLETED && outcome==LILY_COLLECTED);
+    assert(lilyProgress(401,&phase,&reason,&outcome) && phase==LILY_FAILED && reason==LILY_NOT_COLLECTED);
     lilyPickup.flags&=~SITH_TF_DISABLED;
+    /* Only the exact routed object taken by our own player completes it. */
+    self.position=bot.nodes[0].pos; bot.goal=-1; bot.routeCount=bot.routePos=0;
+    for (int i=0;i<3;i++) bot.nodes[i].avoidUntil=0;
+    commitTo(402,2);
+    self.position=bot.nodes[1].pos; tick();
+    self.position=bot.nodes[2].pos; tick();
+    assert(lily.active.seq==402 && lily.collectUntil>0);
+    lilyPickup.signature++;
+    jkBot_ObserveItemTaken(&self,&lilyPickup);
+    assert(lily.active.seq==402);
+    lilyPickup.signature--;
+    jkBot_ObserveItemTaken(&self,&lilyPickup);
+    assert(lilyProgress(402,&phase,&reason,&outcome) && phase==LILY_COMPLETED && outcome==LILY_COLLECTED);
+    jkBot_ObserveItemTaken(&self,&lilyPickup);
+    assert(!lily.active.seq);
     /* 3. Self-defence predicate and its opt-out. */
     bot.targetSlot=1; bot.hurtUntil=bot.now+2; assert(Lily_ShouldDefend());
     bot.hurtUntil=bot.now-0.1f; assert(!Lily_ShouldDefend());
