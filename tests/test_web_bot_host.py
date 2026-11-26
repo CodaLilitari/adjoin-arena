@@ -98,6 +98,8 @@ class HostTests(unittest.IsolatedAsyncioTestCase):
         data = await res.json()
         self.assertEqual(data["env"]["JK_BOT_WEB_ROLE"],"host")
         self.assertEqual(data["env"]["JK_BOT_PRIVATE_DUELS"],"0")
+        self.assertEqual(data["env"]["JK_BOT_WEB_HIT_RULES"],"classic")
+        self.assertNotIn("JK_BOT_WEB_NF_SABER_ENTRY",data["env"])
         self.assertEqual(data["env"]["JK_BOT_TAUNTS"],"1")
         self.assertIn("ambient\t", data["persona"])
         self.assertNotIn(self.host.tokens["lily"],json.dumps(data))
@@ -113,6 +115,26 @@ class HostTests(unittest.IsolatedAsyncioTestCase):
         result=await self.client.post("/engine/lily/boot",json={"instance":"a"*32},headers=self.auth)
         self.assertEqual(result.status,200)
         return await result.json()
+
+    async def test_hit_rule_requested_by_host_and_observed_per_peer(self):
+        self.host.hit_rules = "hit-what-you-see"
+        self.host.nf_saber_entry = True
+        env = (await self.boot())["env"]
+        self.assertEqual(env["JK_BOT_WEB_HIT_RULES"], "hit-what-you-see")
+        self.assertEqual(env["JK_BOT_WEB_NF_SABER_ENTRY"], "1")
+        auth = {"Authorization":"Bearer " + self.host.tokens["jan"]}
+        body = {"instance":"b"*32}
+        join = await self.client.post("/engine/jan/boot", json=body, headers=auth)
+        visiting_env = (await join.json())["env"]
+        self.assertNotIn("JK_BOT_WEB_HIT_RULES", visiting_env)
+        self.assertEqual(visiting_env["JK_BOT_WEB_NF_SABER_ENTRY"], "1")
+        for rule in ("classic", "hit-what-you-see", None):
+            msg = dict(body, frames=[])
+            if rule:
+                msg["hit_rules"] = rule
+            sent = await self.client.post("/engine/jan/frames", json=msg, headers=auth)
+            self.assertEqual(sent.status, 200)
+            self.assertEqual(self.host.seats["jan"]["hit_rules"], rule)
 
     async def test_navigation_skips_bad_row_and_deduplicates_lost_ack(self):
         from bots.navigation_memory import NavigationMemory

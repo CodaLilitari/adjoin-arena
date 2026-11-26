@@ -115,6 +115,10 @@
         const batch = queue.splice(0,32);
         const packet = {instance, frames:batch.map(f => btoa(String.fromCharCode(...f))),
                         dropped, navigation_dropped:navDropped, stage, view:latestView};
+        if (stage === "running" && typeof mod._jkBotWebHitRules === "function") {
+          const rule = mod._jkBotWebHitRules();
+          if (rule === 0 || rule === 1) packet.hit_rules = rule === 1 ? "hit-what-you-see" : "classic";
+        }
         if (render) packet.graphics = render;
         const t0 = wasmClock();
         const reply = await (await api("frames",packet)).json();
@@ -174,7 +178,7 @@
                      edgeDigest:boot.prior ? boot.prior[1] : undefined,lily:adaptiveLily,mode:env.JK_BOT_WEB_MODE,role:env.JK_BOT_WEB_ROLE,room:env.JK_BOT_WEB_ROOM,name:env.JK_BOT_WEB_NAME,
                      episode:env.JK_BOT_WEB_EPISODE,map:env.JK_BOT_WEB_MAP,maxPlayers:env.JK_BOT_WEB_MAX_PLAYERS,
                      model:env.JK_BOT_WEB_MODEL,sound:env.JK_BOT_WEB_SOUND,side:env.JK_BOT_FORCE_SIDE,
-                     taunts:env.JK_BOT_TAUNTS,privateDuels:env.JK_BOT_PRIVATE_DUELS,
+                     taunts:env.JK_BOT_TAUNTS,privateDuels:env.JK_BOT_PRIVATE_DUELS,hitRules:env.JK_BOT_WEB_HIT_RULES,
                      saberColor:env.JK_BOT_WEB_SABER_COLOR,trace:env.JK_BOT_TRACE_FORCE==="1",
                      style:env.JK_BOT_FORCE_STYLE,thirdPerson:env.JK_BOT_WEB_THIRD_PERSON==="1",elite:true},
         jkRelayUrl:boot.relay || "ws://"+location.host+"/relay",
@@ -209,6 +213,30 @@
           if (mod.ENV || globalThis.ENV) Object.assign(mod.ENV || globalThis.ENV,env);
         }],
         onRuntimeInitialized:() => {
+          if (env.JK_BOT_WEB_HIT_RULES === "hit-what-you-see" && typeof mod._jkBotWebHitRules !== "function") {
+            stage = "failed";
+            const reason = "This JKWeb bot engine cannot host Hit what you see. Select an engine with host hit-rule support.";
+            message(reason);
+            throw new Error(reason);
+          }
+          if (env.JK_BOT_WEB_NF_SABER_ENTRY === "1" &&
+              (typeof mod._jkBotWebSetNfSaberEntry !== "function" || mod._jkBotWebSetNfSaberEntry(1) !== 1)) {
+            stage = "failed";
+            const reason = "This JKWeb bot engine cannot enable predictive NF saber entry. Select an engine with NF saber entry support.";
+            message(reason);
+            throw new Error(reason);
+          }
+          if (typeof globalThis.adjoinPublishZoneRoster === "function" && mod.jkMods) {
+            const mods = mod.jkMods, original = mods.feedUp;
+            mods.feedUp = (url, fp, alive) => {
+              const feed = /^https:\/\/jediknight\.zone\/feed\/(\d+)\?up=([0-9a-f]{32})$/.exec(url);
+              const current = mods.current();
+              if (!feed || !current || current.fp !== fp) return original(url, fp, alive);
+              if (alive()) void globalThis.adjoinPublishZoneRoster(Number(feed[1]), feed[2], fp)
+                .catch(() => console.warn("Zone roster publisher stopped."));
+              return true;
+            };
+          }
           if (![mod._jkBotWebNow,mod._jkBotWebInbox,mod._jkBotWebReceive,
                 mod._jkBotWebViewFlags,mod._jkBotWebRenderedModel].every(x=>typeof x==="function")) {
             stage="failed"; message("This WASM lacks the JKWeb companion exports."); return;

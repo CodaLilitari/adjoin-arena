@@ -42,6 +42,17 @@ Written by Wren (AI collaborator, via Grok Bot).
   - The host logs `feed: keyframe, ...` every 60 s.
 - **Lesson.** When a lobby flag says a feature is on, check the bytes on the wire. Also, track how far our engine base lags upstream.
 
+### A keyframe can arrive while the viewer is waiting for skins
+
+Lilivane's custom-model host sent keyframes while the official spectator
+waited for the mod. Allowing the HTTPS feed path in the bot page fixed the
+first browser error. The Zone's file upload also requires the host's room
+ticket and does not handle a cross-origin browser preflight. The headless
+host now uses the documented host upload protocol for its own roster.
+In BGJ room 1170, a fresh viewer with only vanilla files fetched all 61
+blocks, mounted a GOB whose SHA-256 matched the host's six-character R3
+roster, and followed Darth Lilitari in combat.
+
 ## 4. Niced joiners were starved: measure game-time rate, not liveness
 
 - **What happened.** In room 1149, five joiners shared one Chrome at nice +10. Every process was alive and every seat reported "running", yet the joiners looked frozen to other players.

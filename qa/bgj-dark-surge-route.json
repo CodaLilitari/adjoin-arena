@@ -1,0 +1,175 @@
+{
+  "map_resource": "JK1MP.GOB / jkl/m_boss17.jkl",
+  "map_sha256": "5c0795709ff3f2da525d0ad9ce4a3e41b13445febc1b5f88f727c864b606349f",
+  "subject": "Dark Surge bank access in Battleground Jedi",
+  "status": "Static geometry and recorded private match observations; proposed qualification drill. No controller promotion.",
+  "units": "Stock JKL world coordinates; z for waypoints is floor height before adding the actor center offset.",
+  "target": {
+    "thing": 35,
+    "template": "darkside",
+    "sector": 6,
+    "position_xyz": [
+      1.5955,
+      -4.94673,
+      1.403772
+    ],
+    "support_surface": 77,
+    "support_floor_z": 1.347722,
+    "surface_normal_z": 0.9769,
+    "stock_spawn_34_xyz": [
+      1.94172,
+      -5.30443,
+      1.546084
+    ],
+    "spawn_distance": 0.5178
+  },
+  "approach": {
+    "launch_sector": 1,
+    "launch_surface": 20,
+    "launch_floor_xyz": [
+      2.02,
+      -1.93,
+      1.557242
+    ],
+    "land_sector": 6,
+    "land_surface": 76,
+    "land_floor_xyz": [
+      1.79,
+      -3.61,
+      1.055312
+    ],
+    "through_sector": 0,
+    "passable_exit_and_entry_surfaces": [
+      15,
+      5
+    ],
+    "portal_flags": [
+      "0x7",
+      "0x7"
+    ],
+    "horizontal": 1.695671,
+    "floor_height_change": -0.501929,
+    "geometry": "The approach crosses a recessed channel. Sector 6 has a separate depression in sector 61; the suggested landing and braking path stay on the solid west-side terrain."
+  },
+  "floor_sampling": {
+    "method": "XY polygon inclusion on authored solid floor faces, every .01 units plus endpoint, lateral offsets -.065, 0, +.065. No flight or collision replay.",
+    "runup": {
+      "start_xy": [
+        2.169203,
+        -0.840166
+      ],
+      "end_xy": [
+        2.02,
+        -1.93
+      ],
+      "length": 1.1,
+      "samples_by_surface": {
+        "20": 336
+      },
+      "unsupported_samples": 0
+    },
+    "braking": {
+      "start_xy": [
+        1.79,
+        -3.61
+      ],
+      "end_xy": [
+        1.667924,
+        -4.501682
+      ],
+      "length": 0.9,
+      "samples_by_surface": {
+        "76": 258,
+        "77": 15
+      },
+      "unsupported_samples": 0
+    },
+    "walk_to_item": {
+      "start_xy": [
+        1.79,
+        -3.61
+      ],
+      "end_xy": [
+        1.5955,
+        -4.94673
+      ],
+      "length": 1.350806,
+      "samples_by_surface": {
+        "76": 258,
+        "77": 153
+      },
+      "unsupported_samples": 0
+    }
+  },
+  "ordinary_graph": {
+    "sample_runs": [
+      "entry-fast-ff-1",
+      "entry-fast-ff-2",
+      "entry-fast-ff-3",
+      "entry-fast-ff-4",
+      "entry-lag-ff-1",
+      "entry-lag-ff-2",
+      "fast-ff-1",
+      "fast-ff-2",
+      "fast-ff-3",
+      "fast-ff-4",
+      "ff-stock-stock",
+      "holdout-ff-1",
+      "holdout-ff-2"
+    ],
+    "opening_rows": 26,
+    "origin_sectors": {
+      "18": 13,
+      "28": 8,
+      "23": 2,
+      "22": 3
+    },
+    "dark_unreachable_rows": 26,
+    "light_reachable_rows": 26,
+    "interpretation": "Directed, currently traversable edges from the nearest owner waypoint at ordinary graph completion. For item 35 a waypoint exists; no directed path from these sampled starts was reported. Later water-surface jumps and respawns can change access."
+  },
+  "later_motion": {
+    "observations_per_owner": {
+      "lily": 5042,
+      "red": 5042
+    },
+    "within_.18_living_episodes": [
+      {
+        "run": "entry-fast-ff-2",
+        "owner": "lily",
+        "life": 3,
+        "closest_t": 37.766,
+        "closest_3d": 0.0825,
+        "first_alive_observation_distance_to_spawn_34": 0.0016
+      },
+      {
+        "run": "holdout-ff-1",
+        "owner": "lily",
+        "life": 9,
+        "closest_t": 77.832,
+        "closest_3d": 0.0679,
+        "first_alive_observation_distance_to_spawn_34": 0.0016
+      }
+    ],
+    "old_force_pull_events": {
+      "manaboost/caught": 55,
+      "manaboost/cancel": 20,
+      "manaboost/gone": 2,
+      "manaboost/aim-fight": 4,
+      "manaboost/aim-reach": 1,
+      "darkside/cancel": 1
+    },
+    "interpretation": "All recorded approaches within .18 were from a nearby spawn. Old pull caught events and proximity are indirect; count actual own-player TAKEN separately. The stock #21 spawn is also inside the same high bank in sector 61."
+  },
+  "controller_constraints": {
+    "source": "src/AI/jkBotRunJump.inc::Bot_RunJumpBuildStep, RunJump_Runway and Bot_RunJumpSolve; src/AI/jkBotNavigation.inc::Bot_ForceJumpProfile, Bot_NavCoverage",
+    "known_rejections": [
+      "Dry running-jump enumeration skips an unreachable forward endpoint before checking its return and running collision sweeps.",
+      "RunJump_Runway requires its minimum .30-unit dry runway to stay within .05 units of launch height. The sampled diagonal starts 0.081994 higher. Allowing a disconnected endpoint alone does not admit this diagonal.",
+      "A dry standing Force jump is capped at 1.2 horizontal units, shorter than this crossing."
+    ],
+    "proposal": "First use a single isolated stock-physics crossing drill from the Light bank; test existing ordinary inputs, static support, measured launch speed, collision sweeps, acceptable falls, and a safe reverse path. Consider a guarded slope-aware launch or a different heading only after successful replay."
+  },
+  "fixture_check": "native/tests/stock_water_replay/replay.c: requires an underwater start and plays WATER_EXIT edges. native/tests/stock_navigation_replay/run.py: supports Bespin and Nar cases only and starts a loopback game. Neither accepts an arbitrary dry BGJ running launch. No game, flight, or return was run for this receipt.",
+  "acceptance": "From a living, independently reachable sector outside 6 and 61, document ordinary-input takeoff, supported stable landing in 6, owner-specific TAKEN of #35, and same-life safe exit. Check in both private 1x and accelerated practice before adding it to normal movement; keep source placement excluded from scored locomotion."
+}

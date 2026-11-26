@@ -44,7 +44,7 @@ from urllib.parse import urlsplit
 
 from aiohttp import web
 from web_bots.join_room import ZONE_RELAY, episode_file, join_rules, list_games, relay_url, select_room
-from web_bots.serve import ARENA_MODES, HERE, ROOM_PLAYERS, Host
+from web_bots.serve import ARENA_MODES, HERE, HIT_RULES, NF_SABER_ENTRY_HELP, ROOM_PLAYERS, Host
 
 MAX_BOTS = 11
 SOFTWARE_GL = ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"]
@@ -178,6 +178,10 @@ class Launcher:
         ctx = await browser.new_context(viewport={"width": self.args.width, "height": self.args.height},
                                         device_scale_factor=1)
         page = await ctx.new_page()
+        if host.hosted and self.args.relay == ZONE_RELAY and self.args.public_room and self.args.model_gob:
+            from web_bots.spectator_roster import ZoneRosterPublisher
+            publisher = ZoneRosterPublisher(page, page_url, lambda: self.manifest.get("room_id"), self.log)
+            await page.expose_binding("adjoinPublishZoneRoster", publisher.requested)
         token = host.tokens[ident]
         init_js = ("if(window===top && location.href===" + json.dumps(page_url) +
                    ") window.__JK_BOT_TOKEN=" + json.dumps(token) + ";")
@@ -193,8 +197,11 @@ class Launcher:
         await page.add_init_script(init_js)
         console = (self.run / (ident + ".console.log")).open("a", encoding="utf-8")
         def note(kind, text):
-            text = str(text).replace(token, "[redacted]")
-            console.write(f"{time.monotonic()-self.started:8.2f} {kind} {text[:800]}\n"); console.flush()
+            text = re.sub(r"([?&]up=)[0-9a-fA-F]+", r"\1[redacted]", str(text).replace(token, "[redacted]"))
+            # Movement reports end with saber input counters. Keep the whole
+            # native report while retaining a bound on arbitrary page output.
+            limit = 4096 if text.startswith("BOT_MOVE ") else 800
+            console.write(f"{time.monotonic()-self.started:8.2f} {kind} {text[:limit]}\n"); console.flush()
             if "BOT_WEB_HOST " in text:
                 self.seats[ident]["hosted"] = True
             if "BOT_JOIN_REJECTED" in text:
@@ -216,6 +223,7 @@ class Launcher:
             world = bot.world
         seat = host.seats[ident]
         return {"joined": bool(fresh), "stage": seat["stage"], "world_epoch": world,
+                "hit_rules": seat.get("hit_rules"),
                 "game_time": state.get("game_time"), "kills": state.get("kills"),
                 "deaths": state.get("deaths"), "health": state.get("health"),
                 "renderer": (seat.get("graphics") or {}).get("renderer"),
@@ -289,7 +297,7 @@ class Launcher:
             if rules is None:
                 rules = await join_rules(room, self.args.sabers_only)
             host = Host(self.args.data, self.args.engine_dir, self.run / ident, str(room_id), self.args.model_gob, self.args.companion_chat,
-                        rules[0], learn_navigation=rules[1], practice_rate=getattr(self.args, "practice_rate", None),
+                        rules[0], nf_saber_entry=self.args.nf_saber_entry, learn_navigation=rules[1], practice_rate=getattr(self.args, "practice_rate", None),
                         adaptive_lily=self.args.adaptive_lily and ident == "lily", external=room,
                         red_sabers=self.args.red_sabers, taunts=not self.args.no_taunts)
             await self.add_host(ident, host, "join")
@@ -316,8 +324,10 @@ class Launcher:
                     host = Host(a.data, a.engine_dir, self.run / a.host_seat, a.room_name, a.model_gob, a.companion_chat, a.mode,
                                 practice_rate=a.practice_rate,
                                 adaptive_lily=a.adaptive_lily and a.host_seat == "lily", hosted=hosted,
-                                red_sabers=a.red_sabers, taunts=not a.no_taunts, private_duels=a.private_duels)
+                                red_sabers=a.red_sabers, taunts=not a.no_taunts, private_duels=a.private_duels,
+                                hit_rules=a.hit_rules, nf_saber_entry=a.nf_saber_entry)
                     self.manifest["hosted"] = hosted.public()
+                    self.manifest["hosted"]["requested_hit_rules"] = a.hit_rules
                     await self.add_host(a.host_seat, host, "host")
                     await self.open_seat(browser, a.host_seat)
                     ok = await self.wait_joined(a.host_seat, a.join_timeout)
@@ -384,6 +394,7 @@ def build_parser():
         c.add_argument("--runtime", type=Path, required=True)
         c.add_argument("--engine-dir", type=Path, default=HERE.parent / "bin/bots-jkweb")
         c.add_argument("--episode-gob", type=Path)
+        c.add_argument("--nf-saber-entry", action="store_true", help=NF_SABER_ENTRY_HELP)
         c.add_argument("--adaptive-lily", action="store_true")
         duration = c.add_mutually_exclusive_group()
         duration.add_argument("--seconds", type=float, default=600, help="Wall seconds after the join phase.")
@@ -420,6 +431,7 @@ def build_parser():
     host.add_argument("--map", help="JKL inside the episode. Defaults to m10.jkl in JK1MP or c1.jkl in JK1CTF.")
     host.add_argument("--mode", choices=ARENA_MODES, default="ff-guns", help="ff-guns hosts Jedi rank 8 (full Force).")
     host.add_argument("--private-duels", action="store_true", help="Allow ordinary JKWeb saber challenges in this hosted free-for-all.")
+    host.add_argument("--hit-rules", choices=HIT_RULES, default="classic", help="Host's JKWeb hit registration rule (default: classic).")
     host.add_argument("--practice-rate", type=int, choices=(1, 2, 4),
                       help="Run a private fixed-step practice engine at 1×, 2× or 4× on a loopback relay.")
     host.add_argument("--public-room", action="store_true",

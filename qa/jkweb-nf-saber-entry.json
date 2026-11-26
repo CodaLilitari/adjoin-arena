@@ -1,0 +1,121 @@
+{
+  "positive": {
+    "mode": "nf-sabers",
+    "rule": "hit-what-you-see",
+    "body": "default stock models",
+    "wasm": "829999514fe6683fa147dcd385f4081114930c500823537d8dd9a9113634ba0c",
+    "private": true,
+    "unmodified_clock": true,
+    "seconds": 85,
+    "owner_seconds": {
+      "lily": 85.102,
+      "red": 85.135
+    },
+    "owners": {
+      "lily": {
+        "configured": true,
+        "requested_by_native": true,
+        "predictive_input_edges": 1,
+        "active_rule": 1,
+        "hello": [
+          3
+        ],
+        "counted_saber": 2,
+        "ordinary_swing_edges": 3,
+        "score": 1
+      },
+      "red": {
+        "configured": false,
+        "requested_by_native": false,
+        "predictive_input_edges": 0,
+        "active_rule": 1,
+        "hello": [
+          3
+        ],
+        "counted_saber": 2,
+        "ordinary_swing_edges": 2,
+        "score": 1
+      }
+    }
+  },
+  "negative": [
+    {
+      "mode": "ff-sabers",
+      "rule": "hit-what-you-see",
+      "body": "default stock models",
+      "wasm": "829999514fe6683fa147dcd385f4081114930c500823537d8dd9a9113634ba0c",
+      "private": true,
+      "unmodified_clock": true,
+      "seconds": 35,
+      "owner_seconds": {
+        "lily": 35.067,
+        "red": 35.167
+      },
+      "owners": {
+        "lily": {
+          "configured": true,
+          "requested_by_native": true,
+          "predictive_input_edges": 0,
+          "active_rule": 1,
+          "hello": [
+            3
+          ],
+          "counted_saber": 1,
+          "ordinary_swing_edges": 18,
+          "score": 1
+        },
+        "red": {
+          "configured": false,
+          "requested_by_native": false,
+          "predictive_input_edges": 0,
+          "active_rule": 1,
+          "hello": [
+            3
+          ],
+          "counted_saber": 1,
+          "ordinary_swing_edges": 13,
+          "score": 2
+        }
+      }
+    },
+    {
+      "mode": "nf-sabers",
+      "rule": "classic",
+      "body": "default stock models",
+      "wasm": "829999514fe6683fa147dcd385f4081114930c500823537d8dd9a9113634ba0c",
+      "private": true,
+      "unmodified_clock": true,
+      "seconds": 35,
+      "owner_seconds": {
+        "lily": 35.133,
+        "red": 35.101
+      },
+      "owners": {
+        "lily": {
+          "configured": true,
+          "requested_by_native": true,
+          "predictive_input_edges": 0,
+          "active_rule": 0,
+          "hello": [
+            3
+          ],
+          "counted_saber": 4,
+          "ordinary_swing_edges": 4,
+          "score": 2
+        },
+        "red": {
+          "configured": false,
+          "requested_by_native": false,
+          "predictive_input_edges": 0,
+          "active_rule": 0,
+          "hello": [
+            3
+          ],
+          "counted_saber": 3,
+          "ordinary_swing_edges": 3,
+          "score": 1
+        }
+      }
+    }
+  ]
+}

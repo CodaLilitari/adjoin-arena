@@ -46,7 +46,7 @@ TACTICS = (
     ("confine_radius", 0.35, 0.35, 0.1, 2.0, "staying inside this radius counts as confined"),
     ("confine_seconds", 6.0, 0.0, 0.0, 60.0, "for this long; 0 turns the check off"),
     ("tabu_seconds", 12.0, 12.0, 1.0, 120.0, "first escape avoids the failing places this long; repeats double it"),
-    ("combat_strafe", 0.55, 0.55, 0.0, 1.0, "sideways share of gunfight movement"),
+    ("combat_strafe", 0.55, 0.55, 0.0, 1.0, "sideways share of combat movement, including the saber approach"),
     ("gun_far", 2.5, 2.5, 0.3, 20.0, "a gunner advances beyond this range"),
     ("gun_near", 0.75, 0.75, 0.0, 10.0, "a gunner backs off inside this range"),
     ("dive_retry", 45.0, 0.0, 0.0, 300.0, "seconds a way into water is avoided after a wasted dive (0 = no memory)"),
@@ -89,7 +89,7 @@ TACTICS = (
     ("leg_axis", 1.0, 0.0, 0.0, 1.0, "off a walking leg's line with the straight way to its node blocked, get back onto the line first (0 or 1)"),
     ("lift_hop", 1.0, 0.0, 0.0, 1.0, "leave a ledge halfway up a lift shaft by the lift: onto its deck as it passes or where it stands below (0 or 1)"),
     ("leg_square", 1.0, 0.0, 0.0, 1.0, "pressed against the wall beside a narrow opening, step square onto the leg's line until the body is clear of the jamb (0 or 1)"),
-    ("saber_heavy", 1.0, 0.0, 0.0, 1.0, "swing the saber's heavy secondary (160 damage, longest reach) from contact at a target still in reach as it lands; no swing out of contact (0 or 1)"),
+    ("saber_heavy", 1.0, 0.0, 0.0, 1.0, "1 holds guard until contact and chooses heavy or primary by predicted reach; 0 permits earlier primary swings in saber-only play"),
 )
 NAMES = tuple(row[0] for row in TACTICS)
 INDEX = {name: index for index, name in enumerate(NAMES)}

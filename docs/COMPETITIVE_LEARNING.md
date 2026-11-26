@@ -4,6 +4,12 @@ Red's script plays immediately. It controls movement, weapons and mode objective
 
 Wren supplied the JKWeb seats and live takeover controls. Lilivane supplied the observation policy. Muse Code supplied the persistent BrainStore, model fitters and fast match runner. The integration adds ruleset-aware coaching, data partitions, repeatable training, stock pickup attribution and the saber fixes. [Native match results](COMPETITIVE_NATIVE_TRIALS.md) · [Saber movement and geometry](../qa/saber-tracking.md)
 
+For browser saber training, record the negotiated hit rule, the two engine
+hashes, the map, Force alignment, and which bot hosted. Grade a candidate by
+kills and confirmed saber contacts in separate NF and FF bouts. Keep the
+regular-clock evaluation separate from the 4× practice results. In FF a
+kill may have come from a Force attack. [JKWeb saber study](../qa/jkweb-saber-practice.md)
+
 ## Coaching a playing bot
 
 Run this against a local headless room. Use the weapon rules of the room and the actual seat name in its manifest.

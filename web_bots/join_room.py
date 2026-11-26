@@ -16,7 +16,7 @@ from urllib.parse import urlsplit
 
 from aiohttp import ClientError, ClientSession, WSMsgType, web
 from manager.content import archive_index
-from web_bots.serve import HERE, ROOM_PLAYERS, Host, game_file
+from web_bots.serve import HERE, NF_SABER_ENTRY_HELP, ROOM_PLAYERS, Host, game_file
 
 ZONE_RELAY = "wss://jediknight.zone/relay"
 
@@ -180,7 +180,7 @@ async def run(args):
     runtime = args.runtime / ("selected-room-"+time.strftime("%Y%m%d-%H%M%S")+"-"+secrets.token_hex(4))
     mode, learn = await join_rules(room, args.sabers_only)
     host = Host(args.data, args.engine_dir, runtime, str(room.room_id), None, args.companion_chat, mode,
-                adaptive_lily=args.adaptive_lily, external=room, taunts=not args.no_taunts, learn_navigation=learn)
+                adaptive_lily=args.adaptive_lily, nf_saber_entry=args.nf_saber_entry, external=room, taunts=not args.no_taunts, learn_navigation=learn)
     runner = web.AppRunner(host.app(), access_log=None, shutdown_timeout=1.)
     try:
         await runner.setup()
@@ -214,6 +214,7 @@ def main(argv=None):
     join.add_argument("--sabers-only", action="store_true", help="Restrict this bot's weapon choices.")
     join.add_argument("--companion-chat", action="store_true", help="Allow an attached local coach to reply in public game chat.")
     join.add_argument("--no-taunts", action="store_true", help="Silence automatic character lines.")
+    join.add_argument("--nf-saber-entry", action="store_true", help=NF_SABER_ENTRY_HELP)
     join.add_argument("--adaptive-lily", action="store_true", help="Enable the existing experimental Lily controls.")
     args = parser.parse_args(argv)
     try:

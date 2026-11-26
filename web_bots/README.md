@@ -56,6 +56,31 @@ Custom CTF hosting under another GOB name needs support for its team flag.
 `--mode ff-sabers` or `--mode nf-sabers` sets the bots' weapon rules.
 The separate `--model-gob` option supplies roster artwork.
 
+### Watching a public game with custom skins
+
+Open **Watch** on the room in the [Zone lobby](https://jediknight.zone/).
+The direct link is `https://jediknight.zone/#watch-ROOM_ID`. The 3D viewer
+uses a spectator connection and leaves the player slots available.
+On a phone, extract your own Jedi Knight game files first. Tap **Watch in the
+game**, then choose the parent folder containing `Episode` and `Resource`. Keeping
+the files saved in the browser lets you watch later matches on the same device.
+
+A public `web_bots.headless host` with `--model-gob` serves the requested
+roster through the Zone's room-scoped host upload. The engine packs the mounted
+mod and substitutes references for original game resources. The Python host
+sends those blocks using the upload ticket issued for its own room. Keep that
+ticket private. Match logs report `spectator_roster_sent` after the Zone accepts
+every block. To verify the viewer, open the official **Watch** page in a fresh
+browser profile with only the stock game files, let it get the mod, and check
+that the camera follows a player in motion.
+
+For new six-character 16-bit cosmetic games, mount the matching
+`BGJ-Six-R4-16.gob` on both peers. R4 supersedes R3 for Darth Lilitari's
+in-game idle animations. Future roster builds should install her retail
+`3do/world/dlil.3do` as `3do/dlil.3do` in the cosmetic archive. R4 carries
+the earlier Biddy and Lilivane models, whose stock weapon animations can
+still affect parts of their bodies.
+
 Two-seat loopback trials exercised the original JHS episode with the 16-bit
 roster, both no-Force deathmatch formats on Canyon Oasis, and C1 with bots
 on opposing stock teams. Both C1 browsers reported the same two red-team
@@ -96,6 +121,30 @@ Choose a match format with `--mode`. Each of the four browsers receives the same
 | `nf-sabers` | 0 | No Force and saber-only weapon attacks |
 
 In full-Force sabers, the bot can still use stock offensive Force powers. The saber restriction governs weapon attacks. Stock game rules still determine what a player can pick up, damage, and how fast a player moves. All four formats disable the bot's fists-as-peace convention for this competitive arena. The launcher records the selected mode in `run.json` and reports it at `/status`.
+
+Hosts can add `--hit-rules hit-what-you-see` to `web_bots.headless host`
+or `web_bots.serve`. This selects JKWeb’s **Hit what you see** option. The
+attacker’s game reports a saber contact and the target’s game checks the
+claim. The default, `classic`, resolves the hit in the target’s game.
+Joining bots adopt the room’s rule. Each updated bot reports its own active
+`hit_rules` in `/status` and headless status samples once its match opens.
+An older peer can still use Classic for its interactions under JKWeb’s
+compatibility handshake. [Upstream hit rules and handshake](https://github.com/tristamus/OpenJKDF2/blob/6f6d376063954f86b8d01561aad03c26fec2e4ed/src/Platform/Networking/WSRelay/stdComm_WSRelayHits.c)
+
+For the experimental NF saber opening, add `--nf-saber-entry` when launching
+local bots. On `web_bots.serve` or `web_bots.headless host`, combine it with
+`--mode nf-sabers --hit-rules hit-what-you-see`. When joining a listed rank-zero
+room through `web_bots.join_room join` or `web_bots.headless join`, combine it
+with `--sabers-only`. The option applies to the local seats in that launch.
+Omit it to use the usual contact timing.
+
+With the option on, a bot can start a secondary swing when relative motion
+predicts contact 0.33–0.55 seconds ahead. The engine checks the individual
+opponent’s negotiated Hit what you see handshake, the local player’s actual
+rank zero, the saber-only weapon policy and the map’s CTF status. The usual
+water and protected-player checks still apply. The owner console shows
+`BOT_NF_SABER_ENTRY requested=1` on startup. Each applied predictive secondary
+input edge emits `BOT_SABER_ENTRY`. Use the hit ledger to count registered contacts.
 
 Use `--model-gob /path/to/cosmetic.gob` to stage a privately supplied cosmetic archive containing `dlil.3do` and `dlil.snd`. Lily uses those resources. All four clients mount the same archive under the same mod path. Without it, Lily uses a stock model and sound. Lily uses the stock red saber materials through the normal multiplayer character profile. The launcher treats the supplied GOB as trusted mod content; prepare a cosmetic-only archive when retaining stock game rules. The only retail files it serves are the local installation's `resource/Res1hi.gob`, `resource/Res2.gob`, `resource/jk_.cd` and `episode/JK1MP.gob`. These routes require a seat credential. Each browser gets its own in-memory copy and profile.
 
@@ -188,6 +237,13 @@ states also reach dry ground; the previous build drowns from all three on the
 same replay. The [reusable runner](../native/tests/stock_water_replay/README.md)
 accepts the observed control interval and initial wet sector. Actual browser
 multiplayer qualification is recorded separately.
+
+Battleground Jedi also has a shallow stream where the player's feet rest on
+solid rock while the player's center stays in air. The movement controller
+checks the depth and the ground ahead before walking or strafe-running there.
+In two private spawn drills, the bot walked off this bed in under 2.4 game
+seconds. All six bots strafe-ran in the stock-map follow-up.
+[BGJ measurements and test conditions](../qa/bgj-shallow-water.md)
 
 Stock multiplayer permits pulling the Bryar. Active Absorb prevents the
 disarm, and repeated requests against an unchanged weapon were wasting Lily's

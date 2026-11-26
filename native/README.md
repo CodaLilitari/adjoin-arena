@@ -576,3 +576,17 @@ For an isolated paced training match, run `native/build_competitive.py` with the
 Each build accepts additional `--source` directories to locate the receipt-pinned engine inputs. The observer hashes both clients' loaded executables and game-networking library. To summarize a match window and read CTF captures from the host, run `python3 -B scripts/bot_development/competitive_results.py "$MATCH_DIR"`. Saber-fire samples with movement input measure the issued command. The optional test overlay records adjacent actual positions as well.
 
 [Original-clock build receipt](competitive-stock-build.json) · [Paced build receipt](competitive-build.json) · [Saber movement and aim](saber-combat.patch) · [Per-frame test observer](tests/saber-match-poses.patch)
+
+#### Reproduce the BGJ shallow-water change for native training
+
+BGJ places one spawn above a rock bed covered by about 0.031 game units of water. The player's origin stays in air there. The shared movement patch lets a bot walk or strafe-run when its collision probe verifies solid footing, shallow immersion, a dry standing position and a clear route. The compiled regression checks deep water, ice, unsafe sectors and missing support. [Shared movement patch](../web_bots/shallow-wading.patch) · [Regression cases](../tests/fixtures/shallow_bed.c)
+
+Run this from the Arena checkout with `NATIVE_SOURCE` pointing to the assembled source tree for the packaged native competitive controller and `WADING_OUTPUT` set to a fresh external directory. The command verifies the original and patched controller hashes and writes the staged source with a receipt.
+
+```sh
+python3 -B native/tests/verify_shallow_wading.py \
+  --source "$NATIVE_SOURCE" --output "$WADING_OUTPUT"
+ADJOIN_WADING_NATIVE_SOURCE="$NATIVE_SOURCE" python3 -B -m unittest tests.test_shallow_wading -v
+```
+
+For an out-of-tree `jkBot.c.o`, run the staging command with a fresh output path and add `--globals-header "$GLOBALS_HEADER"` on the Ubuntu 24.04 amd64 build host. This checks the original header dependencies and uses the flags in the native competitive build receipt. The packaged native clients retain their published hashes. The timed gameplay comparison for this change ran in JKWeb.

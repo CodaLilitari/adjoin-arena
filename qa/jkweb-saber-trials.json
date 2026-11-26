@@ -1,0 +1,1853 @@
+{
+  "date": "2026-11-26",
+  "engine_upstream": "tristamus/OpenJKDF2@6f6d376063954f86b8d01561aad03c26fec2e4ed",
+  "netcode": 2,
+  "groups": {
+    "hwys-1x-rtt80-predictive-light-transfer_ff-sabers": {
+      "mode": "ff-sabers",
+      "map": "m5.jkl",
+      "rule": "hit-what-you-see",
+      "candidate": "predictive heavy entry",
+      "comparator": "stock contact-heavy",
+      "kills_candidate_stock": [
+        0,
+        0
+      ],
+      "candidate_wins_draws_losses": [
+        0,
+        2,
+        0
+      ],
+      "kills_by_bout": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "matched_games": 2,
+      "owner_clock_rate_range": [
+        1.0,
+        1.002
+      ],
+      "added_rtt_ms": 80,
+      "owner_end_ping_median_range_ms": [
+        96.5,
+        99.85
+      ],
+      "confirmed_saber_contacts_candidate_stock": [
+        1,
+        0
+      ]
+    },
+    "hwys-4x-predictive_ff-sabers": {
+      "mode": "ff-sabers",
+      "map": "m_boss17.jkl",
+      "rule": "hit-what-you-see",
+      "candidate": "predictive heavy entry",
+      "comparator": "stock contact-heavy",
+      "kills_candidate_stock": [
+        14,
+        16
+      ],
+      "candidate_wins_draws_losses": [
+        1,
+        0,
+        3
+      ],
+      "kills_by_bout": [
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          5,
+          4
+        ],
+        [
+          4,
+          5
+        ]
+      ],
+      "matched_games": 4,
+      "owner_clock_rate_range": [
+        3.985,
+        4.014
+      ],
+      "added_rtt_ms": null,
+      "owner_end_ping_median_range_ms": [
+        0.4,
+        1
+      ],
+      "confirmed_saber_contacts_candidate_stock": [
+        18,
+        21
+      ]
+    },
+    "hwys-4x-predictive_nf-sabers": {
+      "mode": "nf-sabers",
+      "map": "m_boss17.jkl",
+      "rule": "hit-what-you-see",
+      "candidate": "predictive heavy entry",
+      "comparator": "stock contact-heavy",
+      "kills_candidate_stock": [
+        9,
+        8
+      ],
+      "candidate_wins_draws_losses": [
+        2,
+        1,
+        1
+      ],
+      "kills_by_bout": [
+        [
+          3,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          3,
+          2
+        ]
+      ],
+      "matched_games": 4,
+      "owner_clock_rate_range": [
+        3.993,
+        4.014
+      ],
+      "added_rtt_ms": null,
+      "owner_end_ping_median_range_ms": [
+        0.5,
+        1.8
+      ],
+      "confirmed_saber_contacts_candidate_stock": [
+        19,
+        17
+      ]
+    },
+    "hwys-1x-rtt80-predictive_nf-sabers": {
+      "mode": "nf-sabers",
+      "map": "m_boss17.jkl",
+      "rule": "hit-what-you-see",
+      "candidate": "predictive heavy entry",
+      "comparator": "stock contact-heavy",
+      "kills_candidate_stock": [
+        12,
+        8
+      ],
+      "candidate_wins_draws_losses": [
+        3,
+        1,
+        0
+      ],
+      "kills_by_bout": [
+        [
+          4,
+          4
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "matched_games": 4,
+      "owner_clock_rate_range": [
+        1.0,
+        1.001
+      ],
+      "added_rtt_ms": 80,
+      "owner_end_ping_median_range_ms": [
+        84.1,
+        99.95
+      ],
+      "confirmed_saber_contacts_candidate_stock": [
+        28,
+        23
+      ]
+    },
+    "hwys-1x-rtt80-predictive_ff-sabers": {
+      "mode": "ff-sabers",
+      "map": "m_boss17.jkl",
+      "rule": "hit-what-you-see",
+      "candidate": "predictive heavy entry",
+      "comparator": "stock contact-heavy",
+      "kills_candidate_stock": [
+        3,
+        4
+      ],
+      "candidate_wins_draws_losses": [
+        1,
+        0,
+        1
+      ],
+      "kills_by_bout": [
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "matched_games": 2,
+      "owner_clock_rate_range": [
+        0.999,
+        1.0
+      ],
+      "added_rtt_ms": 80,
+      "owner_end_ping_median_range_ms": [
+        87.9,
+        99.75
+      ],
+      "confirmed_saber_contacts_candidate_stock": [
+        5,
+        7
+      ]
+    },
+    "classic-4x-primary_ff-sabers": {
+      "mode": "ff-sabers",
+      "map": "m_boss17.jkl",
+      "rule": "classic",
+      "candidate": "early-primary",
+      "comparator": "stock contact-heavy",
+      "kills_candidate_stock": [
+        10,
+        19
+      ],
+      "candidate_wins_draws_losses": [
+        0,
+        1,
+        3
+      ],
+      "kills_by_bout": [
+        [
+          3,
+          5
+        ],
+        [
+          3,
+          3
+        ],
+        [
+          2,
+          5
+        ],
+        [
+          2,
+          6
+        ]
+      ],
+      "matched_games": 4,
+      "owner_clock_rate_range": [
+        3.989,
+        4.023
+      ],
+      "added_rtt_ms": null,
+      "owner_end_ping_median_range_ms": null,
+      "confirmed_saber_contacts_candidate_stock": null
+    },
+    "classic-4x-primary_nf-sabers": {
+      "mode": "nf-sabers",
+      "map": "m_boss17.jkl",
+      "rule": "classic",
+      "candidate": "early-primary",
+      "comparator": "stock contact-heavy",
+      "kills_candidate_stock": [
+        5,
+        16
+      ],
+      "candidate_wins_draws_losses": [
+        0,
+        0,
+        4
+      ],
+      "kills_by_bout": [
+        [
+          0,
+          4
+        ],
+        [
+          1,
+          5
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          3,
+          4
+        ]
+      ],
+      "matched_games": 4,
+      "owner_clock_rate_range": [
+        3.989,
+        4.023
+      ],
+      "added_rtt_ms": null,
+      "owner_end_ping_median_range_ms": null,
+      "confirmed_saber_contacts_candidate_stock": null
+    },
+    "classic-1x-primary_ff-sabers": {
+      "mode": "ff-sabers",
+      "map": "m_boss17.jkl",
+      "rule": "classic",
+      "candidate": "early-primary",
+      "comparator": "stock contact-heavy",
+      "kills_candidate_stock": [
+        3,
+        11
+      ],
+      "candidate_wins_draws_losses": [
+        0,
+        0,
+        2
+      ],
+      "kills_by_bout": [
+        [
+          2,
+          5
+        ],
+        [
+          1,
+          6
+        ]
+      ],
+      "matched_games": 2,
+      "owner_clock_rate_range": [
+        1.0,
+        1.002
+      ],
+      "added_rtt_ms": null,
+      "owner_end_ping_median_range_ms": null,
+      "confirmed_saber_contacts_candidate_stock": null
+    },
+    "classic-1x-primary_nf-sabers": {
+      "mode": "nf-sabers",
+      "map": "m_boss17.jkl",
+      "rule": "classic",
+      "candidate": "early-primary",
+      "comparator": "stock contact-heavy",
+      "kills_candidate_stock": [
+        3,
+        5
+      ],
+      "candidate_wins_draws_losses": [
+        0,
+        0,
+        2
+      ],
+      "kills_by_bout": [
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "matched_games": 2,
+      "owner_clock_rate_range": [
+        0.999,
+        1.001
+      ],
+      "added_rtt_ms": null,
+      "owner_end_ping_median_range_ms": null,
+      "confirmed_saber_contacts_candidate_stock": null
+    },
+    "hwys-4x-surge_ff-sabers": {
+      "mode": "ff-sabers",
+      "map": "m_boss17.jkl",
+      "rule": "hit-what-you-see",
+      "candidate": "higher Surge pickup weight",
+      "comparator": "stock pickup weight",
+      "kills_candidate_stock": [
+        15,
+        18
+      ],
+      "candidate_wins_draws_losses": [
+        1,
+        1,
+        2
+      ],
+      "kills_by_bout": [
+        [
+          3,
+          3
+        ],
+        [
+          4,
+          5
+        ],
+        [
+          5,
+          4
+        ],
+        [
+          3,
+          6
+        ]
+      ],
+      "matched_games": 4,
+      "owner_clock_rate_range": [
+        3.993,
+        4.02
+      ],
+      "added_rtt_ms": null,
+      "owner_end_ping_median_range_ms": [
+        0.7,
+        0.85
+      ],
+      "confirmed_saber_contacts_candidate_stock": [
+        39,
+        43
+      ]
+    },
+    "hwys-1x-rtt80-surge_ff-sabers": {
+      "mode": "ff-sabers",
+      "map": "m_boss17.jkl",
+      "rule": "hit-what-you-see",
+      "candidate": "higher Surge pickup weight",
+      "comparator": "stock pickup weight",
+      "kills_candidate_stock": [
+        9,
+        7
+      ],
+      "candidate_wins_draws_losses": [
+        1,
+        0,
+        1
+      ],
+      "kills_by_bout": [
+        [
+          2,
+          3
+        ],
+        [
+          7,
+          4
+        ]
+      ],
+      "matched_games": 2,
+      "owner_clock_rate_range": [
+        1.0,
+        1.001
+      ],
+      "added_rtt_ms": 80,
+      "owner_end_ping_median_range_ms": [
+        83.55,
+        99.95
+      ],
+      "confirmed_saber_contacts_candidate_stock": [
+        22,
+        22
+      ]
+    }
+  },
+  "bouts": [
+    {
+      "label": "entry-blades-ff-1",
+      "mode": "ff-sabers",
+      "map": "m5.jkl",
+      "host": "lily",
+      "challenger": "lily",
+      "game_seconds": 100.0,
+      "wasm": {
+        "lily": "89f5253d4209956822ba3b95c241ddbc62291dac070db68517de86c99ce5f70f",
+        "biddy": "f7061744b1cebc484a529ffe286972ae26b8480d21920f1a47454df44bb4cf58"
+      },
+      "hit_rules": "hit-what-you-see",
+      "readbacks": {
+        "lily": [
+          "hit-what-you-see"
+        ],
+        "biddy": [
+          "hit-what-you-see"
+        ]
+      },
+      "requested_simulated_rtt_ms": 80,
+      "observed": {
+        "lily": {
+          "kills": 0,
+          "deaths": 0,
+          "world_epoch": 1,
+          "owner_clock_delta": 100.001,
+          "confirmed_pickup_bins": null
+        },
+        "biddy": {
+          "kills": 0,
+          "deaths": 1,
+          "world_epoch": 1,
+          "owner_clock_delta": 100.089,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "08250172593f0bc94555b87bd41ab16000f4ebc8917b6919058782e20cf422b3",
+      "ledger_sha256": "b2370742dcc63f8453bdede0f751e96f1fe28f01f73097f55b72f534fde1eda3"
+    },
+    {
+      "label": "entry-blades-ff-2",
+      "mode": "ff-sabers",
+      "map": "m5.jkl",
+      "host": "lily",
+      "challenger": "biddy",
+      "game_seconds": 100.0,
+      "wasm": {
+        "lily": "f7061744b1cebc484a529ffe286972ae26b8480d21920f1a47454df44bb4cf58",
+        "biddy": "89f5253d4209956822ba3b95c241ddbc62291dac070db68517de86c99ce5f70f"
+      },
+      "hit_rules": "hit-what-you-see",
+      "readbacks": {
+        "lily": [
+          "hit-what-you-see"
+        ],
+        "biddy": [
+          "hit-what-you-see"
+        ]
+      },
+      "requested_simulated_rtt_ms": 80,
+      "observed": {
+        "lily": {
+          "kills": 0,
+          "deaths": 0,
+          "world_epoch": 1,
+          "owner_clock_delta": 100.135,
+          "confirmed_pickup_bins": null
+        },
+        "biddy": {
+          "kills": 0,
+          "deaths": 0,
+          "world_epoch": 1,
+          "owner_clock_delta": 100.164,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "29ffa3e9870f1fb50c9bf04bb64d9e17d8259cede7c0fc7322a7c4be198b0fb8",
+      "ledger_sha256": "ab454819e206d6cccd58f0f139f2234d411c06ba982e86584a8730ee302d3015"
+    },
+    {
+      "label": "entry-fast-ff-1",
+      "mode": "ff-sabers",
+      "map": "m_boss17.jkl",
+      "host": "lily",
+      "challenger": "lily",
+      "game_seconds": 120.0,
+      "wasm": {
+        "lily": "5450795ac3d4f9a629f812be8b1a4ae4bda939884ff44096632f5313c9447e58",
+        "red": "21bc445f1a6fc570ad0709c2da419271ad86a1e8dc577e6acf82807895d4bac9"
+      },
+      "hit_rules": "hit-what-you-see",
+      "readbacks": {
+        "lily": [
+          "hit-what-you-see"
+        ],
+        "red": [
+          "hit-what-you-see"
+        ]
+      },
+      "requested_simulated_rtt_ms": null,
+      "observed": {
+        "lily": {
+          "kills": 2,
+          "deaths": 3,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.233,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 3,
+          "deaths": 2,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.3,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "42c16ff8b7c1ad81c5482c9933c98368efca10da9ff8941e65cff86b17f4b740",
+      "ledger_sha256": "d693cdf80d700a27f7069c09d0d6cca32f9e936ac9c87b8916a6a41e7d2a3512"
+    },
+    {
+      "label": "entry-fast-ff-2",
+      "mode": "ff-sabers",
+      "map": "m_boss17.jkl",
+      "host": "lily",
+      "challenger": "red",
+      "game_seconds": 120.0,
+      "wasm": {
+        "lily": "21bc445f1a6fc570ad0709c2da419271ad86a1e8dc577e6acf82807895d4bac9",
+        "red": "5450795ac3d4f9a629f812be8b1a4ae4bda939884ff44096632f5313c9447e58"
+      },
+      "hit_rules": "hit-what-you-see",
+      "readbacks": {
+        "lily": [
+          "hit-what-you-see"
+        ],
+        "red": [
+          "hit-what-you-see"
+        ]
+      },
+      "requested_simulated_rtt_ms": null,
+      "observed": {
+        "lily": {
+          "kills": 4,
+          "deaths": 3,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.867,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 3,
+          "deaths": 4,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.5,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "c1e0ea6ebb107402bcdb8418f98b819f047460adb18fa50870227efe031f1988",
+      "ledger_sha256": "ccca3003ee61512a805431aebbb753daaa395e751c8c9427a9eb794e5c9b9662"
+    },
+    {
+      "label": "entry-fast-ff-3",
+      "mode": "ff-sabers",
+      "map": "m_boss17.jkl",
+      "host": "red",
+      "challenger": "lily",
+      "game_seconds": 120.0,
+      "wasm": {
+        "lily": "5450795ac3d4f9a629f812be8b1a4ae4bda939884ff44096632f5313c9447e58",
+        "red": "21bc445f1a6fc570ad0709c2da419271ad86a1e8dc577e6acf82807895d4bac9"
+      },
+      "hit_rules": "hit-what-you-see",
+      "readbacks": {
+        "lily": [
+          "hit-what-you-see"
+        ],
+        "red": [
+          "hit-what-you-see"
+        ]
+      },
+      "requested_simulated_rtt_ms": null,
+      "observed": {
+        "lily": {
+          "kills": 5,
+          "deaths": 4,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.5,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 4,
+          "deaths": 5,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.166,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "01687df049a423f964b0dc804ab4cabb29f659a5596d9fc80eb4128dee3825f5",
+      "ledger_sha256": "4251e6f934f5a331b3b19cf555c839b3502466cd99d05d1fc5730e5b147879da"
+    },
+    {
+      "label": "entry-fast-ff-4",
+      "mode": "ff-sabers",
+      "map": "m_boss17.jkl",
+      "host": "red",
+      "challenger": "red",
+      "game_seconds": 120.0,
+      "wasm": {
+        "lily": "21bc445f1a6fc570ad0709c2da419271ad86a1e8dc577e6acf82807895d4bac9",
+        "red": "5450795ac3d4f9a629f812be8b1a4ae4bda939884ff44096632f5313c9447e58"
+      },
+      "hit_rules": "hit-what-you-see",
+      "readbacks": {
+        "lily": [
+          "hit-what-you-see"
+        ],
+        "red": [
+          "hit-what-you-see"
+        ]
+      },
+      "requested_simulated_rtt_ms": null,
+      "observed": {
+        "lily": {
+          "kills": 5,
+          "deaths": 4,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.367,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 4,
+          "deaths": 5,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.466,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "55bf45373f7ddf1b647cd55978c349ef5d8ff546c3f715f0aadb2631707a0cd9",
+      "ledger_sha256": "6e297d0b41e82262c8df67cc4a1f5697c3b2cf442c00271648ebe6fbecf8b2db"
+    },
+    {
+      "label": "entry-fast-nf-1",
+      "mode": "nf-sabers",
+      "map": "m_boss17.jkl",
+      "host": "lily",
+      "challenger": "lily",
+      "game_seconds": 120.0,
+      "wasm": {
+        "lily": "5450795ac3d4f9a629f812be8b1a4ae4bda939884ff44096632f5313c9447e58",
+        "red": "21bc445f1a6fc570ad0709c2da419271ad86a1e8dc577e6acf82807895d4bac9"
+      },
+      "hit_rules": "hit-what-you-see",
+      "readbacks": {
+        "lily": [
+          "hit-what-you-see"
+        ],
+        "red": [
+          "hit-what-you-see"
+        ]
+      },
+      "requested_simulated_rtt_ms": null,
+      "observed": {
+        "lily": {
+          "kills": 3,
+          "deaths": 2,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.633,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 2,
+          "deaths": 3,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.367,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "9ad7c3234a10879e077e345073d2e7daa31b13b7f608749a4c1eea9062673948",
+      "ledger_sha256": "aa3c9350ab5f8145ac826b72bb36a69ce3064ee5446250d89e4007c3ce4f0e0a"
+    },
+    {
+      "label": "entry-fast-nf-2",
+      "mode": "nf-sabers",
+      "map": "m_boss17.jkl",
+      "host": "lily",
+      "challenger": "red",
+      "game_seconds": 120.0,
+      "wasm": {
+        "lily": "21bc445f1a6fc570ad0709c2da419271ad86a1e8dc577e6acf82807895d4bac9",
+        "red": "5450795ac3d4f9a629f812be8b1a4ae4bda939884ff44096632f5313c9447e58"
+      },
+      "hit_rules": "hit-what-you-see",
+      "readbacks": {
+        "lily": [
+          "hit-what-you-see"
+        ],
+        "red": [
+          "hit-what-you-see"
+        ]
+      },
+      "requested_simulated_rtt_ms": null,
+      "observed": {
+        "lily": {
+          "kills": 2,
+          "deaths": 2,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.4,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 2,
+          "deaths": 2,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.367,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "796f0c76dfe61cd049a457f7bbd0dd50202d944acab733bfb762386b5196fdf9",
+      "ledger_sha256": "74f912140c966885e69507aba80793d8970391802624522c1d1c6e259881f360"
+    },
+    {
+      "label": "entry-fast-nf-3",
+      "mode": "nf-sabers",
+      "map": "m_boss17.jkl",
+      "host": "red",
+      "challenger": "lily",
+      "game_seconds": 120.0,
+      "wasm": {
+        "lily": "5450795ac3d4f9a629f812be8b1a4ae4bda939884ff44096632f5313c9447e58",
+        "red": "21bc445f1a6fc570ad0709c2da419271ad86a1e8dc577e6acf82807895d4bac9"
+      },
+      "hit_rules": "hit-what-you-see",
+      "readbacks": {
+        "lily": [
+          "hit-what-you-see"
+        ],
+        "red": [
+          "hit-what-you-see"
+        ]
+      },
+      "requested_simulated_rtt_ms": null,
+      "observed": {
+        "lily": {
+          "kills": 1,
+          "deaths": 2,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.134,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 2,
+          "deaths": 1,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.767,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "47d033549bb526edfb2406d21545b6afc519ce55fdd6310e19a79cca6b7bef8c",
+      "ledger_sha256": "5b6b8cf8c5331d13e87ac190644595ed7f3c3cef2fae9e64b67f15949f2bc078"
+    },
+    {
+      "label": "entry-fast-nf-4",
+      "mode": "nf-sabers",
+      "map": "m_boss17.jkl",
+      "host": "red",
+      "challenger": "red",
+      "game_seconds": 120.0,
+      "wasm": {
+        "lily": "21bc445f1a6fc570ad0709c2da419271ad86a1e8dc577e6acf82807895d4bac9",
+        "red": "5450795ac3d4f9a629f812be8b1a4ae4bda939884ff44096632f5313c9447e58"
+      },
+      "hit_rules": "hit-what-you-see",
+      "readbacks": {
+        "lily": [
+          "hit-what-you-see"
+        ],
+        "red": [
+          "hit-what-you-see"
+        ]
+      },
+      "requested_simulated_rtt_ms": null,
+      "observed": {
+        "lily": {
+          "kills": 2,
+          "deaths": 3,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.6,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 3,
+          "deaths": 2,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.233,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "86aa6eebebc2278d25061a7dfc212d926d087efd7f84a22be44a1134f12a4b32",
+      "ledger_sha256": "34e431c99af2b76816ddc9a9f9d27d457452a99650a7e7161bbf2aadfadc9bdd"
+    },
+    {
+      "label": "entry-lag-extra-nf-3",
+      "mode": "nf-sabers",
+      "map": "m_boss17.jkl",
+      "host": "red",
+      "challenger": "lily",
+      "game_seconds": 125.0,
+      "wasm": {
+        "lily": "89f5253d4209956822ba3b95c241ddbc62291dac070db68517de86c99ce5f70f",
+        "red": "f7061744b1cebc484a529ffe286972ae26b8480d21920f1a47454df44bb4cf58"
+      },
+      "hit_rules": "hit-what-you-see",
+      "readbacks": {
+        "lily": [
+          "hit-what-you-see"
+        ],
+        "red": [
+          "hit-what-you-see"
+        ]
+      },
+      "requested_simulated_rtt_ms": 80,
+      "observed": {
+        "lily": {
+          "kills": 4,
+          "deaths": 4,
+          "world_epoch": 1,
+          "owner_clock_delta": 125.067,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 4,
+          "deaths": 4,
+          "world_epoch": 1,
+          "owner_clock_delta": 125.135,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "26a0981e98eac1a3ac53f55157a7857e2c6d13cfd1b8d50f65269f2e9b639fb0",
+      "ledger_sha256": "054920a1bfe573b9115a1a2c6b3d68e8d852d747ab5c04aa372a0479e825de43"
+    },
+    {
+      "label": "entry-lag-extra-nf-4",
+      "mode": "nf-sabers",
+      "map": "m_boss17.jkl",
+      "host": "red",
+      "challenger": "red",
+      "game_seconds": 125.0,
+      "wasm": {
+        "lily": "f7061744b1cebc484a529ffe286972ae26b8480d21920f1a47454df44bb4cf58",
+        "red": "89f5253d4209956822ba3b95c241ddbc62291dac070db68517de86c99ce5f70f"
+      },
+      "hit_rules": "hit-what-you-see",
+      "readbacks": {
+        "lily": [
+          "hit-what-you-see"
+        ],
+        "red": [
+          "hit-what-you-see"
+        ]
+      },
+      "requested_simulated_rtt_ms": 80,
+      "observed": {
+        "lily": {
+          "kills": 2,
+          "deaths": 3,
+          "world_epoch": 1,
+          "owner_clock_delta": 125.068,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 3,
+          "deaths": 2,
+          "world_epoch": 1,
+          "owner_clock_delta": 125.069,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "34961ff4a36f8d68777ef61db20f6cbd61fd2bdd62dfee7f718b97963181a20d",
+      "ledger_sha256": "aae75008922cde3afce5b1d37cf192cde903dd7eae44df6a620f59180d417fbf"
+    },
+    {
+      "label": "entry-lag-ff-1",
+      "mode": "ff-sabers",
+      "map": "m_boss17.jkl",
+      "host": "lily",
+      "challenger": "lily",
+      "game_seconds": 100.0,
+      "wasm": {
+        "lily": "89f5253d4209956822ba3b95c241ddbc62291dac070db68517de86c99ce5f70f",
+        "red": "f7061744b1cebc484a529ffe286972ae26b8480d21920f1a47454df44bb4cf58"
+      },
+      "hit_rules": "hit-what-you-see",
+      "readbacks": {
+        "lily": [
+          "hit-what-you-see"
+        ],
+        "red": [
+          "hit-what-you-see"
+        ]
+      },
+      "requested_simulated_rtt_ms": 80,
+      "observed": {
+        "lily": {
+          "kills": 1,
+          "deaths": 3,
+          "world_epoch": 1,
+          "owner_clock_delta": 100.068,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 3,
+          "deaths": 1,
+          "world_epoch": 1,
+          "owner_clock_delta": 100.0,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "802249b708d45222f8288b0931e4fd853fd5fa7956aba49148f35d1b3a0842b7",
+      "ledger_sha256": "910dddd746e67ffeff1f80b4fd2a4579d9b364f624afd97792bcdff6cf66f872"
+    },
+    {
+      "label": "entry-lag-ff-2",
+      "mode": "ff-sabers",
+      "map": "m_boss17.jkl",
+      "host": "lily",
+      "challenger": "red",
+      "game_seconds": 100.0,
+      "wasm": {
+        "lily": "f7061744b1cebc484a529ffe286972ae26b8480d21920f1a47454df44bb4cf58",
+        "red": "89f5253d4209956822ba3b95c241ddbc62291dac070db68517de86c99ce5f70f"
+      },
+      "hit_rules": "hit-what-you-see",
+      "readbacks": {
+        "lily": [
+          "hit-what-you-see"
+        ],
+        "red": [
+          "hit-what-you-see"
+        ]
+      },
+      "requested_simulated_rtt_ms": 80,
+      "observed": {
+        "lily": {
+          "kills": 1,
+          "deaths": 2,
+          "world_epoch": 1,
+          "owner_clock_delta": 100.034,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 2,
+          "deaths": 1,
+          "world_epoch": 1,
+          "owner_clock_delta": 100.131,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "8b83718333fdc2fefbc63e11858a0163be52886f486bbf1efc225db4b74ba381",
+      "ledger_sha256": "51a2c5163e092826c83c315686add9ae0a9076e9d73b8741168ca3a9185d2c0c"
+    },
+    {
+      "label": "entry-lag-nf-1",
+      "mode": "nf-sabers",
+      "map": "m_boss17.jkl",
+      "host": "lily",
+      "challenger": "lily",
+      "game_seconds": 100.0,
+      "wasm": {
+        "lily": "89f5253d4209956822ba3b95c241ddbc62291dac070db68517de86c99ce5f70f",
+        "red": "f7061744b1cebc484a529ffe286972ae26b8480d21920f1a47454df44bb4cf58"
+      },
+      "hit_rules": "hit-what-you-see",
+      "readbacks": {
+        "lily": [
+          "hit-what-you-see"
+        ],
+        "red": [
+          "hit-what-you-see"
+        ]
+      },
+      "requested_simulated_rtt_ms": 80,
+      "observed": {
+        "lily": {
+          "kills": 3,
+          "deaths": 1,
+          "world_epoch": 1,
+          "owner_clock_delta": 100.199,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 1,
+          "deaths": 3,
+          "world_epoch": 1,
+          "owner_clock_delta": 100.199,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "0e65621cd828074ee988af637d48f7071f5b1b7e913c16f3e0f449cd875a58f9",
+      "ledger_sha256": "36c07c3d6aee0b45b9851892d994ee15cbd5ccda9d44c8f0e31b65cbbb487b70"
+    },
+    {
+      "label": "entry-lag-nf-2",
+      "mode": "nf-sabers",
+      "map": "m_boss17.jkl",
+      "host": "lily",
+      "challenger": "red",
+      "game_seconds": 100.0,
+      "wasm": {
+        "lily": "f7061744b1cebc484a529ffe286972ae26b8480d21920f1a47454df44bb4cf58",
+        "red": "89f5253d4209956822ba3b95c241ddbc62291dac070db68517de86c99ce5f70f"
+      },
+      "hit_rules": "hit-what-you-see",
+      "readbacks": {
+        "lily": [
+          "hit-what-you-see"
+        ],
+        "red": [
+          "hit-what-you-see"
+        ]
+      },
+      "requested_simulated_rtt_ms": 80,
+      "observed": {
+        "lily": {
+          "kills": 1,
+          "deaths": 2,
+          "world_epoch": 1,
+          "owner_clock_delta": 100.169,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 2,
+          "deaths": 1,
+          "world_epoch": 1,
+          "owner_clock_delta": 100.053,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "a2d4025b6a3d22600450c1a134a1a2536ff6e6a987d6e6022dce2ce355ed7d37",
+      "ledger_sha256": "41806b0f582dfae633a3b70bd08b065a5d00901166f9060f385aa6b0893f7cd4"
+    },
+    {
+      "label": "fast-ff-1",
+      "mode": "ff-sabers",
+      "map": "m_boss17.jkl",
+      "host": "lily",
+      "challenger": "lily",
+      "game_seconds": 120.0,
+      "wasm": {
+        "lily": "7f620463daf7963a47c3924aecf535a88f30e5713586708444b79561825ba4e9",
+        "red": "7f620463daf7963a47c3924aecf535a88f30e5713586708444b79561825ba4e9"
+      },
+      "hit_rules": "classic",
+      "readbacks": null,
+      "requested_simulated_rtt_ms": null,
+      "observed": {
+        "lily": {
+          "kills": 3,
+          "deaths": 5,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.366,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 5,
+          "deaths": 3,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.066,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "4f42a85e632b8170f96eef1406564f68fb8ff87727d8ab146f01036c9bf96491",
+      "ledger_sha256": null
+    },
+    {
+      "label": "fast-ff-2",
+      "mode": "ff-sabers",
+      "map": "m_boss17.jkl",
+      "host": "red",
+      "challenger": "lily",
+      "game_seconds": 120.0,
+      "wasm": {
+        "lily": "7f620463daf7963a47c3924aecf535a88f30e5713586708444b79561825ba4e9",
+        "red": "7f620463daf7963a47c3924aecf535a88f30e5713586708444b79561825ba4e9"
+      },
+      "hit_rules": "classic",
+      "readbacks": null,
+      "requested_simulated_rtt_ms": null,
+      "observed": {
+        "lily": {
+          "kills": 3,
+          "deaths": 3,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.9,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 3,
+          "deaths": 3,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.233,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "b1b2e589aac1c23d642c5d0e658591de95de5aea7d05b55c27b5d8d6e3a5c45c",
+      "ledger_sha256": null
+    },
+    {
+      "label": "fast-ff-3",
+      "mode": "ff-sabers",
+      "map": "m_boss17.jkl",
+      "host": "red",
+      "challenger": "red",
+      "game_seconds": 120.0,
+      "wasm": {
+        "lily": "7f620463daf7963a47c3924aecf535a88f30e5713586708444b79561825ba4e9",
+        "red": "7f620463daf7963a47c3924aecf535a88f30e5713586708444b79561825ba4e9"
+      },
+      "hit_rules": "classic",
+      "readbacks": null,
+      "requested_simulated_rtt_ms": null,
+      "observed": {
+        "lily": {
+          "kills": 5,
+          "deaths": 2,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.3,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 2,
+          "deaths": 5,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.534,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "12ca8fe9560384ecd3ecce103c2ca5c0af240b7ebf3c4bc92da398c50466d9f8",
+      "ledger_sha256": null
+    },
+    {
+      "label": "fast-ff-4",
+      "mode": "ff-sabers",
+      "map": "m_boss17.jkl",
+      "host": "lily",
+      "challenger": "red",
+      "game_seconds": 120.0,
+      "wasm": {
+        "lily": "7f620463daf7963a47c3924aecf535a88f30e5713586708444b79561825ba4e9",
+        "red": "7f620463daf7963a47c3924aecf535a88f30e5713586708444b79561825ba4e9"
+      },
+      "hit_rules": "classic",
+      "readbacks": null,
+      "requested_simulated_rtt_ms": null,
+      "observed": {
+        "lily": {
+          "kills": 6,
+          "deaths": 2,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.3,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 2,
+          "deaths": 6,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.467,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "6a95607258fa77c7642c3f823c17573580ed69b9d4fd250feed0a794c91ef916",
+      "ledger_sha256": null
+    },
+    {
+      "label": "fast-nf-1",
+      "mode": "nf-sabers",
+      "map": "m_boss17.jkl",
+      "host": "lily",
+      "challenger": "lily",
+      "game_seconds": 120.0,
+      "wasm": {
+        "lily": "7f620463daf7963a47c3924aecf535a88f30e5713586708444b79561825ba4e9",
+        "red": "7f620463daf7963a47c3924aecf535a88f30e5713586708444b79561825ba4e9"
+      },
+      "hit_rules": "classic",
+      "readbacks": null,
+      "requested_simulated_rtt_ms": null,
+      "observed": {
+        "lily": {
+          "kills": 0,
+          "deaths": 4,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.867,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 4,
+          "deaths": 0,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.6,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "ed0762bc25847c232e3b944ba03aeeff7d43dfd55eaaa78a05967ae2c6c29cb6",
+      "ledger_sha256": null
+    },
+    {
+      "label": "fast-nf-2",
+      "mode": "nf-sabers",
+      "map": "m_boss17.jkl",
+      "host": "red",
+      "challenger": "lily",
+      "game_seconds": 120.0,
+      "wasm": {
+        "lily": "7f620463daf7963a47c3924aecf535a88f30e5713586708444b79561825ba4e9",
+        "red": "7f620463daf7963a47c3924aecf535a88f30e5713586708444b79561825ba4e9"
+      },
+      "hit_rules": "classic",
+      "readbacks": null,
+      "requested_simulated_rtt_ms": null,
+      "observed": {
+        "lily": {
+          "kills": 1,
+          "deaths": 5,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.867,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 5,
+          "deaths": 1,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.7,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "eb9e0a0dc1b24223e395f5f20a052b51f07e75bd827137629fbbc0bd1c176b58",
+      "ledger_sha256": null
+    },
+    {
+      "label": "fast-nf-3",
+      "mode": "nf-sabers",
+      "map": "m_boss17.jkl",
+      "host": "red",
+      "challenger": "red",
+      "game_seconds": 120.0,
+      "wasm": {
+        "lily": "7f620463daf7963a47c3924aecf535a88f30e5713586708444b79561825ba4e9",
+        "red": "7f620463daf7963a47c3924aecf535a88f30e5713586708444b79561825ba4e9"
+      },
+      "hit_rules": "classic",
+      "readbacks": null,
+      "requested_simulated_rtt_ms": null,
+      "observed": {
+        "lily": {
+          "kills": 3,
+          "deaths": 1,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.567,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 1,
+          "deaths": 3,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.267,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "7a43e6a0cb66e590b555054d20a128f0b535777e4dd35456d90d6567adaf4bf8",
+      "ledger_sha256": null
+    },
+    {
+      "label": "fast-nf-4",
+      "mode": "nf-sabers",
+      "map": "m_boss17.jkl",
+      "host": "lily",
+      "challenger": "red",
+      "game_seconds": 120.0,
+      "wasm": {
+        "lily": "7f620463daf7963a47c3924aecf535a88f30e5713586708444b79561825ba4e9",
+        "red": "7f620463daf7963a47c3924aecf535a88f30e5713586708444b79561825ba4e9"
+      },
+      "hit_rules": "classic",
+      "readbacks": null,
+      "requested_simulated_rtt_ms": null,
+      "observed": {
+        "lily": {
+          "kills": 4,
+          "deaths": 3,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.5,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 3,
+          "deaths": 4,
+          "world_epoch": 1,
+          "owner_clock_delta": 120.0,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "f4c9074d5ced17be1511885915c3a69fd4438bc57a1655af66261fe65a106a51",
+      "ledger_sha256": null
+    },
+    {
+      "label": "ff-stock-stock",
+      "mode": "ff-sabers",
+      "map": "m_boss17.jkl",
+      "host": "red",
+      "challenger": null,
+      "game_seconds": 65.0,
+      "wasm": {
+        "lily": "09173ae997b43d339959692b0df387611ec4caa1aa3166cf70392d8ffb28f643",
+        "red": "09173ae997b43d339959692b0df387611ec4caa1aa3166cf70392d8ffb28f643"
+      },
+      "hit_rules": "classic",
+      "readbacks": null,
+      "requested_simulated_rtt_ms": null,
+      "observed": {
+        "lily": {
+          "kills": 3,
+          "deaths": 2,
+          "world_epoch": 1,
+          "owner_clock_delta": 65.2,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 2,
+          "deaths": 3,
+          "world_epoch": 1,
+          "owner_clock_delta": 65.199,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "8dae3c74c64f7e971936b57ef90f1cf009dfb95d7dd8d18ddd749c012d898410",
+      "ledger_sha256": null
+    },
+    {
+      "label": "holdout-ff-1",
+      "mode": "ff-sabers",
+      "map": "m_boss17.jkl",
+      "host": "lily",
+      "challenger": "lily",
+      "game_seconds": 90.0,
+      "wasm": {
+        "lily": "09173ae997b43d339959692b0df387611ec4caa1aa3166cf70392d8ffb28f643",
+        "red": "09173ae997b43d339959692b0df387611ec4caa1aa3166cf70392d8ffb28f643"
+      },
+      "hit_rules": "classic",
+      "readbacks": null,
+      "requested_simulated_rtt_ms": null,
+      "observed": {
+        "lily": {
+          "kills": 2,
+          "deaths": 5,
+          "world_epoch": 1,
+          "owner_clock_delta": 90.065,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 5,
+          "deaths": 2,
+          "world_epoch": 1,
+          "owner_clock_delta": 90.035,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "5dccf972006c75e76ac0ec8c2856c2d0f12837517b104b77d0aa943fd26ca8b6",
+      "ledger_sha256": null
+    },
+    {
+      "label": "holdout-ff-2",
+      "mode": "ff-sabers",
+      "map": "m_boss17.jkl",
+      "host": "lily",
+      "challenger": "red",
+      "game_seconds": 90.0,
+      "wasm": {
+        "lily": "09173ae997b43d339959692b0df387611ec4caa1aa3166cf70392d8ffb28f643",
+        "red": "09173ae997b43d339959692b0df387611ec4caa1aa3166cf70392d8ffb28f643"
+      },
+      "hit_rules": "classic",
+      "readbacks": {
+        "lily": [],
+        "red": []
+      },
+      "requested_simulated_rtt_ms": null,
+      "observed": {
+        "lily": {
+          "kills": 6,
+          "deaths": 1,
+          "world_epoch": 1,
+          "owner_clock_delta": 90.101,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 1,
+          "deaths": 6,
+          "world_epoch": 1,
+          "owner_clock_delta": 90.295,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "21dc48227cf233b68c921b141fbd707b54a3440ab4cca39e481996208c360614",
+      "ledger_sha256": null
+    },
+    {
+      "label": "holdout-nf-1",
+      "mode": "nf-sabers",
+      "map": "m_boss17.jkl",
+      "host": "lily",
+      "challenger": "lily",
+      "game_seconds": 90.0,
+      "wasm": {
+        "lily": "09173ae997b43d339959692b0df387611ec4caa1aa3166cf70392d8ffb28f643",
+        "red": "09173ae997b43d339959692b0df387611ec4caa1aa3166cf70392d8ffb28f643"
+      },
+      "hit_rules": "classic",
+      "readbacks": null,
+      "requested_simulated_rtt_ms": null,
+      "observed": {
+        "lily": {
+          "kills": 1,
+          "deaths": 2,
+          "world_epoch": 1,
+          "owner_clock_delta": 90.169,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 2,
+          "deaths": 1,
+          "world_epoch": 1,
+          "owner_clock_delta": 90.135,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "43401f4418512f42c8089ecd7f1527dc8a34b3145f41e56f7a81a8c63f633ccf",
+      "ledger_sha256": null
+    },
+    {
+      "label": "holdout-nf-2",
+      "mode": "nf-sabers",
+      "map": "m_boss17.jkl",
+      "host": "lily",
+      "challenger": "red",
+      "game_seconds": 90.0,
+      "wasm": {
+        "lily": "09173ae997b43d339959692b0df387611ec4caa1aa3166cf70392d8ffb28f643",
+        "red": "09173ae997b43d339959692b0df387611ec4caa1aa3166cf70392d8ffb28f643"
+      },
+      "hit_rules": "classic",
+      "readbacks": {
+        "lily": [],
+        "red": []
+      },
+      "requested_simulated_rtt_ms": null,
+      "observed": {
+        "lily": {
+          "kills": 3,
+          "deaths": 2,
+          "world_epoch": 1,
+          "owner_clock_delta": 90.035,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 2,
+          "deaths": 3,
+          "world_epoch": 1,
+          "owner_clock_delta": 90.168,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "15eeadcd264290e6a22ef9b9d8b39875c4680101bc748eff3bfcbce65e97120e",
+      "ledger_sha256": null
+    },
+    {
+      "label": "nf-stock-stock",
+      "mode": "nf-sabers",
+      "map": "m_boss17.jkl",
+      "host": "lily",
+      "challenger": null,
+      "game_seconds": 65.0,
+      "wasm": {
+        "lily": "09173ae997b43d339959692b0df387611ec4caa1aa3166cf70392d8ffb28f643",
+        "red": "09173ae997b43d339959692b0df387611ec4caa1aa3166cf70392d8ffb28f643"
+      },
+      "hit_rules": "classic",
+      "readbacks": null,
+      "requested_simulated_rtt_ms": null,
+      "observed": {
+        "lily": {
+          "kills": 4,
+          "deaths": 1,
+          "world_epoch": 1,
+          "owner_clock_delta": 65.2,
+          "confirmed_pickup_bins": null
+        },
+        "red": {
+          "kills": 1,
+          "deaths": 4,
+          "world_epoch": 1,
+          "owner_clock_delta": 65.101,
+          "confirmed_pickup_bins": null
+        }
+      },
+      "result_sha256": "b04b9e06eeb9121f224ca5fdef70df1edcb265403dd0d16020e7946b5417ad5e",
+      "ledger_sha256": null
+    },
+    {
+      "label": "surge-fast-ff-1",
+      "mode": "ff-sabers",
+      "map": "m_boss17.jkl",
+      "host": "lily",
+      "challenger": "lily",
+      "game_seconds": 160.0,
+      "wasm": {
+        "lily": "f75c9fed3dedb8ece94e3ca7035a24e9a97f0d22ac2005a13e65e722c2100a20",
+        "biddy": "74a7263e722e009c298027806baaafc073f5e3643dd3bffa65e3e2ae170f1cb2"
+      },
+      "hit_rules": "hit-what-you-see",
+      "readbacks": {
+        "lily": [
+          "hit-what-you-see"
+        ],
+        "biddy": [
+          "hit-what-you-see"
+        ]
+      },
+      "requested_simulated_rtt_ms": null,
+      "observed": {
+        "lily": {
+          "kills": 3,
+          "deaths": 3,
+          "world_epoch": 1,
+          "owner_clock_delta": 160.8,
+          "confirmed_pickup_bins": {
+            "14": 5
+          }
+        },
+        "biddy": {
+          "kills": 3,
+          "deaths": 3,
+          "world_epoch": 1,
+          "owner_clock_delta": 160.166,
+          "confirmed_pickup_bins": {
+            "14": 6,
+            "65": 1
+          }
+        }
+      },
+      "result_sha256": "223000a87d82f748a68bdd746b761943ab4a36cc9bd929bd69b3c0af16075ec8",
+      "ledger_sha256": "e69c9b0a7d910777af48755be1a6cfd3add074a6f7cba33201a054755703534d"
+    },
+    {
+      "label": "surge-fast-ff-2",
+      "mode": "ff-sabers",
+      "map": "m_boss17.jkl",
+      "host": "lily",
+      "challenger": "biddy",
+      "game_seconds": 160.0,
+      "wasm": {
+        "lily": "74a7263e722e009c298027806baaafc073f5e3643dd3bffa65e3e2ae170f1cb2",
+        "biddy": "f75c9fed3dedb8ece94e3ca7035a24e9a97f0d22ac2005a13e65e722c2100a20"
+      },
+      "hit_rules": "hit-what-you-see",
+      "readbacks": {
+        "lily": [
+          "hit-what-you-see"
+        ],
+        "biddy": [
+          "hit-what-you-see"
+        ]
+      },
+      "requested_simulated_rtt_ms": null,
+      "observed": {
+        "lily": {
+          "kills": 5,
+          "deaths": 4,
+          "world_epoch": 1,
+          "owner_clock_delta": 160.4,
+          "confirmed_pickup_bins": {
+            "14": 2
+          }
+        },
+        "biddy": {
+          "kills": 4,
+          "deaths": 5,
+          "world_epoch": 1,
+          "owner_clock_delta": 160.134,
+          "confirmed_pickup_bins": {
+            "14": 4,
+            "65": 2
+          }
+        }
+      },
+      "result_sha256": "fa0eb773634559f536f86544dbb4e4d7373ed64f9abf01c24e0a8cf4fc88229c",
+      "ledger_sha256": "71eb1f15c19a245980e61ed9fb2b910973bb4a83c481196ccea6166b84d12c66"
+    },
+    {
+      "label": "surge-fast-ff-3",
+      "mode": "ff-sabers",
+      "map": "m_boss17.jkl",
+      "host": "biddy",
+      "challenger": "lily",
+      "game_seconds": 160.0,
+      "wasm": {
+        "lily": "f75c9fed3dedb8ece94e3ca7035a24e9a97f0d22ac2005a13e65e722c2100a20",
+        "biddy": "74a7263e722e009c298027806baaafc073f5e3643dd3bffa65e3e2ae170f1cb2"
+      },
+      "hit_rules": "hit-what-you-see",
+      "readbacks": {
+        "lily": [
+          "hit-what-you-see"
+        ],
+        "biddy": [
+          "hit-what-you-see"
+        ]
+      },
+      "requested_simulated_rtt_ms": null,
+      "observed": {
+        "lily": {
+          "kills": 5,
+          "deaths": 4,
+          "world_epoch": 1,
+          "owner_clock_delta": 161.234,
+          "confirmed_pickup_bins": {
+            "14": 4
+          }
+        },
+        "biddy": {
+          "kills": 4,
+          "deaths": 5,
+          "world_epoch": 1,
+          "owner_clock_delta": 160.567,
+          "confirmed_pickup_bins": {
+            "14": 4,
+            "65": 2
+          }
+        }
+      },
+      "result_sha256": "7a803f5db1eb2339edd71af05d171547034e329949874be91ad2492c713f894a",
+      "ledger_sha256": "3fbba66c787124dffa50eb9a0d54dded1776cccaf1038c775fef6d5fe28467e3"
+    },
+    {
+      "label": "surge-fast-ff-4",
+      "mode": "ff-sabers",
+      "map": "m_boss17.jkl",
+      "host": "biddy",
+      "challenger": "biddy",
+      "game_seconds": 160.0,
+      "wasm": {
+        "lily": "74a7263e722e009c298027806baaafc073f5e3643dd3bffa65e3e2ae170f1cb2",
+        "biddy": "f75c9fed3dedb8ece94e3ca7035a24e9a97f0d22ac2005a13e65e722c2100a20"
+      },
+      "hit_rules": "hit-what-you-see",
+      "readbacks": {
+        "lily": [
+          "hit-what-you-see"
+        ],
+        "biddy": [
+          "hit-what-you-see"
+        ]
+      },
+      "requested_simulated_rtt_ms": null,
+      "observed": {
+        "lily": {
+          "kills": 6,
+          "deaths": 3,
+          "world_epoch": 1,
+          "owner_clock_delta": 160.534,
+          "confirmed_pickup_bins": {
+            "14": 4
+          }
+        },
+        "biddy": {
+          "kills": 3,
+          "deaths": 6,
+          "world_epoch": 1,
+          "owner_clock_delta": 161.3,
+          "confirmed_pickup_bins": {
+            "14": 4,
+            "65": 2
+          }
+        }
+      },
+      "result_sha256": "034d616c8a39c50b5d17de1ae234d8ab1a7c86ac737c51d01c07057572c367f3",
+      "ledger_sha256": "8a1c17ccea7afb2858c79e3d7714778471b1ce930d5e28551429e6e57d127a2b"
+    },
+    {
+      "label": "surge-lag-ff-1",
+      "mode": "ff-sabers",
+      "map": "m_boss17.jkl",
+      "host": "lily",
+      "challenger": "lily",
+      "game_seconds": 140.0,
+      "wasm": {
+        "lily": "3112124c0bf4b059babb34ac863c19085877c32c9951bf7dc1900b731c1dbbf2",
+        "biddy": "1f6abde43e078c3da682243bb0b92d003d9b90fcf0dbbeaa4fed486c0c2968bb"
+      },
+      "hit_rules": "hit-what-you-see",
+      "readbacks": {
+        "lily": [
+          "hit-what-you-see"
+        ],
+        "biddy": [
+          "hit-what-you-see"
+        ]
+      },
+      "requested_simulated_rtt_ms": 80,
+      "observed": {
+        "lily": {
+          "kills": 2,
+          "deaths": 3,
+          "world_epoch": 1,
+          "owner_clock_delta": 140.152,
+          "confirmed_pickup_bins": {
+            "14": 3
+          }
+        },
+        "biddy": {
+          "kills": 3,
+          "deaths": 2,
+          "world_epoch": 1,
+          "owner_clock_delta": 140.218,
+          "confirmed_pickup_bins": {
+            "14": 2,
+            "65": 3
+          }
+        }
+      },
+      "result_sha256": "4a6cc386050228d2dd2da6c31fbc5e9b7837e7b7461d90ecdc4d6c2f19df62de",
+      "ledger_sha256": "13832dc41489ff38acc0910cc10257646eb14b7e3fda40c0650ec23790175a30"
+    },
+    {
+      "label": "surge-lag-ff-2",
+      "mode": "ff-sabers",
+      "map": "m_boss17.jkl",
+      "host": "lily",
+      "challenger": "biddy",
+      "game_seconds": 140.0,
+      "wasm": {
+        "lily": "1f6abde43e078c3da682243bb0b92d003d9b90fcf0dbbeaa4fed486c0c2968bb",
+        "biddy": "3112124c0bf4b059babb34ac863c19085877c32c9951bf7dc1900b731c1dbbf2"
+      },
+      "hit_rules": "hit-what-you-see",
+      "readbacks": {
+        "lily": [
+          "hit-what-you-see"
+        ],
+        "biddy": [
+          "hit-what-you-see"
+        ]
+      },
+      "requested_simulated_rtt_ms": 80,
+      "observed": {
+        "lily": {
+          "kills": 4,
+          "deaths": 7,
+          "world_epoch": 1,
+          "owner_clock_delta": 140.019,
+          "confirmed_pickup_bins": {
+            "14": 2
+          }
+        },
+        "biddy": {
+          "kills": 7,
+          "deaths": 4,
+          "world_epoch": 1,
+          "owner_clock_delta": 140.085,
+          "confirmed_pickup_bins": {
+            "14": 3,
+            "65": 1
+          }
+        }
+      },
+      "result_sha256": "15adb55f05a502ea4815671521767a00360d8e42882b5ab2f9bbc8aa49b43682",
+      "ledger_sha256": "4a8046e20b110555000ff0f32978bd0b201227ed6425f3935cc8e64fdf58d871"
+    }
+  ],
+  "outcome_order": "Candidate, then comparator. A player kill can come from a saber or a Force power in FF.",
+  "qualification": "Private browser self-play. The four stock-era videos inspired movement and resource hypotheses. No human Elo or public WAN performance was measured."
+}

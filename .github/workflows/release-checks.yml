@@ -53,7 +53,7 @@ jobs:
         run: >-
           python -m unittest tests.test_container_runtime tests.test_platform_releases
           tests.test_release_packaging tests.test_updater tests.test_updates
-          tests.test_spectator tests.test_spectator_geometry tests.test_bots
+          tests.test_spectator tests.test_spectator_geometry tests.test_spectator_roster tests.test_bots
           tests.test_bot_manager tests.test_native_custom_episode tests.test_content_ctf -v
       - name: Browser controls and DirectPlay protocol
         run: |

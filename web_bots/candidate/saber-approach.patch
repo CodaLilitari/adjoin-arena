@@ -1,0 +1,39 @@
+--- a/src/AI/jkBotCombat.inc
++++ b/src/AI/jkBotCombat.inc
+@@ -324,10 +324,22 @@
+ static int Bot_SaberHeavy(SithThing *self,SithThing *target,flex_t distance)
+ {
+     flex_t body=Bot_Clamp(self->collideSize+target->collideSize,0.08f,0.20f), contact=body+0.10f;
+-    if (distance>contact) return -1;
+-    if ((self->puppet && self->puppet->majorMode==5) || (self->physicsParams.flags&SITH_PF_ONWATERSURFACE) ||
+-        (self->sector && (self->sector->flags&SITH_SECTOR_UNDERWATER))) return 0;
++    int swimming=(self->puppet && self->puppet->majorMode==5) || (self->physicsParams.flags&SITH_PF_ONWATERSURFACE) ||
++        (self->sector && (self->sector->flags&SITH_SECTOR_UNDERWATER));
+     rdVector3 delta=Bot_Sub(target->position,self->position), relative=Bot_Sub(target->physicsParams.vel,self->physicsParams.vel);
++    if (distance>contact) {
++        /* Stock secondary first deals damage a third of a second after input.
++           Keep guard unless observed closing motion brings the opponent
++           within reach during the early part of that window. */
++        if (!bot.sabersOnly || swimming) return -1;
++        flex_t speed2=Bot_Dot(relative,relative), closing=-Bot_Dot(delta,relative);
++        if (!(speed2>0.001f && closing>0.0f)) return -1;
++        flex_t t=Bot_Clamp(closing/speed2,0.33f,0.55f);
++        rdVector3 at={delta.x+t*relative.x,delta.y+t*relative.y,delta.z+t*relative.z};
++        if (fabsf(at.z)>body || !(Bot_Len(at)<=contact) || Bot_ProtectedNear(self,self->position,0.65f)) return -1;
++        return 2;
++    }
++    if (swimming) return 0;
+     rdVector3 later={delta.x+0.35f*relative.x,delta.y+0.35f*relative.y,delta.z+0.35f*relative.z};
+     if (fabsf(later.z)>body || Bot_Len(later)>contact+0.05f || Bot_ProtectedNear(self,self->position,0.65f)) return 0;
+     return 1;
+@@ -374,7 +386,9 @@
+            the guard stays up. */
+         int heavy=Bot_SaberHeavy(self,target,distance);
+         if (heavy<0) return;
+-        alternate=heavy;
++        if (heavy==2 && !bot.previous[INPUT_FUNC_FIRE1] && !bot.previous[INPUT_FUNC_FIRE2])
++            printf("BOT_SABER_ENTRY t=%.3f distance=%.3f\n",(double)bot.now,(double)distance);
++        alternate=heavy!=0;
+     } else if (weapon==SITHBIN_LIGHTSABER && bot.elite && !bot.sabersOnly) {
+         /* Pressing either trigger disables stock autoblock. Hold guard when
+            outside ordinary contact, including while closing on a light blaster. */

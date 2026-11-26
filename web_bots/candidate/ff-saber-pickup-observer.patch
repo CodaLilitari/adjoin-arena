@@ -1,0 +1,27 @@
+--- a/src/AI/jkBotLily.inc
++++ b/src/AI/jkBotLily.inc
+@@ -157,8 +157,22 @@
+    Check the routed item's identity before destruction or slot reuse. */
+ void jkBot_ObserveItemTaken(SithThing *player, const SithThing *item)
+ {
+-    if (!Lily_Routing() || !player || player != sithPlayer_g_pLocalPlayerThing ||
+-        bot.world != sithWorld_g_pCurrentWorld || !item || lily.active.pickupIndex < 0 ||
++    if (!player || player!=sithPlayer_g_pLocalPlayerThing || !item || !bot.world ||
++        bot.world!=sithWorld_g_pCurrentWorld) return;
++    /* The local stock TAKEN acknowledgment fires before the pickup COG.
++       Inventory here is the owner's state before the effect. */
++    if (bot.enabled && bot.sabersOnly && bot.forceEnabled && !nav.ctf &&
++        !(sithNet_MultiModeFlags&MULTIMODEFLAG_TEAMS) && sithInventory_GetInventory(player,SITHBIN_JEDI_RANK)==8) {
++        BotPickupKind pickup=Bot_PickupType((SithThing *)item);
++        if (pickup.kind==BOT_ITEM_MANA || pickup.kind==BOT_ITEM_LIGHT || pickup.kind==BOT_ITEM_DARK) {
++            printf("BOT_FF_PICKUP_TAKEN name=%s slot=%d world=%u life=%u t=%.3f item=%u guid=%u signature=%u "
++                   "bin=%d alignment=%.0f mana_before=%.1f\n",bot.name,playerThingIdx,
++                   companion.world,companion.life,(double)bot.now,item->idx,item->guid,item->signature,pickup.bin,
++                   (double)sithInventory_GetInventory(player,SITHBIN_ALIGNMENT),
++                   (double)sithInventory_GetInventory(player,SITHBIN_FORCEMANA));
++        }
++    }
++    if (!Lily_Routing() || lily.active.pickupIndex < 0 ||
+         item != Bot_NavThing(lily.active.pickupIndex) ||
+         item->guid != lily.active.pickupGuid || item->signature != lily.active.pickupSignature) return;
+     Lily_Finish(&lily.active, LILY_COMPLETED, 0, LILY_COLLECTED);

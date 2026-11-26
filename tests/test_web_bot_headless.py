@@ -35,6 +35,14 @@ class Validation(unittest.TestCase):
         join = self.parse("join", "--relay", LOCAL, "--room-id", "23", *self.common())
         self.assertFalse(join.companion_chat or join.no_taunts)
         self.assertFalse(hasattr(join, "private_duels"))
+        self.assertFalse(hasattr(join, "hit_rules"))
+        self.assertEqual(args.hit_rules, "classic")
+        hwys = self.parse("host", "--relay", LOCAL, "--hit-rules", "hit-what-you-see", *self.common())
+        self.assertEqual(hwys.hit_rules, "hit-what-you-see")
+        self.assertFalse(args.nf_saber_entry or join.nf_saber_entry)
+        for options in (("host",), ("join", "--room-id", "23")):
+            opted = self.parse(*options, "--relay", LOCAL, "--nf-saber-entry", *self.common())
+            self.assertTrue(opted.nf_saber_entry)
 
     def parse(self, *argv):
         parser = H.build_parser()

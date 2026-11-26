@@ -1,0 +1,97 @@
+--- a/src/AI/jkBot.c
++++ b/src/AI/jkBot.c
+@@ -265,25 +265,50 @@
+     return clear;
+ }
+ 
+-static int Bot_Floor(rdVector3 p, SithSector *hint, flex_t depth,
+-                     rdVector3 *standing, SithSector **outSector)
++/* A shallow water bed can carry a standing player with the player's origin in
++   air. Require a measured dry-to-water crossing and a solid, walkable bottom.
++   BGJ's shallow channel is 0.031 units deep; ordinary standing foot height
++   is 0.120. Half a foot height leaves clearance for a dry body on slopes. */
++static int Bot_ShallowBed(SithSurface *s, flex_t immersion, SithSector *body)
++{
++    const int mask=SITH_SURFACE_FLOOR|SITH_SURFACE_HAS_COLLISION|SITH_SURFACE_WATER;
++    const int unstable=SITH_SECTOR_USETHRUST|SITH_SECTOR_NOGRAVITY;
++    return s && !s->pAdjoin && (s->flags&mask)==mask &&
++        !(s->flags&(SITH_SURFACE_VERYDEEPWATER|SITH_SURFACE_ICY|SITH_SURFACE_VERYICY)) &&
++        Bot_SectorSafe(s->pSector) && (s->pSector->flags&SITH_SECTOR_UNDERWATER) &&
++        !(s->pSector->flags&unstable) && Bot_SectorSafe(body) &&
++        !(body->flags&(unstable|SITH_SECTOR_UNDERWATER)) &&
++        immersion>=0.0f && immersion<=BOT_FOOT_HEIGHT*0.5f;
++}
++
++static int Bot_FloorHit(rdVector3 p, SithSector *hint, flex_t depth,
++                        rdVector3 *standing, SithSector **outSector, SithSurface *required)
+ {
+     rdVector3 down={0,0,-1};
+     SithCollision *hit;
+     SithSector *sector=Bot_SectorAt(&p,hint);
+     int found=0;
++    flex_t waterEntry=-1.0f;
+     if (!Bot_SectorSafe(sector)) return 0;
+     /* A stationary mesh can overhang its owner sector across an adjoin. */
+     sithCollision_SearchForCollisions(sector,NULL,&p,&down,depth,0.0f,
+         RAYCAST_200|RAYCAST_800|RAYCAST_2000);
+     while ((hit=sithCollision_PopStack())!=NULL) {
+-        if ((hit->type&SITHCOLLISION_ADJOINCROSS) && hit->surface &&
+-            hit->surface->pAdjoin && !Bot_SectorSafe(hit->surface->pAdjoin->sector)) break;
++        if ((hit->type&SITHCOLLISION_ADJOINCROSS) && hit->surface && hit->surface->pAdjoin) {
++            SithSector *from=hit->surface->pSector, *to=hit->surface->pAdjoin->sector;
++            if (!Bot_SectorSafe(to)) break;
++            if (!(to->flags&SITH_SECTOR_UNDERWATER) ||
++                ((from->flags|to->flags)&(SITH_SECTOR_USETHRUST|SITH_SECTOR_NOGRAVITY)))
++                waterEntry=-1.0f;
++            else if (!(from->flags&SITH_SECTOR_UNDERWATER))
++                waterEntry=hit->distance;
++        }
+         SithSector *supportSector=NULL;
++        SithSurface *surface=NULL;
+         if (hit->type&SITHCOLLISION_WORLD) {
+-            if (!hit->surface || hit->hitNorm.z<0.55f ||
+-                (hit->surface->flags&(SITH_SURFACE_WATER|SITH_SURFACE_VERYDEEPWATER))) break;
+-            supportSector=hit->surface->pSector;
++            surface=hit->surface;
++            if (!surface || hit->hitNorm.z<0.55f || (surface->flags&SITH_SURFACE_VERYDEEPWATER)) break;
++            supportSector=surface->pSector;
+         } else if ((hit->type&SITHCOLLISION_THING) && Bot_StaticFixture(hit->pThingCollided)) {
+             /* Stock catwalks/crates can be mesh COGs with no travel frames. */
+             if (hit->hitNorm.z<0.55f) continue;
+@@ -293,10 +318,19 @@
+         /* The standing point can belong to the adjacent sector even when
+            its support fixture is stored in the other sector's thing list. */
+         *outSector=Bot_SectorAt(standing,supportSector);
++        if (required && surface!=required) break;
++        if (surface && (surface->flags&SITH_SURFACE_WATER) &&
++            (waterEntry<0.0f || !Bot_ShallowBed(surface,hit->distance-waterEntry,*outSector))) break;
+         found=Bot_SectorSafe(*outSector); break;
+     }
+     sithCollision_DecreaseStackLevel();
+     return found;
++}
++
++static int Bot_Floor(rdVector3 p, SithSector *hint, flex_t depth,
++                     rdVector3 *standing, SithSector **outSector)
++{
++    return Bot_FloorHit(p,hint,depth,standing,outSector,NULL);
+ }
+ 
+ static int Bot_ForceReady(SithThing *self,int bin,flex_t cost);
+@@ -526,8 +560,15 @@
+         (self->actorParams.flags&SITH_AF_IMMOBILE) ||
+         (self->sector->flags&(SITH_SECTOR_UNDERWATER|SITH_SECTOR_USETHRUST|SITH_SECTOR_NOGRAVITY)) ||
+         ((self->attach_flags&SITH_ATTACH_SURFACE) && self->attachedSurface &&
+-         (self->attachedSurface->flags&(SITH_SURFACE_WATER|SITH_SURFACE_VERYDEEPWATER|
++         (self->attachedSurface->flags&(SITH_SURFACE_VERYDEEPWATER|
+                                         SITH_SURFACE_ICY|SITH_SURFACE_VERYICY)))) return 0;
++    if ((self->attach_flags&SITH_ATTACH_SURFACE) && self->attachedSurface &&
++        (self->attachedSurface->flags&SITH_SURFACE_WATER)) {
++        rdVector3 probe=self->position, standing; SithSector *body;
++        probe.z+=0.02f;
++        if (!Bot_FloorHit(probe,self->sector,BOT_FOOT_HEIGHT+0.06f,&standing,&body,self->attachedSurface))
++            return 0;
++    }
+     flex_t top=thrust*(run ? 2.0f : 1.0f)*(diagonal ? BOT_DIAGONAL_GAIN : 1.0f)/drag;
+     flex_t speed=Bot_Max(top,Bot_Horizontal(self->physicsParams.vel));
+     return Bot_Clamp(0.25f+speed/drag,0.45f,2.0f);

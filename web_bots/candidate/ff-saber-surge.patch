@@ -1,0 +1,16 @@
+--- a/src/AI/jkBotNavigation.inc
++++ b/src/AI/jkBotNavigation.inc
+@@ -1306,7 +1306,12 @@
+         case BOT_ITEM_LIGHT:
+         case BOT_ITEM_DARK:
+             if (bot.forceEnabled && quantity<1 && sithInventory_GetInventory(self,SITHBIN_JEDI_RANK)>0 &&
+-                ((sithInventory_GetInventory(self,SITHBIN_ALIGNMENT)>=0)==(pickup.kind==BOT_ITEM_LIGHT))) value=7.0f;
++                ((sithInventory_GetInventory(self,SITHBIN_ALIGNMENT)>=0)==(pickup.kind==BOT_ITEM_LIGHT))) {
++                value=7.0f;
++                /* Prioritize a present, own-side Surge between full-Force saber fights. */
++                if (bot.sabersOnly && !nav.ctf && !(sithNet_MultiModeFlags&MULTIMODEFLAG_TEAMS) &&
++                    availability==1.0f && sithInventory_GetInventory(self,SITHBIN_JEDI_RANK)==8) value=14.0f;
++            }
+             break;
+         case BOT_ITEM_DAMAGE:
+             if (quantity<2) value=6.5f;

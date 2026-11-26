@@ -31,6 +31,8 @@ from bots.companion import ACK, HEADER, KINDS, LILY_COMMANDS, LILY_EVENTS, UINT_
 HERE = Path(__file__).resolve().parent
 ASSETS = ("resource/Res1hi.gob", "resource/Res2.gob", "resource/jk_.cd", "episode/JK1MP.gob")
 ARENA_MODES = ("ff-guns", "ff-sabers", "nf-guns", "nf-sabers")
+HIT_RULES = ("classic", "hit-what-you-see")
+NF_SABER_ENTRY_HELP = "Try a predictive secondary saber swing against compatible Hit what you see peers in no-Force saber play."
 SEATS = {
     "lily": ("Darth_Lilitari", "ky.3do", "ky.snd", "dark"),
     "boba": ("Bot_BobaFett", "kyh4.3do", "kybobafett.snd", "dark"),
@@ -50,12 +52,13 @@ ROOM_PLAYERS = {
 # owner's private files): each seat wears its own body when the GOB carries it,
 # and keeps its stock Kyle variant otherwise.
 ROSTER_MODELS = {
-    "lily": ("dlil.3do", "dlil.snd"),
-    "lilivane": ("lvane.3do", "kyfemale.snd"),
-    "biddy": ("biddybl.3do", "biddybl.snd"),
-    "t800": ("t800hy4.3do", "ky.snd"),
-    "red": ("redmando.3do", "kyfemale.snd"),
-    "crownbraid": ("redmandoh.3do", "kyfemale.snd"),
+    # Model, optional custom voice, stock voice used by older skin packs.
+    "lily": ("dlil.3do", "dlil.snd", "ky.snd"),
+    "lilivane": ("lvane.3do", "lvvoice.snd", "kyfemale.snd"),
+    "biddy": ("biddybl.3do", "biddybl.snd", "ky.snd"),
+    "t800": ("t800hy4.3do", "t8voice.snd", "ky.snd"),
+    "red": ("redmando.3do", None, "kyfemale.snd"),
+    "crownbraid": ("redmandoh.3do", None, "kyfemale.snd"),
 }
 # Browser-only characters supplement the native roster's existing dialogue.
 VISITOR_LINES = {
@@ -122,10 +125,8 @@ def seat_character(ident, gob_files=frozenset()):
     name, model, sound, side = ROOM_PLAYERS[ident]
     body = ROSTER_MODELS.get(ident)
     if body and body[0] in gob_files:
-        model = body[0]
-        # Stock voices (ky.snd, kyfemale.snd) are in every install; a custom one must be in the GOB.
-        if body[1] in gob_files or body[1] in ("ky.snd", "kyfemale.snd"):
-            sound = body[1]
+        model, custom_voice, stock_voice = body
+        sound = custom_voice if custom_voice in gob_files else stock_voice
     return name, model, sound, side
 
 
@@ -190,11 +191,15 @@ def child_relay(path):
 class Host:
     def __init__(self, data, engine, runtime, room, model, chat, mode="ff-guns", *, adaptive_lily=False, external=None,
                  hosted=None, red_sabers=("lily",), taunts=True, private_duels=False, learn_navigation=True,
-                 practice_rate=None):
+                 practice_rate=None, hit_rules=None, nf_saber_entry=False):
         if mode not in ARENA_MODES:
             raise ValueError("Unknown arena mode. Choose one of " + ", ".join(ARENA_MODES) + ".")
         if external and hosted:
             raise ValueError("A seat either joins a listed room or hosts one.")
+        if hit_rules is not None and (external or hit_rules not in HIT_RULES):
+            raise ValueError("Only a host can select Classic or Hit what you see.")
+        self.hit_rules = None if external else hit_rules or "classic"
+        self.nf_saber_entry = nf_saber_entry
         self.mode = mode
         self.external = external
         self.taunts = taunts
@@ -272,6 +277,8 @@ class Host:
             "adaptive_lily":bool("lily" in self.seats and self.hub.bots["lily"].adaptive_lily),
             **({"external":self.external.public()} if self.external else {}),
             **({"hosted":self.hosted.public()} if self.hosted else {}),
+            "nf_saber_entry":self.nf_saber_entry,
+            **({"requested_hit_rules":self.hit_rules} if self.hit_rules else {}),
             "pages":{i:self.url+"/bot/"+i for i in self.seats}, "companion":self.hub.url,
             "engine_credentials":"engines","companion_credentials":"companion"})
 
@@ -400,7 +407,7 @@ class Host:
                 seat.update(world_base=bot.world,seq_base=bot.event_seq)
                 bot.reset_state()
             self.channels[ident].outgoing_frames()
-            seat.update(instance=body["instance"],cookie=secrets.token_urlsafe(24),stage="boot",graphics=None,view=None)
+            seat.update(instance=body["instance"],cookie=secrets.token_urlsafe(24),stage="boot",graphics=None,view=None,hit_rules=None)
         seat["poll"] = time.monotonic()
         name,model,sound,side = seat_character(ident, self.gob_models)
         memory = await asyncio.to_thread(self.open_navigation, ident)
@@ -419,6 +426,8 @@ class Host:
             "mod":self.model,"env":{"JK_BOT_WEB_ROLE":"external" if self.external else role,"JK_BOT_WEB_ROOM":self.room,"JK_BOT_WEB_MODE":self.mode,
                 "JK_BOT_TAUNTS":"1" if self.taunts else "0",
                 "JK_BOT_PRIVATE_DUELS":"1" if self.private_duels and not self.external and role=="host" else "0",
+                **({"JK_BOT_WEB_HIT_RULES":self.hit_rules} if self.hit_rules and role=="host" else {}),
+                **({"JK_BOT_WEB_NF_SABER_ENTRY":"1"} if self.nf_saber_entry else {}),
                 **({"JK_BOT_LILY":"1"} if self.hub.bots[ident].adaptive_lily else {}),
                 **({"JK_BOT_WEB_EPISODE":self.external.episode,"JK_BOT_WEB_MAP":self.external.level} if self.external else {}),
                 **({"JK_BOT_WEB_MAX_PLAYERS":str(self.hosted.max_players),"JK_BOT_WEB_EPISODE":self.hosted.episode,
@@ -471,9 +480,12 @@ class Host:
     async def frames(self, request):
         ident=request.match_info["ident"]
         msg=await self.body(request)
-        if set(msg)-{"instance","frames","graphics","stage","dropped","navigation_dropped","view"} or not {"instance","frames"}<=msg.keys():
+        if set(msg)-{"instance","frames","graphics","stage","dropped","navigation_dropped","view","hit_rules"} or not {"instance","frames"}<=msg.keys():
             raise web.HTTPBadRequest()
         seat=self.session(ident,msg["instance"])
+        hit_rules=msg.get("hit_rules")
+        if hit_rules is not None and hit_rules not in HIT_RULES:
+            raise web.HTTPBadRequest()
         if not isinstance(msg["frames"],list) or len(msg["frames"])>32:
             raise web.HTTPBadRequest()
         frames=[]
@@ -517,7 +529,7 @@ class Host:
         nav_dropped=msg.get("navigation_dropped",seat["nav_dropped"])
         if type(nav_dropped) is not int or not 0<=nav_dropped<=2**32-1:
             raise web.HTTPBadRequest()
-        seat.update(stage=stage,poll=time.monotonic(),dropped=dropped,nav_dropped=nav_dropped)
+        seat.update(stage=stage,poll=time.monotonic(),dropped=dropped,nav_dropped=nav_dropped,hit_rules=hit_rules)
         for frame in frames:
             self.channels[ident].enqueue_native_frame(frame)
         self.hub.pump()
@@ -545,6 +557,7 @@ class Host:
                 seats[ident]={"joined":active,"world_epoch":b.world,"life_epoch":b.life,
                     "self":None if not active else {k:b.state[k] for k in ("slot","net_id","position","health","kills","deaths","mode")},
                     "graphics":seat["graphics"],"view":seat["view"],"stage":seat["stage"],"browser_dropped":seat["dropped"],
+                    "hit_rules":seat.get("hit_rules"),
                     "navigation_memory": "degraded" if ident in self.nav_errors else
                                          "enabled" if ident in self.nav_memories else "disabled",
                     **({"navigation_memory_error": self.nav_errors[ident]} if ident in self.nav_errors else {}),
@@ -661,7 +674,8 @@ def relay_ready_port(line):
 async def serve(args):
     run=Path(args.runtime)/("arena-"+time.strftime("%Y%m%d-%H%M%S")+"-"+secrets.token_hex(4))
     host=Host(args.data,args.engine_dir,run,args.room,args.model_gob,args.companion_chat,mode=args.mode,
-              adaptive_lily=args.adaptive_lily, taunts=not args.no_taunts, private_duels=args.private_duels)
+              adaptive_lily=args.adaptive_lily, taunts=not args.no_taunts, private_duels=args.private_duels,
+              hit_rules=args.hit_rules, nf_saber_entry=args.nf_saber_entry)
     runner=web.AppRunner(host.app(),access_log=None,shutdown_timeout=1.)
     proc=drain=None
     try:
@@ -729,6 +743,8 @@ def main(argv=None):
     p.add_argument("--adaptive-lily",action="store_true",help="Enable experimental controls on the Lily seat.")
     p.add_argument("--no-taunts",action="store_true")
     p.add_argument("--private-duels",action="store_true",help="Allow JKWeb's private saber challenges on this hosted free-for-all.")
+    p.add_argument("--nf-saber-entry", action="store_true", help=NF_SABER_ENTRY_HELP)
+    p.add_argument("--hit-rules", choices=HIT_RULES, default="classic", help="Host's JKWeb hit registration rule (default: classic).")
     p.add_argument("--companion-chat",action="store_true")
     args=p.parse_args(argv)
     if args.relay_child:

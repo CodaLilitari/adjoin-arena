@@ -20,7 +20,10 @@
     "web_bots/navigation-memory.patch",
     "web_bots/competitive-navigation.patch",
     "web_bots/supported-ramp.patch",
-    "web_bots/navigation-observation.patch"
+    "web_bots/navigation-observation.patch",
+    "web_bots/shallow-wading.patch",
+    "web_bots/host-hit-rules.patch",
+    "web_bots/nf-saber-entry.patch"
   ],
   "verify_recompiled_libsmacker": true,
   "relink": "web_bots/engine-relink.tar.gz",
@@ -41,13 +44,13 @@
     ]
   },
   "changed_sources": {
-    "src/AI/jkBot.c": "5dda91a988cfea338200d26a8d4a9eb4fa651d2e2db65b55dea9f9698f89e77b",
+    "src/AI/jkBot.c": "e530cc9ab5521c884748c299686c76f371949ab463e6aabd40a9806d7668a6ce",
     "src/AI/jkBot.h": "ca79130f28aa28014d5a4e49a8db188a829cccd3acf79f966407b14b985cd2cc",
     "src/AI/jkBotBehavior.h": "59ff972747fb3aa9514fae11c003e803da8b40f1e42b68801db969414a2416df",
     "src/AI/jkBotBehavior.inc": "734075a19f4b2b14be525f941a5586494cdf49a9b4b3f3aeeaab8ac05ca9ab26",
     "src/AI/jkBotBrain.inc": "806c9f69361edda58f5f7b06cfeb4ccbe8a8861e9445c4994123c4ec4e52ec5b",
     "src/AI/jkBotBrainModel.h": "bcdde813d1c7c4dafce0ead106b269d30fe767cc3ea5cdd3ccc56772769281ec",
-    "src/AI/jkBotCombat.inc": "72e6a0361e81c4ac3ff54513d608c8b3391b80f0e9c73ac5d9df29d177da4e29",
+    "src/AI/jkBotCombat.inc": "dee8734c61943050c3b6ce5020fac754739b0d33452c191953d2394036de2e1a",
     "src/AI/jkBotCompanion.inc": "5cdf91003ef9778fa9331c7cda3212a822b39a435a1df34568db93660c27d61c",
     "src/AI/jkBotForce.inc": "c2d27a2edfd9c9779a4bec5068d6d961c809be84dfb3657085d3be9ae1d2739d",
     "src/AI/jkBotHearing.inc": "7fe0d477b9f43a9317f0405de3eade5796c193ea1753dc4d9c80e1558120ba6f",
@@ -71,7 +74,7 @@
     "src/Dss/sithMulti.h": "61845e2093f7728db70c1a106ee95e94c918f5181d9e30ecddfeb3bc53f4f184",
     "src/Gameplay/sithDuel.c": "487c6e257082135ab55e05a4119c434adbf9467f7e2112d2721f4faf1d78176a",
     "src/Gameplay/sithDuel.h": "2a3a14c4583c3dd845a9b731023b0a9a99ff5c1aa8a8663706c07f4d36d2140e",
-    "src/Gui/jkGUIMultiplayer.c": "52380f5ef72434a92b02f207c08beb774f0dd2770667ca4f1d7a41b6117e6429",
+    "src/Gui/jkGUIMultiplayer.c": "0f5f30dd5ba6e44d7ba25f584879ccc0719098eec5a0c205b366b23d8162898e",
     "src/Gui/jkGUIMultiplayer.h": "504d0390e4d6f4fa31f42230ce273fa3125d24d42053feec9d85cc601a0d4287",
     "src/Main/Main.c": "5bcfdaa2a985f542310b675929dda6f00b0b7bbe9c783bb0fada6ad2677ac4f7",
     "src/Platform/Networking/WSRelay/stdComm_WSRelay.c": "cc17bbed6354c237bd4e884bacf92f64a4c939bbbeb7fd6aa32af42b99f53178",
@@ -131,17 +134,29 @@
       "sha256": "1a5b4210745e6f3e88c890036e3a27afef67fcc0977f36682f24a22b0986d036",
       "bytes": 919
     },
+    "web_bots/shallow-wading.patch": {
+      "sha256": "5712e415aa58b162e008e30e5ae30ddca98d345b2dc9eac2a1759f45b9ccec55",
+      "bytes": 5170
+    },
+    "web_bots/host-hit-rules.patch": {
+      "sha256": "69f37bf324c22e0aaa52a364bfdd36532ce4d8d370a9656ea2b49b7d8b9143f6",
+      "bytes": 2623
+    },
+    "web_bots/nf-saber-entry.patch": {
+      "sha256": "7bd795c3e9c945e2e255266d52ca1bea2cfc03b08b97cfc73341d68d9e786a43",
+      "bytes": 4383
+    },
     "bin/bots-jkweb/openjkdf2.js": {
-      "sha256": "391e19a3af74768c7eb169d8e49ab96ec8f0bcff7a5797c8f5a7f3f39f08e9d0",
-      "bytes": 572942
+      "sha256": "f8342174e095a631843bd74e45d639ff51612448b75efa1e19630213a2304085",
+      "bytes": 573127
     },
     "bin/bots-jkweb/openjkdf2.wasm": {
-      "sha256": "ba49673726ef819ad0d2b54b30f0ea9fbdebb5b7136b697e42f0a382be85d11c",
-      "bytes": 4081455
+      "sha256": "829999514fe6683fa147dcd385f4081114930c500823537d8dd9a9113634ba0c",
+      "bytes": 4083781
     },
     "web_bots/engine-relink.tar.gz": {
-      "sha256": "57b32bd079f6946ddf820c4a08c62f1e017e2a71e9e9a16fc197b1635ae4e15d",
-      "bytes": 1696800
+      "sha256": "67907ac6412bb52942bd16a4f5affad423e7c2e4dd86a48e2e793a619043f6e9",
+      "bytes": 1698415
     }
   }
 }

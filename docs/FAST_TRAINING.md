@@ -24,7 +24,11 @@ the learned policy.
 
 With Emscripten 6.0.12 active, build the practice engine in a fresh
 directory outside the checkout. The builder verifies that the shipped
-objects reproduce the original JS and WASM before adding the timing code.
+objects reproduce the JS and WASM identified in the current
+`web_bots/BUILD.json` before adding the timing code. Its
+`practice-clock.json` records the underlying engine hashes. An earlier
+C3 experiment can be reproduced with its original `--archive` and
+`--candidate-object`.
 
 ```sh
 python3 -B web_bots/candidate/build_practice_clock.py "$RUNS/clock-control"

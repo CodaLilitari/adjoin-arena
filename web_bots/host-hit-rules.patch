@@ -1,0 +1,54 @@
+--- a/src/Gui/jkGUIMultiplayer.c
++++ b/src/Gui/jkGUIMultiplayer.c
+@@ -37,6 +37,7 @@
+ #include "AI/jkBotLoadout.h"
+ #include "AI/jkBotPersona.h"
+ #include "Gameplay/sithDuel.h"
++#include "Platform/Networking/WSRelay/stdComm_WSRelay.h"
+ #include "Gameplay/sithPlayer.h"
+ #include "World/jkPlayer.h"
+ #include "Engine/sithCamera.h"
+@@ -48,6 +49,11 @@
+ 
+ /* Copy in and out synchronously. No JS view of the engine heap is retained. */
+ EMSCRIPTEN_KEEPALIVE double jkBotWebNow(void) { return emscripten_get_now()/1000.0; }
++/* Report this peer's active match rule; a joiner gets it from the host. */
++EMSCRIPTEN_KEEPALIVE int jkBotWebHitRules(void)
++{
++    return stdComm_WSRelay_InMatch() ? stdComm_WSRelay_GetHitRules(NULL) : -1;
++}
+ /* Read back the real rendered actor and camera for local recording receipts. */
+ EMSCRIPTEN_KEEPALIVE const char *jkBotWebRenderedModel(void)
+ {
+@@ -114,6 +120,7 @@
+         {"mode","JK_BOT_WEB_MODE"},{"saberColor","JK_BOT_WEB_SABER_COLOR"},
+         {"episode","JK_BOT_WEB_EPISODE"},{"map","JK_BOT_WEB_MAP"},{"maxPlayers","JK_BOT_WEB_MAX_PLAYERS"},
+         {"privateDuels","JK_BOT_PRIVATE_DUELS"},{"taunts","JK_BOT_TAUNTS"},
++        {"hitRules","JK_BOT_WEB_HIT_RULES"},
+         {"trace","JK_BOT_TRACE_FORCE"},{"lily","JK_BOT_LILY"}
+     };
+     char value[96];
+@@ -267,6 +274,12 @@
+         if (!jkGuiMultiplayer_WebCharacter(name,model,sound,rank)) {
+             fprintf(stderr,"BOT_JOIN_REJECTED cannot prepare host's ordinary MPC\n"); return -1;
+         }
++        const char *hitRules=getenv("JK_BOT_WEB_HIT_RULES");
++        if (hitRules) {
++            if (!strcmp(hitRules,"hit-what-you-see")) stdComm_WSRelay_bClassicHits=0;
++            else if (!strcmp(hitRules,"classic")) stdComm_WSRelay_bClassicHits=1;
++            else { fprintf(stderr,"BOT_JOIN_REJECTED unknown host hit rules\n"); return -1; }
++        }
+         const char *duels=getenv("JK_BOT_PRIVATE_DUELS");
+         sithDuel_bAllowDuels=duels && !strcmp(duels,"1");
+         const char *seatsEnv=getenv("JK_BOT_WEB_MAX_PLAYERS");
+@@ -332,6 +345,10 @@
+             setenv("JK_BOT_TEAM", playerThingIdx%2 ? "2" : "1", 1);
+         jkBot_OnJoined();
+         jkBotPersona_OnJoined();
++        int reachMs;
++        int hitRules=stdComm_WSRelay_GetHitRules(&reachMs);
++        printf("BOT_WEB_HIT_RULES active=%s reach_ms=%d\n",
++               hitRules==STDCOMM_WSRELAY_HITS_HWYS ? "hit-what-you-see" : "classic",reachMs);
+         printf("BOT_JOINED slot=%d net=%u map=%s model=%s\n",playerThingIdx,
+             (unsigned)sithPlayer_g_pLocalPlayer->playerNetId,webBotWorld->map_jkl_fname,jkPlayer_model);
+     }

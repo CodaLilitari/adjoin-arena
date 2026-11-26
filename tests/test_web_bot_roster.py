@@ -39,6 +39,12 @@ class RosterTest(unittest.TestCase):
         files = frozenset({"redmandot.3do", "redmando.3do"})
         self.assertEqual(seat_character("red", files)[1], "redmando.3do")
 
+    def test_r3_voices_pair_with_their_own_bodies(self):
+        files = frozenset({"lvane.3do", "lvvoice.snd", "t800hy4.3do", "t8voice.snd"})
+        self.assertEqual(seat_character("lilivane", files)[1:3], ("lvane.3do", "lvvoice.snd"))
+        self.assertEqual(seat_character("t800", files)[1:3], ("t800hy4.3do", "t8voice.snd"))
+        self.assertEqual(seat_character("t800", {"t8voice.snd"})[1:3], ("kyi14.3do", "kybossk.snd"))
+
     def test_red_sabers_and_model_gob_flags(self):
         args = build_parser().parse_args(["join", "--room-id", "5", "--seats", "t800", "--data", "d", "--runtime", "r",
                                           "--red-sabers", "lily,t800", "--model-gob", "x.gob"])

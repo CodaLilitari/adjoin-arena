@@ -12,7 +12,7 @@ BASE = "6f6d376063954f86b8d01561aad03c26fec2e4ed"
 PATCHES = ("engine.patch", "external-room.patch", "bot-tactics-web.patch", "pickup-owner.patch",
            "saber-combat.patch", "host-episode.patch", "ctf-spawn-slots.patch", "social-duels.patch",
            "navigation-memory.patch", "competitive-navigation.patch", "supported-ramp.patch",
-           "navigation-observation.patch")
+           "navigation-observation.patch", "shallow-wading.patch", "host-hit-rules.patch", "nf-saber-entry.patch")
 
 
 def file_hash(path):
