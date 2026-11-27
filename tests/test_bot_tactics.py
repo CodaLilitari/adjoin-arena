@@ -9,6 +9,7 @@ import socket
 import struct
 import tempfile
 import unittest
+import unittest.mock
 
 from bots import coach
 from bots import companion as c
@@ -122,6 +123,16 @@ class RegistryTests(unittest.TestCase):
             self.assertNotIn("JK_BOT_TACTICS_FILE", run.bot_environment(*arguments))
             env = run.bot_environment(*arguments, tactics_file=base / "tactics.cfg")
             self.assertEqual(env["JK_BOT_TACTICS_FILE"], str(base / "tactics.cfg"))
+
+    def test_launcher_passes_diag_only_when_set(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            arguments = (base / "engine", base, base, 0, ":0", False)
+            with unittest.mock.patch.dict(os.environ, {}, clear=False):
+                os.environ.pop("JK_BOT_DIAG", None)
+                self.assertNotIn("JK_BOT_DIAG", run.bot_environment(*arguments))
+            with unittest.mock.patch.dict(os.environ, {"JK_BOT_DIAG": "1"}):
+                self.assertEqual(run.bot_environment(*arguments)["JK_BOT_DIAG"], "1")
 
 
 @unittest.skipUnless(hasattr(socket, "AF_UNIX"),

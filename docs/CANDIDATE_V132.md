@@ -1,12 +1,14 @@
-# Candidate v129 lane
+# Candidate v132 lane
 
-Candidate v129 is the retained experimental bot client from the 2026-11-26/27
+Candidate v132 is the retained experimental bot client from the 2026-11-26/27
 training campaign, landed as an opt-in, hash-pinned build lane. It is the
-v125 stack plus one planner change: the running-jump edge penalty in
-`Bot_AddEdge` drops from 5.0 to 1.0, so a proven runjump leg can beat the
-swim alternative in route choice. It does not replace the packaged or Red
-default clients. The v125 patch remains in `native/candidate/` for the
-evidence trail.
+v125 stack plus two changes: the running-jump edge penalty in `Bot_AddEdge`
+drops from 5.0 to 1.0 so a proven runjump leg can beat the swim alternative
+in route choice (v129), and all candidate diagnostic logging sits behind a
+cached `JK_BOT_DIAG` environment check, off by default (v132; the launcher
+passes `JK_BOT_DIAG` through only when set in its own environment). It does
+not replace the packaged or Red default clients. The v125 and v129 patches
+remain in `native/candidate/` for the evidence trail.
 
 ## Build
 
@@ -23,14 +25,15 @@ The builder follows the `build_red_custom.py` chain (transfer parent receipt
 
 1. `web_bots/shallow-wading.patch`
 2. `web_bots/candidate/c3-door-access.patch`
-3. `native/candidate/candidate-v129.patch` (SHA-256 `f3fb4f60…` = the v125
-   patch, five AI files, plus the runjump edge-cost hunk in
-   `jkBotNavigation.inc`)
+3. `native/candidate/candidate-v132.patch` (SHA-256 `b1da3d2d…` = the v125
+   patch, five AI files, plus the runjump edge-cost and diagnostic-gate
+   hunks in `jkBotNavigation.inc` / `jkBotNavigate.inc`)
 
 Frozen receipt: `native/red-candidate-build.json`. Expected binary SHA-256:
-`b0892a777ee8bbdd098b2f1507c3359a58581d09fb153c47e691fa06dba992b8`,
-bit-identical between the scratch experiment build that produced the Dark
-Surge evidence below and this repo lane.
+`0349bd7604cf04b41052da5cbf20949fe6ede2fb0470c880971460faf7a51cb6`,
+bit-identical between the scratch experiment build that produced the gate
+evidence below and this repo lane. (The Dark Surge evidence was produced on
+the v129 binary `b0892a77…`; v132 differs only in gated diagnostic output.)
 
 ## What the candidate changes
 
@@ -73,12 +76,17 @@ Surge evidence below and this repo lane.
 Full campaign record: `adjoin-training-2026-11-26-report.md` (workspace root,
 not in this repo).
 
-## Known limitations
+## Diagnostics
 
-- The patch still carries diagnostic logging from the investigation
-  (`BOT_GRAPH_DUMP` canal dump at nav-ready, rate-limited `BOT_STROKE` /
-  `BOT_ANCHOR`, `BOT_LIFT` injection events). Gating or stripping it changes
-  the binary and needs its own measured re-screen before any production use.
+Investigation logging (`BOT_GRAPH_DUMP`, `BOT_LIFT`, rate-limited
+`BOT_STROKE` / `BOT_ANCHOR`) is gated behind `JK_BOT_DIAG` (any value),
+off by default. Measured on v132: 0 diagnostic lines across 16 BGJ owner
+logs with the gate off; 1,626 `BOT_GRAPH_DUMP` lines in one game with
+`JK_BOT_DIAG=1`. Gameplay with the gate off screened in family with v129
+(BGJ FF 6.46 kills / 174 saber-fire per 100 game-s, 9/9 dry runjump
+landings, 3 proven launched pickups; C3 verified captures 2/6 matches).
+
+## Known limitations
 - Harness training pins (`train_matches.py` receipts) still describe the Red
   policy lane; run candidate matches by pointing the harness at the
   candidate build output as in the scratch campaign.
@@ -86,5 +94,4 @@ not in this repo).
 ## Open work (goal-01a21de6)
 
 1. C3 capture reliability beyond 5/12 at 600 s, then 1x qualification.
-2. Diagnostic-logging gate with regression re-screen (BGJ/BoD/C3).
-3. BGJ NF / BoD NF dip investigation at larger n.
+2. BGJ NF / BoD NF dip investigation at larger n; BoD re-screen on v132.

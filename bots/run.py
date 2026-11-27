@@ -232,6 +232,8 @@ def bot_environment(engine: Path, directory: Path, run_directory: Path, index: i
         env["JK_BOT_BEHAVIOR_FILE"] = str(behavior_file)
     if tactics_file is not None:
         env["JK_BOT_TACTICS_FILE"] = str(tactics_file)
+    if os.environ.get("JK_BOT_DIAG"):
+        env["JK_BOT_DIAG"] = os.environ["JK_BOT_DIAG"]
     env["LD_LIBRARY_PATH"] = str(engine.parent) + (os.pathsep + env["LD_LIBRARY_PATH"] if env.get("LD_LIBRARY_PATH") else "")
     return env
 

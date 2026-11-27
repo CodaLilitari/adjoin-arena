@@ -1,11 +1,11 @@
-"""Rebuild the opt-in candidate v129 client on the measured transfer client.
+"""Rebuild the opt-in candidate v132 client on the measured transfer client.
 
 Same pinned chain as native/build_red_custom.py, plus the shallow-wading
 and C3 door-access overlays and the consolidated candidate patch at
-native/candidate/candidate-v129.patch (the v125 patch plus the runjump
-edge-cost change). The frozen receipt is native/red-candidate-build.json;
-this builder verifies against it when present and never overwrites
-checkout pins. See docs/CANDIDATE_V129.md.
+native/candidate/candidate-v132.patch (the v125 patch plus the runjump
+edge-cost change and the JK_BOT_DIAG diagnostic gate). The frozen receipt
+is native/red-candidate-build.json; this builder verifies against it when
+present and never overwrites checkout pins. See docs/CANDIDATE_V132.md.
 """
 import argparse
 import json
@@ -24,8 +24,8 @@ REPO=NATIVE.parent
 TRANSFER_SHA="305606479cb89d790305aae378aad8130a40ff519e479e40ca0d78c014a23849"
 WADING=REPO/"web_bots/shallow-wading.patch"
 C3DOOR=REPO/"web_bots/candidate/c3-door-access.patch"
-CANDIDATE=NATIVE/"candidate/candidate-v129.patch"
-CANDIDATE_SHA="f3fb4f6082458c2f04843984d9ef3fa7845a973c4e65ec515b58551cc908ce8f"
+CANDIDATE=NATIVE/"candidate/candidate-v132.patch"
+CANDIDATE_SHA="b1da3d2d2fc2d01f8fe766f5bd499158a025af8a88023d0e2a217d38e4532b8a"
 
 
 def build(args):
@@ -87,7 +87,7 @@ def build(args):
                     wading_patch_sha256=sha(WADING),c3door_patch_sha256=sha(C3DOOR),
                     candidate_patch_sha256=sha(CANDIDATE),
                     candidate_final_shas=final_shas,
-                    candidate_note="candidate v129: v125 patch + runjump edge cost 5.0->1.0 (2026-11-27)",
+                    candidate_note="candidate v132: v129 + JK_BOT_DIAG gate on candidate diagnostic logging (2026-11-27)",
                     dependencies=dict(sorted(deps.items())),toolchain={tool:subprocess.check_output([tool,"--version"],text=True).splitlines()[0]
                                                      for tool in ("cc","c++","ld","objcopy")})
         data=(json.dumps(result,indent=2)+"\n").encode()
