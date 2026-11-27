@@ -63,11 +63,15 @@ the v129 binary `b0892a77…`; v132 differs only in gated diagnostic output.)
   event=launch`, dry `event=land ok=1 wet=0` in sector 6, pickup within
   ~1.5 s (e.g. match-0004: launch t=76.40 → land t=77.66 → pickup t≈79.2).
   On v125 and v100 baselines there were 0 launches; every pickup arrived by
-  swim or spawn. At 1x (180 s ×8, 8/8 verified) the result repeats: 6
-  launches, all dry ok landings, 3 proven launched pickups, each followed by
-  a same-life exit from sectors 6/61 within ~3–8 s with no death in the
-  next 30 s — the full `qa/bgj-dark-surge-route.json` acceptance chain in
-  both accelerated practice and private 1x play.
+  swim or spawn. At 1x on the v132 binary (120 s ×12, 12/12 verified,
+  receipt-checked) the result repeats: 2 launches, both dry ok landings and
+  both proven launched pickups, each followed by a same-life exit from
+  sectors 6/61 within ~1–4 s with no death in the next 30 s — the full
+  `qa/bgj-dark-surge-route.json` acceptance chain in both accelerated
+  practice and private 1x play. (An earlier 180 s 1x block was invalidated:
+  two harness invocations raced in one output directory and the later,
+  CPU-starved run overwrote the summary; 180 s also exceeds the harness's
+  ~172 s per-attempt deadline at 1x. The 120 s rerun above supersedes it.)
 - Sabers (same BGJ block): 6.46 kills and 152.6 sampled saber-fire per
   100 game-seconds, zero zero-contact games — in family with v110 (best
   prior cell) and v125. BGJ NF and BoD NF dips versus the 2026-11-26 v1
