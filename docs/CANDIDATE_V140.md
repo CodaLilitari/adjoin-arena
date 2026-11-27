@@ -1,8 +1,8 @@
-# Candidate v139 lane
+# Candidate v140 lane
 
-Candidate v139 is the retained experimental bot client from the 2026-11-26/27
+Candidate v140 is the retained experimental bot client from the 2026-11-26/27
 training campaign, landed as an opt-in, hash-pinned build lane. It is the
-v125 stack plus four changes: the running-jump edge penalty in
+v125 stack plus four changes (the fourth as corrected by v140): the running-jump edge penalty in
 `Bot_AddEdge` drops from 5.0 to 1.0 so a proven runjump leg can beat the
 swim alternative in route choice (v129); all candidate diagnostic logging
 sits behind a cached `JK_BOT_DIAG` environment check, off by default (v132;
@@ -10,13 +10,14 @@ the launcher passes `JK_BOT_DIAG` through only when set in its own
 environment); the lift binder also recognizes the `cross0`–`cross3`
 threshold-adjoin symbol names used by `C3_MTRIGELEV.COG`, so the existing
 threshold step-off recovery in `Bot_LiftMove` works on C3's trigger
-elevators (v138, `jkBotTraps.inc`); and a lone flag carrier in a
-mutual-flag standoff hunts the opposing carrier after a 20 s hold near
-home instead of waiting forever for a teammate that does not exist (v139,
-`Bot_UpdateObjective`; with teammates present the stock hold/intercept
-split is unchanged). It does not replace the packaged or Red default
-clients. The v125, v129, v132, and v138 patches remain in
-`native/candidate/` for the evidence trail.
+elevators (v138, `jkBotTraps.inc`); and a lone flag carrier camped near
+home in a mutual-flag standoff hunts the opposing carrier after a 20 s
+hold instead of waiting forever for a teammate that does not exist (v139,
+corrected in v140 so the hold timer only counts while near base —
+in-transit canal returns are never diverted; with teammates present the
+stock hold/intercept split is unchanged). It does not replace the packaged
+or Red default clients. The v125, v129, v132, v138, and v139 patches
+remain in `native/candidate/` for the evidence trail.
 
 ## Build
 
@@ -33,15 +34,15 @@ The builder follows the `build_red_custom.py` chain (transfer parent receipt
 
 1. `web_bots/shallow-wading.patch`
 2. `web_bots/candidate/c3-door-access.patch`
-3. `native/candidate/candidate-v139.patch` (SHA-256 `5e42cad1…` = the v138
+3. `native/candidate/candidate-v140.patch` (SHA-256 `a8db41e8…` = the v138
    patch plus the standoff-hunt hunk in `jkBotNavigation.inc`)
 
 Frozen receipt: `native/red-candidate-build.json`. Expected binary SHA-256:
-`95f41803f79170aabcd2df87b5bc4a462e8ef18699c18e4ff5750819847c491f`,
-bit-identical between the scratch experiment build that produced the v139
-evidence below and this repo lane. (The Dark Surge max-pace evidence was
-produced on the v129 binary `b0892a77…`, the 1x evidence on v132
-`0349bd76…`, and the lift-binding evidence on v138 `f6e44c96…`.)
+`ddf8a24a4bd55bd4b53febb7eaf56c069f6b608433ab309fe556f8788791ed3c`,
+bit-identical between the scratch experiment build that produced the v140
+evidence below and this repo lane. (Earlier evidence binaries: v129
+`b0892a77…` Dark Surge max-pace, v132 `0349bd76…` 1x + gate, v138
+`f6e44c96…` lift binding, v139 `95f41803…` first standoff hunt.)
 
 ## What the candidate changes
 
@@ -83,10 +84,15 @@ produced on the v129 binary `b0892a77…`, the 1x evidence on v132
   12 verified v139 games exactly one mutual-carrier episode exceeded the
   20 s hold (39 s overlap), and the hunt fired as designed — the dark
   carrier's objective samples read ~20 s of `return` then `intercept` —
-  though that episode ended without a capture. Pooled v139 captures are
-  3 of 18 matches vs 14 of 36 across v110–v138 screens, with shaft-top
-  (29/36) and grab (21/36) rates in family; whether the capture dip is
-  seed variance at this n or a real cost needs a larger matched block.
+  though that episode ended without a capture. A matched A/B block then
+  showed a consistent v139 capture dip (new block v138 6/12 vs v139 3/12
+  capture-matches; pooled 8/18 vs 6/30) with funnel rates in family —
+  traced to the hold timer also counting during in-transit canal returns,
+  diverting live returns into hunts. v140 counts the hold only while the
+  carrier is near base; on its readable verified screen (8 matches) it
+  recovers to 4/8 capture-matches and 5 captures with shaft-top 13/16,
+  and BGJ FF screens at 5.83 kills / 157 saber-fire per 100 game-s (n=4).
+  The uncorrected v139 hunt is superseded and should not be used.
   At 1x on v139 (120 s ×6, 6/6 verified): canal entry 12/12 owner-games,
   far-half 9/12, enemy shaft-top 5/12, flag grabs 3/12, captures 0 — a
   full attack-and-return cycle does not fit the harness's ~172 s
