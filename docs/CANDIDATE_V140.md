@@ -89,10 +89,11 @@ evidence below and this repo lane. (Earlier evidence binaries: v129
   capture-matches; pooled 8/18 vs 6/30) with funnel rates in family —
   traced to the hold timer also counting during in-transit canal returns,
   diverting live returns into hunts. v140 counts the hold only while the
-  carrier is near base; on its readable verified screen (8 matches) it
-  recovers to 4/8 capture-matches and 5 captures with shaft-top 13/16,
-  and BGJ FF screens at 5.83 kills / 157 saber-fire per 100 game-s (n=4).
-  The uncorrected v139 hunt is superseded and should not be used.
+  carrier is near base; across its 11 readable verified matches it
+  recovers to 5/11 capture-matches and 7 captures with shaft-top 17/22
+  and grabs 13/22, and BGJ FF screens at 5.83 kills / 157 saber-fire per
+  100 game-s (n=4). The uncorrected v139 hunt is superseded and should
+  not be used.
   At 1x on v139 (120 s ×6, 6/6 verified): canal entry 12/12 owner-games,
   far-half 9/12, enemy shaft-top 5/12, flag grabs 3/12, captures 0 — a
   full attack-and-return cycle does not fit the harness's ~172 s
