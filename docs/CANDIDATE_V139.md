@@ -83,6 +83,11 @@ produced on the v129 binary `b0892a77…`, the 1x evidence on v132
   mutual-carrier episode exceeded the 20 s hold in those 6 games, so the
   standoff hunt itself is not yet observed firing — it only activates in a
   state that otherwise deadlocks a lone carrier at home indefinitely.
+  At 1x on v139 (120 s ×6, 6/6 verified): canal entry 12/12 owner-games,
+  far-half 9/12, enemy shaft-top 5/12, flag grabs 3/12, captures 0 — a
+  full attack-and-return cycle does not fit the harness's ~172 s
+  per-attempt deadline at 1x, so capture-at-1x stays unproven while
+  real-time traversal to the enemy flag is confirmed.
 - BGJ Dark Surge (FF sabers, rate 0, 180 s ×8): with the 1.0 penalty the
   dark bot executed 6 runjump launches, all dry ok landings, and 3 pickups
   carry a full launch provenance chain — sector-1 NAV samples, `BOT_RUNJUMP
@@ -127,8 +132,8 @@ landings, 3 proven launched pickups; C3 verified captures 2/6 matches).
 ## Open work (goal-01a21de6)
 
 1. C3 capture reliability beyond ~2–3 of 6 matches at 600 s: carrier
-   return-leg conversion (canal deaths, mutual-flag standoff behavior,
-   sector-380/605/529 dwells), then 1x qualification (≤120 s games under
-   the harness deadline).
+   return-leg conversion (canal deaths, sector-380/605/529 dwells,
+   observing the v139 standoff hunt actually fire), and a capture-at-1x
+   gate if the harness deadline ever allows longer 1x games.
 2. Production-lane decision: this lane is opt-in and hash-pinned but not
    wired into `train_matches.py` receipts or any default client.
