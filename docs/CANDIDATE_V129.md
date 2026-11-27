@@ -60,8 +60,11 @@ Surge evidence below and this repo lane.
   event=launch`, dry `event=land ok=1 wet=0` in sector 6, pickup within
   ~1.5 s (e.g. match-0004: launch t=76.40 → land t=77.66 → pickup t≈79.2).
   On v125 and v100 baselines there were 0 launches; every pickup arrived by
-  swim or spawn. This is accelerated-practice evidence; the 1x check from
-  `qa/bgj-dark-surge-route.json` acceptance is still to run.
+  swim or spawn. At 1x (180 s ×8, 8/8 verified) the result repeats: 6
+  launches, all dry ok landings, 3 proven launched pickups, each followed by
+  a same-life exit from sectors 6/61 within ~3–8 s with no death in the
+  next 30 s — the full `qa/bgj-dark-surge-route.json` acceptance chain in
+  both accelerated practice and private 1x play.
 - Sabers (same BGJ block): 6.46 kills and 152.6 sampled saber-fire per
   100 game-seconds, zero zero-contact games — in family with v110 (best
   prior cell) and v125. BGJ NF and BoD NF dips versus the 2026-11-26 v1
@@ -82,8 +85,6 @@ not in this repo).
 
 ## Open work (goal-01a21de6)
 
-1. Dark Surge 1x qualification per `qa/bgj-dark-surge-route.json`
-   acceptance (private 1x launched pickup + same-life safe exit).
-2. C3 capture reliability beyond 5/12 at 600 s, then 1x qualification.
-3. Diagnostic-logging gate with regression re-screen (BGJ/BoD/C3).
-4. BGJ NF / BoD NF dip investigation at larger n.
+1. C3 capture reliability beyond 5/12 at 600 s, then 1x qualification.
+2. Diagnostic-logging gate with regression re-screen (BGJ/BoD/C3).
+3. BGJ NF / BoD NF dip investigation at larger n.
