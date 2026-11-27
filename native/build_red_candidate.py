@@ -1,12 +1,13 @@
-"""Rebuild the opt-in candidate v138 client on the measured transfer client.
+"""Rebuild the opt-in candidate v139 client on the measured transfer client.
 
 Same pinned chain as native/build_red_custom.py, plus the shallow-wading
 and C3 door-access overlays and the consolidated candidate patch at
-native/candidate/candidate-v138.patch (the v125 patch plus the runjump
-edge-cost change, the JK_BOT_DIAG diagnostic gate, and the lift
-cross-threshold binding). The frozen receipt is
-native/red-candidate-build.json; this builder verifies against it when
-present and never overwrites checkout pins. See docs/CANDIDATE_V138.md.
+native/candidate/candidate-v139.patch (the v125 patch plus the runjump
+edge-cost change, the JK_BOT_DIAG diagnostic gate, the lift
+cross-threshold binding, and the lone-carrier standoff hunt). The frozen
+receipt is native/red-candidate-build.json; this builder verifies against
+it when present and never overwrites checkout pins. See
+docs/CANDIDATE_V139.md.
 """
 import argparse
 import json
@@ -25,8 +26,8 @@ REPO=NATIVE.parent
 TRANSFER_SHA="305606479cb89d790305aae378aad8130a40ff519e479e40ca0d78c014a23849"
 WADING=REPO/"web_bots/shallow-wading.patch"
 C3DOOR=REPO/"web_bots/candidate/c3-door-access.patch"
-CANDIDATE=NATIVE/"candidate/candidate-v138.patch"
-CANDIDATE_SHA="9d9e2a29e3a01fbcaa7a2404eff5988dd18ef9a4a1c8bdff6515ff59ef693e4c"
+CANDIDATE=NATIVE/"candidate/candidate-v139.patch"
+CANDIDATE_SHA="5e42cad19c33ff28f6e0abb9bcc55d9a97d94d18fb1fa416b1057b348e27ea28"
 
 
 def build(args):
@@ -88,7 +89,7 @@ def build(args):
                     wading_patch_sha256=sha(WADING),c3door_patch_sha256=sha(C3DOOR),
                     candidate_patch_sha256=sha(CANDIDATE),
                     candidate_final_shas=final_shas,
-                    candidate_note="candidate v138: v132 + lift cross0..3 threshold binding (2026-11-27)",
+                    candidate_note="candidate v139: v138 + lone-carrier standoff hunt after 20s hold (2026-11-27)",
                     dependencies=dict(sorted(deps.items())),toolchain={tool:subprocess.check_output([tool,"--version"],text=True).splitlines()[0]
                                                      for tool in ("cc","c++","ld","objcopy")})
         data=(json.dumps(result,indent=2)+"\n").encode()

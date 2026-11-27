@@ -1,17 +1,21 @@
-# Candidate v138 lane
+# Candidate v139 lane
 
-Candidate v138 is the retained experimental bot client from the 2026-11-26/27
+Candidate v139 is the retained experimental bot client from the 2026-11-26/27
 training campaign, landed as an opt-in, hash-pinned build lane. It is the
-v125 stack plus three changes: the running-jump edge penalty in
+v125 stack plus four changes: the running-jump edge penalty in
 `Bot_AddEdge` drops from 5.0 to 1.0 so a proven runjump leg can beat the
 swim alternative in route choice (v129); all candidate diagnostic logging
 sits behind a cached `JK_BOT_DIAG` environment check, off by default (v132;
 the launcher passes `JK_BOT_DIAG` through only when set in its own
-environment); and the lift binder also recognizes the `cross0`–`cross3`
+environment); the lift binder also recognizes the `cross0`–`cross3`
 threshold-adjoin symbol names used by `C3_MTRIGELEV.COG`, so the existing
 threshold step-off recovery in `Bot_LiftMove` works on C3's trigger
-elevators (v138, `jkBotTraps.inc`). It does not replace the packaged or Red
-default clients. The v125, v129, and v132 patches remain in
+elevators (v138, `jkBotTraps.inc`); and a lone flag carrier in a
+mutual-flag standoff hunts the opposing carrier after a 20 s hold near
+home instead of waiting forever for a teammate that does not exist (v139,
+`Bot_UpdateObjective`; with teammates present the stock hold/intercept
+split is unchanged). It does not replace the packaged or Red default
+clients. The v125, v129, v132, and v138 patches remain in
 `native/candidate/` for the evidence trail.
 
 ## Build
@@ -29,17 +33,15 @@ The builder follows the `build_red_custom.py` chain (transfer parent receipt
 
 1. `web_bots/shallow-wading.patch`
 2. `web_bots/candidate/c3-door-access.patch`
-3. `native/candidate/candidate-v138.patch` (SHA-256 `9d9e2a29…` = the v125
-   patch plus the runjump edge-cost and diagnostic-gate hunks in
-   `jkBotNavigation.inc` / `jkBotNavigate.inc` and the threshold-binding
-   hunk in `jkBotTraps.inc`)
+3. `native/candidate/candidate-v139.patch` (SHA-256 `5e42cad1…` = the v138
+   patch plus the standoff-hunt hunk in `jkBotNavigation.inc`)
 
 Frozen receipt: `native/red-candidate-build.json`. Expected binary SHA-256:
-`f6e44c96e5ac8e5167ef235c79295fa82d254a48a5bbb6e45f818fc1bcfb6627`,
-bit-identical between the scratch experiment build that produced the v138
+`95f41803f79170aabcd2df87b5bc4a462e8ef18699c18e4ff5750819847c491f`,
+bit-identical between the scratch experiment build that produced the v139
 evidence below and this repo lane. (The Dark Surge max-pace evidence was
-produced on the v129 binary `b0892a77…` and the 1x evidence on v132
-`0349bd76…`; v138 differs from v132 only in lift threshold binding.)
+produced on the v129 binary `b0892a77…`, the 1x evidence on v132
+`0349bd76…`, and the lift-binding evidence on v138 `f6e44c96…`.)
 
 ## What the candidate changes
 
@@ -75,7 +77,12 @@ produced on the v129 binary `b0892a77…` and the 1x evidence on v132
   in the not-riding wait were tried on scratch builds (v136/v137) and
   rejected: the deck check depressed shaft-top rate (6/12, the spawn
   gallery lift leg previously progressed by falling) and the re-trigger
-  cycled carriers between sectors 380↔386.
+  cycled carriers between sectors 380↔386. On v139 the funnel stays in
+  family (shaft-top 10/12, grabs 8/12, captures in 2 of 6 matches; BGJ FF
+  6.67 kills / 186 saber-fire per 100 game-s over 4 games); no
+  mutual-carrier episode exceeded the 20 s hold in those 6 games, so the
+  standoff hunt itself is not yet observed firing — it only activates in a
+  state that otherwise deadlocks a lone carrier at home indefinitely.
 - BGJ Dark Surge (FF sabers, rate 0, 180 s ×8): with the 1.0 penalty the
   dark bot executed 6 runjump launches, all dry ok landings, and 3 pickups
   carry a full launch provenance chain — sector-1 NAV samples, `BOT_RUNJUMP

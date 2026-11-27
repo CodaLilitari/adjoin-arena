@@ -1,0 +1,834 @@
+--- a/src/AI/jkBot.c
++++ b/src/AI/jkBot.c
+@@ -40,8 +40,8 @@
+ 
+ #define BOT_NODES 8192
+ /* Ordinary edges keep their old cap; two more slots are reserved for running jumps. */
+-#define BOT_PLAIN_EDGES 16
+-#define BOT_EDGES 18
++#define BOT_PLAIN_EDGES 22
++#define BOT_EDGES 24
+ #define BOT_RUNJUMPS 192
+ #define BOT_CANDIDATES 48
+ #define BOT_PATH 256
+@@ -1481,7 +1481,8 @@
+     if (!(BT_ON(TRAP_AVOID) && Bot_UseTarget(self) && Bot_TrapButton(botUseSurface))) {
+         bot.keys[INPUT_FUNC_ACTIVATE]=1; bot.tele.uses++;
+     }
+-    if (self->attach_flags && bot.now>=bot.nextJump) {
++    if ((self->attach_flags || bot.confine.strikes>0) && bot.now>=bot.nextJump &&
++        bot.routeMode!=BOT_ROUTE_FORCEJUMP) {
+         bot.keys[INPUT_FUNC_JUMP]=1; bot.nextJump=bot.now+1.5f;
+     }
+ }
+--- a/src/AI/jkBotNavigation.inc
++++ b/src/AI/jkBotNavigation.inc
+@@ -336,7 +336,7 @@
+     /* air_health: the old rule turned back at once below 30 health, which
+        made a wounded bot dip into the same pool again and again. */
+     return self->sector && (self->sector->flags&SITH_SECTOR_UNDERWATER) &&
+-        (self->actorParams.health<BT(AIR_HEALTH) || self->actorParams.endurance>=(bot.crossing ? 1000.0f*Bot_Breath() : 8000.0f) ||
++        (self->actorParams.health<BT(AIR_HEALTH) || self->actorParams.endurance>=1000.0f*Bot_Breath() ||
+          (nav.waterSince>0 && bot.now-nav.waterSince>Bot_Breath()));
+ }
+ 
+@@ -767,6 +767,165 @@
+     }
+ }
+ 
++
++static void Bot_AddEdge(int from, int to, int mode);
++static int botShaftDecks[8];
++static int botShaftDeckCount;
++static int Bot_NodeSubmerged(BotNode *n);
++static void Bot_InjectShaftEdges(void)
++{
++    for (int d=0;d<botShaftDeckCount;d++) {
++        int deckNode=botShaftDecks[d];
++        BotNode *deck=&bot.nodes[deckNode];
++        rdVector3 below=deck->pos; SithSector *belowSector=NULL;
++        for (int step=0;step<48;step++) {
++            below.z-=0.25f;
++            SithSector *s=Bot_SectorAt(&below,deck->sector);
++            if (s && s!=deck->sector && Bot_SectorSafe(s)) { belowSector=s; break; }
++        }
++        if (!belowSector) continue;
++        int best=-1; flex_t bestDist=1e20f;
++        for (int i=0;i<bot.nNodes;i++) {
++            if (bot.nodes[i].sector!=belowSector) continue;
++            flex_t dist=Bot_Distance(deck->pos,bot.nodes[i].pos);
++            if (dist<bestDist) { bestDist=dist; best=i; }
++        }
++        if (best<0) continue;
++        Bot_AddEdge(deckNode,best,BOT_ROUTE_DROP);
++        Bot_AddEdge(best,deckNode,Bot_NodeSubmerged(&bot.nodes[best]) ? BOT_ROUTE_FORCEJUMP : BOT_ROUTE_JUMP);
++        SithSector *aboveSector=NULL;
++        for (int pass=0;pass<2 && !aboveSector;pass++)
++        for (int si=0;si<bot.world->numSurfaces && !aboveSector;si++) {
++            SithSurface *surface=&bot.world->surfaces[si];
++            if (surface->pSector!=deck->sector || !surface->pAdjoin) continue;
++            flex_t nz=surface->surfaceInfo.face.normal.z;
++            if (pass==0 ? nz>-0.9f : (nz<0.9f || surface->pAdjoin->sector==belowSector)) continue;
++            if (surface->pAdjoin->sector && surface->pAdjoin->sector!=deck->sector)
++                aboveSector=surface->pAdjoin->sector;
++        }
++        int bestIn=-1; flex_t bestInDist=1e20f;
++        for (int i=0;i<bot.nNodes;i++) {
++            if (i==deckNode || !aboveSector || bot.nodes[i].sector!=aboveSector || bot.nodes[i].nEdges>=BOT_PLAIN_EDGES) continue;
++            flex_t dist=Bot_Distance(deck->pos,bot.nodes[i].pos);
++            if (dist<bestInDist) { bestInDist=dist; bestIn=i; }
++        }
++        if (bestIn>=0 && bestInDist<1.2f) {
++            int beforeDeck=bot.nodes[deckNode].nEdges, beforeIn=bot.nodes[bestIn].nEdges;
++            Bot_AddEdge(bestIn,deckNode,BOT_ROUTE_WALK);
++            Bot_AddEdge(deckNode,bestIn,BOT_ROUTE_WALK);
++            fprintf(stderr,"BOT_LIFT name=%s event=board-inject deck=%d in=%d insector=%d dist=%.2f edges %d->%d %d->%d\n",
++                bot.name,deckNode,bestIn,bot.nodes[bestIn].sector ? (int)bot.nodes[bestIn].sector->id : -1,
++                (double)bestInDist,beforeDeck,bot.nodes[deckNode].nEdges,beforeIn,bot.nodes[bestIn].nEdges);
++            fflush(stderr);
++        }
++        fprintf(stderr,"BOT_LIFT name=%s event=shaft-inject deck=%d below=%d belowsector=%d dist=%.2f\n",
++            bot.name,deckNode,best,(int)belowSector->id,(double)bestDist);
++        fflush(stderr);
++    }
++}
++
++static void Bot_AddDeckNodes(void)
++{
++    botShaftDeckCount=0;
++    for (int i=0;i<Bot_ThingCount();i++) {
++        SithThing *thing=&bot.world->aThings[i];
++        const char *name=Bot_ItemName(thing);
++        if (!name || thing->moveType!=SITH_MT_PATH || !thing->renderData.model3 ||
++            (!strstr(name,"lift") && !strstr(name,"elev") && !strstr(name,"platform"))) continue;
++        if (thing->trackParams.aFrames && thing->trackParams.loadedFrames==2) continue;
++        rdModel3 *model=thing->renderData.model3;
++        if (!model->numGeos || !model->aGeos[0].aMeshes) continue;
++        flex_t top=-1e20f;
++        for (uint32_t m=0;m<model->aGeos[0].numMeshes;m++) {
++            rdMesh *mesh=&model->aGeos[0].aMeshes[m];
++            for (int v=0;v<mesh->numVertices;v++) {
++                rdVector3 p=mesh->aVertices[v];
++                flex_t z=p.x*thing->orient.rvec.z+p.y*thing->orient.lvec.z+p.z*thing->orient.uvec.z;
++                top=Bot_Max(top,z);
++            }
++        }
++        if (!isfinite(top) || top < -1.0f || top>1.0f) continue;
++        rdVector3 deck=thing->position; deck.z+=top+BOT_FOOT_HEIGHT;
++        SithSector *sector=thing->sector;
++        rdVector3 feet=thing->position; feet.z+=top;
++        int topNode=-1;
++        for (int step=0;step<12 && topNode<0;step++) {
++            topNode=Bot_AddRawNode(feet,thing->sector,-1);
++            feet.z-=0.05f;
++        }
++        if (topNode>=0 && botShaftDeckCount<8) botShaftDecks[botShaftDeckCount++]=topNode;
++        rdVector3 below=deck; SithSector *belowSector=NULL;
++        for (int step=0;step<48;step++) {
++            below.z-=0.25f;
++            SithSector *s=Bot_SectorAt(&below,sector);
++            if (s && s!=sector && Bot_SectorSafe(s)) { belowSector=s; break; }
++        }
++        int lowNode=-1;
++        if (belowSector) lowNode=Bot_AddNode(below,belowSector,-1,3.0f);
++        if (topNode>=0 && belowSector) {
++            rdVector3 down={0,0,-1}, from={deck.x,deck.y,below.z};
++            flex_t waterline=0; int haveLine=0; SithSector *wetSec=NULL;
++            sithCollision_SearchForCollisions(belowSector,NULL,&from,&down,3.0f,0,RAYCAST_1);
++            SithCollision *hit;
++            while ((hit=sithCollision_PopStack())) {
++                if (hit->type&SITHCOLLISION_WORLD) { if (hit->surface && hit->surface->pAdjoin && (hit->surface->pAdjoin->flags&SITHSURF_ADJOIN_ALLOW_MOVEMENT) && !(hit->surface->pAdjoin->flags&SITHSURF_ADJOIN_ALLOW_AI_ONLY) && (hit->surface->pAdjoin->sector->flags&SITH_SECTOR_UNDERWATER)) { waterline=from.z-hit->distance; haveLine=1; wetSec=hit->surface->pAdjoin->sector; } break; }
++                if (!(hit->type&SITHCOLLISION_ADJOINCROSS) || !hit->surface || !hit->surface->pAdjoin) continue;
++                SithSurfaceAdjoin *adj=hit->surface->pAdjoin;
++                if ((adj->flags&SITHSURF_ADJOIN_ALLOW_MOVEMENT) && !(adj->flags&SITHSURF_ADJOIN_ALLOW_AI_ONLY) &&
++                    (adj->sector->flags&SITH_SECTOR_UNDERWATER)) { waterline=from.z-hit->distance; haveLine=1; wetSec=adj->sector; }
++                break;
++            }
++            sithCollision_DecreaseStackLevel();
++            if (haveLine && wetSec && deck.z-waterline>0.3f && deck.z-waterline<1.4f) {
++                static const flex_t offs[4][2]={{0.22f,0},{-0.22f,0},{0,0.22f},{0,-0.22f}};
++                for (int oi=0;oi<4;oi++) {
++                    rdVector3 sp={belowSector->center.x+offs[oi][0],belowSector->center.y+offs[oi][1],waterline+BOT_FOOT_HEIGHT};
++                    SithSector *ss=Bot_SectorAt(&sp,belowSector);
++                    if (!Bot_SectorSafe(ss)) continue;
++                    int sn=Bot_AddRawNode(sp,ss,-1);
++                    if (sn<0) continue;
++                    Bot_AddEdge(sn,topNode,BOT_ROUTE_FORCEJUMP);
++                    fprintf(stderr,"BOT_LIFT name=%s event=surf-node thing=%d node=%d decknode=%d pos=%.2f,%.2f,%.2f sector=%d\n",
++                        bot.name,i,sn,topNode,(double)sp.x,(double)sp.y,(double)sp.z,ss ? (int)ss->id : -1);
++                    fflush(stderr);
++                }
++            }
++        }
++        if (topNode>=0 && belowSector) {
++            rdVector3 down={0,0,-1}, from={deck.x,deck.y,below.z};
++            flex_t waterline=0; int haveLine=0; SithSector *wetSec=NULL;
++            sithCollision_SearchForCollisions(belowSector,NULL,&from,&down,3.0f,0,RAYCAST_1);
++            SithCollision *hit;
++            while ((hit=sithCollision_PopStack())) {
++                if (hit->type&SITHCOLLISION_WORLD) { if (hit->surface && hit->surface->pAdjoin && (hit->surface->pAdjoin->flags&SITHSURF_ADJOIN_ALLOW_MOVEMENT) && !(hit->surface->pAdjoin->flags&SITHSURF_ADJOIN_ALLOW_AI_ONLY) && (hit->surface->pAdjoin->sector->flags&SITH_SECTOR_UNDERWATER)) { waterline=from.z-hit->distance; haveLine=1; wetSec=hit->surface->pAdjoin->sector; } break; }
++                if (!(hit->type&SITHCOLLISION_ADJOINCROSS) || !hit->surface || !hit->surface->pAdjoin) continue;
++                SithSurfaceAdjoin *adj=hit->surface->pAdjoin;
++                if ((adj->flags&SITHSURF_ADJOIN_ALLOW_MOVEMENT) && !(adj->flags&SITHSURF_ADJOIN_ALLOW_AI_ONLY) &&
++                    (adj->sector->flags&SITH_SECTOR_UNDERWATER)) { waterline=from.z-hit->distance; haveLine=1; wetSec=adj->sector; }
++                break;
++            }
++            sithCollision_DecreaseStackLevel();
++            if (haveLine && wetSec && deck.z-waterline>0.3f && deck.z-waterline<1.4f) {
++                static const flex_t offs[4][2]={{0.22f,0},{-0.22f,0},{0,0.22f},{0,-0.22f}};
++                for (int oi=0;oi<4;oi++) {
++                    rdVector3 sp={belowSector->center.x+offs[oi][0],belowSector->center.y+offs[oi][1],waterline-0.05f};
++                    int sn=Bot_AddRawNode(sp,wetSec,-1);
++                    if (sn<0) continue;
++                    Bot_AddEdge(sn,topNode,BOT_ROUTE_FORCEJUMP);
++                    Bot_AddEdge(topNode,sn,BOT_ROUTE_DROP);
++                    fprintf(stderr,"BOT_LIFT name=%s event=surf-node thing=%d node=%d decknode=%d pos=%.2f,%.2f,%.2f sector=%d\n",
++                        bot.name,i,sn,topNode,(double)sp.x,(double)sp.y,(double)sp.z,(int)wetSec->id);
++                    fflush(stderr);
++                }
++            }
++        }
++        fprintf(stderr,"BOT_LIFT name=%s event=deck-nodes thing=%d top=%.3f topnode=%d lownode=%d deck=%.2f,%.2f,%.2f below=%.2f,%.2f,%.2f belowsector=%d\n",
++            bot.name,i,(double)top,topNode,lowNode,(double)deck.x,(double)deck.y,(double)deck.z,
++            (double)below.x,(double)below.y,(double)below.z,belowSector ? (int)belowSector->id : -1);
++        fflush(stderr);
++    }
++}
++
+ static void Bot_BuildNodes(SithThing *self)
+ {
+     memset(&nav,0,sizeof(nav)); nav.lastGoal=-1; nav.objectiveRouteNode=-1; nav.selectedEntry=-1;
+@@ -800,6 +959,7 @@
+     }
+     Bot_AddTeamEntries();
+     Bot_AddLiftNodes();
++    Bot_AddDeckNodes();
+     /* Put a representative floor node in every safe sector before spending
+        capacity on detail. This avoids starving later sectors in c3/m5. */
+     for (int i=0;i<bot.world->numSectors;i++) {
+@@ -807,6 +967,19 @@
+         if (!Bot_SectorSafe(sector)) continue;
+         Bot_AddNode(sector->center,sector,-1,8.0f);
+     }
++    /* Candidate experiment v7: guarantee a node in every safe sector. */
++    for (int i=0;i<bot.world->numSectors;i++) {
++        SithSector *sector=&bot.world->aSectors[i];
++        if (!Bot_SectorSafe(sector)) continue;
++        int have=0;
++        for (int j=0;j<bot.nNodes;j++) if (bot.nodes[j].sector==sector) { have=1; break; }
++        if (have) continue;
++        rdVector3 p=sector->center;
++        for (int step=0;step<80;step++) {
++            if (Bot_AddRawNode(p,sector,-1)>=0) break;
++            p.z-=0.5f;
++        }
++    }
+     /* Door things are absent from static graph construction. Live movement
+        still collides with them and presses ordinary ACTIVATE. */
+     for (int i=0;i<bot.world->numSurfaces && bot.nNodes<BOT_NODES;i++) {
+@@ -830,6 +1003,7 @@
+                 Bot_AddNode(Bot_Mix(p,near,part*1.25f/span),s->pSector,-1,0.5f);
+         }
+     }
++    Bot_InjectShaftEdges();
+     fprintf(stderr,"BOT_NAV nodes=%d map=%s name=%s item_nodes=%d missing_item_nodes=%d truncated=%d ctf=%d lifts=%d\n",
+         bot.nNodes,bot.world->map_jkl_fname,bot.name,nav.itemNodes,nav.missingItemNodes,nav.truncated,nav.ctf,nav.liftCount);
+     fflush(stderr);
+@@ -926,9 +1100,48 @@
+     return 1;
+ }
+ 
++
++static int Bot_WalkableStepped(BotNode *a, BotNode *b, int *isDrop)
++{
++    rdVector3 delta=Bot_Sub(b->pos,a->pos);
++    flex_t length=Bot_Horizontal(delta);
++    int dropping=(delta.z < -BOT_STEP_UP);
++    if (length>3.5f || length<0.025f || delta.z>BOT_STEP_UP || delta.z < -BOT_MAX_DROP) return 0;
++    int steps=(int)ceilf(length/0.11f);
++    if (steps<2) steps=2;
++    if (steps>32) return 0;
++    rdVector3 pts[34]; SithSector *secs[34];
++    pts[0]=a->pos; secs[0]=a->sector;
++    flex_t previousZ=a->pos.z; SithSector *hint=a->sector;
++    for (int i=1;i<steps;i++) {
++        rdVector3 p=Bot_Mix(a->pos,b->pos,(flex_t)i/(flex_t)steps), floor;
++        p.z=Bot_Max(previousZ,p.z)+0.02f;
++        SithSector *floorSector;
++        if (!Bot_Floor(p,hint,dropping ? BOT_MAX_DROP+0.3f : 0.52f,&floor,&floorSector)) return 0;
++        if (floor.z-previousZ>BOT_STEP_UP || previousZ-floor.z>BOT_MAX_DROP) return 0;
++        pts[i]=floor; secs[i]=floorSector;
++        { flex_t lerpZ=a->pos.z+(b->pos.z-a->pos.z)*(flex_t)i/(flex_t)steps;
++          flex_t z=lerpZ<floor.z-0.05f ? floor.z-0.05f : lerpZ;
++          pts[i].z=z>floor.z ? floor.z : z; }
++        previousZ=floor.z; hint=floorSector;
++    }
++    pts[steps]=b->pos; secs[steps]=b->sector;
++    {
++        rdVector3 p=b->pos, floor; SithSector *floorSector;
++        p.z=Bot_Max(previousZ,p.z)+0.02f;
++        if (!Bot_Floor(p,hint,dropping ? BOT_MAX_DROP+0.3f : 0.52f,&floor,&floorSector)) return 0;
++        if (floor.z-previousZ>BOT_STEP_UP || previousZ-floor.z>BOT_MAX_DROP) return 0;
++        if (fabsf(floor.z-b->pos.z)>0.2f) return 0;
++    }
++    for (int i=0;i<steps;i++)
++        if (!Bot_Clear(NULL,secs[i],pts[i],pts[i+1],0.045f,1)) return 0;
++    *isDrop=dropping;
++    return 1;
++}
++
+ static int Bot_Walkable(BotNode *a, BotNode *b, int *isDrop)
+ {
+-    return Bot_WalkableSpan(a,b,isDrop,0.025f);
++    return Bot_WalkableSpan(a,b,isDrop,0.025f) || Bot_WalkableStepped(a,b,isDrop);
+ }
+ 
+ static int Bot_WaterClear(SithSector *sector,rdVector3 from,rdVector3 to,flex_t radius);
+@@ -938,7 +1151,7 @@
+ {
+     rdVector3 delta=Bot_Sub(b->pos,a->pos);
+     flex_t horizontal=Bot_Horizontal(delta), gravity=bot.world->gravity;
+-    if (horizontal<0.16f || horizontal>maxDistance || delta.z>maxRise || delta.z < -0.18f ||
++    if ((horizontal<0.16f && !(force && delta.z>0.3f && horizontal>=0.02f)) || horizontal>maxDistance || delta.z>maxRise || delta.z < -0.18f ||
+         gravity<0.1f || velocity<0.1f || nav.maxRunSpeed<0.1f ||
+         ((a->sector->flags|b->sector->flags)&SITH_SECTOR_UNDERWATER)) return 0;
+     flex_t discriminant=velocity*velocity-2.0f*gravity*delta.z;
+@@ -981,7 +1194,7 @@
+     const int unsafe=SITH_SECTOR_UNDERWATER|SITH_SECTOR_USETHRUST|SITH_SECTOR_NOGRAVITY;
+     /* fjump_standstill also checks level and slightly lower landings this way. */
+     flex_t lowest=BT_ON(FJUMP_STANDSTILL) ? -0.18f : 0.0f;
+-    if (!(length>=0.16f && length<=1.2f && delta.z>lowest && delta.z<=1.6f) ||
++    if (!((length>=0.16f || (length>=0.02f && delta.z>0.3f)) && length<=1.2f && delta.z>lowest && delta.z<=1.6f) ||
+         !Bot_SectorSafe(a->sector) || !Bot_SectorSafe(b->sector) ||
+         ((a->sector->flags|b->sector->flags)&unsafe)) return 0;
+     flex_t dt=bot.physicsStep,control=Bot_Max(dt,bot.frameDt);
+@@ -1106,12 +1319,40 @@
+ #include "AI/jkBotWaterExit.inc"
+ 
+ 
++static int Bot_NodeSubmerged(BotNode *n)
++{
++    if (n->sector->flags&SITH_SECTOR_UNDERWATER) return 1;
++    SithThing *self=sithPlayer_g_pLocalPlayerThing;
++    flex_t radius=self && self->moveSize>0 ? self->moveSize : 0.065f;
++    rdVector3 surface;
++    if (Bot_WaterSurface(n,radius,&surface) && surface.z>n->pos.z+0.02f) return 1;
++    /* Waterline node in a dry-flag shaft: the surface is just below. */
++    rdVector3 down={0,0,-1};
++    sithCollision_SearchForCollisions(n->sector,NULL,&n->pos,&down,0.20f,0,RAYCAST_1);
++    SithCollision *hit; int found=0;
++    while ((hit=sithCollision_PopStack())) {
++        if (hit->type&SITHCOLLISION_WORLD) break;
++        if ((hit->type&SITHCOLLISION_ADJOINCROSS) && hit->surface && hit->surface->pAdjoin &&
++            (hit->surface->pAdjoin->sector->flags&SITH_SECTOR_UNDERWATER)) { found=1; break; }
++    }
++    sithCollision_DecreaseStackLevel();
++    return found;
++}
++
+ static int Bot_EdgeMode(int from, int to)
+ {
+     BotNode *a=&bot.nodes[from], *b=&bot.nodes[to];
+     rdVector3 delta=Bot_Sub(b->pos,a->pos);
+     flex_t length=Bot_Len(delta);
+     if ((a->sector->flags|b->sector->flags)&SITH_SECTOR_UNDERWATER) {
++        /* A submerged node in an unflagged shaft sector is a swim waypoint,
++           not a bank: classify by submersion so shaft exits can form. */
++        if (Bot_NodeSubmerged(a) && Bot_NodeSubmerged(b)) {
++            if (length>=2.5f || fabsf(delta.z)>=1.2f) return -1;
++            SithThing *self=sithPlayer_g_pLocalPlayerThing;
++            flex_t radius=self && self->moveSize>0 ? self->moveSize : 0.065f;
++            return Bot_WaterClear(a->sector,a->pos,b->pos,radius) ? BOT_ROUTE_SWIM : -1;
++        }
+         /* Evaluate the checked descent or bank jump before considering a
+            direct movement edge across a nearly level shoreline. */
+         if ((a->sector->flags & b->sector->flags & SITH_SECTOR_UNDERWATER)!=0) {
+@@ -1161,6 +1402,9 @@
+     if (Bot_Walkable(a,b,&drop)) return drop ? BOT_ROUTE_DROP : BOT_ROUTE_WALK;
+     flex_t duration;
+     if (Bot_Jumpable(a,b,&duration)) return BOT_ROUTE_JUMP;
++    { static const flex_t hopFrac[]={0.3f,0.4f,0.5f,0.6f,0.7f,0.8f,0.85f,0.9f,0.95f};
++      for (unsigned hi=0;hi<sizeof(hopFrac)/sizeof(hopFrac[0]);hi++)
++          if (Bot_ArcClear(a,b,nav.jumpVelocity*hopFrac[hi],0.9f,0.21f,0,&duration)) return BOT_ROUTE_JUMP; }
+     if (Bot_ForceJumpable(a,b,&duration)) return BOT_ROUTE_FORCEJUMP;
+     return -1;
+ }
+@@ -1181,13 +1425,96 @@
+        Classify straight walking legs from their actual geometry. */
+     edge->c3Doors=mode==BOT_ROUTE_WALK ? Bot_C3CrossingMask(node->pos,bot.nodes[to].pos) : 0;
+     edge->cost=Bot_Distance(node->pos,bot.nodes[to].pos)+
+-        (mode==BOT_ROUTE_DROP ? 1.8f : mode==BOT_ROUTE_JUMP ? 1.1f : (mode==BOT_ROUTE_SWIM || mode==BOT_ROUTE_WATER_ENTRY || mode==BOT_ROUTE_WATER_EXIT) ? 2.0f :
++        (mode==BOT_ROUTE_DROP ? 1.8f : mode==BOT_ROUTE_JUMP ? 1.1f : mode==BOT_ROUTE_SWIM ? 0.0f : (mode==BOT_ROUTE_WATER_ENTRY || mode==BOT_ROUTE_WATER_EXIT) ? 2.0f :
+          mode==BOT_ROUTE_LIFT ? 2.2f : mode==BOT_ROUTE_FORCEJUMP ? 3.0f : mode==BOT_ROUTE_RUNJUMP ? 5.0f : 0.0f);
+     bot.graphEdges++;
+ }
+ 
+ static void Bot_NavCoverage(SithThing *self);
+ 
++
++
++static int Bot_WalkDbg(BotNode *a, BotNode *b)
++{
++    rdVector3 delta=Bot_Sub(b->pos,a->pos);
++    flex_t length=Bot_Horizontal(delta), previousZ=a->pos.z;
++    SithSector *hint=a->sector;
++    int dropping=(delta.z < -BOT_STEP_UP);
++    if (length>3.5f) return 1;
++    if (length<0.025f) return 2;
++    if (delta.z>BOT_STEP_UP) return 3;
++    if (delta.z < -BOT_MAX_DROP) return 4;
++    rdVector3 sweepA=a->pos, sweepB=b->pos;
++    if (dropping) sweepB.z=sweepA.z;
++    if (!Bot_Clear(NULL,a->sector,sweepA,sweepB,0.058f,1)) {
++        rdVector3 raisedA=sweepA, raisedB=sweepB;
++        raisedA.z+=0.065f; raisedB.z+=0.065f;
++        if (!Bot_Clear(NULL,a->sector,a->pos,raisedA,0.058f,1)) return 6;
++        if (!Bot_Clear(NULL,b->sector,b->pos,raisedB,0.058f,1)) return 7;
++        if (!Bot_Clear(NULL,a->sector,raisedA,raisedB,0.058f,1)) return 8;
++        sweepA=raisedA; sweepB=raisedB;
++    }
++    int steps=(int)ceilf(length/0.22f);
++    for (int i=1;i<=steps;i++) {
++        rdVector3 p=Bot_Mix(a->pos,b->pos,(flex_t)i/(flex_t)steps), floor;
++        p.z=Bot_Max(previousZ,p.z)+0.02f;
++        SithSector *floorSector;
++        if (!Bot_Floor(p,hint,dropping ? BOT_MAX_DROP+0.3f : 0.52f,&floor,&floorSector)) return 100+i;
++        if (floor.z-previousZ>BOT_STEP_UP) return 200+i;
++        if (previousZ-floor.z>BOT_MAX_DROP) return 300+i;
++        previousZ=floor.z; hint=floorSector;
++    }
++    if (fabsf(previousZ-b->pos.z)>0.2f) return 12;
++    if (!Bot_PortalGroundClear(a->sector,sweepA,sweepB)) return 13;
++    return 0;
++}
++
++static void Bot_DumpCanalGraph(void)
++{
++    static const int sectors[]={0,1,3,7,11,15,84,88,91,471,504,530,531,616,617,527,528,529,791,703};
++    for (unsigned s=0;s<sizeof(sectors)/sizeof(sectors[0]);s++) {
++        int count=0;
++        for (int i=0;i<bot.nNodes;i++) if (bot.nodes[i].sector && (int)bot.nodes[i].sector->id==sectors[s]) count++;
++        fprintf(stderr,"BOT_GRAPH_DUMP sector=%d nodes=%d\n",sectors[s],count);
++        for (int i=0;i<bot.nNodes;i++) {
++            BotNode *n=&bot.nodes[i];
++            if (!n->sector || (int)n->sector->id!=sectors[s]) continue;
++            fprintf(stderr,"BOT_GRAPH_DUMP node=%d sector=%d pos=%.2f,%.2f,%.2f item=%d edges=%d\n",i,sectors[s],(double)n->pos.x,(double)n->pos.y,(double)n->pos.z,n->item,n->nEdges);
++            for (int k=0;k<n->nEdges;k++) {
++                BotEdge *e=&n->edges[k];
++                int toSector=bot.nodes[e->to].sector ? (int)bot.nodes[e->to].sector->id : -1;
++                fprintf(stderr,"BOT_GRAPH_DUMP edge from=%d to=%d to_sector=%d mode=%d cost=%.2f doors=%u\n",i,e->to,toSector,(int)e->drop,(double)e->cost,(unsigned)e->c3Doors);
++            }
++        }
++    }
++    static const int path[]={84,1,7,11,15,616,617,531,530,528,529,527,791,703,700};
++    static const int pairs[][2]={{15,616},{616,15},{616,617},{617,616},{15,617},{617,15},{11,15},{15,11},{7,11},{11,7},{9,15},{15,9},{0,471},{471,504},{84,1},{1,7},{529,527},{527,791},{791,703},{703,700},{617,618},{617,619},{64,15},{62,64},{156,157},{408,158},{0,155},{0,157},{0,158},{155,413}};
++    for (unsigned p=0;p<sizeof(pairs)/sizeof(pairs[0]);p++) {
++        int bf=-1,bt=-1,bm=-2,br=-2; flex_t bd=1e20f;
++        for (int i=0;i<bot.nNodes;i++) { if (!bot.nodes[i].sector || (int)bot.nodes[i].sector->id!=pairs[p][0]) continue;
++            for (int j=0;j<bot.nNodes;j++) { if (!bot.nodes[j].sector || (int)bot.nodes[j].sector->id!=pairs[p][1]) continue;
++                flex_t d=Bot_Distance(bot.nodes[i].pos,bot.nodes[j].pos); if (d<bd) { bd=d; bf=i; bt=j; } } }
++        if (bf>=0) { bm=Bot_EdgeMode(bf,bt); br=Bot_EdgeMode(bt,bf); }
++        fprintf(stderr,"BOT_GRAPH_DUMP pair %d->%d nearest=%.2f from=%d to=%d mode=%d rev=%d walkdbg=%d walkdbgr=%d liftfrom=%d liftto=%d frompos=%.2f,%.2f,%.2f topos=%.2f,%.2f,%.2f\n",pairs[p][0],pairs[p][1],(double)bd,bf,bt,bm,br,bf>=0?Bot_WalkDbg(&bot.nodes[bf],&bot.nodes[bt]):-9,bf>=0?Bot_WalkDbg(&bot.nodes[bt],&bot.nodes[bf]):-9,bf>=0?nav.liftForNode[bf]:-9,bt>=0?nav.liftForNode[bt]:-9,bf>=0?(double)bot.nodes[bf].pos.x:0,bf>=0?(double)bot.nodes[bf].pos.y:0,bf>=0?(double)bot.nodes[bf].pos.z:0,bt>=0?(double)bot.nodes[bt].pos.x:0,bt>=0?(double)bot.nodes[bt].pos.y:0,bt>=0?(double)bot.nodes[bt].pos.z:0);
++    }
++    for (int li=0;li<nav.liftCount;li++) { BotLift *L=&nav.lifts[li];
++        fprintf(stderr,"BOT_GRAPH_DUMP lift idx=%d thing=%d top=%.3f n0=%d sec0=%d pos0=%.2f,%.2f,%.2f n1=%d sec1=%d pos1=%.2f,%.2f,%.2f buttons=%d\n",li,L->thing,(double)L->top,L->node[0],bot.nodes[L->node[0]].sector?(int)bot.nodes[L->node[0]].sector->id:-1,(double)bot.nodes[L->node[0]].pos.x,(double)bot.nodes[L->node[0]].pos.y,(double)bot.nodes[L->node[0]].pos.z,L->node[1],bot.nodes[L->node[1]].sector?(int)bot.nodes[L->node[1]].sector->id:-1,(double)bot.nodes[L->node[1]].pos.x,(double)bot.nodes[L->node[1]].pos.y,(double)bot.nodes[L->node[1]].pos.z,L->buttons); }
++    for (unsigned p=0;p+1<sizeof(path)/sizeof(path[0]);p++) {
++        int bestFrom=-1,bestTo=-1,bestMode=-2; flex_t bestDist=1e20f;
++        for (int i=0;i<bot.nNodes;i++) {
++            if (!bot.nodes[i].sector || (int)bot.nodes[i].sector->id!=path[p]) continue;
++            for (int j=0;j<bot.nNodes;j++) {
++                if (!bot.nodes[j].sector || (int)bot.nodes[j].sector->id!=path[p+1]) continue;
++                flex_t d=Bot_Distance(bot.nodes[i].pos,bot.nodes[j].pos);
++                if (d<bestDist) { bestDist=d; bestFrom=i; bestTo=j; }
++            }
++        }
++        if (bestFrom>=0) bestMode=Bot_EdgeMode(bestFrom,bestTo);
++        fprintf(stderr,"BOT_GRAPH_DUMP link %d->%d nearest=%.2f from=%d to=%d edgemode=%d\n",path[p],path[p+1],(double)bestDist,bestFrom,bestTo,bestMode);
++    }
++    fflush(stderr);
++}
++
+ static void Bot_BuildGraphStep(void)
+ {
+     nav.fjBuild=1;
+@@ -1227,10 +1554,12 @@
+     nav.fjBuild=0;
+     if (!bot.graphDone && bot.buildNode==bot.nNodes) {
+         bot.graphDone=1;
++        Bot_InjectShaftEdges();
+         fprintf(stderr,"BOT_NAV_READY nodes=%d directed_edges=%d name=%s map=%s item_nodes=%d missing_item_nodes=%d truncated=%d\n",
+             bot.nNodes,bot.graphEdges,bot.name,bot.world->map_jkl_fname,nav.itemNodes,nav.missingItemNodes,nav.truncated);
+         if (sithPlayer_g_pLocalPlayerThing) Bot_NavCoverage(sithPlayer_g_pLocalPlayerThing);
+         fflush(stderr);
++        Bot_DumpCanalGraph();
+     }
+ }
+ 
+--- a/src/AI/jkBotNavigate.inc
++++ b/src/AI/jkBotNavigate.inc
+@@ -851,6 +851,7 @@
+     if (nav.forceJumpPending) {
+         bot.routeMode=BOT_ROUTE_FORCEJUMP; bot.routeAim=1;
+         if (!(self->attach_flags&(SITH_ATTACH_SURFACE|SITH_ATTACH_THINGFACE)) &&
++            !(nav.jumpFrom>0 && Bot_NodeSubmerged(&bot.nodes[nav.jumpFrom-1])) &&
+             (bot.now<nav.forceChargeUntil || self->physicsParams.vel.z<=0)) {
+             /* Knockback can remove support mid-charge. Release the real key;
+                the stock script decides whether there is a takeoff. */
+@@ -1011,6 +1012,21 @@
+     }
+     if (Bot_EnterWater(self,node,mode,from)) return;
+     if (mode==BOT_ROUTE_SWIM || mode==BOT_ROUTE_WATER_ENTRY || (self->sector->flags&SITH_SECTOR_UNDERWATER)) {
++        { static flex_t anchorLogAt;
++          int canalSec=((int)self->sector->id>=440 && (int)self->sector->id<=488);
++          if (canalSec && bot.routePos==0 && bot.now-anchorLogAt>2.0f) { anchorLogAt=bot.now;
++            rdVector3 fromPos = from>=0 ? bot.nodes[from].pos : self->position;
++            int clearFrom = from>=0 ? Bot_WaterClear(self->sector,self->position,fromPos,self->moveSize) : -1;
++            int clearNode = Bot_WaterClear(self->sector,self->position,node->pos,self->moveSize);
++            fprintf(stderr,"BOT_ANCHOR name=%s t=%.2f sec=%u mode=%d from=%d to=%d goal=%d pos=%.2f,%.2f,%.2f frompos=%.2f,%.2f,%.2f nodepos=%.2f,%.2f,%.2f distfrom=%.2f distnode=%.2f clearfrom=%d clearnode=%d%c",
++              bot.name,(double)bot.now,self->sector->id,mode,from,nodeIndex,bot.goal,
++              (double)self->position.x,(double)self->position.y,(double)self->position.z,
++              (double)fromPos.x,(double)fromPos.y,(double)fromPos.z,
++              (double)node->pos.x,(double)node->pos.y,(double)node->pos.z,
++              (double)(from>=0?Bot_Distance(self->position,fromPos):-1.0),
++              (double)Bot_Distance(self->position,node->pos),clearFrom,clearNode,10);
++            fflush(stderr); } }
++
+         /* Dijkstra omits the start anchor. At a portal the actual swimmer
+            may have to approach that anchor before the verified edge is clear. */
+         if (mode==BOT_ROUTE_SWIM && from>=0 && (bot.nodes[from].sector->flags&SITH_SECTOR_UNDERWATER) &&
+@@ -1024,6 +1040,14 @@
+         if (shore && span>0.16f) swimProbe=Bot_Mix(self->position,node->pos,0.16f/span);
+         if (mode==BOT_ROUTE_SWIM &&
+             !Bot_WaterClear(self->sector,self->position,swimProbe,self->moveSize)) {
++            static flex_t strokeLogAt;
++            int xlog=((self->sector->id==487 && node->sector->id==472)||(self->sector->id==472 && node->sector->id==487));
++            if (xlog && bot.now-strokeLogAt>2.0f) { strokeLogAt=bot.now;
++                fprintf(stderr,"BOT_STROKE name=%s t=%.2f branch=clear-fail from=%d to=%d fromsec=%u tosec=%u pos=%.2f,%.2f,%.2f nodepos=%.2f,%.2f,%.2f span=%.2f mode=%d\n",
++                    bot.name,(double)bot.now,from,nodeIndex,self->sector->id,node->sector->id,
++                    (double)self->position.x,(double)self->position.y,(double)self->position.z,
++                    (double)node->pos.x,(double)node->pos.y,(double)node->pos.z,(double)span,mode);
++                fflush(stderr); }
+             /* During a surface hop the next stroke can clip the lip while
+                falling in dry air. Keep the selected bank until landing or
+                reentry instead of marking it unreachable for this one frame. */
+@@ -1037,6 +1061,15 @@
+                 Bot_NavDirectMove(self,bot.nodes[from].pos,1);
+                 return;
+             }
++            if (xlog) { fprintf(stderr,"BOT_STROKE name=%s t=%.2f branch=avoid from=%d to=%d\n",bot.name,(double)bot.now,from,nodeIndex); fflush(stderr); }
++            if (span>0.16f) {
++                rdVector3 probe=Bot_Mix(self->position,node->pos,0.16f/span);
++                if (Bot_WaterClear(self->sector,self->position,probe,self->moveSize)) {
++                    Bot_Aim(self,node->pos,0);
++                    Bot_NavDirectMove(self,probe,1);
++                    return;
++                }
++            }
+             Bot_AvoidNode(node,5); bot.goal=-1; bot.routeCount=0; bot.nextPlan=0;
+             return;
+         }
+@@ -1056,7 +1089,12 @@
+             bot.goal=-1; bot.routeCount=bot.routePos=0; bot.nextPlan=0;
+             return;
+         }
+-        if (!Bot_NavDirectMove(self,node->pos,1)) Bot_SeekSurface(self);
++        int directOk=Bot_NavDirectMove(self,node->pos,1);
++        { static flex_t strokeOkAt; int xlog2=((self->sector->id==487 && node->sector->id==472)||(self->sector->id==472 && node->sector->id==487));
++          if (xlog2 && bot.now-strokeOkAt>2.0f) { strokeOkAt=bot.now;
++            fprintf(stderr,"BOT_STROKE name=%s t=%.2f branch=direct ok=%d from=%d to=%d pos=%.2f,%.2f,%.2f nodepos=%.2f,%.2f,%.2f\n",bot.name,(double)bot.now,directOk,from,nodeIndex,(double)self->position.x,(double)self->position.y,(double)self->position.z,(double)node->pos.x,(double)node->pos.y,(double)node->pos.z);
++            fflush(stderr); } }
++        if (!directOk) Bot_SeekSurface(self);
+         return;
+     }
+     if (!(self->sector->flags&SITH_SECTOR_UNDERWATER)) bot.slipNode=0;
+@@ -1099,11 +1137,20 @@
+             return;
+         }
+     }
+-    if (mode==BOT_ROUTE_FORCEJUMP && from>=0 && (self->attach_flags&(SITH_ATTACH_SURFACE|SITH_ATTACH_THINGFACE)) && bot.now>=bot.nextJump) {
++    if (mode==BOT_ROUTE_FORCEJUMP && from>=0 && ((self->attach_flags&(SITH_ATTACH_SURFACE|SITH_ATTACH_THINGFACE)) || Bot_NodeSubmerged(&bot.nodes[from])) &&
++        (bot.now>=bot.nextJump || Bot_NodeSubmerged(&bot.nodes[from]))) {
+         BotNode actual=*node; actual.pos=self->position; actual.sector=self->sector;
+         flex_t duration, hold, horizontal=Bot_Horizontal(d);
++        int fjRank=(int)sithInventory_GetInventory(self,SITHBIN_F_JUMP);
++        int fjProf=Bot_ForceJumpProfile(&actual,node,fjRank,&duration,&hold);
++        if (!fjProf && Bot_NodeSubmerged(&bot.nodes[from]) && horizontal<0.45f && d.z>0.3f && d.z<1.0f && fjRank>=1) {
++            /* Shaft deck climb: dry flight sim cannot validate a launch from
++               bobbing water under the deck. Launch at full rank hold and let
++               jump-landed miss handling strike the leg if it cannot work. */
++            fjProf=1; duration=1.2f; hold=fjRank*0.35f;
++        }
+         if (horizontal>0.001f && Bot_Dot(d,self->orient.lvec)/horizontal>0.65f &&
+-            Bot_ForceJumpProfile(&actual,node,(int)sithInventory_GetInventory(self,SITHBIN_F_JUMP),&duration,&hold) &&
++            fjProf &&
+             Bot_ForceReady(self,SITHBIN_F_JUMP,20)) {
+             bot.axes[INPUT_FUNC_FORWARD]=bot.axes[INPUT_FUNC_SLIDE]=0;
+             nav.waitUntil=bot.now+0.3f;
+--- a/src/AI/jkBotTactics.inc
++++ b/src/AI/jkBotTactics.inc
+@@ -42,7 +42,7 @@
+        bot heads for air regardless of breath. */ \
+     X(WATER_ENTRY_COST, "water_entry_cost",  4.0f,  0.0f, 0.0f,  40.0f) \
+     X(DIVE_MIN_VALUE,   "dive_min_value",    6.0f,  0.0f, 0.0f,  40.0f) \
+-    X(DIVE_SECONDS,     "dive_seconds",      8.0f,  8.0f, 2.0f,  30.0f) \
++    X(DIVE_SECONDS,     "dive_seconds",      28.0f,  8.0f, 2.0f,  30.0f) \
+     /* Movement: hold the ordinary run key on checked open ground; stop \
+        running this far before a jump, drop, lift, water edge or corner. */ \
+     X(RUN,              "run",               1.0f,  0.0f, 0.0f,   1.0f) \
+@@ -69,7 +69,7 @@
+     X(DIVE_RETRY,       "dive_retry",       45.0f,  0.0f, 0.0f, 300.0f) \
+     /* A swim that comes out on another bank may take this long (the engine \
+        gives twenty seconds of air); 0 holds it to dive_seconds. */ \
+-    X(CROSSING_SECONDS, "crossing_seconds", 17.0f,  0.0f, 0.0f,  19.0f) \
++    X(CROSSING_SECONDS, "crossing_seconds", 28.0f,  0.0f, 0.0f,  30.0f) \
+     /* Swim steep legs by looking along them and pushing forward. */ \
+     X(SWIM_PITCH,       "swim_pitch",        1.0f,  0.0f, 0.0f,   1.0f) \
+     /* Cross gaps with a jump released at running speed, with Force Speed \
+@@ -107,7 +107,7 @@
+     X(AIR_HEALTH,       "air_health",        0.0f, 30.0f, 0.0f, 100.0f) \
+     /* A swim leg costs this many times its length: swimming is about a \
+        third of running speed, and a swimmer fights badly. */ \
+-    X(SWIM_COST,        "swim_cost",         3.0f,  1.0f, 1.0f,  10.0f) \
++    X(SWIM_COST,        "swim_cost",         1.6f,  1.0f, 1.0f,  10.0f) \
+     /* Keep Force Speed up whenever moving on dry ground, fighting \
+        included; it is left out of the Absorb reserve. */ \
+     X(SPEED_UPKEEP,     "speed_upkeep",      1.0f,  0.0f, 0.0f,   1.0f) \
+--- a/src/AI/jkBotRunJump.inc
++++ b/src/AI/jkBotRunJump.inc
+@@ -98,7 +98,30 @@
+         along+=v*step;
+         pos.x=a->pos.x+along*direction.x; pos.y=a->pos.y+along*direction.y; pos.z+=vz*step;
+         if (!lands && i%3!=2) continue;
+-        if (!Bot_WaterClear(sector,swept,pos,radius)) return 0;
++        if (!Bot_WaterClear(sector,swept,pos,radius)) {
++            /* Descending into a rising far bank is a landing on the slope,
++               not a wall, when the floor there walks onto the far node. */
++            if (vz>=0 || along<0.5f*length || along>length+0.4f) return 0;
++            SithSector *here=Bot_SectorAt(&pos,sector);
++            rdVector3 standing; SithSector *floor=NULL;
++            if (!Bot_SectorSafe(here) || (here->flags&unsafe) ||
++                !Bot_Floor(pos,here,BOT_FOOT_HEIGHT+0.35f,&standing,&floor) ||
++                standing.z>pos.z+0.10f || standing.z<b->pos.z-0.9f) return 0;
++            BotNode foothold={.pos=standing,.sector=floor}; int drop=0;
++            if (!Bot_WalkableSpan(&foothold,b,&drop,0.001f) || drop) return 0;
++            flex_t coast=v/RunJump_Drag(self)+0.15f;
++            rdVector3 at=standing; SithSector *under=floor;
++            for (flex_t done=0;done<coast;done+=0.08f) {
++                rdVector3 ahead=at; ahead.x+=0.08f*direction.x; ahead.y+=0.08f*direction.y;
++                if (!Bot_Clear(NULL,under,at,ahead,radius,1)) break;
++                rdVector3 rest; SithSector *support=NULL;
++                under=Bot_SectorAt(&ahead,under);
++                if (!Bot_SectorSafe(under) || (under->flags&unsafe) ||
++                    !Bot_Floor(ahead,under,BOT_FOOT_HEIGHT+0.06f,&rest,&support)) return 0;
++                at=rest;
++            }
++            return 1;
++        }
+         swept=pos; sector=Bot_SectorAt(&pos,sector);
+         int leaving=runJumpSurf && vz>0 && sector==a->sector && pos.z<=a->pos.z+radius+0.05f;
+         if (!Bot_SectorSafe(sector) || ((sector->flags&unsafe) && !leaving)) return 0;
+@@ -130,10 +153,10 @@
+ static int RunJump_Runway(const BotNode *a,rdVector3 direction,flex_t length)
+ {
+     rdVector3 start=a->pos,floor; SithSector *support=NULL;
+-    start.x-=length*direction.x; start.y-=length*direction.y;
++    start.x-=length*direction.x; start.y-=length*direction.y; start.z+=0.30f+0.35f*length;
+     SithSector *sector=Bot_SectorAt(&start,a->sector);
+     if (!Bot_SectorSafe(sector) || (sector->flags&(SITH_SECTOR_UNDERWATER|SITH_SECTOR_USETHRUST)) ||
+-        !Bot_Floor(start,sector,BOT_FOOT_HEIGHT+0.05f,&floor,&support) || fabsf(floor.z-a->pos.z)>0.05f) return 0;
++        !Bot_Floor(start,sector,BOT_FOOT_HEIGHT+0.65f+0.35f*length,&floor,&support) || fabsf(floor.z-a->pos.z)>0.05f+0.35f*length) return 0;
+     BotNode from={.pos=floor,.sector=support}; int drop=0;
+     return Bot_WalkableSpan(&from,(BotNode *)a,&drop,0.001f) && !drop;
+ }
+@@ -433,8 +456,11 @@
+         flex_t horizontal=Bot_Horizontal(d);
+         if (wet ? (horizontal<0.3f || horizontal>3.6f || d.z>-0.9f || d.z<-9.0f)
+                 : (horizontal<1.3f || horizontal>4.6f || fabsf(d.z)>1.2f)) continue;
+-        /* A place the ordinary graph cannot reach has no known way back. */
+-        if (distance[j]>=1e19f) continue;
++        /* A place the ordinary graph cannot reach has no known way back.
++           Item endpoints are the exception: an otherwise unreachable pickup
++           (e.g. Dark Surge across the BGJ stream) is exactly what a running
++           jump is for, and the reverse enumeration can still form the way back. */
++        if (distance[j]>=1e19f && b->item<0) continue;
+         if (distance[j]<3.0f*horizontal+4.0f) { runJumpDropped[0]++; continue; }
+         flex_t saving=distance[j]-horizontal;
+         if (wet) {
+@@ -635,8 +661,12 @@
+         /* The leg may have been planned from the nearest node, not from where
+            the bot stands: the run-up must be level ground it can walk. */
+         BotNode actual={.pos=self->position,.sector=self->sector}; int drop=0;
+-        if (fabsf(self->position.z-a->pos.z)>0.08f ||
+-            (Bot_Horizontal(Bot_Sub(a->pos,self->position))>0.05f && (!Bot_WalkableSpan(&actual,a,&drop,0.001f) || drop))) {
++        /* Off the node, the walkable span to it is the level-ground proof:
++           on a graded bank the route hands over a little upslope, higher
++           than any fixed height tolerance, on ground that walks fine. */
++        if (Bot_Horizontal(Bot_Sub(a->pos,self->position))>0.05f
++                ? (!Bot_WalkableSpan(&actual,a,&drop,0.001f) || drop)
++                : fabsf(self->position.z-a->pos.z)>0.08f) {
+             RunJump_Fail(self,plan,"not-at-launch",15.0f); return 1;
+         }
+         rdVector3 start=a->pos; start.x-=plan->runway*direction.x; start.y-=plan->runway*direction.y;
+--- a/src/AI/jkBotNavigation.inc
++++ b/src/AI/jkBotNavigation.inc
+@@ -768,6 +768,13 @@
+ }
+ 
+ 
++static int Bot_DiagLog(void)
++{
++    static int enabled=-1;
++    if (enabled<0) enabled=getenv("JK_BOT_DIAG") ? 1 : 0;
++    return enabled;
++}
++
+ static void Bot_AddEdge(int from, int to, int mode);
+ static int botShaftDecks[8];
+ static int botShaftDeckCount;
+@@ -813,12 +820,12 @@
+             int beforeDeck=bot.nodes[deckNode].nEdges, beforeIn=bot.nodes[bestIn].nEdges;
+             Bot_AddEdge(bestIn,deckNode,BOT_ROUTE_WALK);
+             Bot_AddEdge(deckNode,bestIn,BOT_ROUTE_WALK);
+-            fprintf(stderr,"BOT_LIFT name=%s event=board-inject deck=%d in=%d insector=%d dist=%.2f edges %d->%d %d->%d\n",
++            if (Bot_DiagLog()) fprintf(stderr,"BOT_LIFT name=%s event=board-inject deck=%d in=%d insector=%d dist=%.2f edges %d->%d %d->%d\n",
+                 bot.name,deckNode,bestIn,bot.nodes[bestIn].sector ? (int)bot.nodes[bestIn].sector->id : -1,
+                 (double)bestInDist,beforeDeck,bot.nodes[deckNode].nEdges,beforeIn,bot.nodes[bestIn].nEdges);
+             fflush(stderr);
+         }
+-        fprintf(stderr,"BOT_LIFT name=%s event=shaft-inject deck=%d below=%d belowsector=%d dist=%.2f\n",
++        if (Bot_DiagLog()) fprintf(stderr,"BOT_LIFT name=%s event=shaft-inject deck=%d below=%d belowsector=%d dist=%.2f\n",
+             bot.name,deckNode,best,(int)belowSector->id,(double)bestDist);
+         fflush(stderr);
+     }
+@@ -885,7 +892,7 @@
+                     int sn=Bot_AddRawNode(sp,ss,-1);
+                     if (sn<0) continue;
+                     Bot_AddEdge(sn,topNode,BOT_ROUTE_FORCEJUMP);
+-                    fprintf(stderr,"BOT_LIFT name=%s event=surf-node thing=%d node=%d decknode=%d pos=%.2f,%.2f,%.2f sector=%d\n",
++                    if (Bot_DiagLog()) fprintf(stderr,"BOT_LIFT name=%s event=surf-node thing=%d node=%d decknode=%d pos=%.2f,%.2f,%.2f sector=%d\n",
+                         bot.name,i,sn,topNode,(double)sp.x,(double)sp.y,(double)sp.z,ss ? (int)ss->id : -1);
+                     fflush(stderr);
+                 }
+@@ -913,13 +920,13 @@
+                     if (sn<0) continue;
+                     Bot_AddEdge(sn,topNode,BOT_ROUTE_FORCEJUMP);
+                     Bot_AddEdge(topNode,sn,BOT_ROUTE_DROP);
+-                    fprintf(stderr,"BOT_LIFT name=%s event=surf-node thing=%d node=%d decknode=%d pos=%.2f,%.2f,%.2f sector=%d\n",
++                    if (Bot_DiagLog()) fprintf(stderr,"BOT_LIFT name=%s event=surf-node thing=%d node=%d decknode=%d pos=%.2f,%.2f,%.2f sector=%d\n",
+                         bot.name,i,sn,topNode,(double)sp.x,(double)sp.y,(double)sp.z,(int)wetSec->id);
+                     fflush(stderr);
+                 }
+             }
+         }
+-        fprintf(stderr,"BOT_LIFT name=%s event=deck-nodes thing=%d top=%.3f topnode=%d lownode=%d deck=%.2f,%.2f,%.2f below=%.2f,%.2f,%.2f belowsector=%d\n",
++        if (Bot_DiagLog()) fprintf(stderr,"BOT_LIFT name=%s event=deck-nodes thing=%d top=%.3f topnode=%d lownode=%d deck=%.2f,%.2f,%.2f below=%.2f,%.2f,%.2f belowsector=%d\n",
+             bot.name,i,(double)top,topNode,lowNode,(double)deck.x,(double)deck.y,(double)deck.z,
+             (double)below.x,(double)below.y,(double)below.z,belowSector ? (int)belowSector->id : -1);
+         fflush(stderr);
+@@ -1426,7 +1433,7 @@
+     edge->c3Doors=mode==BOT_ROUTE_WALK ? Bot_C3CrossingMask(node->pos,bot.nodes[to].pos) : 0;
+     edge->cost=Bot_Distance(node->pos,bot.nodes[to].pos)+
+         (mode==BOT_ROUTE_DROP ? 1.8f : mode==BOT_ROUTE_JUMP ? 1.1f : mode==BOT_ROUTE_SWIM ? 0.0f : (mode==BOT_ROUTE_WATER_ENTRY || mode==BOT_ROUTE_WATER_EXIT) ? 2.0f :
+-         mode==BOT_ROUTE_LIFT ? 2.2f : mode==BOT_ROUTE_FORCEJUMP ? 3.0f : mode==BOT_ROUTE_RUNJUMP ? 5.0f : 0.0f);
++         mode==BOT_ROUTE_LIFT ? 2.2f : mode==BOT_ROUTE_FORCEJUMP ? 3.0f : mode==BOT_ROUTE_RUNJUMP ? 1.0f : 0.0f);
+     bot.graphEdges++;
+ }
+ 
+@@ -1471,6 +1478,7 @@
+ 
+ static void Bot_DumpCanalGraph(void)
+ {
++    if (!Bot_DiagLog()) return;
+     static const int sectors[]={0,1,3,7,11,15,84,88,91,471,504,530,531,616,617,527,528,529,791,703};
+     for (unsigned s=0;s<sizeof(sectors)/sizeof(sectors[0]);s++) {
+         int count=0;
+--- a/src/AI/jkBotNavigate.inc
++++ b/src/AI/jkBotNavigate.inc
+@@ -1014,7 +1014,7 @@
+     if (mode==BOT_ROUTE_SWIM || mode==BOT_ROUTE_WATER_ENTRY || (self->sector->flags&SITH_SECTOR_UNDERWATER)) {
+         { static flex_t anchorLogAt;
+           int canalSec=((int)self->sector->id>=440 && (int)self->sector->id<=488);
+-          if (canalSec && bot.routePos==0 && bot.now-anchorLogAt>2.0f) { anchorLogAt=bot.now;
++          if (Bot_DiagLog() && canalSec && bot.routePos==0 && bot.now-anchorLogAt>2.0f) { anchorLogAt=bot.now;
+             rdVector3 fromPos = from>=0 ? bot.nodes[from].pos : self->position;
+             int clearFrom = from>=0 ? Bot_WaterClear(self->sector,self->position,fromPos,self->moveSize) : -1;
+             int clearNode = Bot_WaterClear(self->sector,self->position,node->pos,self->moveSize);
+@@ -1041,7 +1041,7 @@
+         if (mode==BOT_ROUTE_SWIM &&
+             !Bot_WaterClear(self->sector,self->position,swimProbe,self->moveSize)) {
+             static flex_t strokeLogAt;
+-            int xlog=((self->sector->id==487 && node->sector->id==472)||(self->sector->id==472 && node->sector->id==487));
++            int xlog=Bot_DiagLog() && ((self->sector->id==487 && node->sector->id==472)||(self->sector->id==472 && node->sector->id==487));
+             if (xlog && bot.now-strokeLogAt>2.0f) { strokeLogAt=bot.now;
+                 fprintf(stderr,"BOT_STROKE name=%s t=%.2f branch=clear-fail from=%d to=%d fromsec=%u tosec=%u pos=%.2f,%.2f,%.2f nodepos=%.2f,%.2f,%.2f span=%.2f mode=%d\n",
+                     bot.name,(double)bot.now,from,nodeIndex,self->sector->id,node->sector->id,
+@@ -1090,7 +1090,7 @@
+             return;
+         }
+         int directOk=Bot_NavDirectMove(self,node->pos,1);
+-        { static flex_t strokeOkAt; int xlog2=((self->sector->id==487 && node->sector->id==472)||(self->sector->id==472 && node->sector->id==487));
++        { static flex_t strokeOkAt; int xlog2=Bot_DiagLog() && ((self->sector->id==487 && node->sector->id==472)||(self->sector->id==472 && node->sector->id==487));
+           if (xlog2 && bot.now-strokeOkAt>2.0f) { strokeOkAt=bot.now;
+             fprintf(stderr,"BOT_STROKE name=%s t=%.2f branch=direct ok=%d from=%d to=%d pos=%.2f,%.2f,%.2f nodepos=%.2f,%.2f,%.2f\n",bot.name,(double)bot.now,directOk,from,nodeIndex,(double)self->position.x,(double)self->position.y,(double)self->position.z,(double)node->pos.x,(double)node->pos.y,(double)node->pos.z);
+             fflush(stderr); } }
+--- a/src/AI/jkBotTraps.inc
++++ b/src/AI/jkBotTraps.inc
+@@ -582,7 +582,7 @@
+ static void Bot_BindLifts(void)
+ {
+     static const char *buttons[]={"button","call0","call1","call2","call3"};
+-    static const char *thresholds[]={"lower_adjoin0","lower_adjoin1","lower_adjoin2"};
++    static const char *thresholds[]={"lower_adjoin0","lower_adjoin1","lower_adjoin2","cross0","cross1","cross2","cross3"};
+     for (int c=0;c<bot.world->numCogs;c++) {
+         sithCog *cog=&bot.world->aCogs[c];
+         int thing=Bot_CogReference(cog,"elevator");
+@@ -597,7 +597,7 @@
+             }
+             for (unsigned t=0;t<sizeof(thresholds)/sizeof(thresholds[0]);t++) {
+                 int s=Bot_CogSurface(cog,thresholds[t]);
+-                if (s>=0 && bot.world->surfaces[s].pAdjoin) lift->threshold[lift->thresholds++]=s;
++                if (s>=0 && lift->thresholds<3 && bot.world->surfaces[s].pAdjoin) lift->threshold[lift->thresholds++]=s;
+             }
+             /* lift_hop: the legs off ledges partway up the shaft. */
+             int hops=0;
+--- a/src/AI/jkBotNavigation.inc
++++ b/src/AI/jkBotNavigation.inc
+@@ -78,6 +78,7 @@
+     flex_t unavailableAt[BOT_NODES];
+     unsigned char unavailable[BOT_NODES];
+     flex_t waterSince, waitUntil, liftWaitAt, jumpUntil, jumpStarted, nextObjectiveLog;
++    flex_t standoffSince; /* candidate: mutual-flag standoff timer */
+     flex_t jumpVelocity, maxRunSpeed;
+     BotRunJump runEdges[BOT_RUNJUMPS];
+     int runCount, runCursor, runPhase, runFrom, runTo, runAir, runHeld, runLogged, runFlight, runActive, runSalvage;
+@@ -1908,12 +1909,26 @@
+     if (enemyCarrier==self) {
+         /* Taking our dropped flag returns it before we can score. If an
+            opponent carries it, hold near home rather than chasing with both
+-           flags. Stock touching/scoring rules remain authoritative. */
+-        if (!ownCarrier && !ownHome) Bot_ObjectiveSet(BOT_OBJECTIVE_RECOVER,own,own->position,own->sector);
+-        else Bot_ObjectiveSet(BOT_OBJECTIVE_RETURN,ownHome ? own : base,
+-            ownHome ? own->position : base->position,ownHome ? own->sector : base->sector);
++           flags. Stock touching/scoring rules remain authoritative.
++           candidate: a lone carrier cannot wait for a teammate to
++           intercept, so after a bounded hold it hunts the opposing
++           carrier itself; killing it drops our flag for a touch return. */
++        if (!ownCarrier && !ownHome) { nav.standoffSince=0; Bot_ObjectiveSet(BOT_OBJECTIVE_RECOVER,own,own->position,own->sector); }
++        else if (ownCarrier) {
++            unsigned int teammates=0;
++            for (unsigned int i=0;i<jkPlayer_maxPlayers && i<JKPLAYER_NUM_INFOS;i++) {
++                SithPlayer *p=&jkPlayer_playerInfos[i];
++                if ((p->flags&1) && p->playerNetId && p->teamNum==(uint32_t)team && p->pLocalPlayer) teammates++;
++            }
++            if (!nav.standoffSince) nav.standoffSince=bot.now;
++            if (teammates<=1 && bot.now-nav.standoffSince>20.0f)
++                Bot_ObjectiveSet(BOT_OBJECTIVE_INTERCEPT,ownCarrier,ownCarrier->position,ownCarrier->sector);
++            else Bot_ObjectiveSet(BOT_OBJECTIVE_RETURN,base,base->position,base->sector);
++        }
++        else { nav.standoffSince=0; Bot_ObjectiveSet(BOT_OBJECTIVE_RETURN,own,own->position,own->sector); }
+         return;
+     }
++    nav.standoffSince=0;
+     if (ownCarrier) {
+         Bot_ObjectiveSet(BOT_OBJECTIVE_INTERCEPT,ownCarrier,ownCarrier->position,ownCarrier->sector);
+         return;
