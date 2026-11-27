@@ -93,7 +93,10 @@ evidence below and this repo lane. (Earlier evidence binaries: v129
   recovers to 5/11 capture-matches and 7 captures with shaft-top 17/22
   and grabs 13/22, and BGJ FF screens at 5.83 kills / 157 saber-fire per
   100 game-s (n=4). The uncorrected v139 hunt is superseded and should
-  not be used.
+  not be used. A further upward-lift-pair boarding gate with wait-aged
+  threshold re-cross (scratch v141, binary `aa29f6f0…`) was also rejected:
+  pooled 3/12 capture-matches and shaft-top 17/24 against v140's readable
+  5/11 and 17/22 — no improvement.
   At 1x on v139 (120 s ×6, 6/6 verified): canal entry 12/12 owner-games,
   far-half 9/12, enemy shaft-top 5/12, flag grabs 3/12, captures 0 — a
   full attack-and-return cycle does not fit the harness's ~172 s
