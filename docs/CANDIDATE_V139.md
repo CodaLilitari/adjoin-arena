@@ -79,10 +79,14 @@ produced on the v129 binary `b0892a77…`, the 1x evidence on v132
   gallery lift leg previously progressed by falling) and the re-trigger
   cycled carriers between sectors 380↔386. On v139 the funnel stays in
   family (shaft-top 10/12, grabs 8/12, captures in 2 of 6 matches; BGJ FF
-  6.67 kills / 186 saber-fire per 100 game-s over 4 games); no
-  mutual-carrier episode exceeded the 20 s hold in those 6 games, so the
-  standoff hunt itself is not yet observed firing — it only activates in a
-  state that otherwise deadlocks a lone carrier at home indefinitely.
+  6.67 kills / 186 saber-fire per 100 game-s over 4 games). In a further
+  12 verified v139 games exactly one mutual-carrier episode exceeded the
+  20 s hold (39 s overlap), and the hunt fired as designed — the dark
+  carrier's objective samples read ~20 s of `return` then `intercept` —
+  though that episode ended without a capture. Pooled v139 captures are
+  3 of 18 matches vs 14 of 36 across v110–v138 screens, with shaft-top
+  (29/36) and grab (21/36) rates in family; whether the capture dip is
+  seed variance at this n or a real cost needs a larger matched block.
   At 1x on v139 (120 s ×6, 6/6 verified): canal entry 12/12 owner-games,
   far-half 9/12, enemy shaft-top 5/12, flag grabs 3/12, captures 0 — a
   full attack-and-return cycle does not fit the harness's ~172 s
