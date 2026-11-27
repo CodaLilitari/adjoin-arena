@@ -6,7 +6,7 @@
   "base_patch_sha256": "6950c859f9e82aca8285daac011e1b72cb2a57644f01d2a465987312100ac52d",
   "archive_sha256": "ca63beaa5c3a283639950be045df0d5ffa5a2fb39cc259db479c3deee4a4a123",
   "base_binary_sha256": "862e566209dae8fab218243a47455b5a5616bf98fb8d1f09fa65969f9c8519aa",
-  "binary_sha256": "0349bd7604cf04b41052da5cbf20949fe6ede2fb0470c880971460faf7a51cb6",
+  "binary_sha256": "f6e44c96e5ac8e5167ef235c79295fa82d254a48a5bbb6e45f818fc1bcfb6627",
   "gns_sha256": "8246a869b1d72115ecc849309629aa1abbce0bf1a0f23cc70deaded98d82d8e9",
   "policy_patch_sha256": "fc145360f65c45ee2d937db7dcacc11c7daa23f631bb32f2d93a1aebaee9b73a",
   "policy_source_sha256": "b6a4277bed85ac1ad3aeb54b4d1ebdcdfb5013c14f34d7d69d4c6a8da407b098",
@@ -51,7 +51,7 @@
     "-Werror=implicit-function-declaration"
   ],
   "rebuilt_objects": {
-    "AI/jkBot": "a65af6aa4bbb93469e7c59144bb7cf50ff487fe217ba2d150b4ab9157fe68073",
+    "AI/jkBot": "037d2bebabb3e3e0d28dad2707adf66b302e967f690deb86851de4f4edd7cef0",
     "Devices/sithControl": "5e66f96e086f38da20b8d608ea87e832dc1404d3bd6dca2fbd2f1cbf7c4774a7",
     "Gui/jkGUIMultiplayer": "c67a5f9d775a9cbdfde1ca657078090287e0ab62cddefef2485422137a023018"
   },
@@ -74,7 +74,7 @@
     "src/AI/jkBotPersona.h": "e193097d937ed22400fe84d86a1e9e7f18884cc2be876fb1540627bee96e0bfb",
     "src/AI/jkBotRunJump.inc": "a7f8f65c1f629c6e49444f926d5ba33a5accbdb6a7686c2e4bc641442be5dcfc",
     "src/AI/jkBotTactics.inc": "d0ac4c753e25042ea0cb273e38326e4685b2570b75c6a96279ccfc38cf487d94",
-    "src/AI/jkBotTraps.inc": "9772e4cea3664af17767d27dfbf7ddb9e027858308234e4e44ce7a5f62ba8d01",
+    "src/AI/jkBotTraps.inc": "971cdd4a78e0cb331969db05c13f66283eefbab714b8cc1e6b528a4f70fd3b7c",
     "src/AI/jkBotWaterExit.inc": "2d1b36d679222c48936b8d4e920991da87fda6e536010e783ea54232dc241383",
     "src/AI/red_custom.h": "62adcb460f8eb296f085af119f9417f67a0c5d882bbfd565da04b2a37300f4c4",
     "src/AI/red_nav_recall.h": "fa4cfd06343249e059991926ece8edcbb87b1d6eac7410f94a2b6bbc01f509bf",
@@ -179,10 +179,10 @@
   "transfer_binary_sha256": "d48abd9b8d7e01facacfe8cc47ed27d1a6768b8122a6c9bbcefed17a8dc8196d",
   "custom_patch_sha256": "b2405f6d4887201225d53acc07cd87eaf3fdb4e8aba8d54fc0c2fbfe81100163",
   "custom_source_sha256": "62adcb460f8eb296f085af119f9417f67a0c5d882bbfd565da04b2a37300f4c4",
-  "custom_builder_sha256": "f08422ff30c8397d2e13b8b8965315137270a1a5faa7152eda0ce39c14d04574",
+  "custom_builder_sha256": "20ab0e6d1a6aa167203a035935b10c71c3e479d587969db481a5f1929c940358",
   "wading_patch_sha256": "5712e415aa58b162e008e30e5ae30ddca98d345b2dc9eac2a1759f45b9ccec55",
   "c3door_patch_sha256": "67ea383f11b937ee9eb9c80890a6c9ae73818b2896071508baefc6404e702a2d",
-  "candidate_patch_sha256": "b1da3d2d2fc2d01f8fe766f5bd499158a025af8a88023d0e2a217d38e4532b8a",
+  "candidate_patch_sha256": "9d9e2a29e3a01fbcaa7a2404eff5988dd18ef9a4a1c8bdff6515ff59ef693e4c",
   "candidate_final_shas": {
     "jkBot.c": "b28c23d1203eaf2c387d12f6d711c1ddb94ac2e5eb67f55ac3fbff02ad50c058",
     "jkBotNavigation.inc": "aefa43352c1eccd1970a608e3cf8eeef5a9c7cc413a121d58d554a56c51032cf",
@@ -190,5 +190,5 @@
     "jkBotTactics.inc": "d0ac4c753e25042ea0cb273e38326e4685b2570b75c6a96279ccfc38cf487d94",
     "jkBotRunJump.inc": "a7f8f65c1f629c6e49444f926d5ba33a5accbdb6a7686c2e4bc641442be5dcfc"
   },
-  "candidate_note": "candidate v132: v129 + JK_BOT_DIAG gate on candidate diagnostic logging (2026-11-27)"
+  "candidate_note": "candidate v138: v132 + lift cross0..3 threshold binding (2026-11-27)"
 }

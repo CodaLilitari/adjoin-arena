@@ -1,14 +1,18 @@
-# Candidate v132 lane
+# Candidate v138 lane
 
-Candidate v132 is the retained experimental bot client from the 2026-11-26/27
+Candidate v138 is the retained experimental bot client from the 2026-11-26/27
 training campaign, landed as an opt-in, hash-pinned build lane. It is the
-v125 stack plus two changes: the running-jump edge penalty in `Bot_AddEdge`
-drops from 5.0 to 1.0 so a proven runjump leg can beat the swim alternative
-in route choice (v129), and all candidate diagnostic logging sits behind a
-cached `JK_BOT_DIAG` environment check, off by default (v132; the launcher
-passes `JK_BOT_DIAG` through only when set in its own environment). It does
-not replace the packaged or Red default clients. The v125 and v129 patches
-remain in `native/candidate/` for the evidence trail.
+v125 stack plus three changes: the running-jump edge penalty in
+`Bot_AddEdge` drops from 5.0 to 1.0 so a proven runjump leg can beat the
+swim alternative in route choice (v129); all candidate diagnostic logging
+sits behind a cached `JK_BOT_DIAG` environment check, off by default (v132;
+the launcher passes `JK_BOT_DIAG` through only when set in its own
+environment); and the lift binder also recognizes the `cross0`–`cross3`
+threshold-adjoin symbol names used by `C3_MTRIGELEV.COG`, so the existing
+threshold step-off recovery in `Bot_LiftMove` works on C3's trigger
+elevators (v138, `jkBotTraps.inc`). It does not replace the packaged or Red
+default clients. The v125, v129, and v132 patches remain in
+`native/candidate/` for the evidence trail.
 
 ## Build
 
@@ -25,15 +29,17 @@ The builder follows the `build_red_custom.py` chain (transfer parent receipt
 
 1. `web_bots/shallow-wading.patch`
 2. `web_bots/candidate/c3-door-access.patch`
-3. `native/candidate/candidate-v132.patch` (SHA-256 `b1da3d2d…` = the v125
-   patch, five AI files, plus the runjump edge-cost and diagnostic-gate
-   hunks in `jkBotNavigation.inc` / `jkBotNavigate.inc`)
+3. `native/candidate/candidate-v138.patch` (SHA-256 `9d9e2a29…` = the v125
+   patch plus the runjump edge-cost and diagnostic-gate hunks in
+   `jkBotNavigation.inc` / `jkBotNavigate.inc` and the threshold-binding
+   hunk in `jkBotTraps.inc`)
 
 Frozen receipt: `native/red-candidate-build.json`. Expected binary SHA-256:
-`0349bd7604cf04b41052da5cbf20949fe6ede2fb0470c880971460faf7a51cb6`,
-bit-identical between the scratch experiment build that produced the gate
-evidence below and this repo lane. (The Dark Surge evidence was produced on
-the v129 binary `b0892a77…`; v132 differs only in gated diagnostic output.)
+`f6e44c96e5ac8e5167ef235c79295fa82d254a48a5bbb6e45f818fc1bcfb6627`,
+bit-identical between the scratch experiment build that produced the v138
+evidence below and this repo lane. (The Dark Surge max-pace evidence was
+produced on the v129 binary `b0892a77…` and the 1x evidence on v132
+`0349bd76…`; v138 differs from v132 only in lift threshold binding.)
 
 ## What the candidate changes
 
@@ -56,7 +62,20 @@ the v129 binary `b0892a77…`; v132 differs only in gated diagnostic output.)
   (5 of 12 verified 600 s matches); v125 screen: captures in 3 of 6 matches
   (red 2 / gold 1); v129 screen: captures in 2 of 6 matches, 4 total
   (red 3 / gold 1) — no regression from the cost change at this n. Capture
-  reliability above ~5/12 is open.
+  reliability above ~5/12 is open. Conversion funnel pooled over v110–v138
+  verified 600 s games: canal entry and far-half crossing are ~100%, enemy
+  shaft-top ~85–90%, flag grab ~65% of owner-games; the dominant loss is
+  the carrier return leg (canal deaths, mutual-flag standoffs at home, and
+  lift waits). Sector 380's trigger lift (thing 22, `C3_MTRIGELEV.COG`)
+  bound zero thresholds before v138 because the binder did not know the
+  `cross0`–`cross3` symbol names; with them bound, the riding step-off
+  recovery fires (98 events over 6 games on v138 vs 0 on v132), shaft-top
+  rate 11/12, captures in 2 of 6 matches — in family, no reliability jump
+  claimed at this n. A boarding-stop deck check and a step-off re-trigger
+  in the not-riding wait were tried on scratch builds (v136/v137) and
+  rejected: the deck check depressed shaft-top rate (6/12, the spawn
+  gallery lift leg previously progressed by falling) and the re-trigger
+  cycled carriers between sectors 380↔386.
 - BGJ Dark Surge (FF sabers, rate 0, 180 s ×8): with the 1.0 penalty the
   dark bot executed 6 runjump launches, all dry ok landings, and 3 pickups
   carry a full launch provenance chain — sector-1 NAV samples, `BOT_RUNJUMP
@@ -64,8 +83,8 @@ the v129 binary `b0892a77…`; v132 differs only in gated diagnostic output.)
   ~1.5 s (e.g. match-0004: launch t=76.40 → land t=77.66 → pickup t≈79.2).
   On v125 and v100 baselines there were 0 launches; every pickup arrived by
   swim or spawn. At 1x on the v132 binary (120 s ×12, 12/12 verified,
-  receipt-checked) the result repeats: 2 launches, both dry ok landings and
-  both proven launched pickups, each followed by a same-life exit from
+  receipt-checked) the result repeats: 2 proven launched pickups
+  (launch, dry ok landing, pickup), each followed by a same-life exit from
   sectors 6/61 within ~1–4 s with no death in the next 30 s — the full
   `qa/bgj-dark-surge-route.json` acceptance chain in both accelerated
   practice and private 1x play. (An earlier 180 s 1x block was invalidated:
@@ -74,8 +93,11 @@ the v129 binary `b0892a77…`; v132 differs only in gated diagnostic output.)
   ~172 s per-attempt deadline at 1x. The 120 s rerun above supersedes it.)
 - Sabers (same BGJ block): 6.46 kills and 152.6 sampled saber-fire per
   100 game-seconds, zero zero-contact games — in family with v110 (best
-  prior cell) and v125. BGJ NF and BoD NF dips versus the 2026-11-26 v1
-  cells remain watch items (small n, predate v59+).
+  prior cell) and v125. At larger n on v132 the earlier NF dips do not
+  reproduce: BGJ NF 6.11 kills / 146 saber-fire per 100 game-s over 8 games
+  (best prior NF cell 6.25/109 at n=4), BoD FF 2.85/130 and NF 1.53/56 over
+  8 games each, zero zero-contact games in all 24. v138 BGJ FF spot check:
+  7.50 kills / 177 saber-fire per 100 game-s over 4 games.
 
 Full campaign record: `adjoin-training-2026-11-26-report.md` (workspace root,
 not in this repo).
@@ -97,5 +119,9 @@ landings, 3 proven launched pickups; C3 verified captures 2/6 matches).
 
 ## Open work (goal-01a21de6)
 
-1. C3 capture reliability beyond 5/12 at 600 s, then 1x qualification.
-2. BGJ NF / BoD NF dip investigation at larger n; BoD re-screen on v132.
+1. C3 capture reliability beyond ~2–3 of 6 matches at 600 s: carrier
+   return-leg conversion (canal deaths, mutual-flag standoff behavior,
+   sector-380/605/529 dwells), then 1x qualification (≤120 s games under
+   the harness deadline).
+2. Production-lane decision: this lane is opt-in and hash-pinned but not
+   wired into `train_matches.py` receipts or any default client.
