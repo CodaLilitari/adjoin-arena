@@ -142,9 +142,15 @@ landings, 3 proven launched pickups; C3 verified captures 2/6 matches).
 
 ## Open work (goal-01a21de6)
 
-1. C3 capture reliability beyond ~2–3 of 6 matches at 600 s: carrier
-   return-leg conversion (canal deaths, sector-380/605/529 dwells,
-   observing the v139 standoff hunt actually fire), and a capture-at-1x
-   gate if the harness deadline ever allows longer 1x games.
+1. C3 capture reliability beyond ~2–5 of 11 matches at 600 s: carrier
+   return-leg conversion. Traced dwells: sector 529/527/791 thin-ledge
+   loop on the flag-room exit (carrier bounces 529→530→529→791 for
+   minutes at `path=0/N`, first leg never completes — same thin-sector
+   execution family as sectors 1/531), sector-380 lift call-down,
+   sector-605 airlock waits, and 440↔690 surf-exit oscillation. These
+   need execution support for portal/thin-sector transitions, not more
+   graph edges (validated-injection experiments on 2026-11-27). A
+   capture-at-1x gate also waits on the harness deadline allowing longer
+   1x games.
 2. Production-lane decision: this lane is opt-in and hash-pinned but not
    wired into `train_matches.py` receipts or any default client.
