@@ -62,7 +62,8 @@ def match_command(args, index: int, out_dir: Path) -> list[str]:
     if args.client_kind == "policy":
         harness += ["--red-policy-build", str(args.client_build)]
     else:
-        build_flag = "--competitive-build" if args.client_kind == "competitive" else "--transfer-build"
+        build_flag = {"competitive": "--competitive-build", "custom": "--custom-build",
+                      "candidate": "--candidate-build"}.get(args.client_kind, "--transfer-build")
         harness += [build_flag, str(args.client_build),
                     "--mode", args.mode, "--weapons", args.weapons,
                     "--force", args.force,
@@ -76,7 +77,7 @@ def match_command(args, index: int, out_dir: Path) -> list[str]:
         side = (("dark", "light")[(index // 2) % 2] if args.model_side == "alternate" else args.model_side)
         harness += ["--model-side", side,
                     "--policy-weights", str(args.policy_weights)]
-        if args.client_kind in ("transfer", "competitive"):
+        if args.client_kind in ("transfer", "competitive", "custom", "candidate"):
             harness += ["--trial-scope", rule_scope(args), "--trial-map-sha256", args.map_sha256,
                         "--trial-weights-sha256", args.weights_digest]
     if args.swap_join_order and index % 2:
@@ -89,7 +90,7 @@ def match_command(args, index: int, out_dir: Path) -> list[str]:
 
 def run_match(args, index: int, suffix: str = "") -> dict:
     out_dir = args.out / f"match-{index:04d}{suffix}"
-    if args.client_kind in ("transfer", "competitive"):
+    if args.client_kind in ("transfer", "competitive", "custom", "candidate"):
         # The harness requires an existing private cache root per match.
         (args.out / f"nav-{index:04d}").mkdir(exist_ok=True)
     started = time.monotonic()
@@ -196,7 +197,7 @@ def main() -> int:
                         help="Directory with episode/ and resource/ game data")
     parser.add_argument("--pace-build", type=Path, required=True)
     parser.add_argument("--client-build", type=Path, required=True)
-    parser.add_argument("--client-kind", choices=("policy", "transfer", "competitive"), default="policy")
+    parser.add_argument("--client-kind", choices=("policy", "transfer", "competitive", "custom", "candidate"), default="policy")
     parser.add_argument("--out", type=Path, required=True, help="Fresh root for match-XXXX dirs")
     parser.add_argument("--matches", type=int, default=8)
     parser.add_argument("--retries", type=int, default=1,
@@ -233,16 +234,16 @@ def main() -> int:
         args.harness_extra = args.harness_extra[1:]
     if (args.model_side is None) != (args.policy_weights is None):
         parser.error("--model-side and --policy-weights require each other")
-    if args.client_kind in ("transfer", "competitive") and not all(
+    if args.client_kind in ("transfer", "competitive", "custom", "candidate") and not all(
             (args.episode_file, args.episode_sha256, args.map_sha256)):
-        parser.error("Transfer and competitive clients require --episode-file/--episode-sha256/--map-sha256")
+        parser.error("Transfer, competitive, custom and candidate clients require --episode-file/--episode-sha256/--map-sha256")
     if args.client_kind == "policy" and (args.mode, args.weapons, args.force) != ("ffa", "guns", "on"):
         parser.error("Use a transfer build for the selected game rules.")
     if args.active_side and (args.model_side or args.policy_weights):
         parser.error("Choose either the active model or an explicit challenger.")
     if args.fit_next or args.active_side:
-        if not args.brain_root or args.client_kind not in ("transfer", "competitive"):
-            parser.error("--fit-next and --active-side require a BrainStore and a transfer or competitive client.")
+        if not args.brain_root or args.client_kind not in ("transfer", "competitive", "custom", "candidate"):
+            parser.error("--fit-next and --active-side require a BrainStore and a transfer, competitive, custom or candidate client.")
     if args.fit_next and (args.split != "practice" or args.mode == "ctf" or args.weapons != "guns"):
         parser.error("Pickup/fight training needs gun-mode practice games in FFA or TDM.")
     if args.jobs < 0 or args.retries < 0:

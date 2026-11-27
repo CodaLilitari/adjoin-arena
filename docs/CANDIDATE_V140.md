@@ -138,10 +138,15 @@ logs with the gate off; 1,626 `BOT_GRAPH_DUMP` lines in one game with
 (BGJ FF 6.46 kills / 174 saber-fire per 100 game-s, 9/9 dry runjump
 landings, 3 proven launched pickups; C3 verified captures 2/6 matches).
 
-## Known limitations
-- Harness training pins (`train_matches.py` receipts) still describe the Red
-  policy lane; run candidate matches by pointing the harness at the
-  candidate build output as in the scratch campaign.
+## Running candidate matches
+
+`train_matches.py --client-kind candidate --client-build <lane build dir>`
+runs the lane client directly from this repo (the underlying harness flag
+is `--candidate-build`); client resolution verifies the build directory
+against `native/red-candidate-build.json` and every pinned source,
+including `native/candidate/candidate-v140.patch`. The runner also accepts
+`--client-kind custom` for the stock custom-admission client. Defaults are
+unchanged (`policy`); the candidate kind is opt-in per invocation.
 
 ## Open work (goal-01a21de6)
 
@@ -155,5 +160,6 @@ landings, 3 proven launched pickups; C3 verified captures 2/6 matches).
    graph edges (validated-injection experiments on 2026-11-27). A
    capture-at-1x gate also waits on the harness deadline allowing longer
    1x games.
-2. Production-lane decision: this lane is opt-in and hash-pinned but not
-   wired into `train_matches.py` receipts or any default client.
+2. Production-lane decision: the lane is opt-in through
+   `--client-kind candidate`; making it any kind of default client is a
+   separate decision.

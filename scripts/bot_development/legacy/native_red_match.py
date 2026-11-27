@@ -9,12 +9,16 @@ RED_ARCHIVE = "ca63beaa5c3a283639950be045df0d5ffa5a2fb39cc259db479c3deee4a4a123"
 
 
 def resolve_client(repo, directory, pace_build, digest, *, transfer=False, custom=False, platform_build=False,
-                   hint_build=False, competitive=False):
+                   hint_build=False, competitive=False, candidate=False):
     manifest_name = "red-transfer-build.json" if transfer else "red-policy-build.json"
     if custom:
         if not transfer:
             raise ValueError("custom admission requires the transfer client")
         manifest_name = "red-custom-build.json"
+    if candidate:
+        if not transfer or custom:
+            raise ValueError("candidate lane requires the transfer client without custom admission")
+        manifest_name = "red-candidate-build.json"
     if platform_build:
         if not custom:
             raise ValueError("platform support requires the custom-admission client")
@@ -53,6 +57,16 @@ def resolve_client(repo, directory, pace_build, digest, *, transfer=False, custo
                      "native/red-custom.patch": "custom_patch_sha256",
                      "native/red_custom.h": "custom_source_sha256",
                      "native/build_red_custom.py": "custom_builder_sha256"})
+    if candidate:
+        # The candidate lane builds on the custom chain; its builder reuses the
+        # custom_* receipt keys for the shared custom patch/source/builder slots.
+        pins.update({"native/red-transfer-build.json": "transfer_receipt_sha256",
+                     "native/red-custom.patch": "custom_patch_sha256",
+                     "native/red_custom.h": "custom_source_sha256",
+                     "native/build_red_candidate.py": "custom_builder_sha256",
+                     "native/candidate/candidate-v140.patch": "candidate_patch_sha256",
+                     "web_bots/shallow-wading.patch": "wading_patch_sha256",
+                     "web_bots/candidate/c3-door-access.patch": "c3door_patch_sha256"})
     if platform_build:
         pins.update({"native/red-custom-build.json": "custom_receipt_sha256",
                      "native/red-platform.patch": "platform_patch_sha256",

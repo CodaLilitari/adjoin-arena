@@ -347,7 +347,7 @@ def run(args, receipt, tmp):
             bot, build = red_tools.resolve_client(repo, args.red_policy_build.resolve(), pace_build, digest,
                                                   transfer=bool(args.transfer_build), custom=bool(args.custom_build),
                                                   platform_build=bool(args.platform_build), hint_build=bool(args.hint_build),
-                                                  competitive=bool(args.competitive_build))
+                                                  competitive=bool(args.competitive_build), candidate=bool(args.candidate_build))
             args.red_tools = red_tools
             receipt["kind"] = "adjoin-arena-stock-red-policy"
             receipt["red_policy"] = {"build":build, "elite":True, "model_side":args.model_side,
@@ -425,7 +425,7 @@ def run(args, receipt, tmp):
                bots_sabers_only=False,bots_taunts=False,web_enabled=False,spectator_rendering=False,
                name="Native Force QA",max_players=4)
     if args.transfer_build:
-        if args.custom_build or (args.competitive_build and asset["episode"].casefold() not in ("jk1mp", "jk1ctf")):
+        if args.custom_build or args.candidate_build or (args.competitive_build and asset["episode"].casefold() not in ("jk1mp", "jk1ctf")):
             receipt["mode_transfer"]["custom_admission"] = transfer.custom_environment(
                 asset, args.mode, endpoint=f"127.0.0.1:{port}" if args.competitive_build else None)
         cfg.update(episode=asset["episode"],teams=args.mode!="ffa",game_flags=0x100 if args.mode=="tdm" else 0,
@@ -684,6 +684,8 @@ def main():
                         help="Use the pinned map- and mode-aware research client for an ungated match.")
     parser.add_argument("--custom-build", type=Path, metavar="DIRECTORY",
                         help="Use the separately pinned client that admits a locally verified custom episode.")
+    parser.add_argument("--candidate-build", type=Path, metavar="DIRECTORY",
+                        help="Use the pinned candidate-lane client (native/red-candidate-build.json).")
     parser.add_argument("--platform-build", type=Path, metavar="DIRECTORY",
                         help="Use the pinned custom client that recognizes supported walking surfaces over pits.")
     parser.add_argument("--hint-build", type=Path, metavar="DIRECTORY",
@@ -715,7 +717,7 @@ def main():
                         help="Record the selected native camera (implies --record).")
     args = parser.parse_args()
     if args.competitive_build:
-        if any((args.hint_build, args.custom_build, args.platform_build, args.transfer_build)):
+        if any((args.hint_build, args.custom_build, args.platform_build, args.transfer_build, args.candidate_build)):
             parser.error("--competitive-build selects a single stock-mode client")
         args.transfer_build = args.competitive_build
     elif args.saber_tracking != "both" or args.light_loadout != "competitive":
@@ -724,15 +726,19 @@ def main():
         parser.error("--light-loadout master requires a full Force match")
     hint = (args.route_hint, args.route_hint_sha256, args.route_hint_scope)
     if args.hint_build:
-        if args.platform_build or args.custom_build or args.transfer_build or not all(hint):
+        if args.platform_build or args.custom_build or args.transfer_build or args.candidate_build or not all(hint):
             parser.error("--hint-build requires one route file, its SHA-256 and its exact scope")
         args.platform_build = args.hint_build
     elif any(hint):
         parser.error("route hint settings require --hint-build")
     if args.platform_build:
-        if args.custom_build or args.transfer_build:
+        if args.custom_build or args.transfer_build or args.candidate_build:
             parser.error("select a single transfer, custom, or platform build")
         args.custom_build = args.platform_build
+    if args.candidate_build:
+        if args.custom_build or args.transfer_build:
+            parser.error("select one of --candidate-build, --custom-build and --transfer-build")
+        args.transfer_build = args.candidate_build
     if args.custom_build:
         if args.transfer_build:
             parser.error("select one of --custom-build and --transfer-build")
